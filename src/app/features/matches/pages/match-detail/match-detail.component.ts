@@ -11,6 +11,9 @@ import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchTimelineComponent } from '../../components/match-timeline/match-timeline.component';
 
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
@@ -26,6 +29,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
         EndMatchConfirmComponent,
         MatchEventModalComponent,
         MatchTimelineComponent,
+        HasPermissionDirective,
         PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
@@ -40,6 +44,7 @@ export class MatchDetailComponent implements OnInit {
     private router = inject(Router);
     private matchService = inject(MatchService);
     private authService = inject(AuthService);
+    private permissionsService = inject(PermissionsService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
 
@@ -119,18 +124,8 @@ export class MatchDetailComponent implements OnInit {
         }
     }
 
-    // Role checks
-    isAdmin(): boolean {
-        return this.authService.hasRole(UserRole.ADMIN);
-    }
-
-    isCaptain(): boolean {
-        return this.authService.hasRole(UserRole.CAPTAIN);
-    }
-
-    isReferee(): boolean {
-        return this.authService.hasRole(UserRole.REFEREE);
-    }
+    // Role checks removed - use permissions
+    Permission = Permission;
 
     loadMatch(id: string): void {
         this.isLoading = true;
@@ -156,28 +151,26 @@ export class MatchDetailComponent implements OnInit {
     }
 
     navigateBack(): void {
-        if (this.isAdmin()) {
+        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) {
             this.router.navigate(['/admin/matches']);
-        } else if (this.isCaptain()) {
-            this.router.navigate(['/captain/matches']);
-        } else if (this.isReferee()) {
+        } else if (this.permissionsService.hasPermission(Permission.START_MATCH)) {
             this.router.navigate(['/referee/matches']);
+        } else {
+            this.router.navigate(['/captain/matches']);
         }
     }
 
     getBackRoute(): string {
-        if (this.isAdmin()) return '/admin/matches';
-        if (this.isCaptain()) return '/captain/matches';
-        if (this.isReferee()) return '/referee/matches';
-        return '/';
+        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return '/admin/matches';
+        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return '/referee/matches';
+        return '/captain/matches';
     }
 
     getChatRoute(): string[] {
         if (!this.match) return [];
-        if (this.isAdmin()) return ['/admin/matches', this.match.id, 'chat'];
-        if (this.isCaptain()) return ['/captain/matches', this.match.id, 'chat'];
-        if (this.isReferee()) return ['/referee/matches', this.match.id, 'chat'];
-        return [];
+        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/matches', this.match.id, 'chat'];
+        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/matches', this.match.id, 'chat'];
+        return ['/captain/matches', this.match.id, 'chat'];
     }
 
     // ==================== REFEREE ACTIONS ====================

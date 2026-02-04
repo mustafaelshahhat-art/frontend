@@ -1,6 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchEventType } from '../../../../core/models/tournament.model';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
+import { Permission } from '../../../../core/permissions/permissions.model';
 
 export interface TimelineEvent {
     id: string;
@@ -13,14 +15,16 @@ export interface TimelineEvent {
 @Component({
     selector: 'app-match-timeline',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, HasPermissionDirective],
     templateUrl: './match-timeline.component.html',
     styleUrls: ['./match-timeline.component.scss']
 })
 export class MatchTimelineComponent {
     @Input() events: TimelineEvent[] = [];
     @Input() homeTeamId: string = '';
-    @Input() isAdmin = false;
+
+    // Permission for template usage
+    Permission = Permission;
 
     @Output() deleteEvent = new EventEmitter<string>();
 

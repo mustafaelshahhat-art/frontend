@@ -15,8 +15,8 @@
 
             <div class="actions" style="display: flex; gap: 0.5rem; align-items: center;">
                 <app-button
-                    *ngIf="(isCaptain() || isReferee() || isAdmin()) && (match.status === MatchStatus.SCHEDULED || match.status === MatchStatus.LIVE)"
-                    variant="ghost" icon="chat" [routerLink]="getChatRoute()">
+                    *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
+                    [routerLink]="getChatRoute()">
                 </app-button>
 
                 <app-badge
@@ -86,7 +86,7 @@
 
                     <!-- Events List -->
                     <app-match-timeline *ngIf="match.events && match.events.length > 0" [events]="match.events"
-                        [homeTeamId]="match.homeTeamId" [isAdmin]="isAdmin()" (deleteEvent)="deleteEvent($event)">
+                        [homeTeamId]="match.homeTeamId" (deleteEvent)="deleteEvent($event)">
                     </app-match-timeline>
                 </div>
             </div>
@@ -95,7 +95,7 @@
             <div class="controls-section">
 
                 <!-- Admin Controls (Premium Redesign) -->
-                <div *ngIf="isAdmin()" class="admin-tools-premium">
+                <div *appHasPermission="Permission.MANAGE_MATCHES" class="admin-tools-premium">
                     <div class="admin-header">
                         <div class="admin-title">
                             <span class="material-symbols-outlined">admin_panel_settings</span>
@@ -142,7 +142,7 @@
                 </div>
 
                 <!-- Referee Controls -->
-                <div *ngIf="isReferee()" class="control-panel">
+                <div *appHasPermission="Permission.START_MATCH" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">dashboard_customize</span>
                         <h3>مركز التحكم</h3>
@@ -166,7 +166,7 @@
                 </div>
 
                 <!-- Add Event Button -->
-                <div *ngIf="isReferee() && match.status === MatchStatus.LIVE" class="control-panel">
+                <div *appHasPermission="Permission.MANAGE_MATCH_EVENTS" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">edit_note</span>
                         <h3>تسجيل حدث</h3>
@@ -179,22 +179,24 @@
                 </div>
 
                 <!-- Report Preview -->
-                <div *ngIf="isReferee() && match.report?.isSubmitted" class="control-panel success-panel">
-                    <div class="panel-header">
-                        <span class="material-symbols-outlined">description</span>
-                        <h3>تقرير المباراة</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p class="report-notes">"{{ match.report?.notes || 'لا توجد ملاحظات' }}"</p>
-                        <div class="report-date">
-                            <span class="material-symbols-outlined">schedule</span>
-                            {{ match.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
+                <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
+                    <ng-container *ngIf="match.report?.isSubmitted">
+                        <div class="panel-header">
+                            <span class="material-symbols-outlined">description</span>
+                            <h3>تقرير المباراة</h3>
                         </div>
-                    </div>
+                        <div class="panel-body">
+                            <p class="report-notes">"{{ match.report?.notes || 'لا توجد ملاحظات' }}"</p>
+                            <div class="report-date">
+                                <span class="material-symbols-outlined">schedule</span>
+                                {{ match.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
+                            </div>
+                        </div>
+                    </ng-container>
                 </div>
 
                 <!-- Captain: Submit Objection -->
-                <div *ngIf="isCaptain() && match.status === MatchStatus.FINISHED" class="control-panel">
+                <div *appHasPermission="Permission.CREATE_OBJECTION" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">gavel</span>
                         <h3>تقديم اعتراض</h3>

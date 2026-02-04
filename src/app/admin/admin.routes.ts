@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
-import { roleGuard } from '../core/guards/role.guard';
-import { UserRole } from '../core/models/user.model';
+import { permissionGuard } from '../core/guards/permission.guard';
+import { Permission } from '../core/permissions/permissions.model';
 import { AdminLayoutComponent } from '../layouts/admin-layout/admin-layout.component';
 
 export const adminRoutes: Routes = [
     {
         path: '',
         component: AdminLayoutComponent,
-        canActivate: [roleGuard([UserRole.ADMIN])],
+        canActivate: [permissionGuard([Permission.MANAGE_USERS])],
         children: [
             {
                 path: 'dashboard',

@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
-import { roleGuard } from '../core/guards/role.guard';
-import { UserRole } from '../core/models/user.model';
+import { permissionGuard } from '../core/guards/permission.guard';
+import { Permission } from '../core/permissions/permissions.model';
 import { CaptainLayoutComponent } from '../layouts/captain-layout/captain-layout.component';
 
 export const captainRoutes: Routes = [
     {
         path: '',
         component: CaptainLayoutComponent,
-        canActivate: [roleGuard([UserRole.CAPTAIN])],
+        canActivate: [permissionGuard([Permission.MANAGE_MY_TEAM])],
         children: [
             {
                 path: 'dashboard',

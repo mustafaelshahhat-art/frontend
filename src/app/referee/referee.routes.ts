@@ -1,13 +1,13 @@
 import { Routes } from '@angular/router';
-import { roleGuard } from '../core/guards/role.guard';
-import { UserRole } from '../core/models/user.model';
+import { permissionGuard } from '../core/guards/permission.guard';
+import { Permission } from '../core/permissions/permissions.model';
 import { RefereeLayoutComponent } from '../layouts/referee-layout/referee-layout.component';
 
 export const refereeRoutes: Routes = [
     {
         path: '',
         component: RefereeLayoutComponent,
-        canActivate: [roleGuard([UserRole.REFEREE])],
+        canActivate: [permissionGuard([Permission.START_MATCH])],
         children: [
             {
                 path: 'dashboard',

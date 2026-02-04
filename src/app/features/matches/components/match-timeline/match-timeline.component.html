@@ -19,7 +19,8 @@
                 <span class="event-label">{{ getEventLabel(event.type) }}</span>
             </div>
 
-            <button *ngIf="isAdmin" (click)="onDelete(event.id)" class="btn-delete-event" title="حذف الحدث">
+            <button *appHasPermission="Permission.MANAGE_MATCHES" (click)="onDelete(event.id)" class="btn-delete-event"
+                title="حذف الحدث">
                 <span class="material-symbols-outlined icon-sm">delete</span>
             </button>
         </div>
