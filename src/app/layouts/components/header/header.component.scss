@@ -6,9 +6,11 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-3) var(--space-lg);
-    background: var(--bg-header-transparent);
-    backdrop-filter: var(--blur-lg);
-    border-bottom: 1px solid var(--border-visible);
+    background: rgba(19, 27, 46, 0.85); // slightly more transparent for glass
+    backdrop-filter: blur(12px); // stronger blur
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     min-height: var(--height-header);
     flex-shrink: 0;
     width: 100%;
@@ -80,6 +82,11 @@
 
         .material-symbols-outlined {
             font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        &:active .material-symbols-outlined {
+            transform: scale(0.9);
         }
     }
 

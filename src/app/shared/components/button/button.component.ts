@@ -16,6 +16,7 @@ export class ButtonComponent {
     @Input() iconPos: 'left' | 'right' = 'left';
     @Input() isLoading = false;
     @Input() disabled = false;
+    @Input() ariaLabel?: string;
 
     @HostBinding('class.full-width')
     @Input() fullWidth = false;

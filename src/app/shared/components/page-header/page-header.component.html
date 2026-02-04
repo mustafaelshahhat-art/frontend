@@ -6,6 +6,7 @@
             <h1 class="page-title">{{ title }}</h1>
             <p class="page-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
         </div>
+        <ng-content select="[breadcrumbs]"></ng-content>
     </div>
 
     <div class="header-actions">

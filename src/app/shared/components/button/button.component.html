@@ -1,5 +1,6 @@
-<button [type]="type" [disabled]="disabled || isLoading" [class]="'btn btn-' + variant + ' btn-' + size"
-    [class.loading]="isLoading" (click)="onClick.emit($event)">
+<button [type]="type" [class]="'btn btn-' + variant + ' btn-' + size" [class.loading]="isLoading"
+    [disabled]="disabled || isLoading" (click)="onClick.emit($event)"
+    [attr.aria-label]="ariaLabel || (icon && !ng.content ? 'Button' : null)">
     <span *ngIf="isLoading" class="spinner"></span>
 
     <ng-container *ngIf="!isLoading">

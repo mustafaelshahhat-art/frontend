@@ -148,6 +148,28 @@
         color: var(--color-primary);
         border-color: var(--color-primary-20);
         box-shadow: var(--shadow-glow-sm);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--color-primary);
+            box-shadow: 0 0 10px var(--color-primary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--color-primary-10) 0%, transparent 100%);
+            z-index: -1;
+        }
     }
 }
 
