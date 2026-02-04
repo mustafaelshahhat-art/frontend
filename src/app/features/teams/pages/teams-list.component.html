@@ -1,12 +1,11 @@
 <div class="page-container">
     <div class="page-content flex-col gap-md">
-        <!-- Page Header Section -->
-        <app-page-header title="إدارة الفرق" subtitle="استعراض وإدارة الفرق المسجلة في البطولة">
-            <!-- Filter Tabs -->
-            <div class="mb-2xl animate-fade-in-up">
-                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
-            </div>
-        </app-page-header>
+        <app-page-header title="إدارة الفرق" subtitle="استعراض وإدارة الفرق المسجلة في البطولة"></app-page-header>
+
+        <!-- Filter Section -->
+        <div class="filter-section animate-fade-in-up">
+            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+        </div>
 
         <!-- Loading State -->
         <app-inline-loading *ngIf="isLoading" message="جاري تحميل الفرق..."></app-inline-loading>
@@ -17,7 +16,7 @@
         </app-empty-state>
 
         <!-- Desktop Table View -->
-        <div *ngIf="!isLoading && filteredTeams.length > 0" class="card p-0 overflow-hidden hide-on-mobile">
+        <div *ngIf="!isLoading && filteredTeams.length > 0" class="table-wrapper hide-on-mobile">
             <div class="table-container">
                 <table class="table">
                     <thead>
@@ -109,17 +108,17 @@
                 </div>
 
                 <div class="card-footer-actions">
-                    <button (click)="viewTeam(team)" class="action-btn-pill">
+                    <button (click)="viewTeam(team)" class="action-btn-pill" title="عرض التفاصيل">
                         <span class="material-symbols-outlined">visibility</span>
                     </button>
                     <div class="flex-1"></div>
-                    <div class="flex gap-2">
+                    <div class="flex items-center gap-3">
                         <button (click)="requestToggleStatus(team)" class="action-btn-pill" [class.warn]="team.isActive"
-                            [class.success]="!team.isActive">
+                            [class.success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
                             <span class="material-symbols-outlined">{{ team.isActive ? 'block' : 'check_circle'
                                 }}</span>
                         </button>
-                        <button (click)="requestDelete(team)" class="action-btn-pill danger">
+                        <button (click)="requestDelete(team)" class="action-btn-pill danger" title="حذف">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
