@@ -1,59 +1,82 @@
-# Frontend
+# Ramadan Tournament Platform (Frontend)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.2.
+**Version:** 1.0.0 (Gold Master)
+**Architecture:** Modular Monolith (Angular Standalone)
 
-## Development server
+## 🏗️ Architecture Overview
 
-To start a local development server, run:
+This project follows a strict **Feature-Based Architecture**.
 
-```bash
-ng serve
+### 📂 Directory Structure
+
+```
+src/app/
+├── core/           # Singleton services, Interceptors, Guards (NO COMPONENTS)
+├── shared/         # Reusable UI Components, Pipes, Directives (NO BUSINESS LOGIC)
+├── features/       # Business Domains (Matches, Tournaments). Lazy Loaded.
+├── layouts/        # App Shells (Admin, Referee, Captain)
+└── styles/         # Global Design System (_tokens.scss, _theme.scss)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### 🚫 Non-Negotiable Rules
 
-## Code scaffolding
+1.  **Strict Layering**: Features cannot import from other Features. Shared cannot import from Features.
+2.  **Performance**:
+    - `OnPush` Change Detection is MANDATORY.
+    - `trackBy` is MANDATORY for `*ngFor`.
+    - Reactive State via Signals.
+3.  **Design System**:
+    - **No Inline Styles**.
+    - **No Hardcoded Colors**. Use `var(--color-name)`.
+    - Styles must be centralized in `_tokens.scss`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🚀 Getting Started
 
+### Prerequisites
+- Node.js 18+
+- Angular CLI 18+
+
+### Installation
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+### Running the App
 ```bash
-ng generate --help
+npm start
+```
+Navigate to `http://localhost:4200/`.
+
+### Linting & Code Quality
+```bash
+npm run lint  # Checks TS and HTML
 ```
 
-## Building
+*Note: If lint scripts are missing, ensure `angular-eslint` and `stylelint` are installed.*
 
-To build the project run:
+## 🧩 Adding a New Feature
 
-```bash
-ng build
+1.  Create feature directory: `src/app/features/my-feature`.
+2.  Define routes in `my-feature.routes.ts`.
+3.  Register strict lazy route in `app.routes.ts`.
+4.  Implement Smart Components using Signals.
+5.  Use Shared Components for UI (Cards, Buttons).
+
+## 🔐 Permissions & Roles
+
+Access is controlled via `PermissionGuard` and `*appHasPermission`.
+
+**Example:**
+```html
+<app-button *appHasPermission="[Permission.MANAGE_MATCHES]">
+  Edit Match
+</app-button>
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 📖 Key Documentation
+- [Final Sign-Off & Architecture Rules](file:///C:/Users/musta/.gemini/antigravity/brain/3dfa2a6d-0d8f-401c-b724-1ae58b5be840/final_sign_off.md)
+- [Design System Report](file:///C:/Users/musta/.gemini/antigravity/brain/3dfa2a6d-0d8f-401c-b724-1ae58b5be840/phase6_report.md)
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+**Status:** FROZEN ❄️
+**System:** Ready for Production
