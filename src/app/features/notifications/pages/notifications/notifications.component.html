@@ -10,27 +10,6 @@
     </app-page-header>
 
     <div class="notifications-content">
-        <!-- Admin Tool: New Announcement -->
-        <app-card *ngIf="isAdmin()" title="إرسال إعلان جديد" icon="campaign">
-            <div class="admin-panel">
-                <div class="form-group">
-                    <label>عنوان الإشعار</label>
-                    <input type="text" [(ngModel)]="newNotification.title" placeholder="أدخل عنواناً جذاباً..."
-                        class="premium-input">
-                </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>نص الرسالة</label>
-                    <textarea [(ngModel)]="newNotification.message" placeholder="ماذا تريد إخبار المستخدمين به؟"
-                        rows="4" class="premium-input textarea"></textarea>
-                </div>
-                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-                    <app-button (click)="sendNotification()" icon="send"
-                        [disabled]="!newNotification.title || !newNotification.message">
-                        إرسال الإشعار للجميع
-                    </app-button>
-                </div>
-            </div>
-        </app-card>
 
         <!-- Notifications List -->
         <div class="notifications-list">

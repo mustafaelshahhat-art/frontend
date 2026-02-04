@@ -46,11 +46,6 @@ export class NotificationsComponent implements OnInit {
     isLoading = true;
     notifications: Notification[] = [];
 
-    // Admin: notification form
-    newNotification = {
-        title: '',
-        message: ''
-    };
 
     ngOnInit(): void {
         this.loadNotifications();
@@ -98,7 +93,7 @@ export class NotificationsComponent implements OnInit {
 
     get pageSubtitle(): string {
         const subtitles: Record<UserRole, string> = {
-            [UserRole.ADMIN]: 'إرسال وتنبيهات النظام للمستخدمين',
+            [UserRole.ADMIN]: 'إدارة تنبيهات النظام والمستخدمين',
             [UserRole.CAPTAIN]: 'ابقَ على اطلاع بأحدث مجريات البطولة وقرارات اللجنة',
             [UserRole.REFEREE]: 'تابع آخر التعديلات والتعيينات الخاصة بمبارياتك',
             [UserRole.PLAYER]: 'تابع آخر أخبار فريقك'
@@ -142,23 +137,6 @@ export class NotificationsComponent implements OnInit {
         return colors[type] || '#64748b';
     }
 
-    sendNotification(): void {
-        if (this.newNotification.title && this.newNotification.message) {
-            // Admin: send notification
-            const notification: Notification = {
-                id: Date.now(),
-                title: this.newNotification.title,
-                message: this.newNotification.message,
-                time: 'الآن',
-                type: 'system',
-                isRead: true,
-                icon: 'send'
-            };
-            this.notifications.unshift(notification);
-            this.newNotification = { title: '', message: '' };
-            this.cdr.detectChanges();
-        }
-    }
 
     isAdmin(): boolean {
         return this.userRole === UserRole.ADMIN;
