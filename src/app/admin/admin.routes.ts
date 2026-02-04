@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../core/guards/role.guard';
 import { UserRole } from '../core/models/user.model';
-import { AdminLayoutComponent } from '../shared/layout/admin-layout/admin-layout.component';
+import { AdminLayoutComponent } from '../layouts/admin-layout/admin-layout.component';
 
 export const adminRoutes: Routes = [
     {
@@ -15,15 +15,15 @@ export const adminRoutes: Routes = [
             },
             {
                 path: 'objections',
-                loadComponent: () => import('../shared/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent)
+                loadComponent: () => import('../features/objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent)
             },
             {
                 path: 'tournaments',
-                loadComponent: () => import('../shared/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent)
+                loadComponent: () => import('../features/tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent)
             },
             {
                 path: 'tournaments/:id',
-                loadComponent: () => import('../shared/pages/tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent)
+                loadComponent: () => import('../features/tournaments/pages/tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent)
             },
             {
                 path: 'users',
@@ -35,27 +35,27 @@ export const adminRoutes: Routes = [
             },
             {
                 path: 'teams',
-                loadComponent: () => import('./teams/teams-list.component').then(m => m.TeamsListComponent)
+                loadComponent: () => import('../features/teams/pages/teams-list.component').then(m => m.TeamsListComponent)
             },
             {
                 path: 'teams/:id',
-                loadComponent: () => import('./teams/team-detail/team-detail.component').then(m => m.TeamDetailComponent)
+                loadComponent: () => import('../features/teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailComponent)
             },
             {
                 path: 'matches',
-                loadComponent: () => import('../shared/pages/matches-list/matches-list.component').then(m => m.MatchesListComponent)
+                loadComponent: () => import('../features/matches/pages/matches-list/matches-list.component').then(m => m.MatchesListComponent)
             },
             {
                 path: 'matches/:id',
-                loadComponent: () => import('../shared/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent)
+                loadComponent: () => import('../features/matches/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent)
             },
             {
                 path: 'matches/:id/chat',
-                loadComponent: () => import('../captain/matches/match-chat/match-chat.component').then(m => m.MatchChatComponent)
+                loadComponent: () => import('../features/matches/pages/match-chat/match-chat.component').then(m => m.MatchChatComponent)
             },
             {
                 path: 'notifications',
-                loadComponent: () => import('../shared/pages/notifications/notifications.component').then(m => m.NotificationsComponent)
+                loadComponent: () => import('../features/notifications/pages/notifications/notifications.component').then(m => m.NotificationsComponent)
             },
             {
                 path: 'payment-requests',

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../core/guards/role.guard';
 import { UserRole } from '../core/models/user.model';
-import { RefereeLayoutComponent } from '../shared/layout/referee-layout/referee-layout.component';
+import { RefereeLayoutComponent } from '../layouts/referee-layout/referee-layout.component';
 
 export const refereeRoutes: Routes = [
     {
@@ -15,23 +15,23 @@ export const refereeRoutes: Routes = [
             },
             {
                 path: 'matches',
-                loadComponent: () => import('../shared/pages/matches-list/matches-list.component').then(m => m.MatchesListComponent)
+                loadComponent: () => import('../features/matches/pages/matches-list/matches-list.component').then(m => m.MatchesListComponent)
             },
             {
                 path: 'matches/:id',
-                loadComponent: () => import('../shared/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent)
+                loadComponent: () => import('../features/matches/pages/match-detail/match-detail.component').then(m => m.MatchDetailComponent)
             },
             {
                 path: 'matches/:id/chat',
-                loadComponent: () => import('../captain/matches/match-chat/match-chat.component').then(m => m.MatchChatComponent)
+                loadComponent: () => import('../features/matches/pages/match-chat/match-chat.component').then(m => m.MatchChatComponent)
             },
             {
                 path: 'notifications',
-                loadComponent: () => import('../shared/pages/notifications/notifications.component').then(m => m.NotificationsComponent)
+                loadComponent: () => import('../features/notifications/pages/notifications/notifications.component').then(m => m.NotificationsComponent)
             },
             {
                 path: 'profile',
-                loadComponent: () => import('../shared/pages/profile/profile.component').then(m => m.ProfileComponent)
+                loadComponent: () => import('../features/users/pages/profile/profile.component').then(m => m.ProfileComponent)
             },
             {
                 path: '',
