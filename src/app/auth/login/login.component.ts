@@ -75,6 +75,9 @@ export class LoginComponent {
                         case UserRole.CAPTAIN:
                             this.router.navigate(['/captain/dashboard']);
                             break;
+                        case UserRole.PLAYER:
+                            this.router.navigate(['/captain/dashboard']); // Temporary redirect
+                            break;
                         default:
                             this.router.navigate(['/']);
                     }
@@ -96,14 +99,16 @@ export class LoginComponent {
     }
 
     // Temporary quick login for testing
-    quickLogin(role: 'admin' | 'captain' | 'referee'): void {
+    quickLogin(role: 'admin' | 'captain' | 'referee' | 'player' | 'playerClub'): void {
         this.isLoading = true;
         this.errorMessage = null;
 
-        const credentials = {
+        const credentials: Record<string, { email: string, password: string }> = {
             admin: { email: 'admin@test.com', password: 'password' },
             captain: { email: 'player@test.com', password: 'password' },
-            referee: { email: 'referee@test.com', password: 'password' }
+            referee: { email: 'referee@test.com', password: 'password' },
+            player: { email: 'user@test.com', password: 'password' },
+            playerClub: { email: 'clubplayer@test.com', password: 'password' }
         };
 
         const { email, password } = credentials[role];
@@ -123,6 +128,9 @@ export class LoginComponent {
                             this.router.navigate(['/referee/dashboard']);
                             break;
                         case UserRole.CAPTAIN:
+                            this.router.navigate(['/captain/dashboard']);
+                            break;
+                        case UserRole.PLAYER:
                             this.router.navigate(['/captain/dashboard']);
                             break;
                         default:

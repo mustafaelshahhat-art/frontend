@@ -58,7 +58,7 @@ const MOCK_USERS: User[] = [
         id: '4',
         displayId: 'PLR-6001',
         name: 'سالم عبدالله',
-        email: 'player2@test.com',
+        email: 'user@test.com',
         role: UserRole.PLAYER, // Regular player, no team
         status: UserStatus.ACTIVE,
         avatar: 'https://i.pravatar.cc/150?img=4',
@@ -69,6 +69,23 @@ const MOCK_USERS: User[] = [
         nationalId: '29105150109999',
         age: 25,
         createdAt: new Date('2024-02-10')
+    },
+    {
+        id: '5',
+        displayId: 'PLR-7002',
+        name: 'عمر خالد',
+        email: 'clubplayer@test.com',
+        role: UserRole.PLAYER, // Player in a team
+        status: UserStatus.ACTIVE,
+        avatar: 'https://i.pravatar.cc/150?img=5',
+        phone: '+966500000005',
+        governorate: 'القاهرة',
+        city: 'النزهة',
+        neighborhood: 'مصر الجديدة',
+        nationalId: '29505150101111',
+        age: 22,
+        teamId: 'team1', // Member of team1
+        createdAt: new Date('2024-02-15')
     }
 ];
 

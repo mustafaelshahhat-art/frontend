@@ -4,40 +4,309 @@
 }
 
 .bg-gradient-login {
-    background: linear-gradient(135deg, var(--color-surface-ground) 0%, var(--color-surface-section) 100%);
+    background: var(--gradient-login);
+    position: relative;
+    width: 100%;
+    /* Ensure full width cover */
+}
+
+.auth-container {
+    min-height: 100vh;
+    /* Fallback */
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+
+    @media (max-width: 480px) {
+        padding: var(--space-md);
+        justify-content: center;
+        /* Center on mobile too if height allows, otherwise flex-col handles it */
+        min-height: 100vh;
+        /* Ensure full height availability */
+    }
 }
 
 .auth-card {
-    background: var(--color-surface-card);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-2xl);
-    box-shadow: var(--shadow-xl);
-    max-width: 480px;
+    background: rgba(19, 27, 46, 0.7);
+    /* Custom glass opacity for login */
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-3xl);
+    padding: var(--space-3xl);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    /* Deep shadow */
+    max-width: 440px;
+    /* Slightly narrower for modern look */
     width: 100%;
-    margin: auto;
-    border: 1px solid var(--color-border-subtle);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+
+    @media (max-width: 480px) {
+        padding: var(--space-xl);
+        border-radius: var(--radius-2xl);
+        max-width: 100%;
+        margin-top: var(--space-xl);
+    }
+}
+
+/* Subtle inner highlight border */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.auth-logo {
+    width: 88px;
+    height: 88px;
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    border-radius: var(--radius-2xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px var(--color-primary-20);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .material-symbols-outlined {
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.auth-title {
+    font-weight: 800;
+    /* Extra bold */
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    font-size: 1.75rem;
+}
+
+.quick-login-btn {
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-primary-30);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    /* Active/Focus state visual adjustment */
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
 }
 
 .ramadan-pattern {
     background-image: url('/assets/images/pattern-light.png');
-    /* Adjust path as needed */
-    opacity: 0.05;
+    opacity: 0.03;
     pointer-events: none;
+    mix-blend-mode: overlay;
 }
 
 /* Animations */
 .animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(40px) scale(0.98);
     }
 
     to {
         opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ==========================================================================
+   Form Input Fixes (RTL & Icon Position)
+   ========================================================================== */
+
+/* Ensure proper relative positioning for icon placement */
+.form-group .relative,
+app-form-control .relative {
+    position: relative;
+    display: block;
+}
+
+/* Fix overlapping icons in RTL */
+.form-input-with-icon-right {
+    padding-right: 48px !important;
+    /* Force padding for start icon */
+    padding-left: var(--space-4);
+}
+
+.form-input-with-icon-both {
+    padding-right: 48px !important;
+    padding-left: 48px !important;
+}
+
+/* Vertically center icons */
+.form-icon-right,
+.form-icon-left {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 44px;
+    /* Reduced width slightly */
+    z-index: 2;
+    pointer-events: none;
+    /* Let clicks pass through static icons */
+}
+
+.form-icon-right {
+    right: 4px;
+    /* Offset from edge */
+}
+
+.form-icon-left {
+    left: 4px;
+    /* Offset from edge */
+}
+
+/* Make actionable icons pointer-events-auto */
+button.form-icon-left {
+    pointer-events: auto;
+    cursor: pointer;
+    border-radius: var(--radius-full);
+    /* Round hover effect */
+    height: 40px;
+    /* Constrain height */
+    width: 40px;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: translateY(-50%) !important;
+        /* Prevent global button hover jump */
+    }
+
+    &:focus-visible {
+        background-color: rgba(255, 255, 255, 0.1);
+        outline: none;
+    }
+}
+
+/* ==========================================================================
+   Quick Login Grid
+   ========================================================================== */
+
+/* ==========================================================================
+   Quick Login Grid
+   ========================================================================== */
+
+.quick-login-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-3);
+
+    @media (max-width: 480px) {
+        /* User Requirement: Keep them next to each other on small screens */
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 2px;
+        /* Extremely tight gap for 5 items */
+        margin-left: -8px;
+        /* Negative margin to fit width if needed */
+        margin-right: -8px;
+    }
+}
+
+.quick-login-btn {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-visible);
+    background: var(--bg-surface);
+    transition: var(--transition-fast);
+
+    /* Make secondary style more subtle */
+    opacity: 0.9;
+
+    /* Mobile Interaction Improvements */
+    @media (max-width: 480px) {
+        padding: var(--space-2);
+        border-radius: var(--radius-lg);
+        gap: 4px;
+        /* Smaller gap between icon and text */
+
+        /* Smaller text & icon for mobile */
+        .material-symbols-outlined {
+            font-size: 20px !important;
+        }
+
+        span.text-xs {
+            font-size: 10px !important;
+            white-space: nowrap;
+        }
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-primary-30);
+        background: var(--bg-surface-light);
+        opacity: 1;
+    }
+
+    &:active {
         transform: translateY(0);
+    }
+
+    /* Active/Focus state visual adjustment */
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        z-index: 10;
+    }
+
+    span {
+        transition: color 0.2s ease;
+    }
+
+    &:hover span.text-primary {
+        /* Icon glow on hover */
+        text-shadow: 0 0 10px var(--color-primary-20);
     }
 }

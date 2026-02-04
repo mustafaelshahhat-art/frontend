@@ -5,7 +5,9 @@ import { Router, RouterModule } from '@angular/router';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
 import { MatchCardComponent } from '../../shared/components/match-card/match-card.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { Match, MatchStatus } from '../../core/models/tournament.model';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-captain-dashboard',
@@ -15,13 +17,17 @@ import { Match, MatchStatus } from '../../core/models/tournament.model';
         RouterModule,
         WelcomeCardComponent,
         StatCardComponent,
-        MatchCardComponent
+        MatchCardComponent,
+        ButtonComponent
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
 })
 export class CaptainDashboardComponent implements OnInit {
     private readonly router = inject(Router);
+    private readonly authService = inject(AuthService);
+
+    currentUser = this.authService.getCurrentUser();
 
     stats = [
         { label: 'اللاعبين', value: '12', icon: 'groups', colorClass: 'info' },
