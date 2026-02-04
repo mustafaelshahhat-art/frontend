@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -33,7 +33,8 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
         BadgeComponent
     ],
     templateUrl: './notifications.component.html',
-    styleUrls: ['./notifications.component.scss']
+    styleUrls: ['./notifications.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotificationsComponent implements OnInit {
     private authService = inject(AuthService);
@@ -165,5 +166,9 @@ export class NotificationsComponent implements OnInit {
 
     get unreadCount(): number {
         return this.notifications.filter(n => !n.isRead).length;
+    }
+
+    trackByNotification(index: number, item: Notification): number {
+        return item.id;
     }
 }

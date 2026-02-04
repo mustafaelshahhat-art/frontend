@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewChecked, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewChecked, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,7 +24,8 @@ export interface ChatParticipant {
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './chat-box.component.html',
-    styleUrls: ['./chat-box.component.scss']
+    styleUrls: ['./chat-box.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatBoxComponent implements OnInit, AfterViewChecked {
     @Input() title = 'المحادثة المباشرة';
@@ -76,5 +77,13 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
 
     isMe(msg: ChatMessage): boolean {
         return msg.senderId === this.currentUserId;
+    }
+
+    trackByMessage(index: number, message: ChatMessage): string {
+        return message.id;
+    }
+
+    trackByParticipant(index: number, participant: ChatParticipant): string {
+        return participant.id;
     }
 }

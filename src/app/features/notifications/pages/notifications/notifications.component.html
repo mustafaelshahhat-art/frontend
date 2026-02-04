@@ -1,7 +1,7 @@
 <div class="notifications-page">
     <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
 
-        <div class="actions" style="display: flex; gap: 0.75rem;">
+        <div class="actions flex-center-gap">
             <app-button *ngIf="unreadCount > 0" variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
                 تحديد الكل كمقروء
             </app-button>
@@ -49,12 +49,11 @@
             </app-empty-state>
 
             <!-- Items -->
-            <app-card *ngFor="let notif of notifications" class="notification-item" [class.unread]="!notif.isRead"
-                (click)="markAsRead(notif)" [isClickable]="true">
+            <app-card *ngFor="let notif of notifications; trackBy: trackByNotification" class="notification-item"
+                [class.unread]="!notif.isRead" (click)="markAsRead(notif)" [isClickable]="true">
 
-                <div style="display: flex; gap: 1.5rem;">
-                    <div class="notif-icon-box" [style.background-color]="getColor(notif.type) + '15'"
-                        [style.color]="getColor(notif.type)">
+                <div class="notification-content-wrapper">
+                    <div class="notif-icon-box" [attr.data-type]="notif.type">
                         <span class="material-symbols-outlined">{{ getIcon(notif.type) }}</span>
                     </div>
                     <div class="notif-details" style="flex: 1;">

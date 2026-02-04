@@ -37,7 +37,7 @@
                     <div class="chat-section-line"></div>
                 </div>
                 <div class="chat-participant-list">
-                    <div *ngFor="let p of participants" class="chat-participant-item">
+                    <div *ngFor="let p of participants; trackBy: trackByParticipant" class="chat-participant-item">
                         <div class="chat-participant-avatar"
                             [class.chat-participant-avatar-home]="p.teamId === match?.homeTeamId"
                             [class.chat-participant-avatar-away]="p.teamId !== match?.awayTeamId">
@@ -94,8 +94,8 @@
                 <p class="chat-empty-subtitle">ابدأ المحادثة مع الحكم والفرق الأخرى</p>
             </div>
 
-            <div *ngFor="let msg of messages" class="chat-message" [class.chat-message-me]="isMe(msg)"
-                [class.chat-message-other]="!isMe(msg)">
+            <div *ngFor="let msg of messages; trackBy: trackByMessage" class="chat-message"
+                [class.chat-message-me]="isMe(msg)" [class.chat-message-other]="!isMe(msg)">
 
                 <div class="chat-message-sender" [class.chat-message-sender-reversed]="isMe(msg)">
                     <span class="chat-message-name">{{ msg.senderName }}</span>
