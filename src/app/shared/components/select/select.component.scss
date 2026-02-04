@@ -1,0 +1,204 @@
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    user-select: none;
+    font-family: var(--font-body);
+
+    &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+}
+
+.select-trigger {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: var(--transition-base);
+    min-height: 48px;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--color-primary-30);
+    }
+
+    .isOpen & {
+        border-color: var(--color-primary);
+        background: rgba(255, 255, 255, 0.07);
+        box-shadow: var(--shadow-glow-sm);
+    }
+
+    .has-error & {
+        border-color: var(--color-danger-40);
+
+        &:hover {
+            border-color: var(--color-danger);
+        }
+    }
+}
+
+.select-content {
+    flex: 1;
+    text-align: right;
+}
+
+.placeholder {
+    color: var(--color-secondary-500);
+    font-size: var(--font-size-sm);
+    opacity: 0.7;
+}
+
+.selected-label {
+    color: var(--color-white);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.select-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-secondary-400);
+
+    .chevron {
+        font-size: 20px;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        &.rotated {
+            transform: rotate(180deg);
+            color: var(--color-primary);
+        }
+    }
+}
+
+.options-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(19, 27, 46, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    z-index: var(--z-dropdown);
+    overflow: hidden;
+    transform-origin: top;
+    animation: dropdownEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes dropdownEnter {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.options-list {
+    max-height: 240px;
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+.option-item {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-secondary-300);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    margin-bottom: 2px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--color-white);
+        padding-right: var(--space-5);
+        /* Tiny slide effect */
+    }
+
+    &.selected {
+        background: var(--color-primary-10);
+        color: var(--color-primary-light);
+        font-weight: 600;
+    }
+
+    .option-icon {
+        font-size: 20px;
+        color: var(--color-primary);
+        opacity: 0.8;
+    }
+
+    .check-icon {
+        font-size: 18px;
+        margin-right: auto;
+        color: var(--color-primary);
+        animation: checkBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+}
+
+@keyframes checkBounce {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.no-options {
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+    color: var(--color-secondary-500);
+    font-size: var(--text-sm);
+    font-style: italic;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar {
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-full);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+}
+
+/* RTL Specific Fixes */
+:host-context([dir="rtl"]) {
+    .option-item:hover {
+        padding-right: var(--space-4);
+        padding-left: var(--space-5);
+    }
+
+    .check-icon {
+        margin-right: auto;
+        margin-left: 0;
+    }
+}

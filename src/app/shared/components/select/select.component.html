@@ -1,0 +1,28 @@
+<div class="select-wrapper" #selectRef [class.isOpen]="isOpen" [class.disabled]="disabled" [class.has-error]="error">
+    <div class="select-trigger" (click)="toggle()" [class.has-value]="selectedValue !== null">
+        <div class="select-content">
+            <span *ngIf="!selectedValue" class="placeholder">{{ placeholder }}</span>
+            <span *ngIf="selectedValue" class="selected-label">{{ selectedLabel }}</span>
+        </div>
+
+        <div class="select-actions">
+            <span *ngIf="loading" class="spinner-sm"></span>
+            <span class="material-symbols-outlined chevron" [class.rotated]="isOpen">expand_more</span>
+        </div>
+    </div>
+
+    <div *ngIf="isOpen" class="options-dropdown animate-fade-in">
+        <div class="options-list custom-scrollbar">
+            <div *ngIf="options.length === 0" class="no-options">لا توجد خيارات</div>
+
+            <div *ngFor="let option of options" class="option-item" [class.selected]="option.value === selectedValue"
+                (click)="selectOption(option)">
+
+                <span *ngIf="option.icon" class="material-symbols-outlined option-icon">{{ option.icon }}</span>
+                <span class="option-label">{{ option.label }}</span>
+
+                <span *ngIf="option.value === selectedValue" class="material-symbols-outlined check-icon">check</span>
+            </div>
+        </div>
+    </div>
+</div>

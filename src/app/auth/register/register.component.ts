@@ -1,16 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { UserRole } from '../../core/models/user.model';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, SelectComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
@@ -53,7 +54,7 @@ export class RegisterComponent {
       name: 'الجيزة',
       cities: [
         { name: 'الدقي', neighborhoods: ['ميدان المساحة', 'شارع التحرير', 'البحوث'] },
-        { name: 'المهندسين', neighborhoods: ['شارع أحمد عرابي', 'شارع جامعة الدول', 'ميدان سفنكس'] },
+        { name: 'الالمهندسين', neighborhoods: ['شارع أحمد عرابي', 'شارع جامعة الدول', 'ميدان سفنكس'] },
         { name: '6 أكتوبر', neighborhoods: ['الحي المتميز', 'الحي الأول', 'الحي الثامن'] }
       ]
     }
@@ -62,21 +63,30 @@ export class RegisterComponent {
   selectedGovernorate: any = null;
   selectedCity: any = null;
 
+  get governorateOptions(): SelectOption[] {
+    return this.locations.map(gov => ({ label: gov.name, value: gov.name }));
+  }
+
+  get cityOptions(): SelectOption[] {
+    if (!this.selectedGovernorate) return [];
+    return this.selectedGovernorate.cities.map((city: any) => ({ label: city.name, value: city.name }));
+  }
+
   nextStep(role: UserRole): void {
     this.form.role = role;
     this.currentStep = 2;
   }
 
-  onGovChange(): void {
-    this.selectedGovernorate = this.locations.find(l => l.name === this.form.governorate);
+  onGovChange(value: string): void {
+    this.selectedGovernorate = this.locations.find(l => l.name === value);
     this.form.city = '';
     this.form.neighborhood = '';
     this.selectedCity = null;
   }
 
-  onCityChange(): void {
+  onCityChange(value: string): void {
     if (this.selectedGovernorate) {
-      this.selectedCity = this.selectedGovernorate.cities.find((c: any) => c.name === this.form.city);
+      this.selectedCity = this.selectedGovernorate.cities.find((c: any) => c.name === value);
     }
     this.form.neighborhood = '';
   }
