@@ -1,0 +1,130 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
+/* 
+  Mobile Card Grid System 
+  Designed to replace traditional tables on mobile screens with beautiful, 
+  glassmorphic shared cards.
+*/
+
+.mobile-data-grid {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-md);
+    width: 100%;
+
+    @media (max-width: 768px) {
+        display: flex;
+    }
+}
+
+.mobile-data-card {
+    background: var(--bg-surface-glass);
+    backdrop-filter: var(--blur-md);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4);
+    transition: var(--transition-premium);
+    position: relative;
+    overflow: hidden;
+
+    &:active {
+        transform: scale(0.98);
+        background: var(--bg-card-hover);
+    }
+
+    /* Card Header for Name/Rank */
+    .card-mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--border-subtle);
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+
+            .rank-badge {
+                width: 28px;
+                height: 28px;
+                background: var(--gradient-primary);
+                color: var(--bg-dark);
+                border-radius: var(--radius-lg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: var(--text-xs);
+                font-weight: var(--font-black);
+                box-shadow: var(--shadow-glow-sm);
+            }
+
+            h4 {
+                font-size: var(--text-base);
+                font-weight: var(--font-black);
+                color: var(--text-primary);
+                margin: 0;
+            }
+        }
+    }
+
+    /* Stats Grid inside Card */
+    .card-mobile-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-3);
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-2);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-lg);
+
+            .label {
+                font-size: 10px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: var(--font-bold);
+                margin-bottom: var(--space-1);
+            }
+
+            .value {
+                font-size: var(--text-sm);
+                font-weight: var(--font-black);
+                color: var(--text-primary);
+            }
+
+            &.highlight {
+                background: var(--color-primary-10);
+
+                .value {
+                    color: var(--color-primary-light);
+                }
+            }
+        }
+    }
+
+    /* Footer for Form/Trends or Actions */
+    .card-mobile-footer {
+        margin-top: var(--space-4);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .footer-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: var(--font-bold);
+        }
+
+        .footer-content {
+            display: flex;
+            gap: 4px;
+        }
+    }
+}

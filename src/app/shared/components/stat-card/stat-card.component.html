@@ -1,11 +1,10 @@
-<div class="stat-card card-hover">
-    <div class="flex items-center gap-2 mb-2">
-        <div class="stat-card-icon" [ngClass]="colorClass">
-            <span class="material-symbols-outlined text-lg">{{ icon }}</span>
-        </div>
+<div class="stat-card" [ngClass]="colorClass">
+    <div class="stat-content">
+        <span class="stat-label">{{ label }}</span>
+        <span class="stat-value">{{ value }}</span>
     </div>
-    <div class="stat-card-body">
-        <div class="stat-card-label text-2xs">{{ label }}</div>
-        <div class="stat-card-value text-xl">{{ value }}</div>
+
+    <div class="stat-icon-wrapper" [ngClass]="colorClass">
+        <span class="material-symbols-outlined">{{ icon }}</span>
     </div>
 </div>

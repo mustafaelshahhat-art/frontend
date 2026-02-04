@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,4 +17,11 @@ export class WelcomeCardComponent {
     @Input() statusClass: string = 'status-dot-online';
     @Input() badgeClass: string = 'badge-success';
     @Input() statusIcon: string = '';
+    @Input() showLogout: boolean = false;
+
+    @Output() logout = new EventEmitter<void>();
+
+    onLogout(): void {
+        this.logout.emit();
+    }
 }

@@ -7,10 +7,8 @@
     </app-page-header>
 
     <div class="tournaments-content">
-        <!-- Search & Filter Bar -->
+        <!-- Filter Bar -->
         <div class="toolbar">
-            <app-search placeholder="البحث عن بطولة..." [value]="searchQuery()" (searchChange)="onSearchChange($event)">
-            </app-search>
             <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)">
             </app-filter>
         </div>

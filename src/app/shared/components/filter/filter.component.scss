@@ -1,94 +1,109 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
+:host {
+    display: block;
+    width: 100%;
+}
+
 .filter-tabs {
     display: flex;
-    background: var(--bg-card);
-    border: 1px solid var(--border-visible);
-    border-radius: var(--radius-xl);
-    padding: var(--space-1);
-    gap: var(--space-1);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    background: var(--bg-surface-glass);
+    backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-1-5);
+    gap: var(--space-1-5);
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    /* No scrolling */
 
-    &::-webkit-scrollbar {
-        display: none;
-    }
-
-    @media (max-width: 480px) {
-        border-radius: var(--radius-lg);
-        gap: 0;
+    @media (max-width: 640px) {
+        border-radius: var(--radius-xl);
+        padding: var(--space-1);
+        gap: var(--space-1);
     }
 }
 
 .filter-tab {
-    flex: 1;
-    min-width: 100px;
+    flex: 1 1 0;
+    /* Grow, Shrink, and basis 0 to distribute equally */
+    min-width: 0;
+    /* Allow shrinking below content size */
     padding: var(--space-3) var(--space-4);
     background: transparent;
     border: none;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
+    /* Fluid font size: scales between 14px and 16px usually, but we'll override on mobile */
     font-size: var(--text-sm);
-    font-weight: var(--font-bold);
+    font-weight: var(--font-black);
     color: var(--text-muted);
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: var(--transition-premium);
     position: relative;
     white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
+    letter-spacing: var(--tracking-wide);
 
     .material-symbols-outlined {
         font-size: 20px;
+        flex-shrink: 0;
+        transition: transform var(--duration-fast);
+
+        @media (max-width: 768px) {
+            font-size: 18px;
+        }
+
+        @media (max-width: 500px) {
+            display: none;
+            /* Hide icons earlier to give text more room */
+        }
     }
 
-    .tab-indicator {
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 3px;
-        background: var(--color-primary);
-        border-radius: var(--radius-full);
-        transition: width 0.3s ease;
+    span:not(.material-symbols-outlined) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
     }
 
     &:hover {
         color: var(--text-primary);
+        background: var(--bg-surface-light);
+
+        .material-symbols-outlined {
+            transform: translateY(-2px);
+        }
     }
 
     &.active {
-        background: var(--color-primary-10);
-        color: var(--color-primary);
+        background: var(--gradient-primary);
+        color: var(--bg-dark);
+        box-shadow: var(--shadow-glow-sm);
 
-        .tab-indicator {
-            width: 24px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        min-width: auto;
-        flex: 1;
-        padding: var(--space-2) var(--space-4);
-        font-size: 11px;
-        border-radius: var(--radius-full);
-        background: var(--bg-surface-light);
-        border: 1px solid var(--border-visible);
-        margin: 0 var(--space-1);
-
-        &.active {
-            background: var(--color-primary);
+        .material-symbols-outlined {
             color: var(--bg-dark);
-            border-color: var(--color-primary);
-
-            .tab-indicator {
-                display: none;
-            }
-        }
-
-        .tab-indicator {
-            display: none;
         }
     }
+
+    @media (max-width: 640px) {
+        padding: var(--space-2-5) var(--space-1-5);
+        font-size: clamp(10px, 2.5vw, 13px);
+        border-radius: var(--radius-lg);
+        letter-spacing: normal;
+        gap: var(--space-1);
+    }
+
+    @media (max-width: 400px) {
+        /* Extra small screens: highly aggressive scaling */
+        font-size: clamp(8px, 3vw, 11px);
+        padding: var(--space-2) var(--space-0-5);
+    }
+}
+
+/* RTL Adjustments */
+[dir="rtl"] .filter-tab {
+    font-family: var(--font-body);
 }

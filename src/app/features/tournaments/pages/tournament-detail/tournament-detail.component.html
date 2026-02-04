@@ -1,104 +1,142 @@
 <div class="tournament-detail-page">
-    <app-page-header [title]="tournament?.name || 'تفاصيل البطولة'" [subtitle]="tournament?.description || ''">
-        <div class="actions" style="display: flex; gap: 0.75rem;">
-            <app-button *ngIf="isAdmin()" variant="outline" size="sm" icon="edit"
-                (click)="editTournament()">تعديل</app-button>
-            <app-button *ngIf="isAdmin()" variant="ghost" size="sm"
-                [icon]="tournament?.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
-                (click)="toggleStatus()">
-                {{ tournament?.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح التسجيل' }}
-            </app-button>
-            <app-button *ngIf="isCaptain() && tournament?.status === TournamentStatus.REGISTRATION_OPEN"
-                variant="primary" icon="rocket_launch" (click)="registerTeam()">
-                سجل فريقك
-            </app-button>
-        </div>
+    <app-page-header [title]="tournament?.name || 'تفاصيل البطولة'" [subtitle]="tournament?.description || ''"
+        [showBack]="true">
     </app-page-header>
 
     <div class="tournament-detail-container">
         <!-- Loading -->
-        <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
-            <div class="loading-spinner"
-                style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
-            </div>
-            <p style="color: #94a3b8;">جاري تحميل البيانات...</p>
+        <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>جاري تحميل البيانات...</p>
         </div>
 
         <ng-container *ngIf="!isLoading && tournament">
             <!-- Banner Card -->
             <app-card class="tournament-banner-card">
+                <div class="banner-overlay"></div>
                 <div class="tournament-header-content">
                     <div class="tournament-main-info">
-                        <app-badge
-                            [type]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral'"
-                            style="margin-bottom: 1rem;">
-                            {{ getStatusLabel(tournament.status) }}
-                        </app-badge>
+                        <div class="top-meta">
+                            <app-badge
+                                [type]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral'"
+                                class="status-badge">
+                                <span class="dot"></span>
+                                {{ getStatusLabel(tournament.status) }}
+                            </app-badge>
+                            <span class="created-at">أنشئت في {{ tournament.createdAt | date:'shortDate' }}</span>
+                        </div>
+
                         <h2>{{ tournament.name }}</h2>
+
                         <div class="tournament-meta">
-                            <span><span class="material-symbols-outlined">calendar_month</span> {{ tournament.startDate
-                                | date:'yyyy/MM/dd' }}</span>
-                            <span><span class="material-symbols-outlined">location_on</span> {{ tournament.location ||
-                                'غير محدد' }}</span>
-                            <span><span class="material-symbols-outlined">payments</span> {{ tournament.entryFee }}
-                                ريال</span>
+                            <div class="meta-item">
+                                <span class="material-symbols-outlined">calendar_today</span>
+                                <div>
+                                    <label>البداية</label>
+                                    <span>{{ tournament.startDate | date:'yyyy/MM/dd' }}</span>
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="material-symbols-outlined">location_on</span>
+                                <div>
+                                    <label>الموقع</label>
+                                    <span>{{ tournament.location || 'غير محدد' }}</span>
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <span class="material-symbols-outlined">payments</span>
+                                <div>
+                                    <label>الاشتراك</label>
+                                    <span>{{ tournament.entryFee }} ريال</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="banner-actions">
+                            <!-- Admin Actions -->
+                            <ng-container *ngIf="isAdmin()">
+                                <app-button variant="primary" size="md" shadow="glow"
+                                    [icon]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
+                                    (click)="toggleStatus()">
+                                    {{ tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح
+                                    التسجيل' }}
+                                </app-button>
+                            </ng-container>
+
+                            <!-- Captain Actions -->
+                            <app-button *ngIf="isCaptain() && tournament.status === TournamentStatus.REGISTRATION_OPEN"
+                                variant="primary" size="md" shadow="glow" icon="rocket_launch" (click)="registerTeam()">
+                                سجل فريقك الآن
+                            </app-button>
                         </div>
                     </div>
 
-                    <div class="tournament-quick-stats" style="display: flex; gap: 2rem;">
-                        <div style="text-align: center;">
-                            <p style="color: #64748b; font-size: 0.75rem; text-transform: uppercase;">الفرق</p>
-                            <p style="font-size: 1.5rem; font-weight: 800; color: #10B981;">{{ tournament.currentTeams
-                                }}/{{ tournament.maxTeams }}</p>
+                    <div class="tournament-quick-stats">
+                        <div class="stat-circle"
+                            [style.--progress]="(tournament.currentTeams / tournament.maxTeams) * 100">
+                            <div class="stat-content">
+                                <span class="stat-value">{{ tournament.currentTeams }}/{{ tournament.maxTeams }}</span>
+                                <span class="stat-label">فريق</span>
+                            </div>
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" class="bg"></circle>
+                                <circle cx="50" cy="50" r="45" class="fg"></circle>
+                            </svg>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: #64748b; font-size: 0.75rem; text-transform: uppercase;">المباريات</p>
-                            <p style="font-size: 1.5rem; font-weight: 800; color: #10B981;">{{ matches.length }}</p>
+                        <div class="stat-pill">
+                            <span class="material-symbols-outlined">sports_soccer</span>
+                            <span class="value">{{ matches.length }}</span>
+                            <span class="label">مباراة</span>
                         </div>
                     </div>
                 </div>
             </app-card>
 
             <!-- Navigation Tabs -->
-            <div class="tournament-tabs" style="margin-bottom: 2rem;">
-                <app-filter [items]="tabs" [activeValue]="activeTab" (change)="activeTab = $event"></app-filter>
-            </div>
+            <app-filter [items]="tabs" [activeValue]="activeTab" (change)="activeTab = $event"
+                class="tab-filter"></app-filter>
 
-            <!-- Tab Content -->
+            <!-- Navigation Tabs Content -->
             <div class="tab-content" [ngSwitch]="activeTab">
                 <!-- Info Tab -->
                 <div *ngSwitchCase="'info'" class="info-grid">
-                    <app-card title="عن البطولة" icon="description" style="flex: 2;">
-                        <p style="line-height: 1.7; color: #94a3b8;">{{ tournament.description || 'لا يوجد وصف متاح لهذه
-                            البطولة.' }}</p>
-
-                        <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: #f8fafc;">قواعد البطولة</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div
-                                style="display: flex; align-items: center; gap: 0.75rem; color: #94a3b8; font-size: 0.875rem;">
-                                <span class="material-symbols-outlined" style="color: #10B981;">check_circle</span>
-                                السن القانوني (+18)
-                            </div>
-                            <div
-                                style="display: flex; align-items: center; gap: 0.75rem; color: #94a3b8; font-size: 0.875rem;">
-                                <span class="material-symbols-outlined" style="color: #10B981;">check_circle</span>
-                                الالتزام بالزي الرياضي
+                    <app-card class="stats-card">
+                        <div class="card-header-premium">
+                            <span class="material-symbols-outlined">military_tech</span>
+                            <h3>الهدافون</h3>
+                        </div>
+                        <div class="scorers-list">
+                            <div *ngFor="let s of scorers" class="scorer-item">
+                                <div class="rank">{{ s.rank }}</div>
+                                <div class="info">
+                                    <span class="name">{{ s.name }}</span>
+                                    <span class="team">{{ s.team }}</span>
+                                </div>
+                                <div class="goals-badge">
+                                    <span class="value">{{ s.goals }}</span>
+                                    <span class="label">أهداف</span>
+                                </div>
                             </div>
                         </div>
                     </app-card>
 
-                    <app-card title="الهدافون" icon="sports_soccer" style="flex: 1;">
-                        <div class="scorers-list" style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div *ngFor="let scorer of scorers"
-                                style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px;">
-                                <div style="display: flex; align-items: center; gap: 1rem;">
-                                    <span style="font-weight: 800; color: #10B981;">#{{ scorer.rank }}</span>
-                                    <div>
-                                        <p style="margin: 0; font-weight: 600;">{{ scorer.name }}</p>
-                                        <p style="margin: 0; font-size: 0.75rem; color: #64748b;">{{ scorer.team }}</p>
-                                    </div>
-                                </div>
-                                <span style="font-weight: 800; font-size: 1.1rem;">{{ scorer.goals }}</span>
+                    <app-card class="rules-card">
+                        <div class="card-header-premium">
+                            <span class="material-symbols-outlined">gavel</span>
+                            <h3>قواعد البطولة</h3>
+                        </div>
+                        <div class="rules-list">
+                            <div class="rule-item">
+                                <span class="material-symbols-outlined check">check_circle</span>
+                                <p>الالتزام بالزي الرياضي الموحد لجميع أعضاء الفريق.</p>
+                            </div>
+                            <div class="rule-item">
+                                <span class="material-symbols-outlined check">check_circle</span>
+                                <p>الحضور قبل موعد المباراة بـ 15 دقيقة على الأقل.</p>
+                            </div>
+                            <div class="rule-item">
+                                <span class="material-symbols-outlined check">check_circle</span>
+                                <p>يمنع الاعتراض غير اللائق على قرارات الحكام.</p>
                             </div>
                         </div>
                     </app-card>
@@ -106,60 +144,110 @@
 
                 <!-- Standings Tab -->
                 <div *ngSwitchCase="'standings'" class="standings-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="rank">#</th>
-                                <th class="team-name">الفريق</th>
-                                <th>لعب</th>
-                                <th>فاز</th>
-                                <th>تعادل</th>
-                                <th>خسر</th>
-                                <th>+/-</th>
-                                <th class="points">نقاط</th>
-                                <th style="text-align: center;">آخر 5</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let s of standings; let i = index">
-                                <td class="rank">{{ i + 1 }}</td>
-                                <td class="team-name">{{ s.team }}</td>
-                                <td>{{ s.played }}</td>
-                                <td>{{ s.won }}</td>
-                                <td>{{ s.draw }}</td>
-                                <td>{{ s.lost }}</td>
-                                <td>{{ s.gd }}</td>
-                                <td class="points">{{ s.points }}</td>
-                                <td style="text-align: center;">
+                    <!-- Desktop Table -->
+                    <div class="desktop-only">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="rank">#</th>
+                                    <th class="team-name">الفريق</th>
+                                    <th>لعب</th>
+                                    <th>فاز</th>
+                                    <th>تعادل</th>
+                                    <th>خسر</th>
+                                    <th>+/-</th>
+                                    <th class="points">نقاط</th>
+                                    <th style="text-align: center;">آخر 5</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let s of standings; let i = index">
+                                    <td class="rank">{{ i + 1 }}</td>
+                                    <td class="team-name">{{ s.team }}</td>
+                                    <td>{{ s.played }}</td>
+                                    <td>{{ s.won }}</td>
+                                    <td>{{ s.draw }}</td>
+                                    <td>{{ s.lost }}</td>
+                                    <td>{{ s.gd }}</td>
+                                    <td class="points">{{ s.points }}</td>
+                                    <td style="text-align: center;">
+                                        <div style="display: flex; gap: 4px; justify-content: center;">
+                                            <span *ngFor="let r of s.form" class="form-dot" [class]="r">{{ r }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile Shared Grid Design -->
+                    <div class="mobile-data-grid">
+                        <div *ngFor="let s of standings; let i = index" class="mobile-data-card">
+                            <div class="card-mobile-header">
+                                <div class="title-group">
+                                    <div class="rank-badge">{{ i + 1 }}</div>
+                                    <h4>{{ s.team }}</h4>
+                                </div>
+                                <app-badge type="success">{{ s.points }} نقطة</app-badge>
+                            </div>
+
+                            <div class="card-mobile-stats">
+                                <div class="stat-box"><span class="label">لعب</span><span class="value">{{ s.played
+                                        }}</span></div>
+                                <div class="stat-box highlight"><span class="label">فاز</span><span class="value">{{
+                                        s.won }}</span></div>
+                                <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.draw
+                                        }}</span></div>
+                                <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost
+                                        }}</span></div>
+                                <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.gd
+                                        }}</span></div>
+                                <div class="stat-box highlight"><span class="label">نقاط</span><span class="value">{{
+                                        s.points }}</span></div>
+                            </div>
+
+                            <div class="card-mobile-footer">
+                                <span class="footer-label">آخر 5 مباريات:</span>
+                                <div class="footer-content">
                                     <span *ngFor="let r of s.form" class="form-dot" [class]="r">{{ r }}</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Matches Tab -->
                 <div *ngSwitchCase="'matches'">
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+                    <div *ngIf="matches.length > 0" class="matches-grid">
                         <app-match-card *ngFor="let match of matches" [match]="match" (click)="viewMatch(match.id)"
                             style="cursor: pointer;"></app-match-card>
-                        <app-empty-state *ngIf="matches.length === 0" icon="event_busy" title="لا توجد مباريات"
-                            description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن."></app-empty-state>
                     </div>
+                    <app-empty-state *ngIf="matches.length === 0" icon="event_busy" title="لا توجد مباريات"
+                        description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
+                    </app-empty-state>
                 </div>
 
                 <!-- Teams Tab -->
-                <div *ngSwitchCase="'teams'">
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-                        <app-card *ngFor="let i of [1,2,3,4,5]" title="فريق النجوم" icon="shield">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #64748b; font-size: 0.875rem;">تاريخ التسجيل</span>
-                                <span style="font-weight: 600;">2024/03/15</span>
+                <div *ngSwitchCase="'teams'" class="teams-grid">
+                    <div *ngFor="let reg of tournament.registrations" class="team-card">
+                        <div class="team-logo">
+                            <span class="material-symbols-outlined">shield</span>
+                        </div>
+                        <div class="team-info">
+                            <h3>{{ reg.teamName }}</h3>
+                            <div class="captain-info">
+                                <span class="material-symbols-outlined">person</span>
+                                <span>{{ reg.captainName }}</span>
                             </div>
-                        </app-card>
+                        </div>
+                        <div class="team-footer">
+                            <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
+                            <app-badge type="success" size="sm">مؤكد</app-badge>
+                        </div>
                     </div>
+                    <app-empty-state *ngIf="tournament.registrations.length === 0" icon="groups" title="لا يوجد فرق"
+                        description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
+                    </app-empty-state>
                 </div>
             </div>
         </ng-container>

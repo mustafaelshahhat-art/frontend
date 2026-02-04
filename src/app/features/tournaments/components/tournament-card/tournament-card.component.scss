@@ -1,47 +1,137 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
+:host {
+    display: block;
+    height: 100%;
+}
+
 .tournament-card-premium {
     height: 100%;
     display: flex;
     flex-direction: column;
+    background: var(--bg-surface-glass);
+    backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-lg);
+    transition: var(--transition-premium);
+    position: relative;
+    overflow: hidden;
+
+    &.clickable {
+        cursor: pointer;
+    }
+
+    &:hover {
+        transform: translateY(-8px);
+        border-color: var(--color-primary-40);
+        background: var(--bg-card-hover);
+        box-shadow: var(--shadow-xl), 0 0 25px var(--color-primary-10);
+
+        .tournament-banner {
+            .material-symbols-outlined {
+                transform: scale(1.1) translateY(-5px);
+                opacity: 0.5;
+            }
+
+            &::after {
+                opacity: 0.4;
+            }
+        }
+
+        .fill-progress {
+            filter: brightness(1.2) drop-shadow(0 0 8px var(--color-primary));
+        }
+    }
 }
 
 .tournament-banner {
-    height: 140px;
-    background: linear-gradient(135deg, var(--color-primary, #10B981) 0%, var(--color-primary-dark, #059669) 100%);
-    border-radius: var(--radius-xl, 12px);
-    margin-bottom: var(--space-4, 16px);
+    height: 160px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--space-xl);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     overflow: hidden;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.25);
+
+    /* Decorative glow inside banner */
+    &::after {
+        content: '';
+        position: absolute;
+        width: 140px;
+        height: 140px;
+        background: var(--color-white);
+        filter: blur(60px);
+        opacity: 0.2;
+        border-radius: var(--radius-full);
+        transition: opacity var(--duration-normal) ease;
+    }
 
     .material-symbols-outlined {
-        font-size: 64px;
-        color: rgba(255, 255, 255, 0.2);
+        font-size: 80px;
+        color: var(--color-white);
+        opacity: 0.3;
+        z-index: var(--z-above);
+        transition: var(--transition-bounce);
     }
 
     .status-badge-overlay {
         position: absolute;
-        top: var(--space-3, 12px);
-        right: var(--space-3, 12px);
+        top: var(--space-4);
+        right: var(--space-4);
+        z-index: var(--z-above);
+
+        /* Make badge inside banner pop more */
+        ::ng-deep .badge {
+            backdrop-filter: blur(8px);
+            font-weight: var(--font-black);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-lg);
+
+            &.badge-success {
+                background: rgba(16, 185, 129, 0.9);
+                color: var(--color-white);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            }
+
+            &.badge-info {
+                background: rgba(59, 130, 246, 0.9);
+                color: var(--color-white);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+
+            &.badge-warning {
+                background: rgba(245, 158, 11, 0.9);
+                color: var(--color-white);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            }
+        }
     }
 }
 
 .tournament-info {
     flex: 1;
+    text-align: right;
 
     h3 {
-        font-size: var(--text-lg, 18px);
-        font-weight: var(--font-bold, 700);
-        color: var(--text-primary, #f1f5f9);
-        margin-bottom: var(--space-2, 8px);
+        font-size: var(--text-xl);
+        font-weight: var(--font-black);
+        color: var(--text-primary);
+        margin-bottom: var(--space-2);
+        line-height: var(--leading-tight);
     }
 
     p {
-        font-size: var(--text-sm, 14px);
-        color: var(--text-secondary, #94a3b8);
-        margin-bottom: var(--space-4, 16px);
-        line-height: 1.5;
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin-bottom: var(--space-5);
+        line-height: var(--leading-relaxed);
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -51,26 +141,42 @@
 
 .tournament-stats {
     display: flex;
-    gap: var(--space-xl, 20px);
-    margin-bottom: var(--space-4, 16px);
-    padding-top: var(--space-4, 16px);
-    border-top: 1px solid var(--border-visible, rgba(255, 255, 255, 0.05));
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
 
     .stat-item {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: var(--space-1);
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            color: var(--text-muted);
+
+            .material-symbols-outlined {
+                font-size: 16px;
+                color: var(--color-primary-light);
+            }
+        }
 
         .label {
-            font-size: 10px;
-            color: var(--text-muted, #64748b);
+            font-size: var(--text-2xs);
             text-transform: uppercase;
+            font-weight: var(--font-black);
+            letter-spacing: var(--tracking-widest);
         }
 
         .value {
-            font-size: var(--text-sm, 14px);
-            font-weight: var(--font-bold, 700);
-            color: var(--text-primary, #f1f5f9);
+            font-size: var(--text-sm);
+            font-weight: var(--font-black);
+            color: var(--text-primary);
+            margin-right: 2px;
         }
     }
 }
@@ -81,27 +187,32 @@
     .fill-label {
         display: flex;
         justify-content: space-between;
-        font-size: 11px;
-        color: var(--text-secondary, #94a3b8);
-        margin-bottom: 4px;
+        align-items: center;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        margin-bottom: var(--space-2);
+        font-weight: var(--font-bold);
     }
 
     .fill-bar {
-        height: 6px;
-        background: var(--bg-surface-dark, #1f2937);
-        border-radius: 3px;
+        height: 10px;
+        background: var(--bg-surface-light);
+        border-radius: var(--radius-full);
         overflow: hidden;
+        border: 1px solid var(--border-visible);
 
         .fill-progress {
             height: 100%;
-            background: var(--color-primary, #10B981);
-            transition: width 0.5s ease-out;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-full);
+            transition: width var(--duration-slow) ease-out;
+            box-shadow: 0 0 15px var(--color-primary-20);
         }
     }
 }
 
 .tournament-actions {
-    margin-top: 1.5rem;
+    margin-top: var(--space-xl);
     display: flex;
-    gap: 0.75rem;
+    gap: var(--space-4);
 }

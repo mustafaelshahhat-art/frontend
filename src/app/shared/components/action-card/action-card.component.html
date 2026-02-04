@@ -1,9 +1,13 @@
-<div (click)="handleClick()" class="card card-glass card-hover rounded-lg p-md cursor-pointer">
-    <div class="flex items-center gap-2 mb-2">
-        <div class="stat-card-icon" [ngClass]="colorClass">
-            <span class="material-symbols-outlined text-lg">{{ icon }}</span>
+<div (click)="handleClick()" class="action-card animate-fade-in">
+    <div class="action-header">
+        <div class="action-icon-wrapper" [ngClass]="colorClass">
+            <span class="material-symbols-outlined">{{ icon }}</span>
         </div>
+        <span class="material-symbols-outlined action-arrow">arrow_back</span>
     </div>
-    <h3 class="text-primary font-bold text-xs mb-1">{{ title }}</h3>
-    <p class="text-secondary text-2xs">{{ description }}</p>
+
+    <div class="action-body">
+        <h3 class="action-title">{{ title }}</h3>
+        <p class="action-desc">{{ description }}</p>
+    </div>
 </div>

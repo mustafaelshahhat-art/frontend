@@ -1,43 +1,94 @@
-.stat-card-icon {
-    width: 40px;
-    height: 40px;
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
+:host {
+    display: block;
+}
+
+.action-card {
+    background: var(--bg-surface-glass);
+    backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: var(--transition-premium);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+
+    &:hover {
+        transform: translateY(-8px);
+        background: var(--border-color-light);
+        border-color: var(--color-primary-30);
+        box-shadow: var(--shadow-xl), var(--shadow-glow-sm);
+
+        .action-arrow {
+            transform: translateX(-4px);
+            opacity: 1;
+        }
+
+        .action-icon-wrapper {
+            background: var(--color-primary);
+            color: var(--text-inverse);
+            transform: scale(1.1);
+        }
+    }
+}
+
+.action-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.action-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    background: var(--border-color-light);
+    border: 1px solid var(--border-visible);
     border-radius: var(--radius-xl);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--space-3);
-    /* Keep consistency even if unused/overridden */
+    color: var(--color-primary);
     transition: var(--transition-base);
 
-    @media (max-width: 640px) {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-lg);
+    .material-symbols-outlined {
+        font-size: 22px;
     }
 
     &.primary {
-        background: var(--color-primary-10);
         color: var(--color-primary);
     }
 
-    &.gold,
-    &.warning {
-        background: var(--color-gold-10);
+    &.gold {
         color: var(--color-gold);
     }
 
     &.info {
-        background: var(--color-info-10);
         color: var(--color-info);
     }
+}
 
-    &.danger {
-        background: var(--color-danger-10);
-        color: var(--color-danger);
+.action-arrow {
+    color: var(--color-primary);
+    opacity: 0.5;
+    transition: var(--transition-base);
+}
+
+.action-body {
+    .action-title {
+        font-size: var(--text-md);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--space-1);
     }
 
-    &.success {
-        background: var(--color-primary-10);
-        color: var(--color-primary);
+    .action-desc {
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        line-height: var(--leading-normal);
     }
 }

@@ -1,3 +1,5 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
 .select-wrapper {
     position: relative;
     width: 100%;
@@ -5,13 +7,13 @@
     font-family: var(--font-body);
 
     &.disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         pointer-events: none;
     }
 }
 
 .select-trigger {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--border-color-light);
     border: 1px solid var(--border-visible);
     border-radius: var(--radius-xl);
     padding: var(--space-3) var(--space-4);
@@ -20,21 +22,21 @@
     justify-content: space-between;
     cursor: pointer;
     transition: var(--transition-base);
-    min-height: 48px;
+    min-height: var(--height-input);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--border-color);
         border-color: var(--color-primary-30);
     }
 
     .isOpen & {
         border-color: var(--color-primary);
-        background: rgba(255, 255, 255, 0.07);
+        background: var(--border-color-strong);
         box-shadow: var(--shadow-glow-sm);
     }
 
     .has-error & {
-        border-color: var(--color-danger-40);
+        border-color: var(--color-danger-40, var(--color-danger));
 
         &:hover {
             border-color: var(--color-danger);
@@ -48,26 +50,26 @@
 }
 
 .placeholder {
-    color: var(--color-secondary-500);
-    font-size: var(--font-size-sm);
-    opacity: 0.7;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    opacity: 0.8;
 }
 
 .selected-label {
-    color: var(--color-white);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
 }
 
 .select-actions {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    color: var(--color-secondary-400);
+    color: var(--text-muted);
 
     .chevron {
         font-size: 20px;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: var(--transition-bounce);
 
         &.rotated {
             transform: rotate(180deg);
@@ -78,24 +80,24 @@
 
 .options-dropdown {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + var(--space-2));
     left: 0;
     right: 0;
-    background: rgba(19, 27, 46, 0.95);
-    backdrop-filter: blur(20px);
+    background: var(--bg-glass);
+    backdrop-filter: var(--blur-lg);
     border: 1px solid var(--border-visible);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
     z-index: var(--z-dropdown);
     overflow: hidden;
     transform-origin: top;
-    animation: dropdownEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: dropdownEnter var(--duration-normal) var(--transition-premium) forwards;
 }
 
 @keyframes dropdownEnter {
     from {
         opacity: 0;
-        transform: translateY(-10px) scale(0.98);
+        transform: translateY(-8px) scale(0.98);
     }
 
     to {
@@ -116,7 +118,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    color: var(--color-secondary-300);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition-fast);
     margin-bottom: 2px;
@@ -126,29 +128,28 @@
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--color-white);
+        background: var(--border-color);
+        color: var(--text-primary);
         padding-right: var(--space-5);
-        /* Tiny slide effect */
     }
 
     &.selected {
         background: var(--color-primary-10);
         color: var(--color-primary-light);
-        font-weight: 600;
+        font-weight: var(--font-semibold);
     }
 
     .option-icon {
         font-size: 20px;
         color: var(--color-primary);
-        opacity: 0.8;
+        opacity: 0.9;
     }
 
     .check-icon {
         font-size: 18px;
         margin-right: auto;
         color: var(--color-primary);
-        animation: checkBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation: checkBounce var(--duration-normal) var(--transition-bounce) forwards;
     }
 }
 
@@ -165,7 +166,7 @@
 .no-options {
     padding: var(--space-8) var(--space-4);
     text-align: center;
-    color: var(--color-secondary-500);
+    color: var(--text-muted);
     font-size: var(--text-sm);
     font-style: italic;
 }
@@ -181,11 +182,11 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         border-radius: var(--radius-full);
 
         &:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--border-color);
         }
     }
 }

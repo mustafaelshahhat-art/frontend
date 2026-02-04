@@ -22,6 +22,14 @@ export const adminRoutes: Routes = [
                 loadComponent: () => import('../features/tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent)
             },
             {
+                path: 'tournaments/new',
+                loadComponent: () => import('../features/tournaments/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent)
+            },
+            {
+                path: 'tournaments/edit/:id',
+                loadComponent: () => import('../features/tournaments/pages/tournament-manage/tournament-manage.component').then(m => m.TournamentManageComponent)
+            },
+            {
                 path: 'tournaments/:id',
                 loadComponent: () => import('../features/tournaments/pages/tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent)
             },

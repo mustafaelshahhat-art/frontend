@@ -15,8 +15,11 @@
 // 3. Layout Rules (grid, flex, positioning, containers)
 @use 'layout';
 
-// 4. Theme Styles (backgrounds, text colors, decorative elements)
+// 4. Utility Classes & Theme Helpers (colors, typography, layout shortcuts)
 @use 'theme';
+
+// 5. Shared UI Utilities
+@use 'mobile-grid';
 
 // 5. Component Styles (buttons, cards, inputs, alerts, tables, modals)
 // @use 'components'; // REMOVED - Refactored into standalone components

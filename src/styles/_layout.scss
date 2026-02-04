@@ -1106,3 +1106,132 @@
   pointer-events: none;
   z-index: 0;
 }
+
+// ==========================================================================
+// SQUARE & BENTO GRIDS - Premium Mobile Design
+// ==========================================================================
+
+.grid-squares {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-lg);
+  width: 100%;
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  @media (max-width: 360px) {
+    gap: var(--space-sm);
+  }
+}
+
+.grid-bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 160px;
+  gap: var(--space-lg);
+  width: 100%;
+
+  .bento-item-lg {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .bento-item-wide {
+    grid-column: span 2;
+  }
+
+  .bento-item-tall {
+    grid-row: span 2;
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 140px;
+  }
+
+  @media (max-width: 480px) {
+    gap: var(--space-sm);
+    grid-auto-rows: 120px;
+  }
+}
+
+.square-card-base {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-lg);
+  background: var(--bg-surface-glass);
+  backdrop-filter: var(--blur-lg);
+  border: 1px solid var(--border-visible);
+  border-radius: var(--radius-3xl);
+  transition: var(--transition-premium);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, var(--color-primary-10), transparent 70%);
+    opacity: 0;
+    transition: var(--transition-base);
+  }
+
+  &:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: var(--color-primary-30);
+    box-shadow: var(--shadow-glow-sm);
+    background: var(--bg-card-hover);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .square-icon {
+      transform: scale(1.1) rotate(5deg);
+      color: var(--color-primary);
+    }
+  }
+
+  .square-icon {
+    font-size: 2.5rem;
+    color: var(--color-primary-light);
+    margin-bottom: var(--space-3);
+    transition: var(--transition-bounce);
+
+    @media (max-width: 480px) {
+      font-size: 2rem;
+      margin-bottom: var(--space-2);
+    }
+  }
+
+  .square-label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-black);
+    color: var(--text-primary);
+    letter-spacing: var(--tracking-wide);
+    line-height: var(--leading-tight);
+
+    @media (max-width: 480px) {
+      font-size: var(--text-xs);
+    }
+  }
+
+  .square-value {
+    font-size: var(--text-xl);
+    font-weight: var(--font-black);
+    color: var(--color-primary);
+    margin-top: var(--space-1);
+
+    @media (max-width: 480px) {
+      font-size: var(--text-lg);
+    }
+  }
+}

@@ -1,18 +1,28 @@
-<div class="card card-glass rounded-xl p-md mb-md">
-    <div class="flex-between items-center gap-2">
-        <div class="flex items-center gap-2">
-            <div class="stat-card-icon" [ngClass]="iconClass">
-                <span class="material-symbols-outlined text-lg">{{ icon }}</span>
+<div class="welcome-card-container animate-fade-in">
+    <div class="card-content-wrapper">
+        <!-- Info Section (Title + Subtitle + Icon) -->
+        <div class="info-section">
+            <div class="stat-card-icon shadow-glow">
+                <span class="material-symbols-outlined">{{ icon }}</span>
             </div>
-            <div>
-                <h1 class="text-primary font-bold text-base">{{ title }}</h1>
-                <p class="text-secondary text-2xs mt-1">{{ subtitle }}</p>
+
+            <div class="title-section">
+                <h1 class="main-title">{{ title }}</h1>
+                <p class="sub-title">{{ subtitle }}</p>
             </div>
         </div>
-        <div class="badge text-2xs whitespace-nowrap" [ngClass]="badgeClass">
-            <div *ngIf="!statusIcon" class="status-dot" [ngClass]="statusClass"></div>
-            <span *ngIf="statusIcon" class="material-symbols-outlined text-2xs">{{ statusIcon }}</span>
-            {{ status }}
+
+        <!-- Actions Section (Status Badge + Logout) -->
+        <div class="actions-section">
+            <div class="status-badge" *ngIf="status">
+                <div class="status-dot" [ngClass]="{'online': statusClass === 'status-dot-online'}"></div>
+                <span>{{ status }}</span>
+            </div>
+
+            <button *ngIf="status === 'خروج' || showLogout" class="logout-btn" (click)="onLogout()">
+                <span class="material-symbols-outlined">logout</span>
+                <span>خروج</span>
+            </button>
         </div>
     </div>
 </div>

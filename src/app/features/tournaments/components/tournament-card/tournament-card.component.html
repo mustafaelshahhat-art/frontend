@@ -1,7 +1,7 @@
-<app-card class="tournament-card-premium" [isClickable]="isClickable" (click)="onCardClick()">
+<div class="tournament-card-premium" [class.clickable]="isClickable" (click)="onCardClick()">
     <!-- Banner with Icon and Status Badge -->
     <div class="tournament-banner">
-        <span class="material-symbols-outlined">emoji_events</span>
+        <span class="material-symbols-outlined emoji-glow">emoji_events</span>
         <div class="status-badge-overlay">
             <app-badge [type]="badgeType">
                 {{ tournament.status | statusLabel }}
@@ -18,11 +18,17 @@
     <!-- Stats Row -->
     <div class="tournament-stats">
         <div class="stat-item">
-            <span class="label">الجائزة</span>
+            <div class="stat-header">
+                <span class="material-symbols-outlined">payments</span>
+                <span class="label">الجائزة</span>
+            </div>
             <span class="value">{{ tournament.prizes[0] }}</span>
         </div>
         <div class="stat-item">
-            <span class="label">تاريخ البدء</span>
+            <div class="stat-header">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span class="label">تاريخ البدء</span>
+            </div>
             <span class="value">{{ tournament.startDate | date:'yyyy/MM/dd' }}</span>
         </div>
     </div>
@@ -48,4 +54,4 @@
             تسجيل الآن
         </app-button>
     </div>
-</app-card>
+</div>

@@ -1,0 +1,123 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
+.manage-tournament-page {
+    padding: var(--space-xl) var(--space-lg);
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeIn var(--duration-normal) ease-out;
+
+    @media (max-width: 768px) {
+        padding: var(--space-md);
+    }
+}
+
+.form-container {
+    margin-top: var(--space-xl);
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+.form-section {
+    position: relative;
+
+    ::ng-deep .card {
+        background: var(--bg-surface-glass);
+        backdrop-filter: var(--blur-lg);
+        border: 1px solid var(--border-visible);
+        border-radius: var(--radius-2xl);
+        padding: var(--space-xl);
+        box-shadow: var(--shadow-lg);
+
+        .card-header {
+            margin-bottom: var(--space-xl);
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: var(--space-4);
+
+            .card-title {
+                font-size: var(--text-lg);
+                font-weight: var(--font-black);
+                color: var(--color-primary-light);
+                letter-spacing: var(--tracking-wide);
+            }
+        }
+
+        @media (max-width: 640px) {
+            padding: var(--space-lg);
+        }
+    }
+}
+
+.fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl) var(--space-lg);
+
+    .full-width {
+        grid-column: span 2;
+    }
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+
+        .full-width {
+            grid-column: span 1;
+        }
+    }
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    padding: var(--space-xl) 0;
+    margin-top: var(--space-lg);
+    border-top: 1px solid var(--border-subtle);
+
+    @media (max-width: 480px) {
+        flex-direction: column-reverse;
+
+        button,
+        app-button {
+            width: 100%;
+        }
+    }
+}
+
+textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+input[type="date"] {
+    position: relative;
+
+    &::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

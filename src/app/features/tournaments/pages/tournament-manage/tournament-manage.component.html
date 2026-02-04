@@ -1,0 +1,73 @@
+<div class="manage-tournament-page">
+    <app-page-header [title]="isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة'"
+        [subtitle]="isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل'"
+        [showBack]="true" (back)="cancel()">
+    </app-page-header>
+
+    <div class="form-container">
+        <form [formGroup]="tournamentForm" (ngSubmit)="onSubmit()">
+            <div class="form-grid">
+                <!-- Basic Info -->
+                <app-card title="المعلومات الأساسية" class="form-section">
+                    <div class="fields-grid">
+                        <app-form-control label="اسم البطولة" iconLeft="emoji_events">
+                            <input type="text" formControlName="name" placeholder="مثلاً: بطولة رمضان الكبرى">
+                        </app-form-control>
+
+                        <app-form-control label="الموقع" iconLeft="location_on">
+                            <input type="text" formControlName="location" placeholder="مثلاً: الرياض، ملعب الربوة">
+                        </app-form-control>
+
+                        <app-form-control label="وصف البطولة" iconLeft="description" class="full-width">
+                            <textarea formControlName="description" rows="3"
+                                placeholder="اكتب وصفاً مختصراً للبطولة..."></textarea>
+                        </app-form-control>
+                    </div>
+                </app-card>
+
+                <!-- Dates & Capacity -->
+                <app-card title="التواريخ والسعة" class="form-section">
+                    <div class="fields-grid">
+                        <app-form-control label="تاريخ البدء" iconLeft="calendar_today">
+                            <input type="date" formControlName="startDate">
+                        </app-form-control>
+
+                        <app-form-control label="تاريخ الانتهاء" iconLeft="event_busy">
+                            <input type="date" formControlName="endDate">
+                        </app-form-control>
+
+                        <app-form-control label="أخر موعد للتسجيل" iconLeft="timer">
+                            <input type="date" formControlName="registrationDeadline">
+                        </app-form-control>
+
+                        <app-form-control label="عدد الفرق الأقصى" iconLeft="groups">
+                            <input type="number" formControlName="maxTeams">
+                        </app-form-control>
+                    </div>
+                </app-card>
+
+                <!-- Financials & Rules -->
+                <app-card title="الرسوم والقوانين" class="form-section">
+                    <div class="fields-grid">
+                        <app-form-control label="رسوم الاشتراك (ريال)" iconLeft="payments">
+                            <input type="number" formControlName="entryFee">
+                        </app-form-control>
+
+                        <app-form-control label="قوانين البطولة" iconLeft="gavel" class="full-width">
+                            <textarea formControlName="rules" rows="4"
+                                placeholder="اكتب شروط وقوانين البطولة هنا..."></textarea>
+                        </app-form-control>
+                    </div>
+                </app-card>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <app-button variant="outline" type="button" (click)="cancel()">إلغاء</app-button>
+                    <app-button variant="primary" type="submit" [disabled]="tournamentForm.invalid || isSubmitting()">
+                        {{ isSubmitting() ? 'جاري الحفظ...' : (isEditMode() ? 'حفظ التغييرات' : 'إنشاء البطولة') }}
+                    </app-button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

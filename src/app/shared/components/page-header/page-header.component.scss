@@ -1,38 +1,113 @@
+@import 'd:/ramadan/frontend/src/styles/_tokens';
+
 :host {
     display: block;
-    margin-bottom: var(--space-2xl);
-
-    @media (max-width: 480px) {
-        margin-bottom: var(--space-xl);
-    }
+    margin-bottom: var(--space-xl);
 }
 
 .page-header {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    position: relative;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-lg);
+    }
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+}
+
+.title-wrapper {
+    position: relative;
+    padding-right: var(--space-4);
+    text-align: right;
+    display: flex;
     flex-direction: column;
-    gap: var(--space-lg);
+
+    &::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 4px;
+        bottom: 4px;
+        width: 4px;
+        background: linear-gradient(to bottom, var(--color-gold) 0%, var(--color-gold-20) 100%);
+        border-radius: var(--radius-full);
+        box-shadow: 0 0 12px var(--color-gold-10);
+    }
 }
 
 .page-title {
-    font-size: clamp(1.5rem, 5vw, var(--text-hero));
-    font-weight: var(--font-super-black);
-    color: var(--color-gold); // Updated to Gold as requested
-    letter-spacing: var(--tracking-normal);
+    font-size: clamp(1.25rem, 4vw, 1.75rem);
+    font-weight: var(--font-extrabold);
+    color: var(--color-gold);
+    background: var(--gradient-gold-subtle);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px var(--color-gold-15);
+    margin: 0;
+    padding: 0.1em 0;
     line-height: var(--leading-tight);
-    margin-bottom: var(--space-md);
-    text-shadow: var(--text-shadow);
+    letter-spacing: var(--tracking-normal);
+    overflow: visible;
 }
 
 .page-subtitle {
-    font-size: clamp(0.875rem, 2vw, var(--text-subtitle));
-    color: var(--text-secondary);
-    max-width: 600px;
-    line-height: var(--leading-relaxed);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin: var(--space-1) 0 0 0;
+    font-weight: var(--font-medium);
+    opacity: 0.9;
+    padding: 0;
 }
 
-// Optional actions area (e.g. for filters or buttons)
 .header-actions {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: var(--space-md);
+
+    @media (max-width: 640px) {
+        width: 100%;
+
+        button,
+        app-button {
+            width: 100%;
+            flex: 1;
+        }
+    }
+}
+
+/* RTL Support */
+:host-context([dir="rtl"]) {
+    .title-wrapper {
+        padding-right: var(--space-4);
+        padding-left: 0;
+
+        &::before {
+            right: 0;
+            left: auto;
+        }
+    }
+}
+
+:host-context([dir="ltr"]) {
+    .title-wrapper {
+        padding-left: var(--space-4);
+        padding-right: 0;
+
+        &::before {
+            left: 0;
+            right: auto;
+        }
+    }
 }

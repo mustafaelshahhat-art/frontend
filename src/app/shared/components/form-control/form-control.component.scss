@@ -1,4 +1,4 @@
-
+@import 'd:/ramadan/frontend/src/styles/_tokens';
 
 :host {
     display: block;
@@ -8,74 +8,116 @@
 .form-group {
     margin-bottom: var(--space-lg);
     position: relative;
+    width: 100%;
 }
 
 .form-label {
     display: block;
     font-size: var(--text-sm);
-    font-weight: var(--font-medium);
-    color: var(--text-secondary);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
     margin-bottom: var(--space-2);
-    padding-right: var(--space-1);
+    padding-inline-start: var(--space-1);
+    text-align: right;
 }
 
 .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 ::ng-deep {
 
-    .form-input,
-    .form-select,
-    .form-textarea {
+    input,
+    textarea,
+    select {
         width: 100%;
-        background: var(--bg-input);
-        border: 1px solid var(--border-visible);
-        border-radius: var(--radius-lg);
-        padding: var(--space-3) var(--space-4);
-        color: var(--text-primary);
-        font-size: var(--text-base);
-        transition: var(--transition-base);
+        background: var(--bg-surface-light) !important;
+        border: 1px solid var(--border-visible) !important;
+        border-radius: var(--radius-xl) !important;
+        padding: var(--space-3) var(--space-4) !important;
+        color: var(--text-primary) !important;
+        font-size: var(--text-base) !important;
+        font-family: var(--font-body) !important;
+        transition: var(--transition-base) !important;
         min-height: var(--height-input);
+        text-align: right;
+
+        &::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+            text-align: right;
+        }
 
         &:focus {
-            border-color: var(--color-primary);
-            background: var(--bg-dark-lighter);
-            box-shadow: var(--shadow-input-focus);
-            outline: none;
+            border-color: var(--color-primary) !important;
+            background: var(--bg-card-hover) !important;
+            box-shadow: var(--shadow-glow-sm) !important;
+            outline: none !important;
         }
 
-        &.ng-invalid.ng-touched {
-            border-color: var(--color-danger);
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Hide browser-specific date icons to avoid overlap with our custom icons */
+        &[type="date"] {
+            &::-webkit-calendar-picker-indicator {
+                position: absolute;
+                inset-inline-start: 1rem;
+                opacity: 0;
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+            }
+
+            &::-webkit-inner-spin-button,
+            &::-webkit-clear-button {
+                display: none;
+            }
         }
     }
 
-    .has-icon-left {
-        padding-left: 2.75rem;
+    /* Padding for icons */
+    .has-icon-left input,
+    .has-icon-left textarea {
+        padding-inline-start: 3.25rem !important;
     }
 
-    .has-icon-right {
-        padding-right: 2.75rem;
+    .has-icon-right input,
+    .has-icon-right textarea {
+        padding-inline-end: 3.25rem !important;
     }
 }
 
 .form-icon {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
+    margin-top: -12px;
+    /* Precise centering for 24px icons */
+    color: var(--color-primary-light);
     pointer-events: none;
-    z-index: 2;
+    z-index: var(--z-above);
+    opacity: 0.8;
+    transition: var(--transition-base);
+    font-size: 22px;
 
     &.icon-left {
-        left: 0.875rem;
+        inset-inline-start: 1rem;
     }
 
     &.icon-right {
-        right: 0.875rem;
+        inset-inline-end: 1rem;
     }
+}
+
+.form-group:focus-within .form-icon {
+    color: var(--color-primary);
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .form-error {
@@ -85,10 +127,13 @@
     display: flex;
     align-items: center;
     gap: var(--space-1);
+    font-weight: var(--font-medium);
+    padding-inline-end: var(--space-1);
 }
 
 .form-hint {
     font-size: var(--text-xs);
     color: var(--text-muted);
     margin-top: var(--space-2);
+    padding-inline-start: var(--space-1);
 }
