@@ -1,8 +1,8 @@
 <div class="events-timeline">
     <div class="timeline-line"></div>
 
-    <div *ngFor="let event of events" class="event-row" [class.event-home]="event.teamId === homeTeamId"
-        [class.event-away]="event.teamId !== homeTeamId">
+    <div *ngFor="let event of events; trackBy: trackById" class="event-row"
+        [class.event-home]="event.teamId === homeTeamId" [class.event-away]="event.teamId !== homeTeamId">
 
         <div class="timeline-dot"></div>
 

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchEventType } from '../../../../core/models/tournament.model';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
@@ -17,7 +17,8 @@ export interface TimelineEvent {
     standalone: true,
     imports: [CommonModule, HasPermissionDirective],
     templateUrl: './match-timeline.component.html',
-    styleUrls: ['./match-timeline.component.scss']
+    styleUrls: ['./match-timeline.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatchTimelineComponent {
     @Input() events: TimelineEvent[] = [];
@@ -57,5 +58,9 @@ export class MatchTimelineComponent {
             case MatchEventType.OWN_GOAL: return 'هدف في مرماه';
             default: return 'حدث';
         }
+    }
+
+    trackById(index: number, item: TimelineEvent): string {
+        return item.id;
     }
 }

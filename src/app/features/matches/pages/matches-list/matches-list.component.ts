@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
@@ -42,18 +42,20 @@ interface MatchFilter {
         InlineLoadingComponent
     ],
     templateUrl: './matches-list.component.html',
-    styleUrls: ['./matches-list.component.scss']
+    styleUrls: ['./matches-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatchesListComponent implements OnInit {
     private readonly matchService = inject(MatchService);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
-    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly cdr = inject(ChangeDetectorRef); // Still useful for manual triggers if needed, but Signals handle most
     private readonly uiFeedback = inject(UIFeedbackService);
 
-    matches: Match[] = [];
-    isLoading = true;
-    selectedFilter: MatchFilterValue = 'all';
+    // Signals State
+    matches = signal<Match[]>([]);
+    isLoading = signal<boolean>(true);
+    selectedFilter = signal<MatchFilterValue>('all');
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.CAPTAIN;
@@ -76,22 +78,37 @@ export class MatchesListComponent implements OnInit {
         { label: 'المنتهية', value: 'finished', icon: 'task_alt' }
     ];
 
+    // Computed Filter Logic
+    filteredMatches = computed(() => {
+        const currentMatches = this.matches();
+        const filter = this.selectedFilter();
+
+        switch (filter) {
+            case 'upcoming':
+                return currentMatches.filter(m => m.status === MatchStatus.SCHEDULED);
+            case 'live':
+                return currentMatches.filter(m => m.status === MatchStatus.LIVE);
+            case 'finished':
+                return currentMatches.filter(m => m.status === MatchStatus.FINISHED);
+            default:
+                return currentMatches;
+        }
+    });
+
     ngOnInit(): void {
         this.loadMatches();
     }
 
     loadMatches(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
 
         const handleSuccess = (data: Match[]) => {
-            this.matches = data;
-            this.isLoading = false;
-            this.cdr.detectChanges();
+            this.matches.set(data);
+            this.isLoading.set(false);
         };
 
         const handleError = () => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
+            this.isLoading.set(false);
         };
 
         if (this.userRole === UserRole.ADMIN) {
@@ -100,19 +117,6 @@ export class MatchesListComponent implements OnInit {
             this.matchService.getMatchesByReferee('ref1').subscribe({ next: handleSuccess, error: handleError });
         } else {
             this.matchService.getMatchesByTeam('team1').subscribe({ next: handleSuccess, error: handleError });
-        }
-    }
-
-    get filteredMatches(): Match[] {
-        switch (this.selectedFilter) {
-            case 'upcoming':
-                return this.matches.filter(m => m.status === MatchStatus.SCHEDULED);
-            case 'live':
-                return this.matches.filter(m => m.status === MatchStatus.LIVE);
-            case 'finished':
-                return this.matches.filter(m => m.status === MatchStatus.FINISHED);
-            default:
-                return this.matches;
         }
     }
 
@@ -137,7 +141,7 @@ export class MatchesListComponent implements OnInit {
     }
 
     get emptyStateDescription(): string {
-        return this.selectedFilter === 'all'
+        return this.selectedFilter() === 'all'
             ? 'لا توجد أي مباريات مجدولة حالياً'
             : 'لا توجد مباريات تطابق هذا التصنيف حالياً';
     }
@@ -158,11 +162,16 @@ export class MatchesListComponent implements OnInit {
     isCaptain(): boolean { return this.userRole === UserRole.CAPTAIN; }
 
     setFilter(filter: string): void {
-        this.selectedFilter = filter as MatchFilterValue;
+        this.selectedFilter.set(filter as MatchFilterValue);
     }
 
     viewMatch(matchId: string): void {
         this.router.navigate([this.getRoutePrefix(), 'matches', matchId]);
+    }
+
+    // List Optimization
+    trackById(index: number, match: Match): string {
+        return match.id;
     }
 
     // Admin actions
@@ -178,11 +187,17 @@ export class MatchesListComponent implements OnInit {
         this.matchService.startMatch(match.id).subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
-                    const index = this.matches.findIndex(m => m.id === match.id);
-                    if (index !== -1) this.matches[index] = { ...updatedMatch };
+                    this.matches.update(current => {
+                        const index = current.findIndex(m => m.id === match.id);
+                        if (index !== -1) {
+                            const newMatches = [...current];
+                            newMatches[index] = { ...updatedMatch };
+                            return newMatches;
+                        }
+                        return current;
+                    });
                 }
                 this.uiFeedback.success('تم البدء', 'تم بدء المباراة');
-                this.cdr.detectChanges();
             },
             error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
         });
@@ -195,10 +210,16 @@ export class MatchesListComponent implements OnInit {
 
     onMatchEnded(updatedMatch: Match): void {
         if (updatedMatch) {
-            const index = this.matches.findIndex(m => m.id === updatedMatch.id);
-            if (index !== -1) this.matches[index] = { ...updatedMatch };
+            this.matches.update(current => {
+                const index = current.findIndex(m => m.id === updatedMatch.id);
+                if (index !== -1) {
+                    const newMatches = [...current];
+                    newMatches[index] = { ...updatedMatch };
+                    return newMatches;
+                }
+                return current;
+            });
         }
-        this.loadMatches();
         this.activeMatchId = null;
     }
 
@@ -210,8 +231,15 @@ export class MatchesListComponent implements OnInit {
 
     onEventAdded(updatedMatch: Match): void {
         if (updatedMatch) {
-            const index = this.matches.findIndex(m => m.id === updatedMatch.id);
-            if (index !== -1) this.matches[index] = { ...updatedMatch };
+            this.matches.update(current => {
+                const index = current.findIndex(m => m.id === updatedMatch.id);
+                if (index !== -1) {
+                    const newMatches = [...current];
+                    newMatches[index] = { ...updatedMatch };
+                    return newMatches;
+                }
+                return current;
+            });
         }
         this.activeMatch = null;
         this.activeMatchId = null;

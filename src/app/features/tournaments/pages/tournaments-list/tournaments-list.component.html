@@ -9,25 +9,25 @@
     <div class="tournaments-content">
         <!-- Search & Filter Bar -->
         <div class="toolbar">
-            <app-search placeholder="البحث عن بطولة..." [value]="searchQuery" (searchChange)="onSearchChange($event)">
+            <app-search placeholder="البحث عن بطولة..." [value]="searchQuery()" (searchChange)="onSearchChange($event)">
             </app-search>
-            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)">
+            <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)">
             </app-filter>
         </div>
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل البطولات...">
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل البطولات...">
         </app-inline-loading>
 
         <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading && filteredTournaments.length === 0" icon="emoji_events"
+        <app-empty-state *ngIf="!isLoading() && filteredTournaments().length === 0" icon="emoji_events"
             title="لا توجد بطولات" description="لا توجد بطولات حالياً في هذا التصنيف. ترقبوا الإعلانات القادمة!">
         </app-empty-state>
 
         <!-- Tournaments Grid -->
-        <div *ngIf="!isLoading && filteredTournaments.length > 0" class="tournaments-grid">
-            <app-tournament-card *ngFor="let tournament of filteredTournaments" [tournament]="tournament"
-                [showRegisterButton]="isCaptain()" (viewDetails)="viewDetails($event)"
+        <div *ngIf="!isLoading() && filteredTournaments().length > 0" class="tournaments-grid">
+            <app-tournament-card *ngFor="let tournament of filteredTournaments(); trackBy: trackById"
+                [tournament]="tournament" [showRegisterButton]="isCaptain()" (viewDetails)="viewDetails($event)"
                 (register)="registerTeam($event)">
             </app-tournament-card>
         </div>

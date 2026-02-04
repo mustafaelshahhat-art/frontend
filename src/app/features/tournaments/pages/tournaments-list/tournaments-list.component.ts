@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../core/services/tournament.service';
@@ -39,7 +39,8 @@ interface TournamentFilter {
         TournamentCardComponent
     ],
     templateUrl: './tournaments-list.component.html',
-    styleUrls: ['./tournaments-list.component.scss']
+    styleUrls: ['./tournaments-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TournamentsListComponent implements OnInit {
     private readonly tournamentService = inject(TournamentService);
@@ -48,10 +49,12 @@ export class TournamentsListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly cdr = inject(ChangeDetectorRef);
 
-    tournaments: Tournament[] = [];
-    registeredTournaments: string[] = [];
-    isLoading = false;
-    searchQuery = '';
+    // Signals State
+    tournaments = signal<Tournament[]>([]);
+    registeredTournaments = signal<string[]>([]);
+    isLoading = signal<boolean>(false);
+    searchQuery = signal<string>('');
+    currentFilter = signal<TournamentFilterValue>('all');
 
     // Type-safe filters
     readonly filters: TournamentFilter[] = [
@@ -60,7 +63,38 @@ export class TournamentsListComponent implements OnInit {
         { label: 'جارية', value: 'active' },
         { label: 'مكتملة', value: 'completed' }
     ];
-    currentFilter: TournamentFilterValue = 'all';
+
+    // Computed Filter Logic
+    filteredTournaments = computed(() => {
+        let result = this.tournaments();
+        const filter = this.currentFilter();
+        const query = this.searchQuery().toLowerCase().trim();
+
+        // Apply status filter
+        if (filter !== 'all') {
+            switch (filter) {
+                case 'available':
+                    result = result.filter(t => t.status === TournamentStatus.REGISTRATION_OPEN);
+                    break;
+                case 'active':
+                    result = result.filter(t => t.status === TournamentStatus.ACTIVE);
+                    break;
+                case 'completed':
+                    result = result.filter(t => t.status === TournamentStatus.COMPLETED);
+                    break;
+            }
+        }
+
+        // Apply search filter
+        if (query) {
+            result = result.filter(t =>
+                t.name.toLowerCase().includes(query) ||
+                t.description.toLowerCase().includes(query)
+            );
+        }
+
+        return result;
+    });
 
     ngOnInit(): void {
         this.loadTournaments();
@@ -76,69 +110,42 @@ export class TournamentsListComponent implements OnInit {
     }
 
     loadTournaments(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.tournamentService.getTournaments().subscribe({
             next: (data) => {
-                this.tournaments = data;
-                this.isLoading = false;
-                this.cdr.detectChanges();
+                this.tournaments.set(data);
+                this.isLoading.set(false);
             },
             error: () => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
+                this.isLoading.set(false);
             }
         });
     }
 
-    get filteredTournaments(): Tournament[] {
-        let result: Tournament[];
-
-        // Apply status filter
-        switch (this.currentFilter) {
-            case 'available':
-                result = this.tournaments.filter(t => t.status === TournamentStatus.REGISTRATION_OPEN);
-                break;
-            case 'active':
-                result = this.tournaments.filter(t => t.status === TournamentStatus.ACTIVE);
-                break;
-            case 'completed':
-                result = this.tournaments.filter(t => t.status === TournamentStatus.COMPLETED);
-                break;
-            default:
-                result = [...this.tournaments];
-        }
-
-        // Apply search filter
-        if (this.searchQuery.trim()) {
-            const query = this.searchQuery.toLowerCase().trim();
-            result = result.filter(t =>
-                t.name.toLowerCase().includes(query) ||
-                t.description.toLowerCase().includes(query)
-            );
-        }
-
-        return result;
+    // List Optimization
+    trackById(index: number, item: Tournament): string {
+        return item.id;
     }
 
     setFilter(filter: string): void {
-        this.currentFilter = filter as TournamentFilterValue;
+        this.currentFilter.set(filter as TournamentFilterValue);
     }
 
     onSearchChange(query: string): void {
-        this.searchQuery = query;
+        this.searchQuery.set(query);
     }
 
     isRegistered(id: string): boolean {
-        return this.registeredTournaments.includes(id);
+        return this.registeredTournaments().includes(id);
     }
 
     register(tournament: Tournament): void {
-        this.registeredTournaments.push(tournament.id);
+        this.registeredTournaments.update(current => [...current, tournament.id]);
         this.uiFeedback.success('تم التسجيل', 'تم التسجيل في البطولة بنجاح');
     }
 
     unregister(id: string): void {
-        this.registeredTournaments = this.registeredTournaments.filter(t => t !== id);
+        this.registeredTournaments.update(current => current.filter(t => t !== id));
         this.uiFeedback.info('تم الإلغاء', 'تم إلغاء التسجيل');
     }
 

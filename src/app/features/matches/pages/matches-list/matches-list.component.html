@@ -7,22 +7,22 @@
 
     <div class="matches-container">
         <!-- Filters Area -->
-        <app-filter [items]="filters" [activeValue]="selectedFilter" (change)="setFilter($event)">
+        <app-filter [items]="filters" [activeValue]="selectedFilter()" (change)="setFilter($event)">
         </app-filter>
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل المباريات...">
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل المباريات...">
         </app-inline-loading>
 
         <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading && filteredMatches.length === 0" icon="event_busy" title="لا توجد مباريات"
-            [description]="emptyStateDescription">
+        <app-empty-state *ngIf="!isLoading() && filteredMatches().length === 0" icon="event_busy"
+            title="لا توجد مباريات" [description]="emptyStateDescription">
         </app-empty-state>
 
         <!-- Matches Grid -->
-        <div *ngIf="!isLoading && filteredMatches.length > 0" class="matches-grid">
-            <app-match-card *ngFor="let match of filteredMatches" [match]="match" (click)="viewMatch(match.id)"
-                style="cursor: pointer;">
+        <div *ngIf="!isLoading() && filteredMatches().length > 0" class="matches-grid">
+            <app-match-card *ngFor="let match of filteredMatches(); trackBy: trackById" [match]="match"
+                (click)="viewMatch(match.id)" style="cursor: pointer;">
 
                 <div class="match-card-actions" actions>
                     <!-- Admin: Update Score -->
