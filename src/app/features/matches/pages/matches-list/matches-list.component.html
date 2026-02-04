@@ -22,7 +22,7 @@
         <!-- Matches Grid -->
         <div *ngIf="!isLoading() && filteredMatches().length > 0" class="matches-grid">
             <app-match-card *ngFor="let match of filteredMatches(); trackBy: trackById" [match]="match"
-                (click)="viewMatch(match.id)" style="cursor: pointer;">
+                (click)="viewMatch(match.id)" class="clickable-match-card">
 
                 <div class="match-card-actions" actions>
                     <!-- Admin: Update Score -->

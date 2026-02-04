@@ -13,7 +13,7 @@
 
         <app-page-header [title]="match.tournamentName || ''" [showBack]="true" (back)="navigateBack()">
 
-            <div class="actions" style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="actions flex-center-gap">
                 <app-button
                     *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
                     [routerLink]="getChatRoute()">

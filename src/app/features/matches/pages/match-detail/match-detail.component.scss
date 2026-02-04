@@ -5,21 +5,21 @@
 }
 
 .score-card-hero {
-    background: var(--bg-surface, #111827);
-    border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
-    border-radius: var(--radius-4xl, 24px);
-    padding: var(--space-3xl, 32px);
-    margin-bottom: var(--space-xl, 24px);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-4xl);
+    padding: var(--space-3xl);
+    margin-bottom: var(--space-xl);
     position: relative;
     overflow: hidden;
 
     &.is-live {
-        border-color: var(--color-primary, #10B981);
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+        border-color: var(--color-primary);
+        box-shadow: var(--shadow-glow);
     }
 
     &.is-finished {
-        background: linear-gradient(135deg, var(--bg-surface, #111827), var(--bg-surface-dark, #0a0f18));
+        background: linear-gradient(135deg, var(--bg-surface), var(--bg-dark-lighter));
     }
 }
 
@@ -49,15 +49,15 @@
 
         .material-symbols-outlined {
             font-size: 40px;
-            color: var(--text-muted, #64748b);
+            color: var(--text-muted);
         }
     }
 
     h2 {
-        font-size: var(--text-2xl, 24px);
-        font-weight: var(--font-bold, 700);
-        color: var(--text-primary, #f1f5f9);
-        margin-bottom: var(--space-1, 4px);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--space-1);
     }
 
     .team-tag {
@@ -152,18 +152,18 @@
     }
 
     &[data-type="GOAL"] {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10B981;
+        background: var(--color-primary-10);
+        color: var(--color-primary);
     }
 
     &[data-type="YELLOW_CARD"] {
-        background: rgba(245, 158, 11, 0.1);
-        color: #F59E0B;
+        background: var(--color-warning-10);
+        color: var(--color-warning);
     }
 
     &[data-type="RED_CARD"] {
-        background: rgba(239, 68, 68, 0.1);
-        color: #EF4444;
+        background: var(--color-danger-10);
+        color: var(--color-danger);
     }
 }
 
@@ -196,12 +196,12 @@
     overflow: hidden;
 
     .admin-header {
-        background: rgba(16, 185, 129, 0.05);
-        padding: var(--space-4, 16px) var(--space-xl, 20px);
+        background: var(--color-primary-5);
+        padding: var(--space-4) var(--space-xl);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
+        border-bottom: 1px solid var(--border-visible);
     }
 
     .admin-title {

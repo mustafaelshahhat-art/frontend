@@ -12,22 +12,36 @@
 
 .matches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--space-xl, 24px);
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
 }
 
-.match-card-actions {
-    display: flex;
-    gap: var(--space-2, 8px);
-    width: 100%;
+.clickable-match-card {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
 }
 
-.live-actions {
-    display: flex;
-    gap: 0.5rem;
+.match-card-actions {
     width: 100%;
+    display: flex;
+    gap: var(--space-2, 8px);
+    margin-top: var(--space-3, 12px);
+
+    app-button {
+        flex: 1;
+    }
+
+    .live-actions {
+        flex: 1;
+        display: flex;
+        gap: var(--space-2, 8px);
+    }
 }
