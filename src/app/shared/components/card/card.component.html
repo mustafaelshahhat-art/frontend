@@ -1,0 +1,22 @@
+<div class="card" [class]="'card-' + variant" [class.card-hover]="hover" [class.card-no-padding]="!padding">
+    <!-- Card Header -->
+    <div *ngIf="title" class="card-header">
+        <div class="card-title-group">
+            <h3 class="card-title">{{ title }}</h3>
+            <p *ngIf="subtitle" class="card-subtitle">{{ subtitle }}</p>
+        </div>
+        <div class="card-extra">
+            <ng-content select="[card-extra]"></ng-content>
+        </div>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+        <ng-content></ng-content>
+    </div>
+
+    <!-- Card Footer -->
+    <div class="card-footer" *ngIf="hasFooter">
+        <ng-content select="[card-footer]"></ng-content>
+    </div>
+</div>

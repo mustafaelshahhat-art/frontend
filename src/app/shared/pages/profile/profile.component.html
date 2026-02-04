@@ -1,0 +1,138 @@
+<div class="profile-page">
+    <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
+        <app-badge type="primary">{{ roleBadge }}</app-badge>
+    </app-page-header>
+
+    <div class="profile-container">
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <app-card class="avatar-card">
+                <div class="avatar-wrapper">
+                    <img *ngIf="profilePicture" [src]="profilePicture" [alt]="user?.name">
+                    <span *ngIf="!profilePicture" class="initial">{{ userInitial }}</span>
+
+                    <div *ngIf="isUploadingPicture" class="uploading-overlay">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+                <h2>{{ user?.name }}</h2>
+                <span class="username">@{{ user?.username }}</span>
+
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <app-button variant="outline" size="sm" icon="photo_camera" (click)="fileInput.click()"
+                        [isLoading]="isUploadingPicture">
+                        تغيير الصورة
+                    </app-button>
+                    <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*"
+                        style="display: none;">
+
+                    <app-button *ngIf="profilePicture && !isUploadingPicture" variant="ghost" size="sm" icon="delete"
+                        (click)="removePicture()" variant="danger">
+                        حذف الصورة
+                    </app-button>
+                </div>
+
+                <div class="membership-info"
+                    style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                    <p style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">معرف
+                        العضوية</p>
+                    <p
+                        style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #10B981; letter-spacing: 1px;">
+                        {{ displayId || user?.username }}</p>
+                </div>
+            </app-card>
+
+            <div class="profile-nav" style="margin-top: 1.5rem;">
+                <app-filter
+                    [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
+                    [activeValue]="activeSection" (change)="setActiveSection($event)">
+                </app-filter>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="profile-content">
+            <!-- Edit Info Section -->
+            <app-card *ngIf="activeSection === 'info'" title="المعلومات الشخصية" icon="settings_account_box">
+                <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>الاسم الكامل</label>
+                            <input formControlName="name" class="premium-input"
+                                placeholder="الاسم الرباعي كما في الهوية">
+                        </div>
+
+                        <div class="form-group">
+                            <label>البريد الإلكتروني</label>
+                            <input formControlName="email" type="email" class="premium-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label>رقم الجوال</label>
+                            <input formControlName="phone" type="tel" class="premium-input" placeholder="05XXXXXXXX">
+                        </div>
+
+                        <div class="form-group">
+                            <label>اسم المستخدم</label>
+                            <input formControlName="username" class="premium-input" [disabled]="true">
+                        </div>
+
+                        <div class="form-group">
+                            <label>رقم الهوية (محمي)</label>
+                            <input formControlName="nationalId" class="premium-input" [disabled]="true"
+                                style="font-family: monospace;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>المحافظة</label>
+                            <input formControlName="governorate" class="premium-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label>المدينة</label>
+                            <input formControlName="city" class="premium-input">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <app-button type="submit" [isLoading]="isLoading" icon="save" [disabled]="profileForm.invalid">
+                            حفظ التغييرات
+                        </app-button>
+                    </div>
+                </form>
+            </app-card>
+
+            <!-- Change Password Section -->
+            <app-card *ngIf="activeSection === 'password'" title="تغيير كلمة المرور" icon="key">
+                <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px;">
+                        <div class="form-group">
+                            <label>كلمة المرور الحالية</label>
+                            <input type="password" formControlName="currentPassword" class="premium-input"
+                                placeholder="أدخل كلمة المرور الحالية">
+                        </div>
+
+                        <div class="form-group">
+                            <label>كلمة المرور الجديدة</label>
+                            <input type="password" formControlName="newPassword" class="premium-input"
+                                placeholder="6 أحرف على الأقل">
+                        </div>
+
+                        <div class="form-group">
+                            <label>تأكيد كلمة المرور الجديدة</label>
+                            <input type="password" formControlName="confirmPassword" class="premium-input"
+                                placeholder="أعد إدخال كلمة المرور">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading" icon="lock_reset"
+                            [disabled]="passwordForm.invalid">
+                            تحديث كلمة المرور
+                        </app-button>
+                    </div>
+                </form>
+            </app-card>
+        </div>
+    </div>
+</div>

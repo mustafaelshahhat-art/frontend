@@ -1,0 +1,16 @@
+<app-modal [visible]="visible" title="إنهاء المباراة" icon="sports_score" theme="danger" (onClose)="cancel()">
+
+    <div class="text-center p-4">
+        <p class="text-lg mb-2">هل أنت متأكد من رغبتك في إنهاء المباراة؟</p>
+        <p class="text-secondary text-sm">سيتم اعتماد النتيجة الحالية وإغلاق المباراة نهائياً.</p>
+    </div>
+
+    <div modal-footer class="flex justify-end gap-3 w-full">
+        <app-button variant="ghost" (onClick)="cancel()" [disabled]="isSubmitting">
+            إلغاء
+        </app-button>
+        <app-button variant="danger" (onClick)="confirm()" [isLoading]="isSubmitting" icon="check">
+            تأكيد الإنهاء
+        </app-button>
+    </div>
+</app-modal>

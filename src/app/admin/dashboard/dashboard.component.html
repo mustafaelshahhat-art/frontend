@@ -1,0 +1,36 @@
+<div class="page-container animate-fade-in-up">
+    <div class="page-content">
+
+        <!-- Welcome Header -->
+        <app-welcome-card title="منصة التحكم للمدير" subtitle="مرحباً بك، إليك ملخص النشاط الحالي"
+            icon="admin_panel_settings" status="متصل" statusClass="status-dot-online">
+        </app-welcome-card>
+
+        <!-- Stats Grid -->
+        <div class="grid-stats mb-md">
+            <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
+                [colorClass]="stat.colorClass">
+            </app-stat-card>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="card card-glass rounded-xl p-md">
+            <app-page-header title="الإجراءات السريعة" subtitle="إدارة العمليات اليومية للنظام">
+            </app-page-header>
+
+            <div class="grid-stats">
+                <app-action-card title="إنشاء بطولة" description="إعداد مسابقة جديدة" icon="add_circle"
+                    colorClass="primary" (clicked)="navigateTo('/admin/tournaments/new')">
+                </app-action-card>
+
+                <app-action-card title="مراجعة الحسابات" description="إدارة المستخدمين" icon="person_check"
+                    colorClass="info" (clicked)="navigateTo('/admin/users')">
+                </app-action-card>
+
+                <app-action-card title="الموافقات المالية" description="متابعة الرسوم" icon="payments" colorClass="gold"
+                    (clicked)="navigateTo('/admin/payment-requests')">
+                </app-action-card>
+            </div>
+        </div>
+    </div>
+</div>

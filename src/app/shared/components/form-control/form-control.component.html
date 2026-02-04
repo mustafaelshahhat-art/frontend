@@ -1,0 +1,24 @@
+<div class="form-group" [class.has-error]="error">
+    <label *ngIf="label" class="form-label">{{ label }}</label>
+
+    <div class="input-wrapper">
+        <span *ngIf="iconLeft" class="material-symbols-outlined form-icon icon-left">
+            {{ iconLeft }}
+        </span>
+
+        <ng-content></ng-content>
+
+        <span *ngIf="iconRight" class="material-symbols-outlined form-icon icon-right">
+            {{ iconRight }}
+        </span>
+    </div>
+
+    <div *ngIf="error" class="form-error animate-fade-in">
+        <span class="material-symbols-outlined" style="font-size: 14px">error</span>
+        {{ error }}
+    </div>
+
+    <div *ngIf="hint && !error" class="form-hint">
+        {{ hint }}
+    </div>
+</div>

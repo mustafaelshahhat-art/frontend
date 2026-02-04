@@ -1,0 +1,64 @@
+<div class="match-card-compact" [class.is-live]="isLive" [class.is-finished]="isFinished"
+    [class.clickable]="isClickable" (click)="onCardClick()">
+
+    <!-- Header -->
+    <div class="match-card-header">
+        <div class="match-card-icon">
+            <span class="material-symbols-outlined">{{ isLive ? 'sensors' : 'sports_soccer' }}</span>
+        </div>
+        <span class="match-card-badge">
+            <span *ngIf="isLive" class="live-dot"></span>
+            {{ statusLabel }}
+        </span>
+    </div>
+
+    <!-- Title -->
+    <div class="match-card-title">
+        <h4>{{ title || match.tournamentName || 'مباراة ودية' }}</h4>
+        <p *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+
+    <!-- Match Info -->
+    <div class="match-card-info">
+        <div class="match-card-teams">
+            <!-- Home Team -->
+            <div class="match-card-team">
+                <div class="match-card-team-avatar">
+                    <ng-container *ngIf="match.homeTeamLogoUrl; else defaultHomeIcon">
+                        <img [src]="match.homeTeamLogoUrl" alt="" class="w-full h-full object-cover rounded-full">
+                    </ng-container>
+                    <ng-template #defaultHomeIcon>
+                        <span class="material-symbols-outlined">shield</span>
+                    </ng-template>
+                </div>
+                <span class="match-card-team-name">{{ match.homeTeamName }}</span>
+            </div>
+
+            <!-- VS / Score -->
+            <div class="match-card-vs">
+                <span *ngIf="isScheduled">vs</span>
+                <div *ngIf="!isScheduled" class="match-card-score">
+                    {{ match.homeScore }} - {{ match.awayScore }}
+                </div>
+            </div>
+
+            <!-- Away Team -->
+            <div class="match-card-team">
+                <div class="match-card-team-avatar">
+                    <ng-container *ngIf="match.awayTeamLogoUrl; else defaultAwayIcon">
+                        <img [src]="match.awayTeamLogoUrl" alt="" class="w-full h-full object-cover rounded-full">
+                    </ng-container>
+                    <ng-template #defaultAwayIcon>
+                        <span class="material-symbols-outlined">shield</span>
+                    </ng-template>
+                </div>
+                <span class="match-card-team-name">{{ match.awayTeamName }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions (Projected) -->
+    <div class="match-card-actions-wrapper">
+        <ng-content></ng-content>
+    </div>
+</div>

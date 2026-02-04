@@ -1,0 +1,107 @@
+.tournament-card-premium {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.tournament-banner {
+    height: 140px;
+    background: linear-gradient(135deg, var(--color-primary, #10B981) 0%, var(--color-primary-dark, #059669) 100%);
+    border-radius: var(--radius-xl, 12px);
+    margin-bottom: var(--space-4, 16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+
+    .material-symbols-outlined {
+        font-size: 64px;
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    .status-badge-overlay {
+        position: absolute;
+        top: var(--space-3, 12px);
+        right: var(--space-3, 12px);
+    }
+}
+
+.tournament-info {
+    flex: 1;
+
+    h3 {
+        font-size: var(--text-lg, 18px);
+        font-weight: var(--font-bold, 700);
+        color: var(--text-primary, #f1f5f9);
+        margin-bottom: var(--space-2, 8px);
+    }
+
+    p {
+        font-size: var(--text-sm, 14px);
+        color: var(--text-secondary, #94a3b8);
+        margin-bottom: var(--space-4, 16px);
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+.tournament-stats {
+    display: flex;
+    gap: var(--space-xl, 20px);
+    margin-bottom: var(--space-4, 16px);
+    padding-top: var(--space-4, 16px);
+    border-top: 1px solid var(--border-visible, rgba(255, 255, 255, 0.05));
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .label {
+            font-size: 10px;
+            color: var(--text-muted, #64748b);
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: var(--text-sm, 14px);
+            font-weight: var(--font-bold, 700);
+            color: var(--text-primary, #f1f5f9);
+        }
+    }
+}
+
+.fill-bar-wrapper {
+    margin-top: auto;
+
+    .fill-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--text-secondary, #94a3b8);
+        margin-bottom: 4px;
+    }
+
+    .fill-bar {
+        height: 6px;
+        background: var(--bg-surface-dark, #1f2937);
+        border-radius: 3px;
+        overflow: hidden;
+
+        .fill-progress {
+            height: 100%;
+            background: var(--color-primary, #10B981);
+            transition: width 0.5s ease-out;
+        }
+    }
+}
+
+.tournament-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+}

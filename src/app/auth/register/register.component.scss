@@ -1,0 +1,35 @@
+/* Register Component Styles */
+:host {
+    display: block;
+}
+
+.auth-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.role-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.role-card.selected {
+    border-color: var(--color-primary-500);
+    background-color: var(--color-primary-50);
+}
+
+.file-upload-box {
+    border: 2px dashed var(--color-border-default);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.file-upload-box:hover {
+    border-color: var(--color-primary-500);
+    background: var(--color-surface-hover);
+}

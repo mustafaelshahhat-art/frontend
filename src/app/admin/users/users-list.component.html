@@ -1,0 +1,94 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-2xl">
+        <!-- Page Heading -->
+        <app-page-header title="إدارة المستخدمين" subtitle="عرض وإدارة حسابات الكباتن والحكام المسجلين في النظام">
+            <app-button variant="primary" icon="add">
+                إضافة مستخدم جديد
+            </app-button>
+        </app-page-header>
+
+        <!-- Tabs & Filters Container -->
+        <div class="flex-col gap-lg">
+            <!-- Main Tabs -->
+            <app-filter [items]="userTypeTabs" [activeValue]="userType" (change)="userType = $event"></app-filter>
+
+            <!-- Status Filter -->
+            <div class="mb-2xl animate-fade-in-up">
+                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل المستخدمين..."></app-inline-loading>
+
+        <!-- Empty State -->
+        <app-empty-state *ngIf="!isLoading && filteredUsers.length === 0" icon="person_off" title="لا يوجد مستخدمين"
+            description="لا يوجد مستخدمين في هذا التصنيف حالياً">
+        </app-empty-state>
+
+        <!-- Data Table -->
+        <div *ngIf="!isLoading && filteredUsers.length > 0" class="card p-0 overflow-hidden">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المستخدم</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>الفريق</th>
+                            <th>الحالة</th>
+                            <th class="text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let user of filteredUsers; let i = index">
+                            <td class="text-muted">{{ (i + 1).toString().padStart(2, '0') }}</td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar avatar-md">
+                                        <span class="text-primary font-bold">{{ user.name.charAt(0) }}</span>
+                                    </div>
+                                    <div class="flex-col">
+                                        <span class="font-bold text-sm">{{ user.name }}</span>
+                                        <span class="text-xs text-muted">ID: #{{ user.displayId }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-sm">{{ user.createdAt | date:'yyyy/MM/dd' }}</td>
+                            <td class="text-sm">{{ user.teamName || '—' }}</td>
+                            <td>
+                                <app-badge [type]="getBadgeType(user.status)" [dot]="true"
+                                    [dotType]="user.status === 'active' ? 'active' : 'error'">
+                                    {{ getStatusLabel(user.status) }}
+                                </app-badge>
+                            </td>
+                            <td>
+                                <div class="flex items-center justify-center gap-2">
+                                    <app-button (click)="warnUser(user)" variant="ghost" size="sm" icon="warning"
+                                        class="text-warning">
+                                    </app-button>
+                                    <app-button (click)="suspendUser(user)" variant="ghost" size="sm" icon="block"
+                                        class="text-gold">
+                                    </app-button>
+                                    <app-button (click)="deleteUser(user)" variant="ghost" size="sm" icon="delete"
+                                        class="text-danger">
+                                    </app-button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="pagination">
+                <span class="pagination-info">عرض 1-{{ filteredUsers.length }} من {{ users.length }} مستخدم</span>
+                <div class="pagination-controls">
+                    <app-button variant="ghost" size="sm" icon="chevron_right"></app-button>
+                    <app-button variant="primary" size="sm">1</app-button>
+                    <app-button variant="ghost" size="sm">2</app-button>
+                    <app-button variant="ghost" size="sm" icon="chevron_left"></app-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

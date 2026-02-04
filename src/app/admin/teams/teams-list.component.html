@@ -1,0 +1,130 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-md">
+        <!-- Page Header Section -->
+        <app-page-header title="إدارة الفرق" subtitle="استعراض وإدارة الفرق المسجلة في البطولة">
+            <!-- Filter Tabs -->
+            <div class="mb-2xl animate-fade-in-up">
+                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+            </div>
+        </app-page-header>
+
+        <!-- Loading State -->
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل الفرق..."></app-inline-loading>
+
+        <!-- Empty State -->
+        <app-empty-state *ngIf="!isLoading && filteredTeams.length === 0" icon="groups" title="لا توجد فرق"
+            description="لا توجد فرق في هذا التصنيف حالياً">
+        </app-empty-state>
+
+        <!-- Desktop Table View -->
+        <div *ngIf="!isLoading && filteredTeams.length > 0" class="card p-0 overflow-hidden hide-on-mobile">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>الفريق</th>
+                            <th>الكابتن</th>
+                            <th>عدد اللاعبين</th>
+                            <th>الحالة الإدارية</th>
+                            <th class="text-left">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let team of filteredTeams" [class.opacity-50]="!team.isActive">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar avatar-md" [class.avatar-muted]="!team.isActive">
+                                        <span class="material-symbols-outlined"
+                                            [class.text-gold]="team.isActive">shield</span>
+                                    </div>
+                                    <div class="flex-col">
+                                        <span class="text-primary font-bold text-sm">{{ team.name }}</span>
+                                        <span class="text-muted text-xs">{{ team.city }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-primary text-sm">{{ team.captainName }}</span>
+                            </td>
+                            <td>
+                                <span class="text-gold font-bold">{{ team.playerCount }} / {{ team.maxPlayers }}</span>
+                            </td>
+                            <td>
+                                <app-badge [type]="team.isActive ? 'success' : 'danger'" [dot]="true"
+                                    [dotType]="team.isActive ? 'active' : 'error'">
+                                    {{ team.isActive ? 'مفعل' : 'معطل' }}
+                                </app-badge>
+                            </td>
+                            <td class="text-left">
+                                <div class="flex items-center justify-end gap-2">
+                                    <!-- Deactivate/Activate -->
+                                    <app-button (click)="requestToggleStatus(team)" variant="ghost" size="sm"
+                                        [icon]="team.isActive ? 'block' : 'check_circle'"
+                                        [class.text-warning]="team.isActive" [class.text-success]="!team.isActive">
+                                    </app-button>
+
+                                    <!-- Delete -->
+                                    <app-button (click)="requestDelete(team)" variant="ghost" size="sm" icon="delete"
+                                        class="text-danger">
+                                    </app-button>
+
+                                    <!-- View Details -->
+                                    <app-button (click)="viewTeam(team)" variant="ghost" size="sm" icon="visibility">
+                                    </app-button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile Cards View -->
+        <div *ngIf="!isLoading && filteredTeams.length > 0" class="mobile-teams-list show-only-mobile">
+            <div *ngFor="let team of filteredTeams" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
+                <div class="card-header-flex">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar avatar-md" [class.avatar-muted]="!team.isActive">
+                            <span class="material-symbols-outlined" [class.text-gold]="team.isActive">shield</span>
+                        </div>
+                        <div class="flex-col">
+                            <span class="text-primary font-bold">{{ team.name }}</span>
+                            <span class="text-muted text-xs">{{ team.city }}</span>
+                        </div>
+                    </div>
+                    <app-badge [type]="team.isActive ? 'success' : 'danger'">
+                        {{ team.isActive ? 'مفعل' : 'معطل' }}
+                    </app-badge>
+                </div>
+
+                <div class="card-body-details">
+                    <div class="detail-row">
+                        <span class="label">الكابتن</span>
+                        <span class="value">{{ team.captainName }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">اللاعبين</span>
+                        <span class="value text-gold font-bold">{{ team.playerCount }} / {{ team.maxPlayers }}</span>
+                    </div>
+                </div>
+
+                <div class="card-footer-actions">
+                    <button (click)="viewTeam(team)" class="action-btn-pill">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <div class="flex-1"></div>
+                    <div class="flex gap-2">
+                        <button (click)="requestToggleStatus(team)" class="action-btn-pill" [class.warn]="team.isActive"
+                            [class.success]="!team.isActive">
+                            <span class="material-symbols-outlined">{{ team.isActive ? 'block' : 'check_circle'
+                                }}</span>
+                        </button>
+                        <button (click)="requestDelete(team)" class="action-btn-pill danger">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

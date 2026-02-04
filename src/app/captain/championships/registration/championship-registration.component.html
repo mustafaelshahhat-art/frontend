@@ -1,0 +1,114 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-2xl">
+        <!-- Page Header -->
+        <app-page-header title="تفعيل الاشتراك في البطولة" [subtitle]="tournament?.name || ''">
+            <app-button (click)="goBack()" variant="ghost" icon="arrow_forward">
+                العودة
+            </app-button>
+        </app-page-header>
+
+        <div class="grid-2-cols gap-2xl">
+            <!-- Registration Form -->
+            <div class="col-span-1 lg:col-span-2">
+                <div class="card p-xl animate-fade-in-up">
+                    <h3 class="card-title flex items-center gap-2 mb-xl">
+                        <span class="material-symbols-outlined text-success">assignment</span>
+                        بيانات التحويل
+                    </h3>
+
+                    <form [formGroup]="regForm" (ngSubmit)="onSubmit()" class="flex-col gap-xl">
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label class="form-label">رقم الهاتف المحول منه</label>
+                            <input formControlName="phone" type="tel" class="form-input" placeholder="05XXXXXXXX">
+                        </div>
+
+                        <!-- Transfer Type Dropdown -->
+                        <div class="form-group">
+                            <label class="form-label">نوع التحويل</label>
+                            <div class="custom-select" [class.is-open]="transferDropdownOpen"
+                                (click)="toggleTransferDropdown($event)">
+                                <div class="select-trigger">
+                                    <span class="value-text" [class.text-muted]="!regForm.value.transferType">
+                                        {{ getTransferTypeLabel(regForm.value.transferType) || 'اختر نوع التحويل' }}
+                                    </span>
+                                    <span class="material-symbols-outlined arrow-icon">expand_more</span>
+                                </div>
+                                <div class="select-options" *ngIf="transferDropdownOpen">
+                                    <div class="option-item" *ngFor="let type of transferTypes"
+                                        (click)="selectTransferType(type.value); $event.stopPropagation()">
+                                        <span class="material-symbols-outlined text-gold">{{ type.icon }}</span>
+                                        {{ type.label }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Receipt Upload -->
+                        <div class="form-group">
+                            <label class="form-label">إيصال التحويل</label>
+                            <div class="upload-area" (click)="fileInput.click()">
+                                <input #fileInput type="file" class="hidden" (change)="onFileSelected($event)"
+                                    accept="image/*,.pdf">
+                                <span class="material-symbols-outlined text-2xl text-muted">cloud_upload</span>
+                                <span class="text-muted">إرفاق صورة أو PDF</span>
+                            </div>
+                            <div *ngIf="selectedFileName" class="file-chip mt-md">
+                                <span class="material-symbols-outlined">description</span>
+                                <span class="file-name">{{ selectedFileName }}</span>
+                                <button type="button" (click)="removeFile(); $event.stopPropagation()"
+                                    class="file-remove">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <app-button type="submit" [disabled]="!isFormValid" variant="primary" class="w-full">
+                            إرسال طلب التسجيل
+                        </app-button>
+                    </form>
+
+                    <!-- Success Message -->
+                    <div *ngIf="submitted" class="alert alert-warning mt-xl animate-fade-in-up">
+                        <span class="material-symbols-outlined">hourglass_top</span>
+                        <div>تم إرسال طلب التسجيل بنجاح. طلبك قيد المراجعة وسيتم إشعارك بعد مراجعة الإدارة.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Sidebar -->
+            <div class="flex-col gap-xl">
+                <!-- Tournament Details Card -->
+                <div class="card card-success p-xl animate-fade-in-up">
+                    <h4 class="text-primary font-bold mb-lg">تفاصيل البطولة</h4>
+                    <ul class="flex-col gap-lg">
+                        <li class="flex justify-between items-center text-sm">
+                            <span class="text-muted">رسوم الاشتراك</span>
+                            <span class="text-gold font-bold">1500 ريال</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm">
+                            <span class="text-muted">تاريخ البدء</span>
+                            <span class="text-primary">{{ tournament?.startDate | date:'yyyy-MM-dd' }}</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm">
+                            <span class="text-muted">الموقع</span>
+                            <span class="text-primary">{{ tournament?.location }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Info Note -->
+                <div class="card card-info p-xl animate-fade-in-up">
+                    <div class="flex items-center gap-2 text-info mb-md">
+                        <span class="material-symbols-outlined">info</span>
+                        <h4 class="font-bold">ملاحظة</h4>
+                    </div>
+                    <p class="text-sm text-secondary leading-relaxed">
+                        سيتم مراجعة طلبك من قبل إدارة البطولة والتأكد من صحة الإيصال المرفق وقائمة اللاعبين. سيصلك إشعار
+                        فور قبول الطلب.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

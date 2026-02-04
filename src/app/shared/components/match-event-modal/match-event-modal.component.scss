@@ -1,0 +1,19 @@
+// MatchEventModal styles
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal, 60);
+}
+
+.modal-box {
+    background: var(--bg-surface, #111827);
+    border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
+    border-radius: var(--radius-3xl, 20px);
+    width: 100%;
+    max-width: 500px;
+}

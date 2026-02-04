@@ -1,0 +1,38 @@
+.search-container {
+    position: relative;
+    max-width: 480px;
+    /* Replaced var(--width-search) with a concrete value or keep varaible if global */
+    /* Assuming var(--width-search) is defined globally, we can keep it, but better to check tokens. 
+     For now I will keep it as per original but if it breaks I'll fix it. 
+     Actually, let's look at tokens.scss if possible, but safely I can copy as is. */
+    max-width: var(--width-search, 480px);
+}
+
+.search-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3) var(--space-4);
+    padding-right: var(--space-12);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+
+    &::placeholder {
+        color: var(--text-muted);
+    }
+
+    &:focus {
+        border-color: var(--color-primary-30);
+        background: var(--bg-input-hover);
+    }
+}
+
+.search-icon {
+    position: absolute;
+    right: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}

@@ -1,0 +1,19 @@
+// Match Chat Wrapper Styles
+.chat-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+// Global Loading/Unauthorized states layout
+.chat-loading,
+.chat-unauthorized {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    color: var(--text-muted);
+    text-align: center;
+}

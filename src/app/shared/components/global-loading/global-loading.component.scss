@@ -1,0 +1,38 @@
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal, 60);
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xl, 20px);
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--border-visible, rgba(255, 255, 255, 0.1));
+    border-top-color: var(--color-primary, #10B981);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-message {
+    font-size: var(--text-sm, 14px);
+    color: var(--text-primary, #f1f5f9);
+    font-weight: var(--font-medium, 500);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

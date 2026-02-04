@@ -1,0 +1,32 @@
+<!-- Mobile Overlay -->
+<div *ngIf="isSidebarOpen && isMobile" (click)="closeSidebar()" class="overlay"></div>
+
+<div class="app-layout bg-gradient-page">
+
+    <!-- Sidebar -->
+    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser"
+        brandSubtitle="لوحة القائد" userRoleLabel="قائد الفريق" (close)="closeSidebar()" (logout)="handleLogout()">
+    </app-sidebar>
+
+    <!-- Main Content Area -->
+    <div class="app-main" [class.mr-sidebar]="!isMobile">
+
+        <!-- Header -->
+        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة القائد" [unreadCount]="unreadCount"
+            [notifications]="notifications" (toggleSidebar)="toggleSidebar()"
+            (viewNotification)="viewNotification($event)" (viewAllNotifications)="viewAllNotifications()">
+
+            <div breadcrumbs class="flex items-center gap-2">
+                <span class="text-muted text-lg">/</span>
+                <span class="badge badge-primary">الرئيسية</span>
+            </div>
+        </app-header>
+
+        <!-- Page Content (Scrollable) -->
+        <main class="app-content p-4">
+            <router-outlet></router-outlet>
+        </main>
+
+    </div>
+
+</div>

@@ -1,0 +1,52 @@
+<div class="page-container animate-fade-in-up">
+    <div class="page-content">
+
+        <!-- Welcome Header -->
+        <app-welcome-card title="لوحة الحكم" subtitle="مرحباً بك، جدول مباريات اليوم" icon="sports" iconClass="warning"
+            [status]="'اليوم: ' + todayMatches.length" badgeClass="badge-info" statusIcon="event">
+        </app-welcome-card>
+
+        <!-- Today's Matches Section -->
+        <div class="match-cards-grid mb-md">
+            <app-match-card *ngFor="let match of todayMatches" [match]="match" [title]="match.tournamentName"
+                [subtitle]="match.status === MatchStatus.LIVE ? 'المباراة جارية' : 'أنت الحكم المسؤول'">
+
+                <div class="match-card-actions w-full flex-wrap flex gap-sm mt-auto" actions>
+                    <button *ngIf="match.status === MatchStatus.SCHEDULED" (click)="startMatch(match.id)"
+                        class="match-card-action">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                        بدء المباراة
+                    </button>
+
+                    <div *ngIf="match.status === MatchStatus.LIVE" class="flex gap-2 w-full">
+                        <button (click)="openEventModal(match)" class="match-card-action primary-btn flex-1">
+                            <span class="material-symbols-outlined">edit_note</span>
+                            تسجيل حدث
+                        </button>
+                        <button (click)="onEndMatchClick(match.id)" class="match-card-action danger-btn flex-1">
+                            <span class="material-symbols-outlined">stop_circle</span>
+                            إنهاء
+                        </button>
+                    </div>
+                </div>
+
+            </app-match-card>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid-stats">
+            <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
+                [colorClass]="stat.colorClass">
+            </app-stat-card>
+        </div>
+    </div>
+</div>
+
+<!-- Centralized End Match Confirmation Dialog -->
+<app-end-match-confirm [matchId]="activeMatchId || ''" [(visible)]="showEndMatchConfirm"
+    (matchEnded)="onMatchEnded($event)">
+</app-end-match-confirm>
+
+<!-- Centralized Event Recording Modal -->
+<app-match-event-modal [match]="activeMatch" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)">
+</app-match-event-modal>

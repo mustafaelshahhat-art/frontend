@@ -1,0 +1,47 @@
+.tournaments-page {
+    padding: var(--space-xl, 24px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.tournaments-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl, 24px);
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4, 16px);
+    align-items: center;
+
+    app-search {
+        flex: 1;
+        min-width: 200px;
+        max-width: 400px;
+    }
+
+    app-filter {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+
+        app-search {
+            max-width: none;
+        }
+    }
+}
+
+.tournaments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-xl, 24px);
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}

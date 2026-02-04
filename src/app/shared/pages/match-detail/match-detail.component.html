@@ -1,0 +1,429 @@
+﻿<div class="match-detail-page">
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="match-detail-loading">
+        <div class="loading-content">
+            <div class="loading-spinner-lg"></div>
+            <p>جاري تحميل تفاصيل المباراة...</p>
+        </div>
+    </div>
+
+    <!-- Match Content -->
+    <ng-container *ngIf="!isLoading && match">
+
+        <app-page-header [title]="match.tournamentName || ''" [showBack]="true" (back)="navigateBack()">
+
+            <div class="actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                <app-button
+                    *ngIf="(isCaptain() || isReferee() || isAdmin()) && (match.status === MatchStatus.SCHEDULED || match.status === MatchStatus.LIVE)"
+                    variant="ghost" icon="chat" [routerLink]="getChatRoute()">
+                </app-button>
+
+                <app-badge
+                    [type]="match.status === MatchStatus.LIVE ? 'live' : match.status === MatchStatus.FINISHED ? 'success' : 'neutral'">
+                    {{ getStatusLabel(match.status) }}
+                </app-badge>
+            </div>
+        </app-page-header>
+
+        <!-- Main Score Hero -->
+        <div class="score-card-hero" [class.is-live]="match.status === MatchStatus.LIVE"
+            [class.is-finished]="match.status === MatchStatus.FINISHED">
+
+            <div *ngIf="match.status === MatchStatus.LIVE" class="live-banner">
+                <span class="pulse-dot"></span>
+                مباراة جارية الآن
+            </div>
+
+            <div class="score-card-content">
+                <div class="team-block home">
+                    <div class="team-shield">
+                        <span class="material-symbols-outlined">shield</span>
+                    </div>
+                    <h2>{{ match.homeTeamName }}</h2>
+                    <span class="team-tag">صاحب الأرض</span>
+                </div>
+
+                <div class="score-block">
+                    <div class="score-numbers">
+                        <span class="score home">{{ match.homeScore }}</span>
+                        <span class="score-divider">:</span>
+                        <span class="score away">{{ match.awayScore }}</span>
+                    </div>
+                </div>
+
+                <div class="team-block away">
+                    <div class="team-shield">
+                        <span class="material-symbols-outlined">shield</span>
+                    </div>
+                    <h2>{{ match.awayTeamName }}</h2>
+                    <span class="team-tag">الضيف</span>
+                </div>
+            </div>
+
+            <div *ngIf="match.refereeName" class="referee-bar">
+                <span class="material-symbols-outlined">sports</span>
+                الحكم: {{ match.refereeName }}
+            </div>
+        </div>
+
+        <!-- Main Grid: Controls + Events -->
+        <div class="match-detail-main-grid">
+
+            <!-- Events Column -->
+            <div class="events-section">
+                <div class="events-panel">
+                    <div class="panel-header">
+                        <span class="material-symbols-outlined">timeline</span>
+                        <h3>أحداث المباراة</h3>
+                        <span class="events-badge">{{ match.events?.length || 0 }}</span>
+                    </div>
+
+                    <!-- Empty State -->
+                    <app-empty-state *ngIf="!match.events || match.events.length === 0" icon="sports_soccer"
+                        title="لا توجد أحداث" description="لا توجد أحداث حتى الآن">
+                    </app-empty-state>
+
+                    <!-- Events List -->
+                    <app-match-timeline *ngIf="match.events && match.events.length > 0" [events]="match.events"
+                        [homeTeamId]="match.homeTeamId" [isAdmin]="isAdmin()" (deleteEvent)="deleteEvent($event)">
+                    </app-match-timeline>
+                </div>
+            </div>
+
+            <!-- Controls Column -->
+            <div class="controls-section">
+
+                <!-- Admin Controls (Premium Redesign) -->
+                <div *ngIf="isAdmin()" class="admin-tools-premium">
+                    <div class="admin-header">
+                        <div class="admin-title">
+                            <span class="material-symbols-outlined">admin_panel_settings</span>
+                            <h3>لوحة التحكم الإدارية</h3>
+                        </div>
+                        <div class="admin-badge">Admin Mode</div>
+                    </div>
+
+                    <div class="admin-content">
+                        <!-- Main Action: Score -->
+                        <div class="admin-main-actions" style="margin-bottom: 1rem;">
+                            <app-button (click)="openScoreModal()" icon="scoreboard" style="width: 100%;">
+                                تحديث النتيجة
+                            </app-button>
+                        </div>
+
+                        <!-- Management Grid -->
+                        <div class="admin-grid"
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                            <app-button variant="outline" icon="person_pin" (click)="openRefereeModal()">
+                                {{ match.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
+                            </app-button>
+                            <app-button variant="outline" icon="edit_note" (click)="openEventModal()">
+                                إدارة الأحداث
+                            </app-button>
+                        </div>
+
+                        <div class="admin-divider"
+                            style="margin-top: 1.5rem; margin-bottom: 1rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                            <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">حالة
+                                اللقاء</span>
+                        </div>
+
+                        <!-- Status Controls -->
+                        <div class="status-grid" style="display: flex; gap: 0.5rem;">
+                            <app-button variant="outline" size="sm" icon="schedule" (click)="openPostponeModal()"
+                                style="flex: 1;">تأجيل</app-button>
+                            <app-button variant="outline" size="sm" icon="restart_alt" (click)="openResetModal()"
+                                style="flex: 1;">إعادة</app-button>
+                            <app-button variant="danger" size="sm" icon="block" (click)="openCancelModal()"
+                                style="flex: 1;">إلغاء</app-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referee Controls -->
+                <div *ngIf="isReferee()" class="control-panel">
+                    <div class="panel-header">
+                        <span class="material-symbols-outlined">dashboard_customize</span>
+                        <h3>مركز التحكم</h3>
+                    </div>
+                    <div class="panel-body">
+                        <app-button *ngIf="match.status === MatchStatus.SCHEDULED" (click)="startMatch()"
+                            style="width: 100%;" variant="primary" icon="play_circle">
+                            بدء المباراة
+                        </app-button>
+
+                        <app-button *ngIf="match.status === MatchStatus.LIVE" (click)="onEndMatchClick()"
+                            style="width: 100%;" variant="danger" icon="stop_circle">
+                            إنهاء المباراة
+                        </app-button>
+
+                        <div *ngIf="match.status === MatchStatus.FINISHED" class="report-done">
+                            <span class="material-symbols-outlined">task_alt</span>
+                            تم إنهاء المباراة
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Event Button -->
+                <div *ngIf="isReferee() && match.status === MatchStatus.LIVE" class="control-panel">
+                    <div class="panel-header">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        <h3>تسجيل حدث</h3>
+                    </div>
+                    <div class="panel-body">
+                        <app-button (click)="openEventModal()" variant="primary" style="width: 100%;" icon="add">
+                            تسجيل حدث جديد
+                        </app-button>
+                    </div>
+                </div>
+
+                <!-- Report Preview -->
+                <div *ngIf="isReferee() && match.report?.isSubmitted" class="control-panel success-panel">
+                    <div class="panel-header">
+                        <span class="material-symbols-outlined">description</span>
+                        <h3>تقرير المباراة</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="report-notes">"{{ match.report?.notes || 'لا توجد ملاحظات' }}"</p>
+                        <div class="report-date">
+                            <span class="material-symbols-outlined">schedule</span>
+                            {{ match.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Captain: Submit Objection -->
+                <div *ngIf="isCaptain() && match.status === MatchStatus.FINISHED" class="control-panel">
+                    <div class="panel-header">
+                        <span class="material-symbols-outlined">gavel</span>
+                        <h3>تقديم اعتراض</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="text-muted text-sm mb-md">إذا كان لديك اعتراض على نتيجة المباراة أو أي قرار تحكيمي</p>
+                        <app-button (click)="openObjectionModal()" variant="primary" style="width: 100%;" icon="report">
+                            تقديم اعتراض
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </ng-container>
+</div>
+
+<!-- Score Modal -->
+<div *ngIf="showScoreModal" class="modal-overlay" (click)="closeScoreModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <span class="material-symbols-outlined">scoreboard</span>
+            <h3>تحديث النتيجة</h3>
+        </div>
+        <div class="modal-body">
+            <div class="score-form">
+                <div class="score-team-input">
+                    <label>{{ match?.homeTeamName }}</label>
+                    <input type="number" [(ngModel)]="scoreForm.homeScore" min="0" class="score-input">
+                </div>
+                <span class="score-colon">:</span>
+                <div class="score-team-input">
+                    <label>{{ match?.awayTeamName }}</label>
+                    <input type="number" [(ngModel)]="scoreForm.awayScore" min="0" class="score-input">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <app-button (click)="closeScoreModal()" variant="ghost">إلغاء</app-button>
+            <app-button (click)="updateScore()" variant="primary">حفظ</app-button>
+        </div>
+    </div>
+</div>
+
+<!-- Centralized End Match Confirmation Dialog -->
+<app-end-match-confirm [matchId]="match?.id || ''" [(visible)]="showEndMatchConfirm"
+    (matchEnded)="onMatchEnded($event)">
+</app-end-match-confirm>
+
+<!-- Centralized Event Recording Modal -->
+<app-match-event-modal [match]="match" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)">
+</app-match-event-modal>
+
+<!-- Objection Modal -->
+<div *ngIf="showObjectionModal" class="objection-modal-overlay" (click)="closeObjectionModal()">
+    <div class="objection-modal-compact" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="objection-compact-header">
+            <div class="header-icon">
+                <span class="material-symbols-outlined">gavel</span>
+            </div>
+            <div class="header-text">
+                <h3>تقديم اعتراض</h3>
+                <p>{{ match?.homeTeamName }} vs {{ match?.awayTeamName }}</p>
+            </div>
+            <app-button variant="ghost" size="sm" icon="close" (click)="closeObjectionModal()"></app-button>
+        </div>
+
+        <!-- Body -->
+        <div class="objection-compact-body">
+            <!-- Objection Type Dropdown -->
+            <div class="form-group">
+                <label class="form-label">نوع الاعتراض</label>
+                <div class="custom-select" [class.is-open]="objectionDropdownOpen"
+                    (click)="objectionDropdownOpen = !objectionDropdownOpen; $event.stopPropagation()">
+                    <div class="select-trigger">
+                        <div class="value-wrapper">
+                            <span *ngIf="objectionForm.type" class="material-symbols-outlined icon-inline"
+                                style="color: #f59e0b">
+                                {{ getObjectionIcon(objectionForm.type) }}
+                            </span>
+                            <span class="value-text" [class.text-muted]="!objectionForm.type">
+                                {{ getObjectionLabel(objectionForm.type) || 'اختر نوع الاعتراض' }}
+                            </span>
+                        </div>
+                        <span class="material-symbols-outlined arrow-icon">expand_more</span>
+                    </div>
+                    <div class="select-options" *ngIf="objectionDropdownOpen">
+                        <div class="option-item" *ngFor="let type of objectionTypes"
+                            (click)="objectionForm.type = type.value; objectionDropdownOpen = false; $event.stopPropagation()">
+                            <span class="material-symbols-outlined icon-inline" style="color: #f59e0b">{{ type.icon
+                                }}</span>
+                            {{ type.label }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">شرح الاعتراض</label>
+                <textarea [(ngModel)]="objectionForm.description" class="form-input form-textarea" rows="3"
+                    placeholder="اشرح سبب الاعتراض..."></textarea>
+            </div>
+
+            <!-- File Upload -->
+            <div class="form-group">
+                <label class="form-label">المرفقات (اختياري)</label>
+                <div class="upload-compact" (click)="objectionFileInput.click()">
+                    <input #objectionFileInput type="file" multiple accept="image/*,video/*"
+                        (change)="onFilesSelected($event)" style="display: none;">
+                    <span class="material-symbols-outlined">attach_file</span>
+                    <span>إرفاق صور أو فيديو</span>
+                </div>
+
+                <!-- Uploaded Files -->
+                <div *ngIf="objectionForm.files.length > 0" class="files-compact">
+                    <div *ngFor="let file of objectionForm.files; let i = index" class="file-chip">
+                        <span class="material-symbols-outlined">{{ file.type.startsWith('image') ? 'image' : 'videocam'
+                            }}</span>
+                        <span class="file-name">{{ file.name }}</span>
+                        <app-button (click)="removeFile(i); $event.stopPropagation()" variant="ghost" size="sm"
+                            icon="close" class="close-file-btn">
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="objection-compact-footer">
+            <app-button (click)="closeObjectionModal()" variant="ghost">إلغاء</app-button>
+            <app-button (click)="submitObjection()" variant="primary" icon="send"
+                [disabled]="!objectionForm.type || !objectionForm.description">
+                إرسال
+            </app-button>
+        </div>
+    </div>
+</div>
+
+<!-- Referee Selection Modal -->
+<div *ngIf="showRefereeModal" class="modal-overlay" (click)="closeRefereeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <span class="material-symbols-outlined">person_pin</span>
+            <h3>تعيين حكم للمباراة</h3>
+        </div>
+        <div class="modal-body">
+            <div class="referees-list">
+                <div *ngFor="let ref of filteredReferees" class="referee-item-opt" (click)="assignReferee(ref)"
+                    [class.active]="match?.refereeId === ref.id">
+                    <div class="ref-avatar">
+                        <span class="material-symbols-outlined">account_circle</span>
+                    </div>
+                    <div class="ref-info">
+                        <span class="ref-name">{{ ref.name }}</span>
+                        <div class="ref-location">
+                            <span class="material-symbols-outlined">location_on</span>
+                            {{ ref.region }}
+                        </div>
+                    </div>
+                    <span *ngIf="match?.refereeId === ref.id"
+                        class="material-symbols-outlined check-icon">check_circle</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <app-button (click)="closeRefereeModal()" variant="ghost">إلغاء</app-button>
+        </div>
+    </div>
+</div>
+
+<!-- Postpone/Reset Schedule Modal -->
+<div *ngIf="showScheduleModal" class="modal-overlay" (click)="closeScheduleModal()">
+    <div class="modal-box premium-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <span class="material-symbols-outlined">{{ scheduleType === 'postpone' ? 'schedule' : 'restart_alt'
+                }}</span>
+            <h3>{{ scheduleType === 'postpone' ? 'تأجيل المباراة' : 'إعادة جدولة المباراة' }}</h3>
+        </div>
+        <div class="modal-body">
+            <div class="premium-form">
+                <div class="form-group">
+                    <label>تاريخ اللقاء الجديد</label>
+                    <div class="input-with-icon">
+                        <span class="material-symbols-outlined">calendar_today</span>
+                        <input type="date" [(ngModel)]="scheduleForm.date" class="premium-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>وقت اللقاء</label>
+                    <div class="input-with-icon">
+                        <span class="material-symbols-outlined">schedule</span>
+                        <input type="time" [(ngModel)]="scheduleForm.time" class="premium-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <app-button (click)="closeScheduleModal()" variant="ghost">إلغاء</app-button>
+            <app-button (click)="submitScheduleChange()"
+                [variant]="scheduleType === 'postpone' ? 'primary' : 'outline'">
+                تأكيد الموعد
+            </app-button>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Match Modal -->
+<div *ngIf="showCancelModal" class="modal-overlay" (click)="closeCancelModal()">
+    <div class="modal-box premium-modal danger-theme" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <span class="material-symbols-outlined">block</span>
+            <h3>إلغاء المباراة نهائياً</h3>
+        </div>
+        <div class="modal-body">
+            <div class="premium-form">
+                <p class="modal-desc">سيتم إرسال إشعار فوري لجميع اللاعبين والحكم بسبب الإلغاء.</p>
+                <div class="form-group">
+                    <label>سبب الإلغاء</label>
+                    <textarea [(ngModel)]="cancelReason" class="premium-input textarea" rows="4"
+                        placeholder="اكتب سبب الإلغاء هنا ليظهر للجميع..."></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <app-button (click)="closeCancelModal()" variant="ghost">تراجع</app-button>
+            <app-button (click)="submitCancellation()" variant="danger">إلغاء المباراة وإخطار الجميع</app-button>
+        </div>
+    </div>
+</div>

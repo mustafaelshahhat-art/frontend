@@ -1,0 +1,27 @@
+<div class="events-timeline">
+    <div class="timeline-line"></div>
+
+    <div *ngFor="let event of events" class="event-row" [class.event-home]="event.teamId === homeTeamId"
+        [class.event-away]="event.teamId !== homeTeamId">
+
+        <div class="timeline-dot"></div>
+
+        <div class="event-card">
+            <div class="event-icon-box" [attr.data-type]="event.type">
+                <span class="material-symbols-outlined">{{ getEventIcon(event.type) }}</span>
+            </div>
+
+            <div class="event-info">
+                <div class="flex-between w-full">
+                    <span class="player-name">{{ event.playerName }}</span>
+                    <span class="event-time" *ngIf="event.minute">{{ event.minute }}'</span>
+                </div>
+                <span class="event-label">{{ getEventLabel(event.type) }}</span>
+            </div>
+
+            <button *ngIf="isAdmin" (click)="onDelete(event.id)" class="btn-delete-event" title="حذف الحدث">
+                <span class="material-symbols-outlined icon-sm">delete</span>
+            </button>
+        </div>
+    </div>
+</div>

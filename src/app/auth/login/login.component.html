@@ -1,0 +1,113 @@
+<div class="auth-container bg-gradient-login min-h-screen flex flex-center relative overflow-hidden p-2xl">
+
+  <!-- Background Pattern -->
+  <div class="ramadan-pattern absolute inset-0"></div>
+
+  <!-- Login Card -->
+  <div class="auth-card relative z-10 w-full animate-fade-in-up">
+
+    <!-- Header -->
+    <div class="text-center mb-xl">
+      <div class="auth-logo gradient-primary shadow-glow">
+        <span class="material-symbols-outlined text-3xl text-primary">sports_soccer</span>
+      </div>
+      <h1 class="auth-title">أهلاً بعودتك</h1>
+      <p class="text-secondary text-sm">كأس رمضان لكرة القدم – بوابة الإدارة</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage" class="mb-4 px-6">
+      <app-alert type="danger" [dismissible]="true" (onClose)="errorMessage = null">
+        {{ errorMessage }}
+      </app-alert>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <!-- Email Field -->
+      <app-form-control label="البريد الإلكتروني" iconRight="mail"
+        [error]="(email?.invalid && email?.touched) ? 'يرجى إدخال بريد إلكتروني صحيح' : undefined">
+        <input formControlName="email" type="email" placeholder="name@example.com"
+          class="form-input form-input-lg form-input-with-icon-right" />
+      </app-form-control>
+
+      <!-- Password Field -->
+      <div class="form-group mb-4">
+        <label class="form-label font-semibold">
+          كلمة المرور
+        </label>
+        <div class="relative">
+          <input formControlName="password" [type]="passwordVisible ? 'text' : 'password'" placeholder="********"
+            class="form-input form-input-lg form-input-with-icon-both" />
+          <span class="material-symbols-outlined form-icon-right text-brand">
+            lock
+          </span>
+          <button (click)="togglePasswordVisibility()" type="button"
+            class="form-icon-left flex-center cursor-pointer text-muted p-0 border-none bg-transparent">
+            <span class="material-symbols-outlined text-lg">
+              {{ passwordVisible ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        <span *ngIf="password?.invalid && password?.touched" class="form-error block mt-2">
+          كلمة المرور يجب أن تكون 6 أحرف على الأقل
+        </span>
+      </div>
+
+      <!-- Forgot Password Link -->
+      <div class="text-left mb-6">
+        <a href="#" class="text-muted text-xs">
+          نسيت كلمة المرور؟
+        </a>
+      </div>
+
+      <!-- Submit Button -->
+      <!-- Submit Button -->
+      <app-button type="submit" variant="primary" size="xl" [fullWidth]="true" [isLoading]="isLoading"
+        [disabled]="isLoading" icon="arrow_back" iconPos="left">
+        تسجيل الدخول
+      </app-button>
+
+    </form>
+
+    <!-- Quick Login Buttons (Temporary) -->
+    <div class="mt-6 border-t border-visible pt-6">
+      <p class="text-secondary text-xs text-center mb-4">تسجيل دخول سريع (مؤقت)</p>
+      <div class="flex gap-3">
+        <button type="button" (click)="quickLogin('admin')" [disabled]="isLoading"
+          class="btn btn-outline btn-sm flex-1">
+          <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+          أدمن
+        </button>
+        <button type="button" (click)="quickLogin('captain')" [disabled]="isLoading"
+          class="btn btn-outline btn-sm flex-1">
+          <span class="material-symbols-outlined text-base">groups</span>
+          قائد فريق
+        </button>
+        <button type="button" (click)="quickLogin('referee')" [disabled]="isLoading"
+          class="btn btn-outline btn-sm flex-1">
+          <span class="material-symbols-outlined text-base">sports</span>
+          حكم
+        </button>
+      </div>
+    </div>
+
+    <!-- Register Link -->
+    <div class="auth-footer border-t border-visible mt-xl pt-xl">
+      <p class="text-secondary text-sm m-0">
+        ليس لديك حساب؟
+        <a routerLink="/auth/register" class="text-gold font-bold">
+          إنشاء حساب
+        </a>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="absolute bottom-0 mb-6 text-center w-full">
+    <p class="text-muted text-xs m-0">© 2024 دوري رمضان لكرة القدم. جميع الحقوق محفوظة.</p>
+  </div>
+
+</div>

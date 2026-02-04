@@ -1,0 +1,4 @@
+<div class="inline-loading" [class.inline-loading--sm]="size === 'sm'" [class.inline-loading--lg]="size === 'lg'">
+    <div class="loading-spinner"></div>
+    <p *ngIf="message" class="loading-message">{{ message }}</p>
+</div>

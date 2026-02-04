@@ -1,0 +1,203 @@
+/* Match Timeline Styles */
+
+.events-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    position: relative;
+    padding: var(--space-4) 0;
+
+    @media (max-width: 768px) {
+        gap: var(--space-4);
+    }
+}
+
+.timeline-line {
+    position: absolute;
+    right: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--border-visible) 10%, var(--border-visible) 90%, transparent);
+    transform: translateX(1px);
+    z-index: var(--z-base);
+
+    @media (max-width: 768px) {
+        right: var(--space-6);
+    }
+}
+
+.event-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    z-index: var(--z-above); // Ensure events sit on top of the line
+
+    @media (max-width: 768px) {
+        justify-content: flex-start;
+        padding-right: var(--space-12); // Make space for the line on the right
+    }
+}
+
+// Home Event (Left on Desktop)
+.event-row.event-home {
+    .event-card {
+        margin-left: auto; // Push to right side of its container (which is actually left visual if rtl or depending on flex)
+        // Actually, let's simplify logic:
+        // Center line logic usually needs 50% width containers.
+    }
+
+    flex-direction: row; // Standard
+
+    @media (min-width: 769px) {
+        justify-content: flex-end;
+        padding-left: 50%;
+
+        .event-card {
+            margin-right: var(--space-6);
+            border-right: 4px solid var(--color-primary); // Home Color Indicator
+        }
+
+        .timeline-dot {
+            position: absolute;
+            right: calc(50% - 5px);
+        }
+    }
+}
+
+// Away Event (Right on Desktop)
+.event-row.event-away {
+    flex-direction: row-reverse;
+
+    @media (min-width: 769px) {
+        justify-content: flex-end;
+        padding-right: 50%; // Start from center
+
+        .event-card {
+            margin-left: var(--space-6);
+            border-left: 4px solid var(--color-info); // Away Color Indicator
+            flex-direction: row-reverse; // Flip content inside card
+        }
+
+        .timeline-dot {
+            position: absolute;
+            right: calc(50% - 5px);
+        }
+    }
+}
+
+
+.timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    background: var(--text-primary);
+    border: 2px solid var(--bg-surface-secondary);
+    position: absolute;
+    right: var(--space-6); // Mobile position
+    margin-right: -4px; // Center on line
+
+    @media (min-width: 769px) {
+        // Handled in specific event rows
+    }
+}
+
+
+.event-card {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-visible);
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    transition: var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    min-width: 240px;
+    max-width: 100%; // Mobile fluid
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: var(--color-primary-30);
+        box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 768px) {
+        padding: var(--space-3) var(--space-4);
+        gap: var(--space-3);
+        width: 100%;
+    }
+}
+
+
+.event-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-input);
+    color: var(--text-secondary);
+
+    &[data-type="GOAL"] {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+    }
+
+    &[data-type="YELLOW_CARD"] {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+    }
+
+    &[data-type="RED_CARD"] {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+    }
+}
+
+.event-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.player-name {
+    font-weight: var(--font-bold);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+}
+
+.event-label {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.event-time {
+    font-size: var(--text-xs);
+    font-weight: var(--font-black);
+    color: var(--text-secondary);
+    padding: var(--space-1) var(--space-2);
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+}
+
+.btn-delete-event {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    color: var(--color-danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.2s;
+
+    &:hover {
+        opacity: 1;
+        background: var(--color-danger-10);
+    }
+}

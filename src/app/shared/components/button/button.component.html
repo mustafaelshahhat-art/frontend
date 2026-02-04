@@ -1,0 +1,20 @@
+<button [type]="type" [disabled]="disabled || isLoading" [class]="'btn btn-' + variant + ' btn-' + size"
+    [class.loading]="isLoading" (click)="onClick.emit($event)">
+    <span *ngIf="isLoading" class="spinner"></span>
+
+    <ng-container *ngIf="!isLoading">
+        <span *ngIf="icon && iconPos === 'left'" class="material-symbols-outlined"
+            [style.font-size]="size === 'sm' ? '18px' : '20px'">
+            {{ icon }}
+        </span>
+
+        <span class="btn-text">
+            <ng-content></ng-content>
+        </span>
+
+        <span *ngIf="icon && iconPos === 'right'" class="material-symbols-outlined"
+            [style.font-size]="size === 'sm' ? '18px' : '20px'">
+            {{ icon }}
+        </span>
+    </ng-container>
+</button>

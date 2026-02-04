@@ -1,0 +1,38 @@
+:host {
+    display: block;
+    margin-bottom: var(--space-2xl);
+
+    @media (max-width: 480px) {
+        margin-bottom: var(--space-xl);
+    }
+}
+
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.page-title {
+    font-size: clamp(1.5rem, 5vw, var(--text-hero));
+    font-weight: var(--font-super-black);
+    color: var(--color-gold); // Updated to Gold as requested
+    letter-spacing: var(--tracking-normal);
+    line-height: var(--leading-tight);
+    margin-bottom: var(--space-md);
+    text-shadow: var(--text-shadow);
+}
+
+.page-subtitle {
+    font-size: clamp(0.875rem, 2vw, var(--text-subtitle));
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: var(--leading-relaxed);
+}
+
+// Optional actions area (e.g. for filters or buttons)
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}

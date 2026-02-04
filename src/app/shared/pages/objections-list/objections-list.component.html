@@ -1,0 +1,139 @@
+<div class="objections-list-page">
+    <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
+        <app-button *ngIf="isCaptain() && !showForm" variant="primary" icon="add" (click)="toggleForm()">تقديم اعتراض
+            جديد</app-button>
+        <app-badge *ngIf="isAdmin()" type="warning" style="margin-right: 1rem;">{{ pendingCount }} قيد
+            الانتظار</app-badge>
+    </app-page-header>
+
+    <div class="objections-container">
+        <!-- Filters (Admin) -->
+        <div *ngIf="isAdmin()" style="margin-bottom: 1rem;">
+            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+            <div class="loading-spinner"
+                style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
+            </div>
+            <p style="color: #64748b;">جاري تحميل الاعتراضات...</p>
+        </div>
+
+        <!-- Custom Objection Form (Captain) -->
+        <app-card *ngIf="showForm" title="تقديم اعتراض جديد" icon="gavel" style="margin-bottom: 2rem;">
+            <div class="form-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">نوع
+                            الاعتراض</label>
+                        <select [(ngModel)]="newObjection.type" class="premium-input">
+                            <option [value]="ObjectionType.MATCH_RESULT">نتيجة مباراة</option>
+                            <option [value]="ObjectionType.REFEREE_DECISION">قرار حكم</option>
+                            <option [value]="ObjectionType.PLAYER_ELIGIBILITY">أهلية لاعب</option>
+                            <option [value]="ObjectionType.OTHER">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">رقم
+                            المباراة</label>
+                        <input type="text" [(ngModel)]="newObjection.matchId" class="premium-input"
+                            placeholder="مثلاً: #102">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">وصف
+                        الاعتراض</label>
+                    <textarea [(ngModel)]="newObjection.description" class="premium-input" rows="4"
+                        placeholder="اشرح تفاصيل الاعتراض هنا..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <app-button variant="ghost" (click)="showForm = false">إلغاء</app-button>
+                    <app-button variant="primary" icon="send" (click)="submitObjection()">إرسال الاعتراض</app-button>
+                </div>
+            </div>
+        </app-card>
+
+        <!-- Empty State -->
+        <app-empty-state
+            *ngIf="!isLoading && (isAdmin() ? filteredObjections.length === 0 : objections.length === 0) && !showForm"
+            icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
+            [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
+        </app-empty-state>
+
+        <!-- Admin: Table View -->
+        <app-card *ngIf="!isLoading && isAdmin() && filteredObjections.length > 0" class="objections-table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المباراة</th>
+                        <th>الكابتن</th>
+                        <th>التاريخ</th>
+                        <th style="text-align: center;">الحالة</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let objection of filteredObjections" (click)="selectObjection(objection)"
+                        style="cursor: pointer;">
+                        <td><span style="font-weight: 700; color: #10B981;">#{{ objection.matchId }}</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: rgba(16,185,129,0.1); color: #10B981; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">
+                                    {{ objection.captainName.charAt(0) }}
+                                </div>
+                                <span style="font-size: 0.875rem;">{{ objection.captainName }}</span>
+                            </div>
+                        </td>
+                        <td style="color: #64748b; font-size: 0.875rem;">{{ objection.submittedDate | date:'yyyy/MM/dd'
+                            }}</td>
+                        <td style="text-align: center;">
+                            <app-badge
+                                [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
+                                {{ getStatusLabel(objection.status) }}
+                            </app-badge>
+                        </td>
+                        <td><span class="material-symbols-outlined"
+                                style="color: #64748b; font-size: 1.25rem;">chevron_left</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </app-card>
+
+        <!-- Captain: Card View -->
+        <div *ngIf="!isLoading && !isAdmin() && objections.length > 0"
+            style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <app-card *ngFor="let objection of objections" class="objection-item-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
+                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ objection.tournamentName }}</h3>
+                    </div>
+                    <app-badge
+                        [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
+                        {{ getStatusLabel(objection.status) }}
+                    </app-badge>
+                </div>
+
+                <div class="objection-description">
+                    {{ objection.description }}
+                </div>
+
+                <div class="objection-meta">
+                    <span><span class="material-symbols-outlined">tag</span> المباراة: #{{ objection.matchId }}</span>
+                    <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.submittedDate |
+                        date:'yyyy/MM/dd' }}</span>
+                </div>
+
+                <div *ngIf="objection.adminNotes" class="admin-response">
+                    <div class="response-header">
+                        <span class="material-symbols-outlined">feedback</span>
+                        قرار اللجنة
+                    </div>
+                    <p>{{ objection.adminNotes }}</p>
+                </div>
+            </app-card>
+        </div>
+    </div>
+</div>

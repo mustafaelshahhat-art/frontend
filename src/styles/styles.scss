@@ -1,0 +1,22 @@
+// ==========================================================================
+// MAIN STYLESHEET - Global Design System
+// ==========================================================================
+// This file imports ALL global styles.
+// NO styles should exist outside this folder.
+// Changing the entire application look requires editing these files ONLY.
+// ==========================================================================
+
+// 1. Design Tokens (colors, fonts, spacing, layout, sizes, radius, shadows)
+@use 'tokens';
+
+// 2. Base Styles (reset, global behavior, animations)
+@use 'base';
+
+// 3. Layout Rules (grid, flex, positioning, containers)
+@use 'layout';
+
+// 4. Theme Styles (backgrounds, text colors, decorative elements)
+@use 'theme';
+
+// 5. Component Styles (buttons, cards, inputs, alerts, tables, modals)
+// @use 'components'; // REMOVED - Refactored into standalone components

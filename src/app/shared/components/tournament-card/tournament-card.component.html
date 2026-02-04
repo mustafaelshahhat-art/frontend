@@ -1,0 +1,51 @@
+<app-card class="tournament-card-premium" [isClickable]="isClickable" (click)="onCardClick()">
+    <!-- Banner with Icon and Status Badge -->
+    <div class="tournament-banner">
+        <span class="material-symbols-outlined">emoji_events</span>
+        <div class="status-badge-overlay">
+            <app-badge [type]="badgeType">
+                {{ tournament.status | statusLabel }}
+            </app-badge>
+        </div>
+    </div>
+
+    <!-- Tournament Info -->
+    <div class="tournament-info">
+        <h3>{{ tournament.name }}</h3>
+        <p>{{ tournament.description }}</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="tournament-stats">
+        <div class="stat-item">
+            <span class="label">الجائزة</span>
+            <span class="value">{{ tournament.prizes[0] }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="label">تاريخ البدء</span>
+            <span class="value">{{ tournament.startDate | date:'yyyy/MM/dd' }}</span>
+        </div>
+    </div>
+
+    <!-- Registration Progress Bar -->
+    <div class="fill-bar-wrapper">
+        <div class="fill-label">
+            <span>الفرق المسجلة</span>
+            <span>{{ tournament.currentTeams }} / {{ tournament.maxTeams }}</span>
+        </div>
+        <div class="fill-bar">
+            <div class="fill-progress" [style.width.%]="progressPercent"></div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="tournament-actions">
+        <app-button variant="primary" style="flex: 1;" (click)="onViewDetailsClick($event)">
+            التفاصيل
+        </app-button>
+        <app-button *ngIf="showRegisterButton && tournament.status === TournamentStatus.REGISTRATION_OPEN"
+            variant="outline" style="flex: 1;" (click)="onRegisterClick($event)">
+            تسجيل الآن
+        </app-button>
+    </div>
+</app-card>

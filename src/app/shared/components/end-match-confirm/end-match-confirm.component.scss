@@ -1,0 +1,20 @@
+// EndMatchConfirm styles
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal, 60);
+}
+
+.confirm-modal {
+    background: var(--bg-surface, #111827);
+    border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
+    border-radius: var(--radius-3xl, 20px);
+    padding: var(--space-2xl, 24px);
+    width: 100%;
+    max-width: 400px;
+}

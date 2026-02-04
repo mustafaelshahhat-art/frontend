@@ -1,0 +1,94 @@
+.filter-tabs {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-1);
+    gap: var(--space-1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    @media (max-width: 480px) {
+        border-radius: var(--radius-lg);
+        gap: 0;
+    }
+}
+
+.filter-tab {
+    flex: 1;
+    min-width: 100px;
+    padding: var(--space-3) var(--space-4);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
+    font-weight: var(--font-bold);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    position: relative;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+
+    .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+    .tab-indicator {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 3px;
+        background: var(--color-primary);
+        border-radius: var(--radius-full);
+        transition: width 0.3s ease;
+    }
+
+    &:hover {
+        color: var(--text-primary);
+    }
+
+    &.active {
+        background: var(--color-primary-10);
+        color: var(--color-primary);
+
+        .tab-indicator {
+            width: 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        min-width: auto;
+        flex: 1;
+        padding: var(--space-2) var(--space-4);
+        font-size: 11px;
+        border-radius: var(--radius-full);
+        background: var(--bg-surface-light);
+        border: 1px solid var(--border-visible);
+        margin: 0 var(--space-1);
+
+        &.active {
+            background: var(--color-primary);
+            color: var(--bg-dark);
+            border-color: var(--color-primary);
+
+            .tab-indicator {
+                display: none;
+            }
+        }
+
+        .tab-indicator {
+            display: none;
+        }
+    }
+}

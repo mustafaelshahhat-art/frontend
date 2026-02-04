@@ -1,0 +1,21 @@
+.page-container {
+    padding: var(--space-xl, 24px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl, 24px);
+}
+
+.grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-xl, 24px);
+}
+
+.mb-md {
+    margin-bottom: var(--space-xl, 24px);
+}

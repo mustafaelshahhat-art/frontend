@@ -1,0 +1,33 @@
+.matches-page {
+    padding: var(--space-xl, 24px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.matches-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl, 24px);
+}
+
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-xl, 24px);
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.match-card-actions {
+    display: flex;
+    gap: var(--space-2, 8px);
+    width: 100%;
+}
+
+.live-actions {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}

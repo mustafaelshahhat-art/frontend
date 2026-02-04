@@ -1,0 +1,69 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-xl">
+        <!-- Page Header -->
+        <app-page-header title="طلبات الدفع" subtitle="مراجعة وتأكيد إيصالات دفع رسوم اشتراك الفرق">
+            <!-- Filter Tabs -->
+            <div class="mb-2xl animate-fade-in-up">
+                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+            </div>
+        </app-page-header>
+
+        <!-- Loading State -->
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل الطلبات..."></app-inline-loading>
+
+        <!-- Empty State -->
+        <app-empty-state *ngIf="!isLoading && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
+            description="لا توجد طلبات دفع في هذا التصنيف حالياً">
+        </app-empty-state>
+
+        <!-- Table -->
+        <div *ngIf="!isLoading && filteredRequests.length > 0" class="card p-0 overflow-hidden">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>الفريق</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                            <th>الإيصال</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let request of filteredRequests">
+                            <td>
+                                <span class="text-primary font-bold text-sm">{{ request.teamName }}</span>
+                            </td>
+                            <td>
+                                <span class="text-gold font-bold">{{ request.amount }} ريال</span>
+                            </td>
+                            <td class="text-muted text-xs">{{ request.date | date:'yyyy-MM-dd' }}</td>
+                            <td>
+                                <app-badge [type]="getBadgeType(request.status)">
+                                    {{ getStatusLabel(request.status) }}
+                                </app-badge>
+                            </td>
+                            <td>
+                                <app-button variant="ghost" size="sm" class="text-info">
+                                    عرض الإيصال
+                                </app-button>
+                            </td>
+                            <td>
+                                <div class="action-buttons" *ngIf="request.status === 'pending'">
+                                    <app-button (click)="approve(request)" variant="ghost" size="sm" icon="check_circle"
+                                        class="text-primary">
+                                    </app-button>
+                                    <app-button (click)="reject(request)" variant="ghost" size="sm" icon="cancel"
+                                        class="text-danger">
+                                    </app-button>
+                                </div>
+                                <span *ngIf="request.status !== 'pending'" class="text-muted text-xs">—</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,328 @@
+// Base Match Card
+.match-card-compact {
+    border-radius: var(--radius-2xl);
+    padding: var(--space-md);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    transition: var(--transition-fast);
+    cursor: default;
+
+    &.clickable {
+        cursor: pointer;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 480px) {
+        padding: var(--space-sm);
+        border-radius: var(--radius-xl);
+    }
+
+    // Default - Golden Theme (Unified for all users)
+    background: linear-gradient(145deg, #f5a623 0%, #f7b84e 30%, #f5a623 70%, #d4920f 100%);
+    box-shadow: 0 4px 20px rgba(245, 166, 35, 0.2);
+
+    &:hover {
+        box-shadow: 0 8px 28px rgba(245, 166, 35, 0.3);
+    }
+
+    // Live Match - Red/Danger
+    &.is-live {
+        background: linear-gradient(145deg, #ef4444 0%, #f87171 30%, #ef4444 70%, #dc2626 100%);
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.25);
+
+        &:hover {
+            box-shadow: 0 8px 28px rgba(239, 68, 68, 0.35);
+        }
+
+        .match-card-badge .live-dot {
+            background: #fff;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+        }
+    }
+
+    // Finished Match - Slate/Gray
+    &.is-finished {
+        background: linear-gradient(145deg, #475569 0%, #64748b 30%, #475569 70%, #334155 100%);
+        box-shadow: 0 4px 20px rgba(71, 85, 105, 0.25);
+
+        &:hover {
+            box-shadow: 0 8px 28px rgba(71, 85, 105, 0.35);
+        }
+
+        .match-card-team-avatar {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+    }
+}
+
+// Card Header
+.match-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+.match-card-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: rgba(0, 0, 0, 0.75);
+
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+}
+
+.match-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: var(--space-1) var(--space-2-5);
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    color: rgba(0, 0, 0, 0.85);
+
+    .live-dot {
+        width: 6px;
+        height: 6px;
+        background: #22c55e;
+        border-radius: 50%;
+        animation: pulse-dot 1.5s ease-in-out infinite;
+        box-shadow: 0 0 6px #22c55e;
+    }
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.3);
+    }
+}
+
+// Card Title Section
+.match-card-title {
+    text-align: center;
+    color: rgba(0, 0, 0, 0.85);
+    padding: var(--space-1) 0;
+
+    h4 {
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        margin: 0;
+    }
+
+    p {
+        font-size: var(--text-2xs);
+        color: rgba(0, 0, 0, 0.7);
+        margin: var(--space-0-5) 0 0 0;
+        font-weight: var(--font-medium);
+    }
+}
+
+// Match Info Glass Box
+.match-card-info {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-xl);
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+
+    @media (max-width: 480px) {
+        padding: var(--space-xs);
+        border-radius: var(--radius-lg);
+    }
+}
+
+// Teams Row
+.match-card-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs);
+    padding: var(--space-xs) 0;
+}
+
+.match-card-team {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+}
+
+.match-card-team-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    flex-shrink: 0;
+    overflow: hidden;
+
+    .material-symbols-outlined {
+        font-size: 18px;
+        color: white;
+    }
+
+    @media (max-width: 480px) {
+        width: 32px;
+        height: 32px;
+
+        .material-symbols-outlined {
+            font-size: 16px;
+        }
+    }
+}
+
+.match-card-team-name {
+    font-size: var(--text-2xs);
+    font-weight: var(--font-semibold);
+    color: rgba(0, 0, 0, 0.8);
+    text-align: center;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-card-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: var(--text-2xs);
+    font-weight: var(--font-bold);
+    color: rgba(0, 0, 0, 0.6);
+    text-transform: uppercase;
+    flex-shrink: 0;
+
+    &::before,
+    &::after {
+        content: '';
+        width: 1px;
+        height: 6px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+}
+
+.match-card-score {
+    font-size: var(--text-xs);
+    font-weight: var(--font-bold);
+    color: rgba(0, 0, 0, 0.85);
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-0-5) var(--space-2);
+    border-radius: var(--radius-md);
+}
+
+.match-card-actions-wrapper {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+
+    // Default action button styles to be applied to projected content if needed, 
+    // or we can rely on global classes if projections use them.
+    // However, to ensure encapsulation, we might want to expose these styles globally or encourage using specific classes.
+    // For now, I'll rely on the global button classes, but I'll add the specific match-card-action styles here too
+    // so they are available if users use that class.
+
+    ::ng-deep .match-card-action {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-full);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        border: none;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+        min-height: 40px;
+
+        .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        &:hover {
+            transform: translateY(-1px);
+            background: #000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        &.action-secondary {
+            background: rgba(255, 255, 255, 0.18);
+            color: rgba(0, 0, 0, 1);
+            box-shadow: none;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        &.danger-btn,
+        &.action-danger {
+            background: rgba(0, 0, 0, 0.12);
+            color: rgba(255, 255, 255, 0.9);
+            box-shadow: none;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.3);
+                color: #fff;
+            }
+        }
+
+        &.primary-btn {
+            // Keep default style
+        }
+
+        @media (max-width: 480px) {
+            min-height: 36px;
+            padding: var(--space-1-5) var(--space-2-5);
+        }
+    }
+}

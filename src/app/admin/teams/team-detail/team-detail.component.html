@@ -1,0 +1,268 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-lg">
+
+        <!-- Quick Back & Breadcrumbs -->
+        <div class="flex-between items-center animate-fade-in-up">
+            <div class="flex items-center gap-3">
+                <app-button (click)="navigateBack()" variant="ghost" size="sm" icon="arrow_forward"></app-button>
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-muted hide-on-mobile">نظام الإدارة</span>
+                    <span class="text-muted hide-on-mobile">/</span>
+                    <span class="text-muted">الفرق</span>
+                    <span class="text-muted">/</span>
+                    <span class="text-primary font-bold">{{ team.name }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Hero Header -->
+        <div class="card p-lg relative overflow-hidden animate-fade-in-up">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-primary"></div>
+
+            <div class="flex items-center gap-xl flex-wrap mobile-center">
+                <!-- Team Logo -->
+                <div class="avatar avatar-xl relative border-4 border-surface shadow-premium">
+                    <img class="avatar-img" [src]="team.logo" [alt]="team.name">
+                    <app-badge type="gold" class="absolute -bottom-2 -right-2 border-2 border-surface">
+                        <span class="material-symbols-outlined text-xs">emoji_events</span>
+                    </app-badge>
+                </div>
+
+                <!-- Team Info -->
+                <div class="flex-1 min-w-[200px]">
+                    <div class="flex items-center gap-3 mb-2 mobile-center">
+                        <h1 class="text-2xl font-super-black text-primary mb-0">{{ team.name }}</h1>
+                        <app-badge type="success" [dot]="true" dotType="active">
+                            {{ team.status === 'READY' ? 'جاهز' : 'غير مكتمل' }}
+                        </app-badge>
+                    </div>
+
+                    <div class="flex items-center gap-lg flex-wrap mobile-center">
+                        <div class="flex items-center gap-2 text-muted text-sm font-medium">
+                            <span class="material-symbols-outlined text-gold">location_on</span>
+                            {{ team.city }}
+                        </div>
+                        <div class="flex items-center gap-2 text-muted text-sm font-medium">
+                            <span class="material-symbols-outlined text-primary">person</span>
+                            الكابتن: {{ team.captainName }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rank Display -->
+                <div
+                    class="flex items-center gap-4 bg-muted bg-opacity-5 p-md rounded-2xl border border-visible hide-on-mobile">
+                    <div class="text-center">
+                        <p class="text-muted text-2xs uppercase font-bold tracking-widest mb-1">الترتيب</p>
+                        <p class="text-3xl font-super-black text-gold mb-0">#{{ team.stats.rank }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-scroll-container animate-fade-in-up">
+            <div class="mb-xl animate-fade-in-up">
+                <app-filter [items]="tabs" [activeValue]="activeTab" (change)="activeTab = $event"></app-filter>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div [ngSwitch]="activeTab" class="animate-fade-in-up">
+
+            <!-- Overview Tab -->
+            <div *ngSwitchCase="'overview'" class="flex-col gap-lg">
+                <!-- Stats Grid -->
+                <div class="grid-stats">
+                    <div class="stat-card">
+                        <div class="stat-card-decoration">
+                            <span class="material-symbols-outlined">sports_soccer</span>
+                        </div>
+                        <span class="stat-card-label">إجمالي المباريات</span>
+                        <span class="stat-card-value">{{ team.stats.matches }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-decoration">
+                            <span class="material-symbols-outlined text-success">military_tech</span>
+                        </div>
+                        <span class="stat-card-label text-success">الفوز</span>
+                        <span class="stat-card-value text-success">{{ team.stats.wins }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-decoration">
+                            <span class="material-symbols-outlined text-warning">balance</span>
+                        </div>
+                        <span class="stat-card-label text-warning">التعادل</span>
+                        <span class="stat-card-value text-warning">{{ team.stats.draws }}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-decoration">
+                            <span class="material-symbols-outlined text-danger">close</span>
+                        </div>
+                        <span class="stat-card-label text-danger">الخسارة</span>
+                        <span class="stat-card-value text-danger">{{ team.stats.losses }}</span>
+                    </div>
+                </div>
+
+                <div class="grid-2-cols gap-lg">
+                    <!-- Goals Analysis -->
+                    <div class="card p-lg">
+                        <h3 class="card-title mb-lg flex-between">
+                            <span>تحليل الأهداف</span>
+                            <span class="material-symbols-outlined text-gold">analytics</span>
+                        </h3>
+                        <div class="flex items-center gap-xl h-40">
+                            <div class="flex-1 text-center border-l border-visible">
+                                <p class="text-muted text-sm mb-2">الأهداف المسجلة</p>
+                                <p class="text-4xl font-super-black text-primary">{{ team.stats.goalsFor }}</p>
+                            </div>
+                            <div class="flex-1 text-center">
+                                <p class="text-muted text-sm mb-2">الأهداف في مرماه</p>
+                                <p class="text-4xl font-super-black text-danger">{{ team.stats.goalsAgainst }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Team Info -->
+                    <div class="card p-lg">
+                        <h3 class="card-title mb-lg">معلومات سريعة</h3>
+                        <div class="flex-col gap-md">
+                            <div class="flex-between p-sm rounded-xl bg-muted bg-opacity-5">
+                                <span class="text-muted text-sm">عدد اللاعبين</span>
+                                <span class="text-primary font-bold">{{ team.players.length }} / 20</span>
+                            </div>
+                            <div class="flex-between p-sm rounded-xl bg-muted bg-opacity-5">
+                                <span class="text-muted text-sm">معدل التهديف</span>
+                                <span class="text-primary font-bold">{{ (team.stats.goalsFor / team.stats.matches) |
+                                    number:'1.1-1' }} / مباراة</span>
+                            </div>
+                            <div class="flex-between p-sm rounded-xl bg-muted bg-opacity-5">
+                                <span class="text-muted text-sm">النسبة المئوية للفوز</span>
+                                <span class="text-success font-bold">{{ (team.stats.wins / team.stats.matches * 100) |
+                                    number:'1.0-0' }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players Tab -->
+            <div *ngSwitchCase="'players'" class="flex-col gap-md">
+                <!-- Players Cards (Unified Grid) -->
+                <div class="grid-2-cols gap-md">
+                    <div *ngFor="let player of team.players"
+                        class="card p-0 overflow-hidden player-mobile-card animate-fade-in-up">
+                        <div class="flex items-center gap-3 p-md">
+                            <div class="player-avatar-pill">
+                                <div class="avatar avatar-sm bg-primary bg-opacity-10 text-primary">
+                                    <span class="font-bold">{{ player.name.charAt(0) }}</span>
+                                </div>
+                                <div class="status-indicator-dot" [class.active]="player.status === 'active'"
+                                    [class.banned]="player.status === 'banned'"
+                                    [class.inactive]="player.status === 'inactive'"></div>
+                            </div>
+                            <div class="flex-1 flex items-center justify-between">
+                                <div class="flex-col text-right">
+                                    <span class="text-primary font-bold text-sm">{{ player.name }}</span>
+                                    <span class="text-muted text-xs">{{ getPlayerStatusLabel(player.status) }}</span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <app-button *ngIf="player.status !== 'active'"
+                                        (click)="requestPlayerAction(player, 'activate')" variant="ghost" size="sm"
+                                        icon="check_circle" class="text-success">
+                                    </app-button>
+                                    <app-button *ngIf="player.status === 'active'"
+                                        (click)="requestPlayerAction(player, 'deactivate')" variant="ghost" size="sm"
+                                        icon="block" class="text-warning">
+                                    </app-button>
+                                    <app-button (click)="requestPlayerAction(player, 'ban')" variant="ghost" size="sm"
+                                        icon="person_off" class="text-danger">
+                                    </app-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matches Tab -->
+            <div *ngSwitchCase="'matches'" class="flex-col gap-md">
+                <div *ngFor="let match of team.matches"
+                    class="card p-0 overflow-hidden match-pro-card animate-fade-in-up">
+                    <div class="match-card-header flex-between p-sm border-b border-visible bg-muted bg-opacity-5">
+                        <span class="text-muted text-2xs font-bold uppercase tracking-widest">{{ match.type }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-xs text-muted">calendar_month</span>
+                            <span class="text-muted text-xs">{{ match.date | date:'y/MM/dd | HH:mm' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-lg flex items-center justify-between gap-xl">
+                        <!-- Home Team -->
+                        <div class="flex-1 flex flex-col items-center gap-3 text-center">
+                            <div class="avatar avatar-lg shadow-sm border border-visible bg-surface p-1">
+                                <img [src]="team.logo" class="avatar-img object-contain" alt="">
+                            </div>
+                            <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
+                        </div>
+
+                        <!-- Score / VS -->
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="flex items-center gap-4">
+                                <span class="text-4xl font-super-black text-primary">{{ match.score.split('-')[0]
+                                    }}</span>
+                                <span class="text-muted opacity-20 text-2xl">:</span>
+                                <span class="text-4xl font-super-black text-primary">{{ match.score.split('-')[1]
+                                    }}</span>
+                            </div>
+                            <app-badge
+                                [type]="match.status === 'win' ? 'success' : (match.status === 'draw' ? 'warning' : 'danger')">
+                                {{ match.status === 'win' ? 'انتصار' : (match.status === 'draw' ? 'تعادل' : 'هزيمة') }}
+                            </app-badge>
+                        </div>
+
+                        <!-- Away Team -->
+                        <div class="flex-1 flex flex-col items-center gap-3 text-center">
+                            <div class="avatar avatar-lg shadow-sm border border-visible bg-surface p-1">
+                                <img src="https://cdn-icons-png.flaticon.com/512/1165/1165217.png"
+                                    class="avatar-img object-contain" alt="">
+                            </div>
+                            <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Footer -->
+                    <div class="p-xs flex justify-center border-t border-visible bg-muted bg-opacity-5">
+                        <app-button variant="ghost" size="sm" icon="visibility" class="w-full">
+                            تفاصيل المباراة
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finances Tab (Unified Card Design) -->
+            <div *ngSwitchCase="'finances'" class="grid-2-cols gap-md">
+                <div *ngFor="let entry of team.finances"
+                    class="card p-md border-r-4 border-r-primary animate-fade-in-up">
+                    <div class="flex-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <app-badge type="info">
+                                <span class="material-symbols-outlined text-2xs">receipt_long</span>
+                            </app-badge>
+                            <span class="text-sm font-bold text-primary">{{ entry.title }}</span>
+                        </div>
+                        <span class="text-base font-super-black text-danger">{{ entry.amount }} ر.س</span>
+                    </div>
+                    <div class="flex-between items-center">
+                        <span class="text-muted text-xs">{{ entry.date | date:'y/MM/dd' }}</span>
+                        <app-badge type="success" [dot]="true" dotType="active">
+                            مكتمل بنجاح
+                        </app-badge>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

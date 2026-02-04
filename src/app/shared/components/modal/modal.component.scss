@@ -1,0 +1,114 @@
+
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay-dark);
+    backdrop-filter: var(--blur-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    z-index: var(--z-modal);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-3xl);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-2xl), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
+
+    &.modal-sm {
+        max-width: 400px;
+    }
+
+    &.modal-lg {
+        max-width: 700px;
+    }
+
+    &.theme-danger {
+        border-color: var(--color-danger-30);
+
+        .modal-header .material-symbols-outlined {
+            color: var(--color-danger);
+        }
+    }
+}
+
+.modal-header {
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--border-visible);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+
+    h3 {
+        margin: 0;
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    .material-symbols-outlined {
+        color: var(--color-primary);
+    }
+}
+
+.modal-body {
+    padding: var(--space-6);
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--border-visible);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    background: var(--bg-overlay-dark);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+
+    &:hover {
+        color: var(--text-primary);
+        background: var(--bg-input);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

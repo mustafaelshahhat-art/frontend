@@ -1,0 +1,90 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-2xl">
+        <!-- Back Button -->
+        <button (click)="navigateBack()" class="back-button">
+            <span class="material-symbols-outlined">arrow_forward</span>
+            العودة للمستخدمين
+        </button>
+
+        <!-- Standard Page Header -->
+        <app-page-header [title]="user.name" [subtitle]="'@' + user.username + ' • ' + user.email">
+            <app-button (click)="toggleUserStatus()" [variant]="user.status === 'active' ? 'danger' : 'primary'"
+                [icon]="user.status === 'active' ? 'block' : 'check_circle'">
+                {{ user.status === 'active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
+            </app-button>
+        </app-page-header>
+
+        <!-- User Details & Activity -->
+        <div class="grid-3-cols gap-2xl">
+            <div class="flex-col gap-xl">
+                <!-- Identity Card -->
+                <div class="card p-xl flex-col items-center text-center animate-fade-in-up">
+                    <div class="avatar avatar-3xl mb-lg relative">
+                        <img class="avatar-img" [src]="user.avatar || 'https://i.pravatar.cc/150?u=' + user.id" alt="">
+                        <div class="absolute bottom-0 right-0 p-1 bg-surface rounded-full">
+                            <app-badge [type]="getBadgeType(user.status)">
+                                {{ getStatusLabel(user.status) }}
+                            </app-badge>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-primary mb-1">{{ user.name }}</h2>
+                    <div class="flex items-center gap-2 text-secondary mb-xl">
+                        <span class="material-symbols-outlined text-gold">military_tech</span>
+                        <span class="font-semibold">{{ getRoleLabel(user.role) }}</span>
+                    </div>
+
+                    <div class="w-full border-t pt-md flex justify-between text-sm">
+                        <span class="text-muted">المعرف</span>
+                        <span class="font-mono text-primary font-bold">#{{ user.id }}</span>
+                    </div>
+                </div>
+
+                <!-- Personal Info Card -->
+                <div class="card animate-fade-in-up" style="animation-delay: 0.1s">
+                    <h3 class="card-title flex items-center gap-2 mb-xl">
+                        <span class="material-symbols-outlined text-primary">info</span>
+                        المعلومات الشخصية
+                    </h3>
+                    <div class="flex-col gap-lg">
+                        <div class="flex-col gap-1">
+                            <span class="text-xs text-muted">تاريخ التسجيل</span>
+                            <span class="text-sm text-secondary">{{ user.createdAt | date:'dd MMMM yyyy' }}</span>
+                        </div>
+                        <div *ngIf="user.teamName" class="flex-col gap-1">
+                            <span class="text-xs text-muted">الفريق</span>
+                            <span class="text-sm text-secondary">{{ user.teamName }}</span>
+                        </div>
+                        <div class="flex-col gap-1">
+                            <span class="text-xs text-muted">رقم الهاتف</span>
+                            <span class="text-sm text-secondary">{{ user.phone || 'غير مسجل' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-2">
+                <div class="card h-full animate-fade-in-up" style="animation-delay: 0.2s">
+                    <h3 class="card-title flex items-center gap-2 mb-xl">
+                        <span class="material-symbols-outlined text-primary">history</span>
+                        النشاط الأخير
+                    </h3>
+                    <div class="flex-col gap-lg">
+                        <div *ngFor="let activity of activities" class="card card-hover flex gap-lg p-md">
+                            <div class="avatar avatar-md notification-icon-info flex-shrink-0">
+                                <span class="material-symbols-outlined">{{ activity.icon }}</span>
+                            </div>
+                            <div class="flex-col gap-1">
+                                <p class="text-sm text-secondary mb-0">{{ activity.message }}</p>
+                                <span class="text-xs text-muted">{{ activity.time }}</span>
+                            </div>
+                        </div>
+                        <div *ngIf="activities.length === 0" class="empty-state">
+                            لا يوجد نشاط مسجل حالياً
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

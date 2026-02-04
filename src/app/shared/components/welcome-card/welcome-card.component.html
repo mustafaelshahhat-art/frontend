@@ -1,0 +1,18 @@
+<div class="card card-glass rounded-xl p-md mb-md">
+    <div class="flex-between items-center gap-2">
+        <div class="flex items-center gap-2">
+            <div class="stat-card-icon" [ngClass]="iconClass">
+                <span class="material-symbols-outlined text-lg">{{ icon }}</span>
+            </div>
+            <div>
+                <h1 class="text-primary font-bold text-base">{{ title }}</h1>
+                <p class="text-secondary text-2xs mt-1">{{ subtitle }}</p>
+            </div>
+        </div>
+        <div class="badge text-2xs whitespace-nowrap" [ngClass]="badgeClass">
+            <div *ngIf="!statusIcon" class="status-dot" [ngClass]="statusClass"></div>
+            <span *ngIf="statusIcon" class="material-symbols-outlined text-2xs">{{ statusIcon }}</span>
+            {{ status }}
+        </div>
+    </div>
+</div>

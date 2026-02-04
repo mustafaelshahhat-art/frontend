@@ -1,0 +1,216 @@
+<div class="tournament-detail-page">
+    <app-page-header [title]="tournament?.name || 'تفاصيل البطولة'" [subtitle]="tournament?.description || ''">
+        <div class="actions" style="display: flex; gap: 0.75rem;">
+            <app-button *ngIf="isAdmin()" variant="outline" size="sm" icon="edit"
+                (click)="editTournament()">تعديل</app-button>
+            <app-button *ngIf="isAdmin()" variant="ghost" size="sm"
+                [icon]="tournament?.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
+                (click)="toggleStatus()">
+                {{ tournament?.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح التسجيل' }}
+            </app-button>
+            <app-button *ngIf="isCaptain() && tournament?.status === TournamentStatus.REGISTRATION_OPEN"
+                variant="primary" icon="rocket_launch" (click)="registerTeam()">
+                سجل فريقك
+            </app-button>
+        </div>
+    </app-page-header>
+
+    <div class="tournament-detail-container">
+        <!-- Loading -->
+        <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+            <div class="loading-spinner"
+                style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
+            </div>
+            <p style="color: #94a3b8;">جاري تحميل البيانات...</p>
+        </div>
+
+        <ng-container *ngIf="!isLoading && tournament">
+            <!-- Banner Card -->
+            <app-card class="tournament-banner-card">
+                <div class="tournament-header-content">
+                    <div class="tournament-main-info">
+                        <app-badge
+                            [type]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral'"
+                            style="margin-bottom: 1rem;">
+                            {{ getStatusLabel(tournament.status) }}
+                        </app-badge>
+                        <h2>{{ tournament.name }}</h2>
+                        <div class="tournament-meta">
+                            <span><span class="material-symbols-outlined">calendar_month</span> {{ tournament.startDate
+                                | date:'yyyy/MM/dd' }}</span>
+                            <span><span class="material-symbols-outlined">location_on</span> {{ tournament.location ||
+                                'غير محدد' }}</span>
+                            <span><span class="material-symbols-outlined">payments</span> {{ tournament.entryFee }}
+                                ريال</span>
+                        </div>
+                    </div>
+
+                    <div class="tournament-quick-stats" style="display: flex; gap: 2rem;">
+                        <div style="text-align: center;">
+                            <p style="color: #64748b; font-size: 0.75rem; text-transform: uppercase;">الفرق</p>
+                            <p style="font-size: 1.5rem; font-weight: 800; color: #10B981;">{{ tournament.currentTeams
+                                }}/{{ tournament.maxTeams }}</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: #64748b; font-size: 0.75rem; text-transform: uppercase;">المباريات</p>
+                            <p style="font-size: 1.5rem; font-weight: 800; color: #10B981;">{{ matches.length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </app-card>
+
+            <!-- Navigation Tabs -->
+            <div class="tournament-tabs" style="margin-bottom: 2rem;">
+                <app-filter [items]="tabs" [activeValue]="activeTab" (change)="activeTab = $event"></app-filter>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content" [ngSwitch]="activeTab">
+                <!-- Info Tab -->
+                <div *ngSwitchCase="'info'" class="info-grid">
+                    <app-card title="عن البطولة" icon="description" style="flex: 2;">
+                        <p style="line-height: 1.7; color: #94a3b8;">{{ tournament.description || 'لا يوجد وصف متاح لهذه
+                            البطولة.' }}</p>
+
+                        <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: #f8fafc;">قواعد البطولة</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div
+                                style="display: flex; align-items: center; gap: 0.75rem; color: #94a3b8; font-size: 0.875rem;">
+                                <span class="material-symbols-outlined" style="color: #10B981;">check_circle</span>
+                                السن القانوني (+18)
+                            </div>
+                            <div
+                                style="display: flex; align-items: center; gap: 0.75rem; color: #94a3b8; font-size: 0.875rem;">
+                                <span class="material-symbols-outlined" style="color: #10B981;">check_circle</span>
+                                الالتزام بالزي الرياضي
+                            </div>
+                        </div>
+                    </app-card>
+
+                    <app-card title="الهدافون" icon="sports_soccer" style="flex: 1;">
+                        <div class="scorers-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div *ngFor="let scorer of scorers"
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <span style="font-weight: 800; color: #10B981;">#{{ scorer.rank }}</span>
+                                    <div>
+                                        <p style="margin: 0; font-weight: 600;">{{ scorer.name }}</p>
+                                        <p style="margin: 0; font-size: 0.75rem; color: #64748b;">{{ scorer.team }}</p>
+                                    </div>
+                                </div>
+                                <span style="font-weight: 800; font-size: 1.1rem;">{{ scorer.goals }}</span>
+                            </div>
+                        </div>
+                    </app-card>
+                </div>
+
+                <!-- Standings Tab -->
+                <div *ngSwitchCase="'standings'" class="standings-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="rank">#</th>
+                                <th class="team-name">الفريق</th>
+                                <th>لعب</th>
+                                <th>فاز</th>
+                                <th>تعادل</th>
+                                <th>خسر</th>
+                                <th>+/-</th>
+                                <th class="points">نقاط</th>
+                                <th style="text-align: center;">آخر 5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let s of standings; let i = index">
+                                <td class="rank">{{ i + 1 }}</td>
+                                <td class="team-name">{{ s.team }}</td>
+                                <td>{{ s.played }}</td>
+                                <td>{{ s.won }}</td>
+                                <td>{{ s.draw }}</td>
+                                <td>{{ s.lost }}</td>
+                                <td>{{ s.gd }}</td>
+                                <td class="points">{{ s.points }}</td>
+                                <td style="text-align: center;">
+                                    <span *ngFor="let r of s.form" class="form-dot" [class]="r">{{ r }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Matches Tab -->
+                <div *ngSwitchCase="'matches'">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+                        <app-match-card *ngFor="let match of matches" [match]="match" (click)="viewMatch(match.id)"
+                            style="cursor: pointer;"></app-match-card>
+                        <app-empty-state *ngIf="matches.length === 0" icon="event_busy" title="لا توجد مباريات"
+                            description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن."></app-empty-state>
+                    </div>
+                </div>
+
+                <!-- Teams Tab -->
+                <div *ngSwitchCase="'teams'">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                        <app-card *ngFor="let i of [1,2,3,4,5]" title="فريق النجوم" icon="shield">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #64748b; font-size: 0.875rem;">تاريخ التسجيل</span>
+                                <span style="font-weight: 600;">2024/03/15</span>
+                            </div>
+                        </app-card>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</div>
+
+<!-- Registration Modal -->
+<div *ngIf="isRegisterModalVisible" class="modal-overlay" (click)="closeRegisterModal()"
+    style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">
+    <app-card class="modal-box" (click)="$event.stopPropagation()" style="width: 100%; max-width: 500px;"
+        title="تسجيل الفريق" icon="rocket_launch">
+        <div class="form-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">الرقم المحول
+                    منه</label>
+                <input type="text" [(ngModel)]="registerForm.fromNumber" class="premium-input"
+                    placeholder="رقم الجوال المحول منه">
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">نوع
+                    التحويل</label>
+                <select [(ngModel)]="registerForm.transferType" class="premium-input">
+                    <option value="">اختر النوع</option>
+                    <option value="STC Pay">STC Pay</option>
+                    <option value="Urpay">Urpay</option>
+                    <option value="Bank Transfer">تحويل بنكي</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">إيصال
+                    الدفع</label>
+                <div (click)="fileInput.click()"
+                    style="border: 2px dashed rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02);"
+                    onmouseover="this.style.borderColor='#10B981'; this.style.background='rgba(16,185,129,0.05)'"
+                    onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.02)'">
+                    <input #fileInput type="file" (change)="onFileSelected($event)" hidden accept="image/*">
+                    <span class="material-symbols-outlined"
+                        style="font-size: 2.5rem; color: #10B981; margin-bottom: 0.5rem;">cloud_upload</span>
+                    <p style="margin: 0; color: #94a3b8;">{{ registerForm.receipt ? registerForm.receipt.name : 'اسحب
+                        الإيصال هنا أو انقر للإرفاق' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <app-button variant="ghost" (click)="closeRegisterModal()">إلغاء</app-button>
+            <app-button variant="primary" icon="send" (click)="submitRegistration()" [isLoading]="isSubmitting"
+                [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال
+                الطلب</app-button>
+        </div>
+    </app-card>
+</div>

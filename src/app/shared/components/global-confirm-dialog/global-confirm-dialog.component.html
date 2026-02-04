@@ -1,0 +1,22 @@
+@if (uiFeedback.confirmDialog(); as dialog) {
+<div class="confirm-overlay" (click)="onCancel()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon" [attr.data-type]="dialog.type">
+            <span class="material-symbols-outlined">{{ dialog.icon }}</span>
+        </div>
+        <h3 class="confirm-title">{{ dialog.title }}</h3>
+        <p class="confirm-message">{{ dialog.message }}</p>
+        <div class="confirm-actions">
+            <!-- Cancel Button -->
+            <app-button variant="ghost" (onClick)="onCancel()">
+                {{ dialog.cancelText }}
+            </app-button>
+
+            <!-- Confirm Button -->
+            <app-button [variant]="dialog.type === 'danger' ? 'danger' : 'primary'" (onClick)="onConfirm()">
+                {{ dialog.confirmText }}
+            </app-button>
+        </div>
+    </div>
+</div>
+}

@@ -1,0 +1,9 @@
+.page-title {
+    font-size: clamp(1.5rem, 5vw, var(--text-hero));
+    font-weight: var(--font-super-black);
+    color: var(--color-gold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    margin-bottom: var(--space-md);
+    text-shadow: var(--text-shadow);
+}

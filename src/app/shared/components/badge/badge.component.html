@@ -1,0 +1,4 @@
+<span class="badge" [class]="'badge-' + type">
+    <span *ngIf="dot" class="status-dot" [class]="dotType" [class.pulse]="pulse"></span>
+    <ng-content></ng-content>
+</span>

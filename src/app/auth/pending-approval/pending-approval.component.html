@@ -1,0 +1,93 @@
+<div class="pending-container">
+    <!-- Header -->
+    <header class="pending-header">
+        <div class="brand">
+            <div class="brand-icon">
+                <span class="material-symbols-outlined">sports_soccer</span>
+            </div>
+            <span>بطولة رمضان</span>
+        </div>
+
+        <div class="header-actions">
+            <a href="#" class="action-link">
+                <span class="material-symbols-outlined">help</span>
+                المساعدة
+            </a>
+            <app-button variant="ghost" size="sm" icon="logout" iconPos="left" (onClick)="onLogout()">
+                تسجيل الخروج
+            </app-button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="review-card">
+            <div class="card-glow"></div>
+
+            <div class="icon-container">
+                <div class="hourglass-box">
+                    <span class="material-symbols-outlined">hourglass_empty</span>
+                </div>
+            </div>
+
+            <h1 class="title">الحساب قيد المراجعة</h1>
+            <p class="message">
+                شكراً لتسجيلك في بطولة رمضان. يقوم فريقنا حالياً بمراجعة بياناتك ومستنداتك للتأكد من استيفاء شروط
+                المشاركة.
+            </p>
+
+            <div class="status-badge">
+                <span class="dot"></span>
+                حالة الطلب: قيد الانتظار
+            </div>
+
+            <div class="request-id-box">
+                <p class="request-id-label">رقم طلب التسجيل (ID)</p>
+                <p class="request-id-value">{{ currentUser?.displayId || 'USR-TEMP' }}</p>
+            </div>
+
+            <div class="info-section">
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
+
+                <div class="grid-info">
+                    <div class="info-box">
+                        <p class="info-label">تاريخ التقديم</p>
+                        <p class="info-value">
+                            <span class="material-symbols-outlined">calendar_today</span>
+                            12 رمضان 1445
+                        </p>
+                    </div>
+                    <div class="info-box">
+                        <p class="info-label">الوقت المتوقع</p>
+                        <p class="info-value">
+                            <span class="material-symbols-outlined">schedule</span>
+                            24 - 48 ساعة
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-actions flex gap-3">
+                    <div class="flex-1">
+                        <app-button variant="outline" size="md" icon="headset_mic" iconPos="left" [fullWidth]="true">
+                            تواصل مع الدعم الفني
+                        </app-button>
+                    </div>
+                    <div class="flex-1">
+                        <app-button variant="primary" size="md" [fullWidth]="true">
+                            تحديث البيانات
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="pending-footer">
+        <a href="#">سياسة الخصوصية</a>
+        <span>•</span>
+        <a href="#">الشروط والأحكام</a>
+    </footer>
+</div>

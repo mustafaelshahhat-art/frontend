@@ -1,0 +1,10 @@
+/* Pending Approval Component Styles */
+:host {
+    display: block;
+}
+
+.bg-pattern {
+    background-image: url('/assets/images/pattern.png');
+    opacity: 0.1;
+    z-index: 0;
+}

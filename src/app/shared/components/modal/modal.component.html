@@ -1,0 +1,23 @@
+<div class="modal-overlay" *ngIf="visible" (click)="closeOnOverlay && close()">
+    <div class="modal-box" [class]="'modal-' + size" [class.theme-danger]="theme === 'danger'"
+        (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="modal-header">
+            <span *ngIf="icon" class="material-symbols-outlined">{{ icon }}</span>
+            <h3>{{ title }}</h3>
+            <button (click)="close()" class="close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <ng-content></ng-content>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer" *ngIf="hasFooter">
+            <ng-content select="[modal-footer]"></ng-content>
+        </div>
+    </div>
+</div>

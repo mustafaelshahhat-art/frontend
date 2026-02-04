@@ -1,0 +1,54 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-xl">
+        <app-page-header title="إحصائيات النشاط" subtitle="سجل بجميع العمليات والإجراءات التي تمت في النظام">
+        </app-page-header>
+
+        <!-- Loading State -->
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل السجلات..."></app-inline-loading>
+
+        <!-- Empty State -->
+        <app-empty-state *ngIf="!isLoading && logs.length === 0" icon="history" title="لا توجد سجلات"
+            description="لم يتم تسجيل أي نشاط بعد">
+        </app-empty-state>
+
+        <!-- Table -->
+        <div *ngIf="!isLoading && logs.length > 0" class="card p-0 overflow-hidden">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>المستخدم</th>
+                            <th>العملية</th>
+                            <th>الوقت</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let log of logs">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar avatar-sm">
+                                        <span class="text-primary font-bold">{{ log.userName.charAt(0) }}</span>
+                                    </div>
+                                    <span class="text-primary font-bold text-sm">{{ log.userName }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-secondary text-sm">{{ log.action }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted text-xs font-mono">{{ log.timestamp | date:'yyyy-MM-dd HH:mm:ss'
+                                    }}</span>
+                            </td>
+                            <td>
+                                <app-badge [type]="getBadgeType(log.status)">
+                                    {{ getStatusLabel(log.status) }}
+                                </app-badge>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

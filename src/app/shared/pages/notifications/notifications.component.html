@@ -1,0 +1,72 @@
+<div class="notifications-page">
+    <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
+
+        <div class="actions" style="display: flex; gap: 0.75rem;">
+            <app-button *ngIf="unreadCount > 0" variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
+                تحديد الكل كمقروء
+            </app-button>
+            <app-badge *ngIf="unreadCount > 0" type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
+        </div>
+    </app-page-header>
+
+    <div class="notifications-content">
+        <!-- Admin Tool: New Announcement -->
+        <app-card *ngIf="isAdmin()" title="إرسال إعلان جديد" icon="campaign">
+            <div class="admin-panel">
+                <div class="form-group">
+                    <label>عنوان الإشعار</label>
+                    <input type="text" [(ngModel)]="newNotification.title" placeholder="أدخل عنواناً جذاباً..."
+                        class="premium-input">
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>نص الرسالة</label>
+                    <textarea [(ngModel)]="newNotification.message" placeholder="ماذا تريد إخبار المستخدمين به؟"
+                        rows="4" class="premium-input textarea"></textarea>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <app-button (click)="sendNotification()" icon="send"
+                        [disabled]="!newNotification.title || !newNotification.message">
+                        إرسال الإشعار للجميع
+                    </app-button>
+                </div>
+            </div>
+        </app-card>
+
+        <!-- Notifications List -->
+        <div class="notifications-list">
+            <!-- Loading -->
+            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+                <div class="loading-spinner"
+                    style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
+                </div>
+                <p style="color: #94a3b8;">جاري تحميل التنبيهات...</p>
+            </div>
+
+            <!-- Empty -->
+            <app-empty-state *ngIf="!isLoading && notifications.length === 0" icon="notifications_off"
+                title="لا توجد تنبيهات"
+                description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
+            </app-empty-state>
+
+            <!-- Items -->
+            <app-card *ngFor="let notif of notifications" class="notification-item" [class.unread]="!notif.isRead"
+                (click)="markAsRead(notif)" [isClickable]="true">
+
+                <div style="display: flex; gap: 1.5rem;">
+                    <div class="notif-icon-box" [style.background-color]="getColor(notif.type) + '15'"
+                        [style.color]="getColor(notif.type)">
+                        <span class="material-symbols-outlined">{{ getIcon(notif.type) }}</span>
+                    </div>
+                    <div class="notif-details" style="flex: 1;">
+                        <div class="notif-header"
+                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
+                            <h3 style="margin: 0; font-size: 1rem;">{{ notif.title }}</h3>
+                            <span class="notif-time" style="color: #64748b; font-size: 0.75rem;">{{ notif.time }}</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.875rem;">{{ notif.message }}</p>
+                    </div>
+                </div>
+            </app-card>
+        </div>
+    </div>
+</div>

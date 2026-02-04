@@ -1,0 +1,85 @@
+<div class="page-container">
+    <div class="page-content flex-col gap-2xl">
+        <!-- Header Section -->
+        <app-page-header title="الإعدادات العامة" subtitle="تحكم في المعلومات الأساسية للتطبيق وحالة النظام العامة.">
+        </app-page-header>
+
+        <!-- Settings Grid -->
+        <div class="grid-2-cols gap-xl">
+            <!-- General Info Card -->
+            <div class="card col-span-2">
+                <div class="card-header border-t pb-lg mb-xl">
+                    <span class="material-symbols-outlined text-primary">info</span>
+                    <h3 class="card-title mb-0">معلومات التطبيق</h3>
+                </div>
+                <div class="grid-2-cols gap-xl">
+                    <div class="form-group mb-0">
+                        <label class="form-label">اسم البطولة (عربي)</label>
+                        <input [(ngModel)]="settings.appNameAr" class="form-input" type="text" />
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">اسم البطولة (إنجليزي)</label>
+                        <input [(ngModel)]="settings.appNameEn" class="form-input" type="text" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card">
+                <div class="card-header border-t pb-lg mb-xl">
+                    <span class="material-symbols-outlined text-gold">build</span>
+                    <h3 class="card-title mb-0">حالة النظام</h3>
+                </div>
+                <div class="flex-col gap-lg">
+                    <div class="card flex-between p-lg">
+                        <div>
+                            <h4 class="text-primary font-semibold mb-1">وضع الصيانة</h4>
+                            <p class="text-muted text-xs mb-0">إيقاف التطبيق مؤقتاً لجميع المستخدمين</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" [(ngModel)]="settings.maintenanceMode">
+                            <span class="toggle-slider" [class.active]="settings.maintenanceMode"
+                                [class.danger]="settings.maintenanceMode"></span>
+                        </label>
+                    </div>
+
+                    <div class="card flex-between p-lg">
+                        <div>
+                            <h4 class="text-primary font-semibold mb-1">فتح باب التسجيل</h4>
+                            <p class="text-muted text-xs mb-0">السماح لفرق جديدة بالانضمام</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" [(ngModel)]="settings.registrationOpen">
+                            <span class="toggle-slider" [class.active]="settings.registrationOpen"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limits Card -->
+            <div class="card">
+                <div class="card-header border-t pb-lg mb-xl">
+                    <span class="material-symbols-outlined text-info">settings_suggest</span>
+                    <h3 class="card-title mb-0">حدود وشروط</h3>
+                </div>
+                <div class="flex-col gap-lg">
+                    <div class="form-group mb-0">
+                        <label class="form-label">الحد الأقصى للاعبين</label>
+                        <input [(ngModel)]="settings.maxPlayersPerTeam" class="form-input" type="number" />
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">تاريخ بدء البطولة</label>
+                        <input [(ngModel)]="settings.tournamentStartDate" class="form-input" type="date" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="flex justify-end pt-lg border-t">
+            <app-button (click)="saveSettings()" variant="primary" size="lg">
+                حفظ كافة الإعدادات
+            </app-button>
+        </div>
+    </div>
+</div>

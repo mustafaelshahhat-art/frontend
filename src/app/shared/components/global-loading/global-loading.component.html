@@ -1,0 +1,10 @@
+@if (uiFeedback.isLoading()) {
+<div class="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        @if (uiFeedback.loading().message) {
+        <p class="loading-message">{{ uiFeedback.loading().message }}</p>
+        }
+    </div>
+</div>
+}

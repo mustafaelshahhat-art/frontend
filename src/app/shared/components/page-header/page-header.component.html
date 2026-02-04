@@ -1,0 +1,14 @@
+<div class="page-header flex-col gap-lg" [class.page-glow-top]="showGradient">
+    <div class="header-content flex items-center gap-md">
+        <app-button *ngIf="showBack" variant="ghost" size="sm" icon="arrow_forward" (click)="back.emit()"
+            style="margin-right: -0.5rem;"></app-button>
+        <div>
+            <h1 class="page-title">{{ title }}</h1>
+            <p class="page-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+        </div>
+    </div>
+
+    <div class="header-actions">
+        <ng-content></ng-content>
+    </div>
+</div>

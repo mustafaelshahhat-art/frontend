@@ -1,0 +1,1094 @@
+// ==========================================================================
+// LAYOUT - All layout rules (grid, flex, positioning)
+// ==========================================================================
+
+// ==========================================================================
+// CONTAINER - Enhanced responsive containers
+// ==========================================================================
+
+.container {
+  width: 100%;
+  max-width: var(--width-content-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-xl);
+  padding-right: var(--space-xl);
+
+  @media (max-width: 768px) {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+
+  @media (max-width: 480px) {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  padding-left: var(--space-xl);
+  padding-right: var(--space-xl);
+
+  @media (max-width: 768px) {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+
+  @media (max-width: 480px) {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+}
+
+// ==========================================================================
+// APP LAYOUT - Enhanced for mobile-first
+// ==========================================================================
+
+.app-layout {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  direction: rtl;
+  overflow: hidden;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  min-width: 0; // Prevent flex overflow
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ==========================================================================
+// PAGE LAYOUTS - Enhanced responsiveness
+// ==========================================================================
+
+.page-container {
+  width: 100%;
+  min-height: 100%;
+  padding: var(--space-lg);
+  position: relative;
+  overflow-x: hidden;
+  animation: fadeInUp 0.5s ease-out;
+
+  @media (max-width: 992px) {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  @media (max-width: 768px) {
+    padding: var(--space-md);
+  }
+
+  @media (max-width: 480px) {
+    padding: var(--space-sm);
+  }
+}
+
+.page-content {
+  width: 100%;
+  max-width: var(--width-content-max);
+  margin: 0 auto;
+  position: relative;
+  z-index: var(--z-above);
+}
+
+.page-header {
+  margin-bottom: var(--space-3xl);
+
+  @media (max-width: 768px) {
+    margin-bottom: var(--space-2xl);
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: var(--space-xl);
+  }
+}
+
+
+
+// ==========================================================================
+// DECORATIVE GLOWS - Refined with better performance
+// ==========================================================================
+
+.page-glow-top {
+  position: fixed;
+  top: -15%;
+  right: -10%;
+  width: min(600px, 50vw);
+  height: min(600px, 50vw);
+  background: var(--color-primary-8);
+  border-radius: var(--radius-full);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: var(--z-base);
+  will-change: transform;
+}
+
+.page-glow-bottom {
+  position: fixed;
+  bottom: -15%;
+  left: -10%;
+  width: min(500px, 45vw);
+  height: min(500px, 45vw);
+  background: var(--color-primary-5);
+  border-radius: var(--radius-full);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: var(--z-base);
+  will-change: transform;
+}
+
+// ==========================================================================
+// OVERLAY - Enhanced with better blur
+// ==========================================================================
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--bg-overlay-shadow);
+  backdrop-filter: var(--blur-sm);
+  animation: fadeIn 0.2s ease-out;
+}
+
+// ==========================================================================
+// GRID SYSTEMS - Enhanced responsive grids
+// ==========================================================================
+
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--space-md);
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-layout-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-lg);
+
+  @media (max-width: 480px) {
+    gap: var(--space-md);
+  }
+}
+
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-xl);
+
+  @media (max-width: 640px) {
+    gap: var(--space-lg);
+  }
+}
+
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+
+  @media (max-width: 768px) {
+    gap: var(--space-md);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid-3-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+.grid-4-cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
+// ==========================================================================
+// FLEXBOX UTILITIES
+// ==========================================================================
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// ==========================================================================
+// GAP UTILITIES
+// ==========================================================================
+
+.gap-1 {
+  gap: var(--space-1);
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.gap-5 {
+  gap: var(--space-5);
+}
+
+.gap-6 {
+  gap: var(--space-6);
+}
+
+.gap-8 {
+  gap: var(--space-8);
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-md {
+  gap: var(--space-md);
+}
+
+.gap-lg {
+  gap: var(--space-lg);
+}
+
+.gap-xl {
+  gap: var(--space-xl);
+}
+
+.gap-2xl {
+  gap: var(--space-2xl);
+}
+
+// ==========================================================================
+// SPACING UTILITIES
+// ==========================================================================
+
+// Padding
+.p-0 {
+  padding: 0;
+}
+
+.p-1 {
+  padding: var(--space-1);
+}
+
+.p-2 {
+  padding: var(--space-2);
+}
+
+.p-3 {
+  padding: var(--space-3);
+}
+
+.p-4 {
+  padding: var(--space-4);
+}
+
+.p-5 {
+  padding: var(--space-5);
+}
+
+.p-6 {
+  padding: var(--space-6);
+}
+
+.p-8 {
+  padding: var(--space-8);
+}
+
+.p-md {
+  padding: var(--space-md);
+}
+
+.p-lg {
+  padding: var(--space-lg);
+}
+
+.p-xl {
+  padding: var(--space-xl);
+}
+
+.p-2xl {
+  padding: var(--space-2xl);
+}
+
+.px-4 {
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.px-6 {
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.py-3 {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.py-4 {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+// Margin
+.m-0 {
+  margin: 0;
+}
+
+.m-auto {
+  margin: auto;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mb-1 {
+  margin-bottom: var(--space-1);
+}
+
+.mb-2 {
+  margin-bottom: var(--space-2);
+}
+
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+
+.mb-6 {
+  margin-bottom: var(--space-6);
+}
+
+.mb-8 {
+  margin-bottom: var(--space-8);
+}
+
+.mb-md {
+  margin-bottom: var(--space-md);
+}
+
+.mb-lg {
+  margin-bottom: var(--space-lg);
+}
+
+.mb-xl {
+  margin-bottom: var(--space-xl);
+}
+
+.mb-2xl {
+  margin-bottom: var(--space-2xl);
+}
+
+.mb-3xl {
+  margin-bottom: var(--space-3xl);
+}
+
+.mt-2 {
+  margin-top: var(--space-2);
+}
+
+.mt-4 {
+  margin-top: var(--space-4);
+}
+
+.mt-6 {
+  margin-top: var(--space-6);
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+// ==========================================================================
+// POSITIONING UTILITIES
+// ==========================================================================
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+.inset-0 {
+  inset: 0;
+}
+
+.top-0 {
+  top: 0;
+}
+
+.right-0 {
+  right: 0;
+}
+
+.bottom-0 {
+  bottom: 0;
+}
+
+.left-0 {
+  left: 0;
+}
+
+.bottom-4 {
+  bottom: var(--space-4);
+}
+
+.left-4 {
+  left: var(--space-4);
+}
+
+// ==========================================================================
+// SIZE UTILITIES
+// ==========================================================================
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+.max-w-full {
+  max-width: 100%;
+}
+
+.max-w-xs {
+  max-width: 280px;
+}
+
+// ==========================================================================
+// OVERFLOW UTILITIES
+// ==========================================================================
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+// ==========================================================================
+// Z-INDEX UTILITIES
+// ==========================================================================
+
+.z-0 {
+  z-index: var(--z-base);
+}
+
+.z-10 {
+  z-index: var(--z-dropdown);
+}
+
+.z-20 {
+  z-index: var(--z-sticky);
+}
+
+.z-30 {
+  z-index: var(--z-header);
+}
+
+.z-40 {
+  z-index: var(--z-overlay);
+}
+
+.z-50 {
+  z-index: var(--z-sidebar);
+}
+
+// ==========================================================================
+// DISPLAY UTILITIES
+// ==========================================================================
+
+.hidden {
+  display: none;
+}
+
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.inline {
+  display: inline;
+}
+
+// ==========================================================================
+// VISIBILITY UTILITIES
+// ==========================================================================
+
+.visible {
+  visibility: visible;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+// ==========================================================================
+// RESPONSIVE UTILITIES
+// ==========================================================================
+
+@media (max-width: 991px) {
+  .sidebar {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  .md-hidden {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) {
+  .md-visible {
+    display: block;
+  }
+
+  .sidebar-close {
+    display: none;
+  }
+}
+
+// ==========================================================================
+// MARGIN-RIGHT FOR SIDEBAR
+// ==========================================================================
+
+.mr-sidebar {
+  margin-right: var(--width-sidebar);
+}
+
+.mr-3 {
+  margin-right: var(--space-3);
+}
+
+.ml-6 {
+  margin-left: var(--space-6);
+}
+
+.mt-1 {
+  margin-top: var(--space-1);
+}
+
+.border-t {
+  border-top: 1px solid var(--border-visible);
+}
+
+// ==========================================================================
+// SKELETON HEIGHT UTILITIES
+// ==========================================================================
+
+.skeleton-sm {
+  height: 80px;
+}
+
+.skeleton-md {
+  height: 120px;
+}
+
+.skeleton-lg {
+  height: 200px;
+}
+
+// ==========================================================================
+// GRID CUSTOM TEMPLATES
+// ==========================================================================
+
+.grid-notifications {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-2xl);
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==========================================================================
+// LINK UTILITIES
+// ==========================================================================
+
+.link-inherit {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ==========================================================================
+// ICON SIZE UTILITIES
+// ==========================================================================
+
+.icon-sm {
+  font-size: 1.125rem !important;
+}
+
+.icon-md {
+  font-size: 1.25rem !important;
+}
+
+.icon-lg {
+  font-size: 1.5rem !important;
+}
+
+.icon-xl {
+  font-size: 2rem !important;
+}
+
+.icon-2xl {
+  font-size: 3rem !important;
+}
+
+.icon-3xl {
+  font-size: 4rem !important;
+}
+
+.icon-giant {
+  font-size: 200px !important;
+}
+
+// ==========================================================================
+// TEXT COLORS FOR ICONS
+// ==========================================================================
+
+.icon-dark {
+  color: var(--bg-dark) !important;
+}
+
+.icon-gold {
+  color: var(--color-gold) !important;
+}
+
+.icon-muted {
+  color: var(--text-muted) !important;
+}
+
+// ==========================================================================
+// UNIFIED PROFILE PAGE LAYOUT
+// ==========================================================================
+
+.grid-profile {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--space-2xl);
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-avatar-container {
+  position: relative;
+  width: 128px;
+  height: 128px;
+}
+
+.profile-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--border-visible);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+  position: relative;
+
+  &.has-image {
+    background: transparent;
+  }
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-text {
+  font-size: var(--text-4xl);
+  color: var(--text-primary);
+  font-weight: var(--font-super-black);
+}
+
+.profile-avatar-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: var(--space-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: var(--transition-base);
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
+
+  .material-symbols-outlined {
+    color: white;
+    font-size: var(--text-xl);
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &.uploading {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.5);
+    height: 100%;
+    border-radius: var(--radius-full);
+    align-items: center;
+    padding-bottom: 0;
+  }
+}
+
+.profile-avatar-container:hover .profile-avatar-overlay {
+  opacity: 1;
+}
+
+.profile-avatar-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
+  border: 2px solid var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-base);
+
+  .material-symbols-outlined {
+    color: white;
+    font-size: var(--text-sm);
+  }
+
+  &:hover {
+    background: var(--color-danger-hover);
+    transform: scale(1.1);
+  }
+}
+
+.profile-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: var(--transition-base);
+  text-align: right;
+
+  &:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+  }
+}
+
+.profile-nav-item-active {
+  background: var(--color-primary-10);
+  color: var(--color-primary);
+
+  &:hover {
+    background: var(--color-primary-10);
+    color: var(--color-primary);
+  }
+}
+
+// ==========================================================================
+// UNIFIED CARD VARIANTS
+// ==========================================================================
+
+.card-danger {
+  background: var(--color-danger-10);
+  border: 1px solid var(--color-danger-20);
+}
+
+.card-inner {
+  background: var(--bg-overlay-dark);
+}
+
+.card-inner-success {
+  background: var(--color-primary-5);
+  border: 1px solid var(--color-primary-20);
+}
+
+.bg-overlay-dark {
+  background: var(--bg-overlay-dark);
+}
+
+// ==========================================================================
+// UNIFIED BUTTON VARIANTS
+// ==========================================================================
+
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid var(--color-danger-50);
+  color: var(--color-danger);
+
+  &:hover {
+    background: var(--color-danger);
+    color: white;
+  }
+}
+
+.btn-gold {
+  background: var(--color-gold);
+  color: var(--bg-dark);
+
+  &:hover {
+    background: var(--color-gold-light);
+  }
+}
+
+// ==========================================================================
+// UNIFIED TEXT UTILITIES
+// ==========================================================================
+
+.text-danger-muted {
+  color: var(--color-danger-60);
+}
+
+// ==========================================================================
+// PAGE CONTENT VARIANTS
+// ==========================================================================
+
+.page-content-medium {
+  max-width: 900px;
+}
+
+.page-content-narrow {
+  max-width: 720px;
+}
+
+// ==========================================================================
+// REFEREE DASHBOARD GRID
+// ==========================================================================
+
+.matches-grid-wrapper {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+}
+
+// Text Decoration Icon (large decorative icons)
+.text-decoration-icon {
+  font-size: clamp(150px, 30vw, 250px) !important;
+  opacity: 0.04;
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
