@@ -61,6 +61,9 @@
                             </td>
                             <td>
                                 <div class="flex items-center justify-center gap-2">
+                                    <app-button (click)="viewUser(user.id)" variant="ghost" size="sm" icon="visibility"
+                                        class="text-info">
+                                    </app-button>
                                     <app-button (click)="warnUser(user)" variant="ghost" size="sm" icon="warning"
                                         class="text-warning">
                                     </app-button>

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -15,6 +15,7 @@ import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
     standalone: true,
     imports: [
         CommonModule,
+        RouterLink,
         FilterComponent,
         PageHeaderComponent,
         ButtonComponent,

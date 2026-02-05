@@ -18,6 +18,10 @@ export const adminRoutes: Routes = [
                 loadComponent: () => import('../features/objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent)
             },
             {
+                path: 'objections/:id',
+                loadComponent: () => import('../features/objections/pages/objection-detail/objection-detail.component').then(m => m.ObjectionDetailComponent)
+            },
+            {
                 path: 'tournaments',
                 loadComponent: () => import('../features/tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent)
             },
@@ -47,7 +51,7 @@ export const adminRoutes: Routes = [
             },
             {
                 path: 'teams/:id',
-                loadComponent: () => import('../features/teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailComponent)
+                loadComponent: () => import('../features/teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailPageComponent)
             },
             {
                 path: 'matches',

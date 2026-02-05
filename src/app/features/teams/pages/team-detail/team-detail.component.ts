@@ -2,30 +2,35 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { FilterComponent } from '../../../../shared/components/filter/filter.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/components/team-detail';
 
 @Component({
-    selector: 'app-team-detail',
+    selector: 'app-team-detail-page',
     standalone: true,
     imports: [
         CommonModule,
-        FilterComponent,
-        ButtonComponent,
-        BadgeComponent
+        TeamDetailComponent
     ],
-    templateUrl: './team-detail.component.html',
-    styleUrls: ['./team-detail.component.scss']
+    template: `
+        <app-team-detail 
+            [team]="team"
+            [showBackButton]="true"
+            [backRoute]="'/admin/teams'"
+            [canEditName]="false"
+            [canAddPlayers]="false"
+            [canRemovePlayers]="false"
+            [canManageStatus]="true"
+            (playerAction)="handlePlayerAction($event)"
+            (tabChanged)="handleTabChange($event)">
+        </app-team-detail>
+    `
 })
-export class TeamDetailComponent implements OnInit {
+export class TeamDetailPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
 
-    activeTab = 'overview';
-
-    team: any = {
+    team: TeamData = {
         id: '1',
         name: 'نادي الصقور',
         city: 'الرياض',
@@ -61,60 +66,39 @@ export class TeamDetailComponent implements OnInit {
         ]
     };
 
-    tabs = [
-        { value: 'overview', label: 'نظرة عامة', icon: 'dashboard' },
-        { value: 'players', label: 'قائمة اللاعبين', icon: 'groups' },
-        { value: 'matches', label: 'المباريات', icon: 'sports_soccer' },
-        { value: 'finances', label: 'المالية', icon: 'payments' }
-    ];
-
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
+        // TODO: Load team data from API using the id
+        // this.teamService.getTeam(id).subscribe(team => this.team = team);
     }
 
-    navigateBack(): void {
-        this.router.navigate(['/admin/teams']);
-    }
-
-    getPlayerStatusBadgeType(status: string): 'success' | 'warning' | 'danger' {
-        switch (status) {
-            case 'active': return 'success';
-            case 'suspended': return 'warning';
-            case 'banned': return 'danger';
-            default: return 'success';
-        }
-    }
-
-    getPlayerStatusLabel(status: string): string {
-        switch (status) {
-            case 'active': return 'نشط';
-            case 'suspended': return 'موقوف';
-            case 'banned': return 'محظور';
-            default: return 'نشط';
-        }
-    }
-
-    getMatchResultClass(status: string): string {
-        return `match-result ${status}`;
-    }
-
-    requestPlayerAction(player: any, action: 'activate' | 'deactivate' | 'ban'): void {
+    handlePlayerAction(event: { player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }): void {
+        const { player, action } = event;
         const config = {
-            activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟ سيتمكن من المشاركة في المباريات القادمة.`, btn: 'تفعيل الآن', type: 'info' as const },
-            deactivate: { title: 'تعطيل اللاعب', message: `هل أنت متأكد من تعطيل اللاعب "${player.name}"؟ لن يتمكن من المشاركة في المباريات حتى يتم إعادة تفعيله.`, btn: 'تعطيل اللاعب', type: 'danger' as const },
-            ban: { title: 'حظر اللاعب نهائياً', message: `هل أنت متأكد من حظر اللاعب "${player.name}"؟ هذا الإجراء سيمنع اللاعب من المشاركة في البطولة نهائياً.`, btn: 'حظر نهائي', type: 'danger' as const }
+            activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟`, btn: 'تفعيل الآن', type: 'info' as const },
+            deactivate: { title: 'تعطيل اللاعب', message: `هل أنت متأكد من تعطيل اللاعب "${player.name}"؟`, btn: 'تعطيل اللاعب', type: 'danger' as const },
+            ban: { title: 'حظر اللاعب', message: `هل أنت متأكد من حظر اللاعب "${player.name}"؟`, btn: 'حظر نهائي', type: 'danger' as const },
+            remove: { title: 'إزالة اللاعب', message: `هل أنت متأكد من إزالة اللاعب "${player.name}" من الفريق؟`, btn: 'إزالة الآن', type: 'danger' as const }
         };
 
         const { title, message, btn, type } = config[action];
-
         this.uiFeedback.confirm(title, message, btn, type).subscribe((confirmed: boolean) => {
             if (confirmed) {
+                // TODO: Call API to update player status
                 if (action === 'activate') player.status = 'active';
                 else if (action === 'deactivate') player.status = 'suspended';
                 else if (action === 'ban') player.status = 'banned';
+                else if (action === 'remove') {
+                    this.team.players = this.team.players.filter(p => p.id !== player.id);
+                }
 
-                this.uiFeedback.success('تم التحديث', 'تم تحديث حالة اللاعب بنجاح');
+                this.uiFeedback.success('تم التحديث', 'تمت العملية بنجاح');
             }
         });
+    }
+
+    handleTabChange(tab: string): void {
+        console.log('Tab changed to:', tab);
+        // يمكنك إضافة أي logic إضافي هنا
     }
 }

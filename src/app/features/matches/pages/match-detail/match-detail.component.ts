@@ -173,6 +173,12 @@ export class MatchDetailComponent implements OnInit {
         return ['/captain/matches', this.match.id, 'chat'];
     }
 
+    getTeamRoute(teamId: string): string[] {
+        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/teams', teamId];
+        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/teams', teamId];
+        return [];
+    }
+
     // ==================== REFEREE ACTIONS ====================
 
     startMatch(): void {

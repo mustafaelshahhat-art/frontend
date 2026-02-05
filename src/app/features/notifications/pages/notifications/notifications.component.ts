@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -14,6 +15,7 @@ interface Notification {
     type: string;
     isRead: boolean;
     icon?: string;
+    link?: string; // Add link property
 }
 
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -39,6 +41,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 export class NotificationsComponent implements OnInit {
     private authService = inject(AuthService);
     private cdr = inject(ChangeDetectorRef);
+    private router = inject(Router);
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.CAPTAIN;
@@ -65,23 +68,23 @@ export class NotificationsComponent implements OnInit {
     private getRoleNotifications(): Notification[] {
         const baseNotifications: Record<UserRole, Notification[]> = {
             [UserRole.ADMIN]: [
-                { id: 1, title: 'موعد المباراة', message: 'تذكير بموعد مباراة الصقور غداً في العاشرة مساءً', time: 'منذ ١٠ دقائق', type: 'match', isRead: false, icon: 'schedule' },
-                { id: 2, title: 'تأكيد التسجيل', message: 'تم قبول تسجيل فريق النجوم في البطولة', time: 'منذ ساعتين', type: 'tournament', isRead: true, icon: 'check_circle' },
-                { id: 3, title: 'تحديث النتائج', message: 'تم تحديث نتائج الجولة الثالثة', time: 'أمس', type: 'system', isRead: true, icon: 'scoreboard' }
+                { id: 1, title: 'موعد المباراة', message: 'تذكير بموعد مباراة الصقور غداً في العاشرة مساءً', time: 'منذ ١٠ دقائق', type: 'match', isRead: false, icon: 'schedule', link: '/admin/matches/m1' },
+                { id: 2, title: 'تأكيد التسجيل', message: 'تم قبول تسجيل فريق النجوم في البطولة', time: 'منذ ساعتين', type: 'tournament', isRead: true, icon: 'check_circle', link: '/admin/teams/team1' },
+                { id: 3, title: 'تحديث النتائج', message: 'تم تحديث نتائج الجولة الثالثة', time: 'أمس', type: 'system', isRead: true, icon: 'scoreboard', link: '/admin/dashboard' }
             ],
             [UserRole.CAPTAIN]: [
-                { id: 1, title: 'موعد مباراة قادمة', message: 'مباراتك القادمة ضد فريق الاتحاد يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false },
-                { id: 2, title: 'تم قبول الاعتراض', message: 'تم قبول اعتراضك على نتيجة مباراة الأهلي وتعديل النتيجة رسمياً.', time: 'منذ 5 ساعات', type: 'objection', isRead: true },
-                { id: 3, title: 'فتح باب التسجيل', message: 'تم فتح باب التسجيل في بطولة رمضان الكبرى. بادر بالتسجيل الآن!', time: 'يوم أمس', type: 'tournament', isRead: true }
+                { id: 1, title: 'موعد مباراة قادمة', message: 'مباراتك القادمة ضد فريق الاتحاد يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false, link: '/captain/matches' },
+                { id: 2, title: 'تم قبول الاعتراض', message: 'تم قبول اعتراضك على نتيجة مباراة الأهلي وتعديل النتيجة رسمياً.', time: 'منذ 5 ساعات', type: 'objection', isRead: true, link: '/captain/objections' },
+                { id: 3, title: 'فتح باب التسجيل', message: 'تم فتح باب التسجيل في بطولة رمضان الكبرى. بادر بالتسجيل الآن!', time: 'يوم أمس', type: 'tournament', isRead: true, link: '/captain/tournaments' }
             ],
             [UserRole.REFEREE]: [
-                { id: 1, title: 'مباراة قادمة', message: 'تم تعيينك حكماً لمباراة النجوم والصقور غداً في تمام الساعة 8:00 مساءً.', time: 'منذ ساعة', type: 'match', isRead: false },
-                { id: 2, title: 'تحديث اللوائح', message: 'تم تحديث لوائح البطولة الرمضانية، يرجى مراجعتها من لوحة التحكم.', time: 'منذ 3 ساعات', type: 'tournament', isRead: true },
-                { id: 3, title: 'رسالة جديدة', message: 'تلقيت رسالة جديدة من لجنة الحكام بخصوص مباراة أمس.', time: 'يوم أمس', type: 'message', isRead: true }
+                { id: 1, title: 'مباراة قادمة', message: 'تم تعيينك حكماً لمباراة النجوم والصقور غداً في تمام الساعة 8:00 مساءً.', time: 'منذ ساعة', type: 'match', isRead: false, link: '/referee/matches' },
+                { id: 2, title: 'تحديث اللوائح', message: 'تم تحديث لوائح البطولة الرمضانية، يرجى مراجعتها من لوحة التحكم.', time: 'منذ 3 ساعات', type: 'tournament', isRead: true, link: '/referee/dashboard' },
+                { id: 3, title: 'رسالة جديدة', message: 'تلقيت رسالة جديدة من لجنة الحكام بخصوص مباراة أمس.', time: 'يوم أمس', type: 'message', isRead: true, link: '/referee/notifications' }
             ],
             [UserRole.PLAYER]: [
-                { id: 1, title: 'موعد مباراة', message: 'مباراة فريقك القادمة يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false },
-                { id: 2, title: 'تحديث التشكيلة', message: 'تم تحديث تشكيلة الفريق للمباراة القادمة.', time: 'منذ 5 ساعات', type: 'team', isRead: true }
+                { id: 1, title: 'موعد مباراة', message: 'مباراة فريقك القادمة يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false, link: '/matches' },
+                { id: 2, title: 'تحديث التشكيلة', message: 'تم تحديث تشكيلة الفريق للمباراة القادمة.', time: 'منذ 5 ساعات', type: 'team', isRead: true, link: '/team' }
             ]
         };
         return baseNotifications[this.userRole] || [];
@@ -109,6 +112,11 @@ export class NotificationsComponent implements OnInit {
     markAsRead(notification: Notification): void {
         notification.isRead = true;
         this.cdr.detectChanges();
+
+        // Navigate if link exists
+        if (notification.link) {
+            this.router.navigateByUrl(notification.link);
+        }
     }
 
     getIcon(type: string): string {

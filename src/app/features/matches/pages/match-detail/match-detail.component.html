@@ -36,7 +36,7 @@
             </div>
 
             <div class="score-card-content">
-                <div class="team-block home">
+                <div class="team-block home clickable" [routerLink]="getTeamRoute(match.homeTeamId)">
                     <div class="team-shield">
                         <span class="material-symbols-outlined">shield</span>
                     </div>
@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <div class="team-block away">
+                <div class="team-block away clickable" [routerLink]="getTeamRoute(match.awayTeamId)">
                     <div class="team-shield">
                         <span class="material-symbols-outlined">shield</span>
                     </div>

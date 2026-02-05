@@ -26,6 +26,10 @@ export const refereeRoutes: Routes = [
                 loadComponent: () => import('../features/matches/pages/match-chat/match-chat.component').then(m => m.MatchChatComponent)
             },
             {
+                path: 'teams/:id',
+                loadComponent: () => import('./team-detail.component').then(m => m.RefereeTeamDetailComponent)
+            },
+            {
                 path: 'notifications',
                 loadComponent: () => import('../features/notifications/pages/notifications/notifications.component').then(m => m.NotificationsComponent)
             },

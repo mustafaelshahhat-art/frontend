@@ -40,4 +40,30 @@ export class SidebarComponent {
             }
         });
     }
+
+    getProfileRoute(): string {
+        if (!this.currentUser) return '/';
+
+        switch (this.currentUser.role) {
+            case 'ADMIN':
+                return '/admin/settings';
+            case 'REFEREE':
+                return '/referee/profile';
+            default:
+                // Both Player and Captain currently share the 'captain' layout routes
+                return '/captain/profile';
+        }
+    }
+
+    get roleLabel(): string {
+        if (!this.currentUser) return this.userRoleLabel;
+
+        switch (this.currentUser.role) {
+            case 'ADMIN': return 'مسؤول النظام';
+            case 'CAPTAIN': return 'قائد الفريق';
+            case 'REFEREE': return 'حكم الساحة';
+            case 'PLAYER': return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';
+            default: return this.userRoleLabel;
+        }
+    }
 }

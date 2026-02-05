@@ -45,7 +45,7 @@
                                 </app-badge>
                             </td>
                             <td>
-                                <app-button variant="ghost" size="sm" class="text-info">
+                                <app-button (click)="viewReceipt(request)" variant="ghost" size="sm" class="text-info">
                                     عرض الإيصال
                                 </app-button>
                             </td>
@@ -63,6 +63,24 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Receipt Modal -->
+        <div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">
+            <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>إيصال دفع: {{ selectedRequest?.teamName }}</h3>
+                    <button class="close-btn" (click)="closeReceipt()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img [src]="selectedRequest?.receiptUrl" alt="Receipt" class="receipt-image">
+                </div>
+                <div class="modal-footer">
+                    <app-button variant="outline" (click)="closeReceipt()">إغلاق</app-button>
+                </div>
             </div>
         </div>
     </div>

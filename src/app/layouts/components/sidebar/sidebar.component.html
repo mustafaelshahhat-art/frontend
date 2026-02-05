@@ -31,16 +31,17 @@
         <!-- Bottom Section -->
         <div class="sidebar-footer">
             <!-- User Profile Card -->
-            <div class="sidebar-profile hover-lift">
+            <div class="sidebar-profile hover-lift" [routerLink]="getProfileRoute()"
+                (click)="isMobile && handleClose()">
                 <div class="sidebar-profile-avatar">
-                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span class="material-symbols-outlined">verified_user</span>
                 </div>
                 <div class="sidebar-profile-info">
                     <p class="sidebar-profile-name">{{ currentUser?.name || 'المستخدم' }}</p>
                     <div class="flex items-center gap-2">
                         <p class="text-brand font-mono text-xs font-bold">{{ currentUser?.displayId }}</p>
                         <span class="status-dot"></span>
-                        <p class="text-muted text-xs font-semibold">{{ userRoleLabel }}</p>
+                        <p class="text-muted text-xs font-semibold">{{ roleLabel }}</p>
                     </div>
                 </div>
             </div>

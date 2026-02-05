@@ -16,6 +16,7 @@ interface PaymentRequest {
     amount: number;
     date: Date;
     status: PaymentStatus;
+    receiptUrl?: string;
 }
 
 @Component({
@@ -38,6 +39,8 @@ export class PaymentRequestsComponent implements OnInit {
 
     currentFilter = 'all';
     isLoading = true;
+    showReceiptModal = false;
+    selectedRequest: PaymentRequest | null = null;
 
     filters = [
         { value: 'all', label: 'الكل' },
@@ -56,10 +59,10 @@ export class PaymentRequestsComponent implements OnInit {
         // Simulate API call
         setTimeout(() => {
             this.requests = [
-                { id: 1, teamName: 'صقور العاصمة', amount: 1500, date: new Date('2024-03-01'), status: 'pending' },
-                { id: 2, teamName: 'النجوم السوداء', amount: 1500, date: new Date('2024-03-02'), status: 'pending' },
-                { id: 3, teamName: 'البرق', amount: 1500, date: new Date('2024-02-28'), status: 'approved' },
-                { id: 4, teamName: 'الصحراء', amount: 1500, date: new Date('2024-02-27'), status: 'rejected' }
+                { id: 1, teamName: 'صقور العاصمة', amount: 1500, date: new Date('2024-03-01'), status: 'pending', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
+                { id: 2, teamName: 'النجوم السوداء', amount: 1500, date: new Date('2024-03-02'), status: 'pending', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
+                { id: 3, teamName: 'البرق', amount: 1500, date: new Date('2024-02-28'), status: 'approved', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
+                { id: 4, teamName: 'الصحراء', amount: 1500, date: new Date('2024-02-27'), status: 'rejected', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' }
             ];
             this.isLoading = false;
         }, 500);
@@ -78,6 +81,16 @@ export class PaymentRequestsComponent implements OnInit {
     reject(request: PaymentRequest): void {
         request.status = 'rejected';
         this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.teamName}`);
+    }
+
+    viewReceipt(request: PaymentRequest): void {
+        this.selectedRequest = request;
+        this.showReceiptModal = true;
+    }
+
+    closeReceipt(): void {
+        this.showReceiptModal = false;
+        this.selectedRequest = null;
     }
 
     setFilter(filter: string): void {

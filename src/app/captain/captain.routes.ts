@@ -15,7 +15,7 @@ export const captainRoutes: Routes = [
             },
             {
                 path: 'team',
-                loadComponent: () => import('./team/team-profile.component').then(m => m.TeamProfileComponent)
+                loadComponent: () => import('./team/my-team-detail.component').then(m => m.MyTeamDetailComponent)
             },
             {
                 path: 'team/add-player',

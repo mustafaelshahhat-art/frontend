@@ -26,14 +26,22 @@ export class UserDetailComponent implements OnInit {
 
     user: any = {
         id: '1',
-        name: 'محمد أحمد علي',
-        username: 'mo_ahmed',
-        email: 'mo@example.com',
+        displayId: 'PLR-6001',
+        name: 'سالم عبدالله',
+        username: 'salem_88',
+        email: 'salem@example.com',
         role: UserRole.CAPTAIN,
         status: UserStatus.ACTIVE,
         createdAt: new Date('2024-03-01'),
         teamName: 'نادي الصقور',
-        phone: '+966 50 123 4567'
+        phone: '+966 50 123 4567',
+        age: 28,
+        nationalId: '1029384756',
+        governorate: 'الرياض',
+        city: 'الرياض',
+        neighborhood: 'العليا',
+        idFrontUrl: 'https://www.shutterstock.com/image-vector/id-card-template-modern-identity-260nw-1454533034.jpg',
+        idBackUrl: 'https://c.pxhere.com/photos/97/8f/id_card_macro_protection_safety_security-1065176.jpg!d'
     };
 
     activities = [
