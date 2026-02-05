@@ -58,20 +58,9 @@ export class TournamentDetailComponent implements OnInit {
     ];
     activeTab = 'info';
 
-    // Mock standings (to be replaced with real data)
-    standings = [
-        { team: 'النجوم', played: 5, won: 4, draw: 1, lost: 0, gf: 12, ga: 4, gd: 8, points: 13, form: ['W', 'W', 'D', 'W', 'W'] },
-        { team: 'الصقور', played: 5, won: 3, draw: 1, lost: 1, gf: 9, ga: 5, gd: 4, points: 10, form: ['W', 'L', 'W', 'D', 'W'] },
-        { team: 'الأسود', played: 5, won: 2, draw: 2, lost: 1, gf: 7, ga: 6, gd: 1, points: 8, form: ['D', 'W', 'D', 'L', 'W'] },
-        { team: 'الفهود', played: 5, won: 1, draw: 1, lost: 3, gf: 5, ga: 9, gd: -4, points: 4, form: ['L', 'L', 'W', 'D', 'L'] }
-    ];
-
-    // Mock scorers
-    scorers = [
-        { rank: 1, name: 'أحمد علي', team: 'النجوم', goals: 5, assists: 2 },
-        { rank: 2, name: 'محمد حسن', team: 'الصقور', goals: 4, assists: 1 },
-        { rank: 3, name: 'سعد القحطاني', team: 'النجوم', goals: 3, assists: 3 }
-    ];
+    // Standings and Scorers (TODO: Implement backend endpoints)
+    standings: any[] = [];
+    scorers: any[] = [];
 
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
@@ -93,9 +82,9 @@ export class TournamentDetailComponent implements OnInit {
 
     loadData(id: string): void {
         this.isLoading = true;
-        this.tournamentService.getTournaments().subscribe({
+        this.tournamentService.getTournamentById(id).subscribe({
             next: (data) => {
-                this.tournament = data.find(t => t.id === id) || null;
+                this.tournament = data || null;
 
                 if (this.tournament) {
                     this.matchService.getMatchesByTournament(id).subscribe({
@@ -207,13 +196,25 @@ export class TournamentDetailComponent implements OnInit {
             return;
         }
 
+        if (!this.tournament) return;
+
         this.isSubmitting = true;
 
-        // Simulate API call
-        setTimeout(() => {
-            this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
-            this.closeRegisterModal();
-        }, 1500);
+        // TODO: Implement backend registration endpoint with file upload
+        const currentUser = this.authService.getCurrentUser();
+        if (currentUser?.teamId) {
+            this.tournamentService.registerTeam(this.tournament.id, currentUser.teamId, 'placeholder-receipt-url').subscribe({
+                next: () => {
+                    this.isSubmitting = false;
+                    this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
+                    this.closeRegisterModal();
+                },
+                error: (err: any) => {
+                    this.isSubmitting = false;
+                    this.uiFeedback.error('خطأ', err.message || 'فشل تقديم طلب التسجيل');
+                }
+            });
+        }
     }
 
     // Admin actions
@@ -225,12 +226,12 @@ export class TournamentDetailComponent implements OnInit {
 
     toggleStatus(): void {
         if (!this.tournament) return;
-        // Toggle between REGISTRATION_OPEN and REGISTRATION_CLOSED
+        // Toggle status
         const newStatus = this.tournament.status === TournamentStatus.REGISTRATION_OPEN
             ? TournamentStatus.REGISTRATION_CLOSED
             : TournamentStatus.REGISTRATION_OPEN;
 
-        // Update tournament status (would call service in real app)
+        // TODO: Implement backend status update
         this.tournament.status = newStatus;
         this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة إلى: ${this.getStatusLabel(newStatus)}`);
     }
@@ -257,3 +258,4 @@ export class TournamentDetailComponent implements OnInit {
     }
 
 }
+

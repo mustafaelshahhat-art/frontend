@@ -7,17 +7,8 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
-
-type PaymentStatus = 'pending' | 'approved' | 'rejected';
-
-interface PaymentRequest {
-    id: number;
-    teamName: string;
-    amount: number;
-    date: Date;
-    status: PaymentStatus;
-    receiptUrl?: string;
-}
+import { TournamentService } from '../../core/services/tournament.service';
+import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/models/tournament.model';
 
 @Component({
     selector: 'app-payment-requests',
@@ -36,19 +27,20 @@ interface PaymentRequest {
 })
 export class PaymentRequestsComponent implements OnInit {
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly tournamentService = inject(TournamentService);
 
     currentFilter = 'all';
     isLoading = true;
     showReceiptModal = false;
-    selectedRequest: PaymentRequest | null = null;
+    selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
 
     filters = [
         { value: 'all', label: 'الكل' },
-        { value: 'pending', label: 'معلق' },
-        { value: 'approved', label: 'مقبول' }
+        { value: RegistrationStatus.PENDING_APPROVAL, label: 'معلق' },
+        { value: RegistrationStatus.APPROVED, label: 'مقبول' }
     ];
 
-    requests: PaymentRequest[] = [];
+    requests: { tournament: Tournament, registration: TeamRegistration }[] = [];
 
     ngOnInit(): void {
         this.loadRequests();
@@ -56,34 +48,46 @@ export class PaymentRequestsComponent implements OnInit {
 
     loadRequests(): void {
         this.isLoading = true;
-        // Simulate API call
-        setTimeout(() => {
-            this.requests = [
-                { id: 1, teamName: 'صقور العاصمة', amount: 1500, date: new Date('2024-03-01'), status: 'pending', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
-                { id: 2, teamName: 'النجوم السوداء', amount: 1500, date: new Date('2024-03-02'), status: 'pending', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
-                { id: 3, teamName: 'البرق', amount: 1500, date: new Date('2024-02-28'), status: 'approved', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' },
-                { id: 4, teamName: 'الصحراء', amount: 1500, date: new Date('2024-02-27'), status: 'rejected', receiptUrl: 'https://images.sampletemplates.com/wp-content/uploads/2016/03/Official-Receipt-Template.jpg' }
-            ];
-            this.isLoading = false;
-        }, 500);
+        this.tournamentService.getPendingPaymentApprovals().subscribe({
+            next: (data) => {
+                this.requests = data;
+                this.isLoading = false;
+            },
+            error: () => {
+                this.requests = [];
+                this.isLoading = false;
+            }
+        });
     }
 
-    get filteredRequests(): PaymentRequest[] {
+    get filteredRequests(): { tournament: Tournament, registration: TeamRegistration }[] {
         if (this.currentFilter === 'all') return this.requests;
-        return this.requests.filter(r => r.status === this.currentFilter);
+        return this.requests.filter(r => r.registration.status === this.currentFilter);
     }
 
-    approve(request: PaymentRequest): void {
-        request.status = 'approved';
-        this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.teamName}`);
+    approve(request: { tournament: Tournament, registration: TeamRegistration }): void {
+        this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId, 'admin').subscribe({
+            next: () => {
+                request.registration.status = RegistrationStatus.APPROVED;
+                this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
+            }
+        });
     }
 
-    reject(request: PaymentRequest): void {
-        request.status = 'rejected';
-        this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.teamName}`);
+    reject(request: { tournament: Tournament, registration: TeamRegistration }): void {
+        this.uiFeedback.confirm('رفض الطلب', 'يرجى تأكيد رفض طلب الدفع', 'رفض', 'danger').subscribe(confirmed => {
+            if (confirmed) {
+                this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'admin', 'Rejected by admin').subscribe({
+                    next: () => {
+                        request.registration.status = RegistrationStatus.REJECTED;
+                        this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
+                    }
+                });
+            }
+        });
     }
 
-    viewReceipt(request: PaymentRequest): void {
+    viewReceipt(request: { tournament: Tournament, registration: TeamRegistration }): void {
         this.selectedRequest = request;
         this.showReceiptModal = true;
     }
@@ -97,19 +101,22 @@ export class PaymentRequestsComponent implements OnInit {
         this.currentFilter = filter;
     }
 
-    getBadgeType(status: PaymentStatus): 'warning' | 'success' | 'danger' {
+    getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {
         switch (status) {
-            case 'pending': return 'warning';
-            case 'approved': return 'success';
-            case 'rejected': return 'danger';
+            case RegistrationStatus.PENDING_APPROVAL: return 'warning';
+            case RegistrationStatus.APPROVED: return 'success';
+            case RegistrationStatus.REJECTED: return 'danger';
+            default: return 'warning';
         }
     }
 
-    getStatusLabel(status: PaymentStatus): string {
+    getStatusLabel(status: RegistrationStatus): string {
         switch (status) {
-            case 'pending': return 'معلق';
-            case 'approved': return 'مقبول';
-            case 'rejected': return 'مرفوض';
+            case RegistrationStatus.PENDING_APPROVAL: return 'معلق';
+            case RegistrationStatus.APPROVED: return 'مقبول';
+            case RegistrationStatus.REJECTED: return 'مرفوض';
+            default: return status;
         }
     }
 }
+

@@ -10,8 +10,8 @@
         <div class="dashboard-layout-grid" *ngIf="currentUser?.teamId; else noTeamState">
 
             <!-- Next Match Section -->
-            <app-match-card [title]="'استعد للمواجهة'" [subtitle]="'كل العيون على فريقك'" [match]="matchCardData"
-                [isClickable]="false">
+            <app-match-card *ngIf="nextMatch" [title]="'استعد للمواجهة'" [subtitle]="'كل العيون على فريقك'"
+                [match]="nextMatch" [isClickable]="false">
 
                 <div class="match-card-actions w-full flex-wrap flex gap-sm mt-auto" actions>
                     <a [routerLink]="['/captain/matches', nextMatch.id]" class="match-card-action action-secondary">

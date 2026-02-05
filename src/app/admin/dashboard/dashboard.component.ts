@@ -5,6 +5,9 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card.c
 import { ActionCardComponent } from '../../shared/components/action-card/action-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
+import { AnalyticsService, DashboardStats, Activity } from '../../core/services/analytics.service';
+import { MatchService } from '../../core/services/match.service';
+import { Match } from '../../core/models/tournament.model';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -21,29 +24,52 @@ import { WelcomeCardComponent } from '../../shared/components/welcome-card/welco
 })
 export class AdminDashboardComponent implements OnInit {
     private readonly router = inject(Router);
+    private readonly analyticsService = inject(AnalyticsService);
+    private readonly matchService = inject(MatchService);
 
-    stats = [
-        { label: 'إجمالي المستخدمين', value: '1,250', icon: 'groups', colorClass: 'info' },
-        { label: 'البطولات النشطة', value: '4', icon: 'emoji_events', colorClass: 'primary' },
-        { label: 'المباريات اليوم', value: '8', icon: 'sports_soccer', colorClass: 'gold' },
-        { label: 'اعتراضات معلقة', value: '5', icon: 'report_problem', colorClass: 'danger' }
-    ];
+    stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
+    recentActivities: Activity[] = [];
+    liveMatches: Match[] = [];
 
-    recentActivities = [
-        { type: 'user', message: 'انضم مستخدم جديد: أحمد محمد', time: 'منذ 5 دقائق' },
-        { type: 'tournament', message: 'تم إنشاء بطولة جديدة: كأس رمضان 2024', time: 'منذ ساعة' },
-        { type: 'match', message: 'انتهت مباراة: الصقور 3 - 1 النجوم', time: 'منذ ساعتين' },
-        { type: 'objection', message: 'تم تقديم اعتراض جديد في مباراة #12', time: 'منذ 3 ساعات' }
-    ];
+    ngOnInit(): void {
+        this.loadDashboardData();
+    }
 
-    liveMatches = [
-        { homeTeam: 'الصقور', awayTeam: 'النجوم', score: '3 - 1' },
-        { homeTeam: 'الشعلة', awayTeam: 'الأمل', score: '0 - 0' }
-    ];
+    loadDashboardData(): void {
+        // TODO: Implement proper error handling and layout for empty states
+        this.analyticsService.getDashboardStats().subscribe({
+            next: (data: DashboardStats) => {
+                this.stats = [
+                    { label: 'إجمالي المستخدمين', value: data.totalUsers.toLocaleString(), icon: 'groups', colorClass: 'info' },
+                    { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'primary' },
+                    { label: 'المباريات اليوم', value: data.matchesToday.toString(), icon: 'sports_soccer', colorClass: 'gold' },
+                    { label: 'اعتراضات معلقة', value: data.pendingObjections.toString(), icon: 'report_problem', colorClass: 'danger' }
+                ];
+            },
+            error: () => {
+                // Return empty shells for UI stability
+                this.stats = [
+                    { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info' },
+                    { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary' },
+                    { label: 'المباريات اليوم', value: '0', icon: 'sports_soccer', colorClass: 'gold' },
+                    { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger' }
+                ];
+            }
+        });
 
-    ngOnInit(): void { }
+        this.analyticsService.getRecentActivities().subscribe({
+            next: (data) => this.recentActivities = data,
+            error: () => this.recentActivities = []
+        });
+
+        this.matchService.getLiveMatches().subscribe({
+            next: (data) => this.liveMatches = data,
+            error: () => this.liveMatches = []
+        });
+    }
 
     navigateTo(path: string): void {
         this.router.navigate([path]);
     }
 }
+

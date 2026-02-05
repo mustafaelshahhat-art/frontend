@@ -9,7 +9,7 @@ import { FilterComponent } from '../../../../shared/components/filter/filter.com
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
-
+import { UserService } from '../../../../core/services/user.service';
 
 @Component({
     selector: 'app-profile',
@@ -21,7 +21,6 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
         CardComponent,
         ButtonComponent,
         BadgeComponent,
-
         FilterComponent
     ],
     templateUrl: './profile.component.html',
@@ -30,6 +29,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 export class ProfileComponent implements OnInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
+    private userService = inject(UserService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
 
@@ -64,7 +64,7 @@ export class ProfileComponent implements OnInit {
             governorate: [this.user?.governorate || ''],
             city: [this.user?.city || ''],
             neighborhood: [this.user?.neighborhood || ''],
-            bio: [this.getBio()]
+            bio: ['']
         });
     }
 
@@ -74,13 +74,6 @@ export class ProfileComponent implements OnInit {
             newPassword: ['', [Validators.required, Validators.minLength(6)]],
             confirmPassword: ['', [Validators.required]]
         });
-    }
-
-    private getBio(): string {
-        if (this.isReferee()) {
-            return '';
-        }
-        return '';
     }
 
     get pageTitle(): string {
@@ -110,15 +103,21 @@ export class ProfileComponent implements OnInit {
     }
 
     updateProfile(): void {
-        if (this.profileForm.valid) {
+        if (this.profileForm.valid && this.user) {
             this.isLoading = true;
-            this.cdr.detectChanges();
-
-            setTimeout(() => {
-                this.isLoading = false;
-                this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات الملف الشخصي بنجاح');
-                this.cdr.detectChanges();
-            }, 1000);
+            this.userService.updateUser(this.user.id, this.profileForm.getRawValue()).subscribe({
+                next: (updated) => {
+                    this.isLoading = false;
+                    this.user = updated;
+                    this.authService.updateCurrentUser(updated);
+                    this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات الملف الشخصي بنجاح');
+                    this.cdr.detectChanges();
+                },
+                error: () => {
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                }
+            });
         }
     }
 
@@ -132,8 +131,8 @@ export class ProfileComponent implements OnInit {
             }
 
             this.isPasswordLoading = true;
-            this.cdr.detectChanges();
-
+            // TODO: Implement actual password update endpoint in AuthService or UserService
+            // this.authService.changePassword(...).subscribe(...)
             setTimeout(() => {
                 this.isPasswordLoading = false;
                 this.uiFeedback.success('تم التغيير', 'تم تغيير كلمة المرور بنجاح');
@@ -148,13 +147,11 @@ export class ProfileComponent implements OnInit {
         if (input.files && input.files[0]) {
             const file = input.files[0];
 
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 this.uiFeedback.error('خطأ', 'يرجى اختيار ملف صورة صالح');
                 return;
             }
 
-            // Validate file size (max 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 this.uiFeedback.error('خطأ', 'حجم الصورة يجب أن يكون أقل من 2 ميجابايت');
                 return;
@@ -163,15 +160,13 @@ export class ProfileComponent implements OnInit {
             this.isUploadingPicture = true;
             this.cdr.detectChanges();
 
-            // Read file and convert to base64
+            // TODO: Implement file upload service
             const reader = new FileReader();
             reader.onload = () => {
-                setTimeout(() => {
-                    this.profilePicture = reader.result as string;
-                    this.isUploadingPicture = false;
-                    this.uiFeedback.success('تم التحديث', 'تم تحديث الصورة الشخصية بنجاح');
-                    this.cdr.detectChanges();
-                }, 1000);
+                this.profilePicture = reader.result as string;
+                this.isUploadingPicture = false;
+                this.uiFeedback.success('تم التحديث', 'تم تحديث الصورة الشخصية بنجاح');
+                this.cdr.detectChanges();
             };
             reader.readAsDataURL(file);
         }
@@ -198,3 +193,4 @@ export class ProfileComponent implements OnInit {
         return this.user?.displayId || this.user?.id || '';
     }
 }
+

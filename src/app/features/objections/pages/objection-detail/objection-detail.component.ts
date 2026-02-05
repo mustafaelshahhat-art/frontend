@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ObjectionsService, Objection, ObjectionStatus, ObjectionType } from '../../../../core/services/objections.service';
+import { ObjectionsService } from '../../../../core/services/objections.service';
+import { Objection, ObjectionStatus, ObjectionType } from '../../../../core/models/objection.model';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';

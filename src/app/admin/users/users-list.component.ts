@@ -9,6 +9,7 @@ import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
     selector: 'app-users-list',
@@ -29,6 +30,7 @@ import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 export class UsersListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly userService = inject(UserService);
 
     users: User[] = [];
     isLoading = true;
@@ -54,44 +56,16 @@ export class UsersListComponent implements OnInit {
 
     loadUsers(): void {
         this.isLoading = true;
-        // Simulate API call
-        setTimeout(() => {
-            this.users = [
-                {
-                    id: '1',
-                    displayId: '1001',
-                    name: 'محمد أحمد علي',
-                    username: 'mo_ahmed',
-                    email: 'mo@example.com',
-                    role: UserRole.CAPTAIN,
-                    status: UserStatus.ACTIVE,
-                    createdAt: new Date('2024-03-01'),
-                    teamName: 'الصقور'
-                },
-                {
-                    id: '2',
-                    displayId: '1002',
-                    name: 'سالم العمري',
-                    username: 'salem_amri',
-                    email: 'salem@example.com',
-                    role: UserRole.REFEREE,
-                    status: UserStatus.ACTIVE,
-                    createdAt: new Date('2024-03-05')
-                },
-                {
-                    id: '3',
-                    displayId: '1003',
-                    name: 'فهد الجاسم',
-                    username: 'fahad_j',
-                    email: 'fahad@example.com',
-                    role: UserRole.CAPTAIN,
-                    status: UserStatus.SUSPENDED,
-                    createdAt: new Date('2024-03-10'),
-                    teamName: 'النجوم'
-                }
-            ];
-            this.isLoading = false;
-        }, 500);
+        // TODO: Map backend user model to component expectations if needed
+        this.userService.getUsers().subscribe({
+            next: (data) => {
+                this.users = data;
+                this.isLoading = false;
+            },
+            error: () => {
+                this.isLoading = false;
+            }
+        });
     }
 
     get filteredUsers(): User[] {
@@ -153,6 +127,7 @@ export class UsersListComponent implements OnInit {
             'warning'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
+                // TODO: Implement backend warning endpoint
                 this.uiFeedback.success('تم الإرسال', 'تم إرسال التحذير بنجاح');
             }
         });
@@ -166,8 +141,12 @@ export class UsersListComponent implements OnInit {
             'danger'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                user.status = UserStatus.SUSPENDED;
-                this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
+                this.userService.suspendUser(user.id).subscribe({
+                    next: () => {
+                        user.status = UserStatus.SUSPENDED;
+                        this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
+                    }
+                });
             }
         });
     }
@@ -180,9 +159,14 @@ export class UsersListComponent implements OnInit {
             'danger'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.users = this.users.filter(u => u.id !== user.id);
-                this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
+                this.userService.deleteUser(user.id).subscribe({
+                    next: () => {
+                        this.users = this.users.filter(u => u.id !== user.id);
+                        this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
+                    }
+                });
             }
         });
     }
 }
+

@@ -8,19 +8,10 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
+import { TeamService } from '../../../core/services/team.service';
+import { Team } from '../../../core/models/team.model';
 
 type TeamFilterValue = 'all' | 'active' | 'inactive';
-
-interface Team {
-    id: string;
-    name: string;
-    city: string;
-    captainName: string;
-    playerCount: number;
-    maxPlayers: number;
-    status: string;
-    isActive: boolean;
-}
 
 @Component({
     selector: 'app-teams-list',
@@ -40,6 +31,7 @@ interface Team {
 export class TeamsListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly teamService = inject(TeamService);
 
     currentFilter: TeamFilterValue = 'all';
     isLoading = true;
@@ -58,42 +50,27 @@ export class TeamsListComponent implements OnInit {
 
     loadTeams(): void {
         this.isLoading = true;
-        // Simulate API call
-        setTimeout(() => {
-            this.teams = [
-                {
-                    id: 't1',
-                    name: 'الصقور',
-                    city: 'الرياض',
-                    captainName: 'أحمد محمود',
-                    playerCount: 8,
-                    maxPlayers: 10,
-                    status: 'READY',
-                    isActive: true
-                },
-                {
-                    id: 't2',
-                    name: 'النجوم',
-                    city: 'جدة',
-                    captainName: 'سالم العمري',
-                    playerCount: 6,
-                    maxPlayers: 10,
-                    status: 'INCOMPLETE',
-                    isActive: false
-                }
-            ];
-            this.isLoading = false;
-        }, 500);
+        this.teamService.getAllTeams().subscribe({
+            next: (data) => {
+                this.teams = data;
+                this.isLoading = false;
+            },
+            error: () => {
+                this.teams = [];
+                this.isLoading = false;
+            }
+        });
     }
 
     get filteredTeams(): Team[] {
+        // TODO: Update property checks based on actual backend Team model
+        let result = this.teams;
         if (this.currentFilter === 'active') {
-            return this.teams.filter(t => t.isActive);
+            result = result.filter(t => (t as any).isActive);
+        } else if (this.currentFilter === 'inactive') {
+            result = result.filter(t => !(t as any).isActive);
         }
-        if (this.currentFilter === 'inactive') {
-            return this.teams.filter(t => !t.isActive);
-        }
-        return this.teams;
+        return result;
     }
 
     setFilter(filter: string): void {
@@ -101,16 +78,18 @@ export class TeamsListComponent implements OnInit {
     }
 
     requestToggleStatus(team: Team): void {
-        const title = team.isActive ? 'تعطيل الفريق' : 'تفعيل الفريق';
-        const message = team.isActive
+        const isActive = (team as any).isActive;
+        const title = isActive ? 'تعطيل الفريق' : 'تفعيل الفريق';
+        const message = isActive
             ? `هل أنت متأكد من رغبتك في تعطيل فريق "${team.name}"؟ لن يتمكن الفريق من تعديل بياناته أو اللعب مؤقتاً.`
             : `هل أنت متأكد من رغبتك في تفعيل فريق "${team.name}"؟ سيتمكن الفريق من المشاركة في البطولة فوراً.`;
-        const confirmText = team.isActive ? 'تعطيل الفريق' : 'تفعيل الآن';
+        const confirmText = isActive ? 'تعطيل الفريق' : 'تفعيل الآن';
 
-        this.uiFeedback.confirm(title, message, confirmText, team.isActive ? 'danger' : 'info').subscribe((confirmed: boolean) => {
+        this.uiFeedback.confirm(title, message, confirmText, isActive ? 'danger' : 'info').subscribe((confirmed: boolean) => {
             if (confirmed) {
-                team.isActive = !team.isActive;
-                this.uiFeedback.success('تم التحديث', `تم ${team.isActive ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
+                // TODO: Implement backend toggle endpoint
+                (team as any).isActive = !(team as any).isActive;
+                this.uiFeedback.success('تم التحديث', `تم ${(team as any).isActive ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
             }
         });
     }
@@ -123,8 +102,13 @@ export class TeamsListComponent implements OnInit {
             'danger'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.teams = this.teams.filter(t => t.id !== team.id);
-                this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                // TODO: Implement backend delete endpoint
+                this.teamService.deleteTeam(team.id, {} as any).subscribe({
+                    next: () => {
+                        this.teams = this.teams.filter(t => t.id !== team.id);
+                        this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                    }
+                });
             }
         });
     }
@@ -133,3 +117,4 @@ export class TeamsListComponent implements OnInit {
         this.router.navigate(['/admin/teams', team.id]);
     }
 }
+

@@ -22,12 +22,7 @@ export class RefereeDashboardComponent implements OnInit {
     private matchService = inject(MatchService);
     private uiFeedback = inject(UIFeedbackService);
 
-    stats = [
-        { label: 'مباريات اليوم', value: '2', icon: 'today', colorClass: 'primary' },
-        { label: 'إجمالي المباريات', value: '15', icon: 'history', colorClass: 'info' },
-        { label: 'تقارير معلقة', value: '1', icon: 'description', colorClass: 'gold' },
-        { label: 'التقييم', value: '4.8', icon: 'star', colorClass: 'info' }
-    ];
+    stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
 
     todayMatches: Match[] = [];
     MatchStatus = MatchStatus;
@@ -40,18 +35,37 @@ export class RefereeDashboardComponent implements OnInit {
     activeMatch: Match | null = null;
 
     ngOnInit(): void {
+        this.loadDashboardData();
+    }
+
+    loadDashboardData(): void {
+        this.loadStats();
         this.loadMatches();
     }
 
+    loadStats(): void {
+        // TODO: Implement backend analytics endpoint for referee stats
+        this.stats = [
+            { label: 'مباريات اليوم', value: '0', icon: 'today', colorClass: 'primary' },
+            { label: 'إجمالي المباريات', value: '0', icon: 'history', colorClass: 'info' },
+            { label: 'تقارير معلقة', value: '0', icon: 'description', colorClass: 'gold' },
+            { label: 'التقييم', value: '0.0', icon: 'star', colorClass: 'info' }
+        ];
+    }
+
     loadMatches(): void {
-        // In a real app, we would filter by referee ID and date
-        this.matchService.getMatches().subscribe(matches => {
-            // Mock: Filter matches that are scheduled or live, assuming current referee
-            this.todayMatches = matches.filter(m =>
-                m.status === MatchStatus.SCHEDULED || m.status === MatchStatus.LIVE
-            );
+        this.matchService.getMatches().subscribe({
+            next: (matches) => {
+                this.todayMatches = matches.filter(m =>
+                    m.status === MatchStatus.SCHEDULED || m.status === MatchStatus.LIVE
+                );
+            },
+            error: () => {
+                this.todayMatches = [];
+            }
         });
     }
+
 
     startMatch(matchId: string): void {
         this.matchService.startMatch(matchId).subscribe({

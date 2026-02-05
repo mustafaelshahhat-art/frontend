@@ -1,16 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
-
-interface ActivityLog {
-    userName: string;
-    action: string;
-    timestamp: Date;
-    status: 'success' | 'warning' | 'error';
-}
+import { AnalyticsService, Activity } from '../../core/services/analytics.service';
 
 @Component({
     selector: 'app-activity-log',
@@ -26,7 +20,9 @@ interface ActivityLog {
     styleUrls: ['./activity-log.component.scss']
 })
 export class ActivityLogComponent implements OnInit {
-    logs: ActivityLog[] = [];
+    private readonly analyticsService = inject(AnalyticsService);
+
+    logs: Activity[] = [];
     isLoading = true;
 
     ngOnInit(): void {
@@ -35,32 +31,32 @@ export class ActivityLogComponent implements OnInit {
 
     loadLogs(): void {
         this.isLoading = true;
-        // Simulate API call
-        setTimeout(() => {
-            this.logs = [
-                { userName: 'أحمد المسؤول', action: 'تغيير حالة البطولة', timestamp: new Date(), status: 'success' },
-                { userName: 'سارة المشرف', action: 'إضافة مستخدم جديد', timestamp: new Date(Date.now() - 3600000), status: 'success' },
-                { userName: 'أحمد المسؤول', action: 'تعديل نتيجة مباراة', timestamp: new Date(Date.now() - 7200000), status: 'success' }
-            ];
-            this.isLoading = false;
-        }, 500);
+        this.analyticsService.getRecentActivities().subscribe({
+            next: (data) => {
+                this.logs = data;
+                this.isLoading = false;
+            },
+            error: () => {
+                this.logs = [];
+                this.isLoading = false;
+            }
+        });
     }
 
-    getBadgeType(status: string): 'success' | 'warning' | 'danger' {
-        switch (status) {
-            case 'success': return 'success';
-            case 'warning': return 'warning';
-            case 'error': return 'danger';
-            default: return 'success';
+    getBadgeType(type: string): 'success' | 'warning' | 'danger' | 'neutral' {
+        // TODO: Map activity type to badge type
+        switch (type) {
+            case 'user': return 'success';
+            case 'tournament': return 'neutral';
+            case 'match': return 'warning';
+            case 'objection': return 'danger';
+            default: return 'neutral';
         }
     }
 
-    getStatusLabel(status: string): string {
-        switch (status) {
-            case 'success': return 'ناجحة';
-            case 'warning': return 'تحذير';
-            case 'error': return 'فشل';
-            default: return 'ناجحة';
-        }
+    getStatusLabel(type: string): string {
+        // TODO: Map activity type to label
+        return type;
     }
 }
+

@@ -6,8 +6,10 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card.c
 import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
 import { MatchCardComponent } from '../../shared/components/match-card/match-card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-import { Match, MatchStatus } from '../../core/models/tournament.model';
+import { Match } from '../../core/models/tournament.model';
 import { AuthService } from '../../core/services/auth.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
+import { MatchService } from '../../core/services/match.service';
 
 @Component({
     selector: 'app-captain-dashboard',
@@ -26,51 +28,46 @@ import { AuthService } from '../../core/services/auth.service';
 export class CaptainDashboardComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    private readonly analyticsService = inject(AnalyticsService);
+    private readonly matchService = inject(MatchService);
 
     currentUser = this.authService.getCurrentUser();
+    stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
+    nextMatch: Match | null = null;
+    notifications: any[] = [];
 
-    stats = [
-        { label: 'اللاعبين', value: '12', icon: 'groups', colorClass: 'info' },
-        { label: 'المباريات القادمة', value: '2', icon: 'sports_soccer', colorClass: 'primary' },
-        { label: 'البطولات النشطة', value: '1', icon: 'emoji_events', colorClass: 'gold' },
-        { label: 'الترتيب', value: '#3', icon: 'military_tech', colorClass: 'info' }
-    ];
-
-    nextMatch = {
-        id: '1',
-        homeTeam: 'فريقي',
-        awayTeam: 'النجوم',
-        date: 'غداً'
-    };
-
-    get matchCardData(): Match {
-        return {
-            id: this.nextMatch.id,
-            tournamentId: 'mock-tourn',
-            homeTeamId: 'my-team',
-            awayTeamId: 'opp-team',
-            homeTeamName: this.nextMatch.homeTeam,
-            awayTeamName: this.nextMatch.awayTeam,
-            homeScore: 0,
-            awayScore: 0,
-            status: MatchStatus.SCHEDULED,
-            refereeId: 'mock-ref',
-            refereeName: 'Pending',
-            yellowCards: [],
-            redCards: [],
-            goals: []
-        } as Match;
+    ngOnInit(): void {
+        this.loadDashboardData();
     }
 
-    notifications = [
-        { title: 'تم تأكيد موعد مباراتك القادمة', time: 'منذ ساعة', read: false },
-        { title: 'تم قبول تسجيل لاعب جديد', time: 'منذ 3 ساعات', read: true },
-        { title: 'موعد انتهاء التسجيل يقترب', time: 'منذ يوم', read: true }
-    ];
+    loadDashboardData(): void {
+        // TODO: Implement backend analytics endpoint for captain stats
+        this.stats = [
+            { label: 'اللاعبين', value: '0', icon: 'groups', colorClass: 'info' },
+            { label: 'المباريات القادمة', value: '0', icon: 'sports_soccer', colorClass: 'primary' },
+            { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'gold' },
+            { label: 'الترتيب', value: '-', icon: 'military_tech', colorClass: 'info' }
+        ];
 
-    ngOnInit(): void { }
+        // TODO: Implement actual data fetching from services
+        this.matchService.getUpcomingMatches().subscribe({
+            next: (matches) => {
+                const myTeamId = this.currentUser?.teamId;
+                if (myTeamId) {
+                    this.nextMatch = matches.find(m => m.homeTeamId === myTeamId || m.awayTeamId === myTeamId) || null;
+                }
+            },
+            error: () => this.nextMatch = null
+        });
+
+        // TODO: Implement notifications service
+        this.notifications = [];
+    }
 
     viewMatchDetails(): void {
-        this.router.navigate(['/captain/matches', this.nextMatch.id]);
+        if (this.nextMatch) {
+            this.router.navigate(['/captain/matches', this.nextMatch.id]);
+        }
     }
 }
+

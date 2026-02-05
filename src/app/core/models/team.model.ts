@@ -33,6 +33,12 @@ export interface Team {
     logo?: string;
     players: Player[];
     joinRequests: JoinRequest[];
+    // Added for UI compatibility
+    city?: string;
+    playerCount?: number;
+    maxPlayers?: number;
+    isActive?: boolean;
+    status?: string;
 }
 
 // Maximum players in a team (including captain)

@@ -33,15 +33,20 @@
                     <tbody>
                         <tr *ngFor="let request of filteredRequests">
                             <td>
-                                <span class="text-primary font-bold text-sm">{{ request.teamName }}</span>
+                                <div class="flex-col">
+                                    <span class="text-primary font-bold text-sm">{{ request.registration.teamName
+                                        }}</span>
+                                    <span class="text-xs text-muted">{{ request.tournament.name }}</span>
+                                </div>
                             </td>
                             <td>
-                                <span class="text-gold font-bold">{{ request.amount }} ريال</span>
+                                <span class="text-gold font-bold">{{ request.tournament.entryFee }} ريال</span>
                             </td>
-                            <td class="text-muted text-xs">{{ request.date | date:'yyyy-MM-dd' }}</td>
+                            <td class="text-muted text-xs">{{ request.registration.paymentDate | date:'yyyy-MM-dd' }}
+                            </td>
                             <td>
-                                <app-badge [type]="getBadgeType(request.status)">
-                                    {{ getStatusLabel(request.status) }}
+                                <app-badge [type]="getBadgeType(request.registration.status)">
+                                    {{ getStatusLabel(request.registration.status) }}
                                 </app-badge>
                             </td>
                             <td>
@@ -50,7 +55,7 @@
                                 </app-button>
                             </td>
                             <td>
-                                <div class="action-buttons" *ngIf="request.status === 'pending'">
+                                <div class="action-buttons" *ngIf="request.registration.status === 'pending_approval'">
                                     <app-button (click)="approve(request)" variant="ghost" size="sm" icon="check_circle"
                                         class="text-primary">
                                     </app-button>
@@ -58,7 +63,8 @@
                                         class="text-danger">
                                     </app-button>
                                 </div>
-                                <span *ngIf="request.status !== 'pending'" class="text-muted text-xs">—</span>
+                                <span *ngIf="request.registration.status !== 'pending_approval'"
+                                    class="text-muted text-xs">—</span>
                             </td>
                         </tr>
                     </tbody>
@@ -70,13 +76,13 @@
         <div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">
             <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()">
                 <div class="modal-header">
-                    <h3>إيصال دفع: {{ selectedRequest?.teamName }}</h3>
+                    <h3>إيصال دفع: {{ selectedRequest?.registration?.teamName }}</h3>
                     <button class="close-btn" (click)="closeReceipt()">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <img [src]="selectedRequest?.receiptUrl" alt="Receipt" class="receipt-image">
+                    <img [src]="selectedRequest?.registration?.paymentReceiptUrl" alt="Receipt" class="receipt-image">
                 </div>
                 <div class="modal-footer">
                     <app-button variant="outline" (click)="closeReceipt()">إغلاق</app-button>

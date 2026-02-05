@@ -28,21 +28,23 @@
                             <td>
                                 <div class="flex items-center gap-3">
                                     <div class="avatar avatar-sm">
-                                        <span class="text-primary font-bold">{{ log.userName.charAt(0) }}</span>
+                                        <span class="text-primary font-bold">{{ (log.userName || 'U').charAt(0)
+                                            }}</span>
                                     </div>
-                                    <span class="text-primary font-bold text-sm">{{ log.userName }}</span>
+                                    <span class="text-primary font-bold text-sm">{{ log.userName || 'نظام' }}</span>
                                 </div>
                             </td>
                             <td>
-                                <span class="text-secondary text-sm">{{ log.action }}</span>
+                                <span class="text-secondary text-sm">{{ log.action || log.message }}</span>
                             </td>
                             <td>
-                                <span class="text-muted text-xs font-mono">{{ log.timestamp | date:'yyyy-MM-dd HH:mm:ss'
+                                <span class="text-muted text-xs font-mono">{{ (log.timestamp || log.time) |
+                                    date:'yyyy-MM-dd HH:mm:ss'
                                     }}</span>
                             </td>
                             <td>
-                                <app-badge [type]="getBadgeType(log.status)">
-                                    {{ getStatusLabel(log.status) }}
+                                <app-badge [type]="getBadgeType(log.status || log.type)">
+                                    {{ getStatusLabel(log.status || log.type) }}
                                 </app-badge>
                             </td>
                         </tr>
