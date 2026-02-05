@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -32,6 +32,7 @@ export class TeamsListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly teamService = inject(TeamService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     currentFilter: TeamFilterValue = 'all';
     isLoading = true;
@@ -52,12 +53,18 @@ export class TeamsListComponent implements OnInit {
         this.isLoading = true;
         this.teamService.getAllTeams().subscribe({
             next: (data) => {
-                this.teams = data;
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.teams = data;
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             },
             error: () => {
-                this.teams = [];
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.teams = [];
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

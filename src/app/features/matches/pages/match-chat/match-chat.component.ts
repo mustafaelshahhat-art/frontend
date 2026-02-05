@@ -7,7 +7,11 @@ import { User, UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/chat-box.component';
+import { ChatService } from '../../../../core/services/chat.service';
+import { MatchService } from '../../../../core/services/match.service';
+import { MatchMessage } from '../../../../core/models/tournament.model';
 
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
@@ -21,7 +25,7 @@ interface ChatMessage {
     text: string;
     senderName: string;
     senderId: string;
-    senderRole: ChatParticipantRole;
+    senderRole: string;
     timestamp: Date;
     isSystem?: boolean;
 }
@@ -35,21 +39,7 @@ interface ChatParticipant {
     isOnline: boolean;
 }
 
-interface Match {
-    id: string;
-    homeTeamId: string;
-    homeTeamName: string;
-    awayTeamId: string;
-    awayTeamName: string;
-    refereeId?: string;
-    refereeName?: string;
-    homePlayers: string[]; // Player IDs
-    awayPlayers: string[]; // Player IDs
-    homeCaptainId: string;
-    awayCaptainId: string;
-    scheduledDate?: string; // YYYY-MM-DD
-    scheduledTime?: string; // HH:mm
-}
+import { Match } from '../../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-match-chat',
@@ -65,6 +55,8 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private uiFeedback = inject(UIFeedbackService);
+    private chatService = inject(ChatService);
+    private matchService = inject(MatchService);
 
     ChatParticipantRole = ChatParticipantRole;
 
@@ -78,6 +70,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
     match: Match | null = null;
     participants: ChatParticipant[] = [];
+    realTimeMessages = toSignal(this.chatService.messages, { initialValue: [] });
 
     // Schedule modal
     showScheduleModal = false;
@@ -94,34 +87,30 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        // Cleanup if needed (e.g., WebSocket connections)
+        if (this.matchId) {
+            this.chatService.leaveMatch(this.matchId);
+        }
     }
 
     private loadMatchData(): void {
-        // Mock match data - in real app, fetch from API
-        this.match = {
-            id: this.matchId || 'match-1',
-            homeTeamId: 't1',
-            homeTeamName: 'الصقور',
-            awayTeamId: 'team-2',
-            awayTeamName: 'النسور',
-            refereeId: '2', // Referee user ID
-            refereeName: 'محمد علي',
-            homePlayers: ['3', 'p1', 'p2', 'p3'],
-            awayPlayers: ['4', 'p4', 'p5', 'p6'],
-            homeCaptainId: '3',
-            awayCaptainId: 'captain-2'
-        };
-
-        // Check if current user is authorized to access this chat
-        this.checkAuthorization();
-
-        if (this.isAuthorized) {
-            this.loadParticipants();
-            this.loadMessages();
-        }
-
-        this.isLoading = false;
+        this.isLoading = true;
+        this.matchService.getMatchById(this.matchId).subscribe({
+            next: (match) => {
+                this.match = match ?? null;
+                if (this.match) {
+                    this.checkAuthorization();
+                    if (this.isAuthorized) {
+                        this.chatService.joinMatch(this.matchId);
+                        this.loadParticipants();
+                    }
+                }
+                this.isLoading = false;
+            },
+            error: () => {
+                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المباراة');
+                this.isLoading = false;
+            }
+        });
     }
 
     private checkAuthorization(): void {
@@ -132,7 +121,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         const userId = this.currentUser.id;
         const userRole = this.currentUser.role;
-        const userTeamId = this.currentUser.teamId;
 
         // Admin can access all chats
         if (userRole === UserRole.ADMIN) {
@@ -146,30 +134,10 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Captain of one of the teams
-        if (userRole === UserRole.CAPTAIN) {
-            if (this.match.homeCaptainId === userId || this.match.awayCaptainId === userId) {
-                this.isAuthorized = true;
-                return;
-            }
-            // Also check by team ID
-            if (userTeamId === this.match.homeTeamId || userTeamId === this.match.awayTeamId) {
-                this.isAuthorized = true;
-                return;
-            }
-        }
-
-        // Player in one of the teams
-        if (userRole === UserRole.PLAYER) {
-            if (this.match.homePlayers.includes(userId) || this.match.awayPlayers.includes(userId)) {
-                this.isAuthorized = true;
-                return;
-            }
-            // Also check by team ID
-            if (userTeamId === this.match.homeTeamId || userTeamId === this.match.awayTeamId) {
-                this.isAuthorized = true;
-                return;
-            }
+        // Captain or Player of one of the teams
+        if (this.currentUser.teamId === this.match.homeTeamId || this.currentUser.teamId === this.match.awayTeamId) {
+            this.isAuthorized = true;
+            return;
         }
 
         this.isAuthorized = false;
@@ -304,21 +272,22 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     }
 
     onSendMessage(text: string): void {
-        if (!text?.trim() || !this.currentUser) return;
+        if (!text?.trim() || !this.matchId) return;
 
-        const message: ChatMessage = {
-            id: Date.now().toString(),
-            text: text.trim(),
-            senderName: this.currentUser.name,
-            senderId: this.currentUser.id,
-            senderRole: this.getCurrentUserRole(),
-            timestamp: new Date()
-        };
+        this.chatService.sendMessage(this.matchId, text.trim()).subscribe({
+            error: () => this.uiFeedback.error('خطأ', 'فشل في إرسال الرسالة')
+        });
+    }
 
-        this.messages.push(message);
-        // this.newMessage = ''; // No longer needed as ChatBox handles input clearing
-
-        // Let ChatBox handle scrolling
+    get mappedMessages(): ChatMessage[] {
+        return this.realTimeMessages().map(m => ({
+            id: m.id,
+            text: m.content,
+            senderId: m.senderId,
+            senderName: m.senderName,
+            senderRole: m.role,
+            timestamp: m.timestamp
+        }));
     }
 
     goBack(): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 
@@ -30,6 +30,7 @@ export class CaptainDashboardComponent implements OnInit {
     private readonly authService = inject(AuthService);
     private readonly analyticsService = inject(AnalyticsService);
     private readonly matchService = inject(MatchService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     currentUser = this.authService.getCurrentUser();
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
@@ -52,12 +53,20 @@ export class CaptainDashboardComponent implements OnInit {
         // TODO: Implement actual data fetching from services
         this.matchService.getUpcomingMatches().subscribe({
             next: (matches) => {
-                const myTeamId = this.currentUser?.teamId;
-                if (myTeamId) {
-                    this.nextMatch = matches.find(m => m.homeTeamId === myTeamId || m.awayTeamId === myTeamId) || null;
-                }
+                setTimeout(() => {
+                    const myTeamId = this.currentUser?.teamId;
+                    if (myTeamId) {
+                        this.nextMatch = matches.find(m => m.homeTeamId === myTeamId || m.awayTeamId === myTeamId) || null;
+                    }
+                    this.cdr.detectChanges();
+                });
             },
-            error: () => this.nextMatch = null
+            error: () => {
+                setTimeout(() => {
+                    this.nextMatch = null;
+                    this.cdr.detectChanges();
+                });
+            }
         });
 
         // TODO: Implement notifications service

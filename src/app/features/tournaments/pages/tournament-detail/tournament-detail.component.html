@@ -64,10 +64,30 @@
                             </ng-container>
 
                             <!-- Captain Actions -->
-                            <app-button *ngIf="isCaptain() && tournament.status === TournamentStatus.REGISTRATION_OPEN"
-                                variant="primary" size="md" shadow="glow" icon="rocket_launch" (click)="registerTeam()">
-                                سجل فريقك الآن
-                            </app-button>
+                            <div class="captain-actions-container"
+                                *ngIf="isCaptain() && tournament.status === TournamentStatus.REGISTRATION_OPEN">
+                                <ng-container *ngIf="!isRegistered">
+                                    <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
+                                        (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
+                                        [title]="isUserPending ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
+                                        {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : 'سجل فريقك الآن' }}
+                                    </app-button>
+                                </ng-container>
+
+                                <div *ngIf="isRegistered" class="registration-status-info">
+                                    <span class="material-symbols-outlined text-success">check_circle</span>
+                                    <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration.status) }})</span>
+                                </div>
+
+                                <p *ngIf="isUserPending" class="pending-hint">
+                                    <span class="material-symbols-outlined">info</span>
+                                    يجب تفعيل حسابك لتتمكن من التسجيل
+                                </p>
+                                <p *ngIf="isBusyElsewhere && !isRegistered" class="pending-hint">
+                                    <span class="material-symbols-outlined">info</span>
+                                    لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -242,7 +262,9 @@
                         </div>
                         <div class="team-footer">
                             <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
-                            <app-badge type="success" size="sm">مؤكد</app-badge>
+                            <app-badge [type]="getRegStatusType(reg.status)" size="sm">
+                                {{ getRegStatusLabel(reg.status) }}
+                            </app-badge>
                         </div>
                     </div>
                     <app-empty-state *ngIf="tournament.registrations.length === 0" icon="groups" title="لا يوجد فرق"

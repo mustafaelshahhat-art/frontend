@@ -25,8 +25,8 @@
         <!-- Tournaments Grid -->
         <div *ngIf="!isLoading() && filteredTournaments().length > 0" class="tournaments-grid">
             <app-tournament-card *ngFor="let tournament of filteredTournaments(); trackBy: trackById"
-                [tournament]="tournament" [showRegisterButton]="isCaptain()" (viewDetails)="viewDetails($event)"
-                (register)="registerTeam($event)">
+                [tournament]="tournament" [showRegisterButton]="isCaptain()" [isBusy]="isTeamBusy()"
+                (viewDetails)="viewDetails($event)" (register)="registerTeam($event)">
             </app-tournament-card>
         </div>
     </div>

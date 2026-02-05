@@ -6,6 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
+import { NotificationService } from '../../core/services/notification.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-admin-layout',
@@ -16,12 +18,15 @@ import { NavItem } from '../../shared/models/nav-item.model';
 export class AdminLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
+    private notificationService = inject(NotificationService);
 
     isSidebarOpen = true;
     isMobile = false;
     windowSize = window.innerWidth;
     showNotifications = false;
-    unreadCount = 2; // Mock unread count
+
+    notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
+    unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
     currentUser = this.authService.getCurrentUser();
 
@@ -37,24 +42,6 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log' }
     ];
 
-    notifications = [
-        {
-            id: '1',
-            title: 'طلب انضمام جديد',
-            message: 'قام فريق "الصقور" بطلب الانضمام للبطولة',
-            type: 'info',
-            isRead: false,
-            date: new Date()
-        },
-        {
-            id: '2',
-            title: 'اعتراض جديد',
-            message: 'تم استلام اعتراض على نتيجة مباراة النجوم والبرق',
-            type: 'warning',
-            isRead: false,
-            date: new Date(Date.now() - 3600000)
-        }
-    ];
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -112,7 +99,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     }
 
     viewNotification(notification: any): void {
-        notification.isRead = true;
+        this.notificationService.markAsRead(notification.id).subscribe();
         this.showNotifications = false;
     }
 

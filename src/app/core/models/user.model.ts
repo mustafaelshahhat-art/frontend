@@ -1,14 +1,14 @@
 export enum UserRole {
-    ADMIN = 'ADMIN',
-    REFEREE = 'REFEREE',
-    CAPTAIN = 'CAPTAIN',
-    PLAYER = 'PLAYER'
+    ADMIN = 'Admin',
+    REFEREE = 'Referee',
+    CAPTAIN = 'Captain',
+    PLAYER = 'Player'
 }
 
 export enum UserStatus {
-    ACTIVE = 'active',
-    PENDING = 'pending',
-    SUSPENDED = 'suspended'
+    ACTIVE = 'Active',
+    PENDING = 'Pending',
+    SUSPENDED = 'Suspended'
 }
 
 export interface User {
@@ -36,6 +36,7 @@ export interface User {
 
 export interface AuthResponse {
     token: string;
+    refreshToken?: string;
     user: User;
 }
 

@@ -6,7 +6,7 @@ import { TournamentService } from '../../../../core/services/tournament.service'
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Tournament, TournamentStatus, Match } from '../../../../core/models/tournament.model';
-import { UserRole } from '../../../../core/models/user.model';
+import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
@@ -46,6 +46,7 @@ export class TournamentDetailComponent implements OnInit {
     tournament: Tournament | null = null;
     matches: Match[] = [];
     isLoading = true;
+    isBusyElsewhere = false;
 
     TournamentStatus = TournamentStatus;
 
@@ -77,7 +78,21 @@ export class TournamentDetailComponent implements OnInit {
     }
 
     isCaptain(): boolean {
-        return this.authService.hasRole(UserRole.CAPTAIN);
+        return this.authService.hasRole(UserRole.CAPTAIN) || (this.authService.hasRole(UserRole.PLAYER) && !!this.authService.getCurrentUser()?.teamId);
+    }
+
+    get isUserPending(): boolean {
+        return this.authService.getCurrentUser()?.status === UserStatus.PENDING;
+    }
+
+    get isRegistered(): boolean {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        return !!(teamId && this.tournament?.registrations?.some(r => r.teamId === teamId));
+    }
+
+    get myRegistration(): any {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        return this.tournament?.registrations?.find(r => r.teamId === teamId);
     }
 
     loadData(id: string): void {
@@ -91,6 +106,7 @@ export class TournamentDetailComponent implements OnInit {
                         next: (matches) => {
                             this.matches = matches;
                             this.isLoading = false;
+                            this.checkGlobalBusyStatus();
                             this.cdr.detectChanges();
                         },
                         error: () => {
@@ -135,6 +151,26 @@ export class TournamentDetailComponent implements OnInit {
             [TournamentStatus.CANCELLED]: 'ملغاة'
         };
         return labels[status];
+    }
+
+    getRegStatusLabel(status: string): string {
+        switch (status) {
+            case 'PendingPayment': return 'بانتظار الدفع';
+            case 'PendingApproval': return 'قيد المراجعة';
+            case 'Approved': return 'مؤكد';
+            case 'Rejected': return 'مرفوض';
+            default: return status;
+        }
+    }
+
+    getRegStatusType(status: string): 'primary' | 'gold' | 'danger' | 'info' | 'warning' | 'success' | 'muted' | 'neutral' | 'live' {
+        switch (status) {
+            case 'PendingPayment': return 'warning';
+            case 'PendingApproval': return 'info';
+            case 'Approved': return 'success';
+            case 'Rejected': return 'danger';
+            default: return 'neutral';
+        }
     }
 
     getProgressPercent(): number {
@@ -197,24 +233,36 @@ export class TournamentDetailComponent implements OnInit {
         }
 
         if (!this.tournament) return;
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser?.teamId) {
+            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً لتتمكن من التسجيل');
+            return;
+        }
 
         this.isSubmitting = true;
 
-        // TODO: Implement backend registration endpoint with file upload
-        const currentUser = this.authService.getCurrentUser();
-        if (currentUser?.teamId) {
-            this.tournamentService.registerTeam(this.tournament.id, currentUser.teamId, 'placeholder-receipt-url').subscribe({
-                next: () => {
-                    this.isSubmitting = false;
-                    this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
-                    this.closeRegisterModal();
-                },
-                error: (err: any) => {
-                    this.isSubmitting = false;
-                    this.uiFeedback.error('خطأ', err.message || 'فشل تقديم طلب التسجيل');
-                }
-            });
-        }
+        // Step 1: Register Team (PendingPayment)
+        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
+            next: () => {
+                // Step 2: Submit Payment Receipt (PendingApproval)
+                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.registerForm.receipt!).subscribe({
+                    next: () => {
+                        this.isSubmitting = false;
+                        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
+                        this.closeRegisterModal();
+                        this.loadData(this.tournament!.id); // Reload teams list
+                    },
+                    error: (err: any) => {
+                        this.isSubmitting = false;
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل إرسال الإيصال');
+                    }
+                });
+            },
+            error: (err: any) => {
+                this.isSubmitting = false;
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');
+            }
+        });
     }
 
     // Admin actions
@@ -250,6 +298,20 @@ export class TournamentDetailComponent implements OnInit {
         } else if (this.isCaptain()) {
             this.router.navigate(['/captain/matches', matchId]);
         }
+    }
+
+    checkGlobalBusyStatus(): void {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        if (!teamId) return;
+
+        this.tournamentService.getTournaments().subscribe(list => {
+            if (!this.tournament) return;
+            this.isBusyElsewhere = list.some(t =>
+                t.id !== this.tournament?.id &&
+                t.registrations?.some(r => r.teamId === teamId && r.status !== 'Rejected')
+            );
+            this.cdr.detectChanges();
+        });
     }
 
     @HostListener('document:click')

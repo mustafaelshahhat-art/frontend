@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../shared/components/team-detail';
@@ -6,7 +6,7 @@ import { TeamService } from '../../core/services/team.service';
 import { Player } from '../../core/models/team.model';
 import { AuthService } from '../../core/services/auth.service';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
-import { User, UserRole } from '../../core/models/user.model';
+import { User, UserRole, UserStatus } from '../../core/models/user.model';
 
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../shared/components/button/button.component';
@@ -43,7 +43,21 @@ import { ButtonComponent } from '../../shared/components/button/button.component
         </div>
 
         <div *ngIf="!loading && !teamData" class="no-team-container">
-            <div class="create-team-card animate-fade-in-up">
+            <!-- Case 1: Account Pending -->
+            <div *ngIf="isUserPending" class="create-team-card pending-card animate-fade-in-up">
+                <div class="icon-circle warning">
+                    <span class="material-symbols-outlined">pending_actions</span>
+                </div>
+                <h2>حسابك قيد المراجعة</h2>
+                <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.</p>
+                
+                <app-button variant="ghost" icon="refresh" (click)="loadTeamData()" class="w-full">
+                    تحديث الحالة
+                </app-button>
+            </div>
+
+            <!-- Case 2: Account Active, No Team -->
+            <div *ngIf="!isUserPending" class="create-team-card animate-fade-in-up">
                 <div class="icon-circle">
                     <span class="material-symbols-outlined">groups</span>
                 </div>
@@ -161,6 +175,19 @@ import { ButtonComponent } from '../../shared/components/button/button.component
             box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
         }
 
+        .icon-circle.warning {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .icon-circle.warning span {
+            color: #ffc107;
+        }
+
+        .pending-card {
+            border-color: rgba(255, 193, 7, 0.2);
+            background: linear-gradient(135deg, rgba(19, 27, 46, 0.7) 0%, rgba(25, 35, 60, 0.7) 100%);
+        }
+
         .w-full { width: 100%; }
     `]
 })
@@ -169,6 +196,7 @@ export class MyTeamDetailComponent implements OnInit {
     private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     currentUser: User | null = null;
     teamData: TeamData | null = null;
@@ -177,6 +205,10 @@ export class MyTeamDetailComponent implements OnInit {
     newTeamName = '';
     creatingTeam = false;
 
+    get isUserPending(): boolean {
+        return this.currentUser?.status === UserStatus.PENDING;
+    }
+
     ngOnInit(): void {
         this.currentUser = this.authService.getCurrentUser();
         if (!this.currentUser) {
@@ -184,7 +216,7 @@ export class MyTeamDetailComponent implements OnInit {
             return;
         }
 
-        this.isCaptain = this.currentUser.role === UserRole.CAPTAIN;
+        this.isCaptain = this.authService.hasRole(UserRole.CAPTAIN);
         this.loadTeamData();
     }
 
@@ -206,22 +238,35 @@ export class MyTeamDetailComponent implements OnInit {
         this.loading = true;
         loadTeam$.subscribe({
             next: (team) => {
-                if (team) {
-                    this.teamData = this.convertToTeamData(team);
-                } else {
-                    this.teamData = null;
-                }
-                this.loading = false;
+                setTimeout(() => {
+                    if (team) {
+                        this.teamData = this.convertToTeamData(team);
+                    } else {
+                        this.teamData = null;
+                    }
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
             },
             error: (err) => {
-                this.uiFeedback.error('خطأ', 'حدث خطأ أثناء تحميل بيانات الفريق');
-                this.loading = false;
+                setTimeout(() => {
+                    this.uiFeedback.error('خطأ', 'حدث خطأ أثناء تحميل بيانات الفريق');
+                    this.loading = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }
 
     createNewTeam(): void {
-        if (!this.currentUser || !this.newTeamName.trim()) {
+        if (!this.currentUser) return;
+
+        if (this.isUserPending) {
+            this.uiFeedback.error('تنبيه', 'لا يمكنك إنشاء فريق قبل تفعيل حسابك من قبل الإدارة');
+            return;
+        }
+
+        if (!this.newTeamName.trim()) {
             this.uiFeedback.warning('تنبيه', 'يرجى إدخال اسم المشروع/الفريق');
             return;
         }
@@ -229,15 +274,22 @@ export class MyTeamDetailComponent implements OnInit {
         this.creatingTeam = true;
         this.teamService.createTeam(this.currentUser, this.newTeamName).subscribe({
             next: (response) => {
-                this.currentUser = response.updatedUser;
-                this.isCaptain = true;
-                this.teamData = this.convertToTeamData(response.team);
-                this.creatingTeam = false;
-                this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
+                setTimeout(() => {
+                    this.authService.updateCurrentUser(response.updatedUser);
+                    this.currentUser = response.updatedUser;
+                    this.isCaptain = true;
+                    this.teamData = this.convertToTeamData(response.team);
+                    this.creatingTeam = false;
+                    this.cdr.detectChanges();
+                    this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
+                });
             },
             error: (err) => {
-                this.uiFeedback.error('فشل الإنشاء', err.message);
-                this.creatingTeam = false;
+                setTimeout(() => {
+                    this.uiFeedback.error('فشل الإنشاء', err.message);
+                    this.creatingTeam = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

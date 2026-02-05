@@ -6,6 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
+import { NotificationService } from '../../core/services/notification.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-referee-layout',
@@ -16,14 +18,18 @@ import { NavItem } from '../../shared/models/nav-item.model';
 export class RefereeLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
+    private notificationService = inject(NotificationService);
 
     isSidebarOpen = true;
     isMobile = false;
     windowSize = window.innerWidth;
     showNotifications = false;
-    unreadCount = 0;
+
+    notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
+    unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
     currentUser = this.authService.getCurrentUser();
+    isPending = this.currentUser?.status === 'Pending';
 
     navItems: NavItem[] = [
         { label: 'لوحة التحكم', icon: 'dashboard', route: '/referee/dashboard' },
@@ -31,7 +37,6 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
         { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' }
     ];
 
-    notifications: any[] = [];
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -89,7 +94,7 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
     }
 
     viewNotification(notification: any): void {
-        notification.isRead = true;
+        this.notificationService.markAsRead(notification.id).subscribe();
         this.showNotifications = false;
     }
 

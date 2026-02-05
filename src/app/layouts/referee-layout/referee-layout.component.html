@@ -12,8 +12,8 @@
     <div class="app-main" [class.mr-sidebar]="!isMobile">
 
         <!-- Header -->
-        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الحكم" [unreadCount]="unreadCount"
-            [notifications]="notifications" (toggleSidebar)="toggleSidebar()"
+        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الحكم" [unreadCount]="unreadCount()"
+            [notifications]="notifications()" (toggleSidebar)="toggleSidebar()"
             (viewNotification)="viewNotification($event)" (viewAllNotifications)="viewAllNotifications()">
 
             <div breadcrumbs class="flex items-center gap-2">
@@ -21,6 +21,19 @@
                 <span class="badge badge-primary">الرئيسية</span>
             </div>
         </app-header>
+
+        <!-- Pending Approval Alert -->
+        <div *ngIf="isPending" class="pending-banner animate-fade-in-down">
+            <div class="flex items-center gap-3">
+                <i class="material-icons text-gold">info_outline</i>
+                <div class="flex-col">
+                    <span class="font-bold text-sm">حسابك قيد المراجعة</span>
+                    <span class="text-xs opacity-90">يمكنك تصفح النظام فقط، سيتم توفير كافة الصلاحيات فور تفعيل حسابك من
+                        قبل الإدارة.</span>
+                </div>
+            </div>
+            <div class="pending-badge">وضع الاطلاع فقط</div>
+        </div>
 
         <!-- Page Content (Scrollable) -->
         <main class="app-content p-4">

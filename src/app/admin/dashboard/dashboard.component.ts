@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
@@ -26,6 +26,7 @@ export class AdminDashboardComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly analyticsService = inject(AnalyticsService);
     private readonly matchService = inject(MatchService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
     recentActivities: Activity[] = [];
@@ -39,32 +40,57 @@ export class AdminDashboardComponent implements OnInit {
         // TODO: Implement proper error handling and layout for empty states
         this.analyticsService.getDashboardStats().subscribe({
             next: (data: DashboardStats) => {
-                this.stats = [
-                    { label: 'إجمالي المستخدمين', value: data.totalUsers.toLocaleString(), icon: 'groups', colorClass: 'info' },
-                    { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'primary' },
-                    { label: 'المباريات اليوم', value: data.matchesToday.toString(), icon: 'sports_soccer', colorClass: 'gold' },
-                    { label: 'اعتراضات معلقة', value: data.pendingObjections.toString(), icon: 'report_problem', colorClass: 'danger' }
-                ];
+                setTimeout(() => {
+                    this.stats = [
+                        { label: 'إجمالي المستخدمين', value: data.totalUsers.toLocaleString(), icon: 'groups', colorClass: 'info' },
+                        { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'primary' },
+                        { label: 'المباريات اليوم', value: data.matchesToday.toString(), icon: 'sports_soccer', colorClass: 'gold' },
+                        { label: 'اعتراضات معلقة', value: data.pendingObjections.toString(), icon: 'report_problem', colorClass: 'danger' }
+                    ];
+                    this.cdr.detectChanges();
+                });
             },
             error: () => {
-                // Return empty shells for UI stability
-                this.stats = [
-                    { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info' },
-                    { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary' },
-                    { label: 'المباريات اليوم', value: '0', icon: 'sports_soccer', colorClass: 'gold' },
-                    { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger' }
-                ];
+                setTimeout(() => {
+                    this.stats = [
+                        { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info' },
+                        { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary' },
+                        { label: 'المباريات اليوم', value: '0', icon: 'sports_soccer', colorClass: 'gold' },
+                        { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger' }
+                    ];
+                    this.cdr.detectChanges();
+                });
             }
         });
 
         this.analyticsService.getRecentActivities().subscribe({
-            next: (data) => this.recentActivities = data,
-            error: () => this.recentActivities = []
+            next: (data) => {
+                setTimeout(() => {
+                    this.recentActivities = data;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: () => {
+                setTimeout(() => {
+                    this.recentActivities = [];
+                    this.cdr.detectChanges();
+                });
+            }
         });
 
         this.matchService.getLiveMatches().subscribe({
-            next: (data) => this.liveMatches = data,
-            error: () => this.liveMatches = []
+            next: (data) => {
+                setTimeout(() => {
+                    this.liveMatches = data;
+                    this.cdr.detectChanges();
+                });
+            },
+            error: () => {
+                setTimeout(() => {
+                    this.liveMatches = [];
+                    this.cdr.detectChanges();
+                });
+            }
         });
     }
 

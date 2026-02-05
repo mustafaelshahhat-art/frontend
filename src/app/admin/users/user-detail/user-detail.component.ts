@@ -40,8 +40,8 @@ export class UserDetailComponent implements OnInit {
         governorate: 'الرياض',
         city: 'الرياض',
         neighborhood: 'العليا',
-        idFrontUrl: 'https://www.shutterstock.com/image-vector/id-card-template-modern-identity-260nw-1454533034.jpg',
-        idBackUrl: 'https://c.pxhere.com/photos/97/8f/id_card_macro_protection_safety_security-1065176.jpg!d'
+        idFrontUrl: 'https://images.unsplash.com/photo-1613243555988-441166d4d6fd?q=80&w=400&auto=format&fit=crop',
+        idBackUrl: 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?q=80&w=400&auto=format&fit=crop'
     };
 
     activities = [

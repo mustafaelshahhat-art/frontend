@@ -72,6 +72,11 @@ export class RegisterComponent {
     return this.selectedGovernorate.cities.map((city: any) => ({ label: city.name, value: city.name }));
   }
 
+  get neighborhoodOptions(): SelectOption[] {
+    if (!this.selectedCity) return [];
+    return this.selectedCity.neighborhoods.map((n: string) => ({ label: n, value: n }));
+  }
+
   nextStep(role: UserRole): void {
     this.form.role = role;
     this.currentStep = 2;
@@ -113,13 +118,17 @@ export class RegisterComponent {
 
     this.authService.register(this.form).subscribe({
       next: (user) => {
-        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح!');
-        this.router.navigate(['/auth/pending-approval']);
-        this.isLoading = false;
+        setTimeout(() => {
+          this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح!');
+          this.router.navigate(['/auth/pending-approval']);
+          this.isLoading = false;
+        });
       },
       error: () => {
-        this.uiFeedback.error('خطأ', 'حدث خطأ أثناء التسجيل');
-        this.isLoading = false;
+        setTimeout(() => {
+          this.uiFeedback.error('خطأ', 'حدث خطأ أثناء التسجيل');
+          this.isLoading = false;
+        });
       }
     });
   }

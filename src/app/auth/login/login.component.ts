@@ -56,37 +56,37 @@ export class LoginComponent {
         this.isLoading = true;
         this.errorMessage = null;
 
-        const { email, password } = this.loginForm.value;
+        const email = this.loginForm.value.email?.trim();
+        const password = this.loginForm.value.password?.trim();
+
+        if (!email || !password) return;
 
         this.authService.login({ email, password })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
                     this.isLoading = false;
-
-                    // Navigate based on user role
-                    switch (response.user.role) {
-                        case UserRole.ADMIN:
-                            this.router.navigate(['/admin/dashboard']);
-                            break;
-                        case UserRole.REFEREE:
-                            this.router.navigate(['/referee/dashboard']);
-                            break;
-                        case UserRole.CAPTAIN:
-                            this.router.navigate(['/captain/dashboard']);
-                            break;
-                        case UserRole.PLAYER:
-                            this.router.navigate(['/captain/dashboard']); // Temporary redirect
-                            break;
-                        default:
-                            this.router.navigate(['/']);
-                    }
+                    this.handleNavigation(response.user);
                 },
                 error: (error) => {
                     this.isLoading = false;
-                    this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول';
+                    setTimeout(() => this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول');
                 }
             });
+    }
+
+    private handleNavigation(user: any): void {
+        const role = user.role?.toString();
+
+        if (role === UserRole.ADMIN) {
+            this.router.navigate(['/admin/dashboard']);
+        } else if (role === UserRole.REFEREE) {
+            this.router.navigate(['/referee/dashboard']);
+        } else if (role === UserRole.CAPTAIN || role === UserRole.PLAYER) {
+            this.router.navigate(['/captain/dashboard']);
+        } else {
+            this.router.navigate(['/']);
+        }
     }
 
     // Helper methods for template
@@ -118,28 +118,11 @@ export class LoginComponent {
             .subscribe({
                 next: (response) => {
                     this.isLoading = false;
-
-                    // Navigate based on user role
-                    switch (response.user.role) {
-                        case UserRole.ADMIN:
-                            this.router.navigate(['/admin/dashboard']);
-                            break;
-                        case UserRole.REFEREE:
-                            this.router.navigate(['/referee/dashboard']);
-                            break;
-                        case UserRole.CAPTAIN:
-                            this.router.navigate(['/captain/dashboard']);
-                            break;
-                        case UserRole.PLAYER:
-                            this.router.navigate(['/captain/dashboard']);
-                            break;
-                        default:
-                            this.router.navigate(['/']);
-                    }
+                    this.handleNavigation(response.user);
                 },
                 error: (error) => {
                     this.isLoading = false;
-                    this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول';
+                    setTimeout(() => this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول');
                 }
             });
     }

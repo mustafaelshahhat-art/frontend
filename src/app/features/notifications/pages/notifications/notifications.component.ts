@@ -6,16 +6,18 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Notification as AppNotification } from '../../../../core/models/tournament.model';
 
 interface Notification {
-    id: number;
+    id: string;
     title: string;
     message: string;
     time: string;
     type: string;
     isRead: boolean;
     icon?: string;
-    link?: string; // Add link property
+    link?: string;
 }
 
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -40,6 +42,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 })
 export class NotificationsComponent implements OnInit {
     private authService = inject(AuthService);
+    private notificationService = inject(NotificationService);
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
 
@@ -47,8 +50,7 @@ export class NotificationsComponent implements OnInit {
     userRole = this.currentUser?.role || UserRole.CAPTAIN;
 
     isLoading = true;
-    notifications: Notification[] = [];
-
+    notifications: Notification[] = []; // Component interface matches enough if I'm careful
 
     ngOnInit(): void {
         this.loadNotifications();
@@ -56,38 +58,32 @@ export class NotificationsComponent implements OnInit {
 
     loadNotifications(): void {
         this.isLoading = true;
-
-        // Simulated load with role-specific notifications
-        setTimeout(() => {
-            this.notifications = this.getRoleNotifications();
+        this.notificationService.notifications.subscribe((notifications: AppNotification[]) => {
+            this.notifications = notifications.map((n: AppNotification) => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                time: this.formatTime(new Date(n.createdAt)),
+                type: n.type,
+                isRead: n.isRead,
+                icon: this.getIcon(n.type)
+            }));
             this.isLoading = false;
             this.cdr.detectChanges();
-        }, 300);
+        });
+
+        // Ensure they are loaded from API
+        this.notificationService.loadNotifications();
     }
 
-    private getRoleNotifications(): Notification[] {
-        const baseNotifications: Record<UserRole, Notification[]> = {
-            [UserRole.ADMIN]: [
-                { id: 1, title: 'موعد المباراة', message: 'تذكير بموعد مباراة الصقور غداً في العاشرة مساءً', time: 'منذ ١٠ دقائق', type: 'match', isRead: false, icon: 'schedule', link: '/admin/matches/m1' },
-                { id: 2, title: 'تأكيد التسجيل', message: 'تم قبول تسجيل فريق النجوم في البطولة', time: 'منذ ساعتين', type: 'tournament', isRead: true, icon: 'check_circle', link: '/admin/teams/team1' },
-                { id: 3, title: 'تحديث النتائج', message: 'تم تحديث نتائج الجولة الثالثة', time: 'أمس', type: 'system', isRead: true, icon: 'scoreboard', link: '/admin/dashboard' }
-            ],
-            [UserRole.CAPTAIN]: [
-                { id: 1, title: 'موعد مباراة قادمة', message: 'مباراتك القادمة ضد فريق الاتحاد يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false, link: '/captain/matches' },
-                { id: 2, title: 'تم قبول الاعتراض', message: 'تم قبول اعتراضك على نتيجة مباراة الأهلي وتعديل النتيجة رسمياً.', time: 'منذ 5 ساعات', type: 'objection', isRead: true, link: '/captain/objections' },
-                { id: 3, title: 'فتح باب التسجيل', message: 'تم فتح باب التسجيل في بطولة رمضان الكبرى. بادر بالتسجيل الآن!', time: 'يوم أمس', type: 'tournament', isRead: true, link: '/captain/tournaments' }
-            ],
-            [UserRole.REFEREE]: [
-                { id: 1, title: 'مباراة قادمة', message: 'تم تعيينك حكماً لمباراة النجوم والصقور غداً في تمام الساعة 8:00 مساءً.', time: 'منذ ساعة', type: 'match', isRead: false, link: '/referee/matches' },
-                { id: 2, title: 'تحديث اللوائح', message: 'تم تحديث لوائح البطولة الرمضانية، يرجى مراجعتها من لوحة التحكم.', time: 'منذ 3 ساعات', type: 'tournament', isRead: true, link: '/referee/dashboard' },
-                { id: 3, title: 'رسالة جديدة', message: 'تلقيت رسالة جديدة من لجنة الحكام بخصوص مباراة أمس.', time: 'يوم أمس', type: 'message', isRead: true, link: '/referee/notifications' }
-            ],
-            [UserRole.PLAYER]: [
-                { id: 1, title: 'موعد مباراة', message: 'مباراة فريقك القادمة يوم الخميس الساعة 9:00 مساءً.', time: 'منذ ساعتين', type: 'match', isRead: false, link: '/matches' },
-                { id: 2, title: 'تحديث التشكيلة', message: 'تم تحديث تشكيلة الفريق للمباراة القادمة.', time: 'منذ 5 ساعات', type: 'team', isRead: true, link: '/team' }
-            ]
-        };
-        return baseNotifications[this.userRole] || [];
+    private formatTime(date: Date): string {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) return 'الآن';
+        if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+        if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+        return date.toLocaleDateString('ar-EG');
     }
 
     get pageTitle(): string {
@@ -105,13 +101,11 @@ export class NotificationsComponent implements OnInit {
     }
 
     markAllAsRead(): void {
-        this.notifications.forEach(n => n.isRead = true);
-        this.cdr.detectChanges();
+        this.notificationService.markAllAsRead().subscribe();
     }
 
     markAsRead(notification: Notification): void {
-        notification.isRead = true;
-        this.cdr.detectChanges();
+        this.notificationService.markAsRead(notification.id).subscribe();
 
         // Navigate if link exists
         if (notification.link) {
@@ -154,7 +148,7 @@ export class NotificationsComponent implements OnInit {
         return this.notifications.filter(n => !n.isRead).length;
     }
 
-    trackByNotification(index: number, item: Notification): number {
+    trackByNotification(index: number, item: Notification): string {
         return item.id;
     }
 }

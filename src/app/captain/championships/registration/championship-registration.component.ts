@@ -50,16 +50,18 @@ export class ChampionshipRegistrationComponent implements OnInit {
         }
     }
 
+    isLoading = false;
+
     private initForm(): void {
         this.regForm = this.fb.group({
-            phone: ['', [Validators.required, Validators.pattern(/^05\d{8}$/)]],
+            phone: ['', [Validators.required, Validators.pattern(/^(01|05)\d{8,9}$/)]],
             transferType: ['', Validators.required],
         });
     }
 
     private loadTournament(id: string): void {
-        this.tournamentService.getTournaments().subscribe(list => {
-            this.tournament = list.find(t => t.id === id) || null;
+        this.tournamentService.getTournamentById(id).subscribe(t => {
+            this.tournament = t || null;
         });
     }
 
@@ -78,26 +80,56 @@ export class ChampionshipRegistrationComponent implements OnInit {
         return found?.label || '';
     }
 
+    receiptFile: File | null = null;
     onFileSelected(event: any): void {
         const file = event.target.files[0];
         if (file) {
             this.selectedFileName = file.name;
+            this.receiptFile = file;
         }
     }
 
     removeFile(): void {
         this.selectedFileName = null;
+        this.receiptFile = null;
     }
 
     get isFormValid(): boolean {
-        return this.regForm.valid && !!this.selectedFileName;
+        return this.regForm.valid && !!this.receiptFile;
     }
 
     onSubmit(): void {
-        if (this.isFormValid) {
-            this.submitted = true;
-            this.uiFeedback.success('تم الإرسال', 'تم إرسال طلب التسجيل بنجاح');
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser || !currentUser.teamId || !this.tournament) {
+            this.uiFeedback.error('خطأ', 'يجب أن تكون كابتن فريق لتتمكن من التسجيل');
+            return;
         }
+
+        if (!this.isFormValid || !this.receiptFile) return;
+
+        this.isLoading = true;
+
+        // Step 1: Register Team (PendingPayment)
+        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
+            next: () => {
+                // Step 2: Submit Payment Receipt (PendingApproval)
+                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.receiptFile!).subscribe({
+                    next: () => {
+                        this.isLoading = false;
+                        this.submitted = true;
+                        this.uiFeedback.success('تم الإرسال', 'تم إرسال طلب التسجيل وإيصال الدفع بنجاح');
+                    },
+                    error: (err) => {
+                        this.isLoading = false;
+                        this.uiFeedback.error('فشل إرسال الإيصال', err.error?.message || 'حدث خطأ أثناء إرسال الإيصال');
+                    }
+                });
+            },
+            error: (err) => {
+                this.isLoading = false;
+                this.uiFeedback.error('فشل التسجيل', err.error?.message || 'الفريق مسجل بالفعل في بطولة أخرى أو حدث خطأ');
+            }
+        });
     }
 
     goBack(): void {

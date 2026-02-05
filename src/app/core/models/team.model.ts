@@ -13,6 +13,7 @@ export interface Player extends PlayerStats {
     name: string;
     teamId?: string;
     phone: string;
+    userId: string;
 }
 
 export interface JoinRequest {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
@@ -21,6 +21,7 @@ import { AnalyticsService, Activity } from '../../core/services/analytics.servic
 })
 export class ActivityLogComponent implements OnInit {
     private readonly analyticsService = inject(AnalyticsService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     logs: Activity[] = [];
     isLoading = true;
@@ -33,12 +34,18 @@ export class ActivityLogComponent implements OnInit {
         this.isLoading = true;
         this.analyticsService.getRecentActivities().subscribe({
             next: (data) => {
-                this.logs = data;
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.logs = data;
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             },
             error: () => {
-                this.logs = [];
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.logs = [];
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

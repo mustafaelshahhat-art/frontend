@@ -8,10 +8,10 @@ export enum TournamentStatus {
 }
 
 export enum RegistrationStatus {
-    PENDING_PAYMENT = 'pending_payment',    // Team submitted, awaiting payment
-    PENDING_APPROVAL = 'pending_approval',  // Payment submitted, awaiting admin verification
-    APPROVED = 'approved',                  // Admin approved, team is in the tournament
-    REJECTED = 'rejected'                   // Admin rejected the payment
+    PENDING_PAYMENT = 'PendingPayment',
+    PENDING_APPROVAL = 'PendingApproval',
+    APPROVED = 'Approved',
+    REJECTED = 'Rejected'
 }
 
 export interface TeamRegistration {
@@ -45,7 +45,7 @@ export interface Tournament {
     registrations: TeamRegistration[]; // Team registrations with payment status
     registrationFee?: number;
     registrationDeadline: Date;
-    prizes: string[];
+    prizes: string;
     prizePool?: number;
     startDate: Date;
     endDate: Date;
@@ -87,6 +87,10 @@ export interface Match {
     events?: MatchEvent[];
     report?: MatchReport;  // Referee's final match report
     date?: Date;           // Date of the match
+    refereeNotes?: string;
+    updatedAt?: Date;
+    scheduledDate?: string;
+    scheduledTime?: string;
 }
 
 export interface MatchReport {
@@ -109,6 +113,7 @@ export interface Card {
     playerName: string;
     teamId: string;
     type: 'yellow' | 'red';
+    minute?: number;
 }
 
 export interface Goal {
@@ -116,6 +121,7 @@ export interface Goal {
     playerName: string;
     teamId: string;
     assistPlayerId?: string;
+    minute?: number;
 }
 
 export interface Team {
@@ -132,6 +138,7 @@ export interface Player {
     id: string;
     name: string;
     nationalId: string;
+    userId?: string;
 }
 
 export enum MatchEventType {
@@ -154,3 +161,23 @@ export interface MatchEvent {
 }
 
 
+
+export interface Notification {
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    type: 'system' | 'match' | 'team';
+    isRead: boolean;
+    createdAt: Date;
+}
+
+export interface MatchMessage {
+    id: string;
+    matchId: string;
+    senderId: string;
+    senderName: string;
+    role: string;
+    content: string;
+    timestamp: Date;
+}

@@ -46,11 +46,7 @@ export class TournamentManageComponent implements OnInit {
         location: ['', [Validators.required]],
         entryFee: [0, [Validators.required, Validators.min(0)]],
         rules: ['', [Validators.required]],
-        prizes: this.fb.array([
-            this.fb.control('', Validators.required),
-            this.fb.control(''),
-            this.fb.control('')
-        ])
+        prizes: ['', [Validators.required]]
     });
 
     ngOnInit(): void {
@@ -74,7 +70,8 @@ export class TournamentManageComponent implements OnInit {
                     maxTeams: tournament.maxTeams,
                     location: tournament.location,
                     entryFee: tournament.entryFee,
-                    rules: tournament.rules
+                    rules: tournament.rules,
+                    prizes: tournament.prizes
                 });
             }
         });
@@ -93,14 +90,17 @@ export class TournamentManageComponent implements OnInit {
 
         this.isSubmitting.set(true);
         const formValue = this.tournamentForm.value;
-        const tournamentData = {
-            ...formValue,
-            startDate: new Date(formValue.startDate),
-            endDate: new Date(formValue.endDate),
-            registrationDeadline: new Date(formValue.registrationDeadline),
-            status: this.isEditMode() ? undefined : TournamentStatus.REGISTRATION_OPEN,
-            registrations: [],
-            currentTeams: 0
+        const tournamentData: any = {
+            name: formValue.name,
+            description: formValue.description,
+            startDate: new Date(formValue.startDate).toISOString(),
+            endDate: new Date(formValue.endDate).toISOString(),
+            registrationDeadline: new Date(formValue.registrationDeadline).toISOString(),
+            maxTeams: formValue.maxTeams,
+            location: formValue.location,
+            entryFee: formValue.entryFee,
+            rules: formValue.rules,
+            prizes: formValue.prizes
         };
 
         if (this.isEditMode()) {

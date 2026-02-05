@@ -12,8 +12,8 @@
     <div class="app-main" [class.mr-sidebar]="!isMobile">
 
         <!-- Header -->
-        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الإدارة" [unreadCount]="unreadCount"
-            [notifications]="notifications" (toggleSidebar)="toggleSidebar()"
+        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الإدارة" [unreadCount]="unreadCount()"
+            [notifications]="notifications()" (toggleSidebar)="toggleSidebar()"
             (viewNotification)="viewNotification($event)" (viewAllNotifications)="viewAllNotifications()">
 
             <div breadcrumbs class="flex items-center gap-2">

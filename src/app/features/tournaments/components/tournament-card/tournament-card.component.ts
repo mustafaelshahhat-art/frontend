@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
+import { AuthService } from '../../../../core/services/auth.service';
 
 /**
  * TournamentCardComponent - Displays a tournament in a premium card format.
@@ -31,14 +32,26 @@ import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
     styleUrls: ['./tournament-card.component.scss']
 })
 export class TournamentCardComponent {
+    private readonly authService = inject(AuthService);
+
     @Input({ required: true }) tournament!: Tournament;
     @Input() showRegisterButton = false;
     @Input() isClickable = true;
+    @Input() isBusy = false; // Registered in another tournament
 
     @Output() viewDetails = new EventEmitter<Tournament>();
     @Output() register = new EventEmitter<Tournament>();
 
     TournamentStatus = TournamentStatus;
+
+    get isUserPending(): boolean {
+        return this.authService.getCurrentUser()?.status === 'Pending';
+    }
+
+    get isRegistered(): boolean {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        return !!(teamId && this.tournament.registrations?.some(r => r.teamId === teamId));
+    }
 
     get progressPercent(): number {
         if (!this.tournament.maxTeams) return 0;

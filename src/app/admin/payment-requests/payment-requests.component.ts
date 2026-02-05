@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
@@ -28,6 +28,7 @@ import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/mod
 export class PaymentRequestsComponent implements OnInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     currentFilter = 'all';
     isLoading = true;
@@ -50,12 +51,18 @@ export class PaymentRequestsComponent implements OnInit {
         this.isLoading = true;
         this.tournamentService.getPendingPaymentApprovals().subscribe({
             next: (data) => {
-                this.requests = data;
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.requests = data;
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             },
             error: () => {
-                this.requests = [];
-                this.isLoading = false;
+                setTimeout(() => {
+                    this.requests = [];
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                });
             }
         });
     }

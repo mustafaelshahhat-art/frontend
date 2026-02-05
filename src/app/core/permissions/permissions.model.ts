@@ -58,9 +58,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_TEAMS
     ],
     [UserRole.PLAYER]: [
-        Permission.VIEW_TOURNAMENTS,
+        Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT, // Allow player to register if they have team
         Permission.VIEW_MATCHES,
         Permission.VIEW_TEAMS,
-        Permission.MANAGE_MY_TEAM // Allow player to access captain pages as requested
+        Permission.MANAGE_MY_TEAM
     ]
 };

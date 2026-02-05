@@ -1,0 +1,61 @@
+import { Injectable, inject } from '@angular/core';
+import * as signalR from '@microsoft/signalr';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+@Injectable({
+    providedIn: 'root',
+})
+export class SignalRService {
+    private readonly authService = inject(AuthService);
+    private hubs: Map<string, signalR.HubConnection> = new Map();
+    private connectionStatus$ = new BehaviorSubject<boolean>(false);
+
+    get isConnected$(): Observable<boolean> {
+        return this.connectionStatus$.asObservable();
+    }
+
+    createConnection(hubPath: string): signalR.HubConnection {
+        if (this.hubs.has(hubPath)) {
+            return this.hubs.get(hubPath)!;
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${environment.hubUrl}/${hubPath}`, {
+                accessTokenFactory: () => this.authService.getToken() || '',
+                skipNegotiation: false,
+                transport: signalR.HttpTransportType.WebSockets
+            })
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        this.hubs.set(hubPath, connection);
+        return connection;
+    }
+
+    async startConnection(hubPath: string): Promise<void> {
+        const connection = this.hubs.get(hubPath);
+        if (!connection) return;
+
+        if (connection.state === signalR.HubConnectionState.Disconnected) {
+            try {
+                await connection.start();
+                console.log(`SignalR: Connected to ${hubPath}`);
+                this.connectionStatus$.next(true);
+            } catch (err) {
+                console.error(`SignalR: Error connecting to ${hubPath}:`, err);
+                setTimeout(() => this.startConnection(hubPath), 5000);
+            }
+        }
+    }
+
+    async stopConnection(hubPath: string): Promise<void> {
+        const connection = this.hubs.get(hubPath);
+        if (connection) {
+            await connection.stop();
+            this.hubs.delete(hubPath);
+        }
+    }
+}

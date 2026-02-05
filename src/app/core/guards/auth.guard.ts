@@ -7,10 +7,6 @@ import { AuthService } from '../services/auth.service';
  * Prevents unauthenticated users from accessing protected routes
  */
 export const authGuard: CanActivateFn = (route, state) => {
-    // Temporarily disabled for testing
-    return true;
-
-    /* Original code - re-enable after testing
     const authService = inject(AuthService);
     const router = inject(Router);
 
@@ -25,5 +21,4 @@ export const authGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/auth/login'], {
         queryParams: { returnUrl }
     });
-    */
 };

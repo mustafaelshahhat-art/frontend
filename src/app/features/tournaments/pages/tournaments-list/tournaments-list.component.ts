@@ -96,6 +96,17 @@ export class TournamentsListComponent implements OnInit {
         return result;
     });
 
+    // Compute if user's team is registered in ANY active/pending tournament
+    isTeamBusy = computed(() => {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        if (!teamId) return false;
+
+        // Return true if team is in ANY tournament with a non-rejected status
+        return this.tournaments().some(t =>
+            t.registrations?.some(r => r.teamId === teamId && r.status !== 'Rejected')
+        );
+    });
+
     ngOnInit(): void {
         this.loadTournaments();
     }
@@ -106,7 +117,7 @@ export class TournamentsListComponent implements OnInit {
     }
 
     isCaptain(): boolean {
-        return this.authService.hasRole(UserRole.CAPTAIN);
+        return this.authService.hasRole(UserRole.CAPTAIN) || (this.authService.hasRole(UserRole.PLAYER) && !!this.authService.getCurrentUser()?.teamId);
     }
 
     loadTournaments(): void {
@@ -140,13 +151,40 @@ export class TournamentsListComponent implements OnInit {
     }
 
     register(tournament: Tournament): void {
-        this.registeredTournaments.update(current => [...current, tournament.id]);
-        this.uiFeedback.success('تم التسجيل', 'تم التسجيل في البطولة بنجاح');
+        const user = this.authService.getCurrentUser();
+        if (!user || (!this.authService.hasRole(UserRole.CAPTAIN) && !this.authService.hasRole(UserRole.PLAYER))) {
+            this.uiFeedback.error('غير مصرح', 'يجب أن تكون صاحب فريق للتسجيل');
+            return;
+        }
+
+        if (!user.teamId) {
+            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
+            this.router.navigate(['/captain/my-team']);
+            return;
+        }
+
+        if (this.isTeamBusy()) {
+            this.uiFeedback.error('تنبيه', 'لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت');
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.tournamentService.registerTeam(tournament.id, user.teamId, '').subscribe({
+            next: () => {
+                this.registeredTournaments.update(current => [...current, tournament.id]);
+                this.uiFeedback.success('تم التسجيل', 'تم إرسال طلب التسجيل بنجاح');
+                this.isLoading.set(false);
+            },
+            error: (err) => {
+                this.uiFeedback.error('خطأ', 'فشل التسجيل في البطولة: ' + (err.error?.message || 'خطأ غير معروف'));
+                this.isLoading.set(false);
+            }
+        });
     }
 
     unregister(id: string): void {
-        this.registeredTournaments.update(current => current.filter(t => t !== id));
-        this.uiFeedback.info('تم الإلغاء', 'تم إلغاء التسجيل');
+        // API does not support unregistering by captain directly currently.
+        this.uiFeedback.info('تنبيه', 'يرجى التواصل مع الإدارة لإلغاء التسجيل');
     }
 
     // Navigation

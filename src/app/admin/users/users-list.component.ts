@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
@@ -31,22 +31,25 @@ export class UsersListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly userService = inject(UserService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
-    users: User[] = [];
-    isLoading = true;
-    currentFilter = 'all';
-    searchQuery = '';
+    users = signal<User[]>([]);
+    isLoading = signal<boolean>(true);
+    currentFilter = signal<string>('all');
+    searchQuery = signal<string>('');
 
     // User Type Tabs
-    userType = 'captains';
+    userType = signal<'admins' | 'referees' | 'players'>('admins');
     userTypeTabs = [
-        { value: 'captains', label: 'إدارة الكباتن' },
-        { value: 'referees', label: 'إدارة الحكام' }
+        { value: 'admins', label: 'المشرفين' },
+        { value: 'referees', label: 'الحكام' },
+        { value: 'players', label: 'اللاعبين' }
     ];
 
     filters = [
         { value: 'all', label: 'الكل' },
         { value: UserStatus.ACTIVE, label: 'نشط' },
+        { value: UserStatus.PENDING, label: 'معلق' },
         { value: UserStatus.SUSPENDED, label: 'موقوف' }
     ];
 
@@ -55,44 +58,52 @@ export class UsersListComponent implements OnInit {
     }
 
     loadUsers(): void {
-        this.isLoading = true;
-        // TODO: Map backend user model to component expectations if needed
+        this.isLoading.set(true);
         this.userService.getUsers().subscribe({
             next: (data) => {
-                this.users = data;
-                this.isLoading = false;
+                this.users.set(data);
+                this.isLoading.set(false);
             },
             error: () => {
-                this.isLoading = false;
+                this.isLoading.set(false);
             }
         });
     }
 
-    get filteredUsers(): User[] {
-        let result = this.users;
+    filteredUsers = computed(() => {
+        let result = this.users();
+        const type = this.userType();
+        const filter = this.currentFilter();
 
         // Filter by user type
-        if (this.userType === 'captains') {
-            result = result.filter(u => u.role === UserRole.CAPTAIN);
-        } else if (this.userType === 'referees') {
+        if (type === 'admins') {
+            result = result.filter(u => u.role === UserRole.ADMIN);
+        } else if (type === 'referees') {
             result = result.filter(u => u.role === UserRole.REFEREE);
+        } else if (type === 'players') {
+            result = result.filter(u => u.role === UserRole.PLAYER || u.role === UserRole.CAPTAIN);
         }
 
         // Filter by status
-        if (this.currentFilter !== 'all') {
-            result = result.filter(u => u.status === this.currentFilter);
+        if (filter !== 'all') {
+            result = result.filter(u => u.status === filter);
         }
 
         return result;
-    }
+    });
 
     setFilter(filter: string): void {
-        this.currentFilter = filter;
+        this.currentFilter.set(filter);
     }
 
-    getBadgeType(status: string): 'success' | 'danger' | 'neutral' {
+    setUserType(type: any): void {
+        this.userType.set(type);
+    }
+
+    getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
         switch (status) {
             case UserStatus.ACTIVE: return 'success';
+            case UserStatus.PENDING: return 'warning';
             case UserStatus.SUSPENDED: return 'danger';
             default: return 'neutral';
         }
@@ -101,6 +112,7 @@ export class UsersListComponent implements OnInit {
     getStatusLabel(status: string): string {
         switch (status) {
             case UserStatus.ACTIVE: return 'نشط';
+            case UserStatus.PENDING: return 'معلق';
             case UserStatus.SUSPENDED: return 'موقوف';
             default: return 'غير معروف';
         }
@@ -143,8 +155,26 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.suspendUser(user.id).subscribe({
                     next: () => {
-                        user.status = UserStatus.SUSPENDED;
+                        this.users.update(prev => prev.map(u => u.id === user.id ? { ...u, status: UserStatus.SUSPENDED } : u));
                         this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
+                    }
+                });
+            }
+        });
+    }
+
+    approveUser(user: User): void {
+        this.uiFeedback.confirm(
+            'تفعيل المستخدم',
+            `هل تريد تفعيل حساب المستخدم "${user.name}"؟`,
+            'تفعيل الآن',
+            'info'
+        ).subscribe((confirmed: boolean) => {
+            if (confirmed) {
+                this.userService.activateUser(user.id).subscribe({
+                    next: () => {
+                        this.users.update(prev => prev.map(u => u.id === user.id ? { ...u, status: UserStatus.ACTIVE } : u));
+                        this.uiFeedback.success('تم التفعيل', 'تم تفعيل حساب المستخدم بنجاح');
                     }
                 });
             }
@@ -161,7 +191,7 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.deleteUser(user.id).subscribe({
                     next: () => {
-                        this.users = this.users.filter(u => u.id !== user.id);
+                        this.users.update(prev => prev.filter(u => u.id !== user.id));
                         this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
                     }
                 });

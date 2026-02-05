@@ -1,38 +1,43 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, map } from 'rxjs';
 import { User } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class UserService {
     private readonly http = inject(HttpClient);
-    // TODO: Define actual API base URL
-    private readonly apiUrl = 'api/users';
+    private readonly apiUrl = `${environment.apiUrl}/Users`;
 
     getUsers(): Observable<User[]> {
-        // TODO: Implement backend endpoint
-        return throwError(() => new Error('Endpoint not implemented'));
+        return this.http.get<User[]>(this.apiUrl);
     }
 
     getUserById(id: string): Observable<User> {
-        // TODO: Implement backend endpoint
-        return throwError(() => new Error('Endpoint not implemented'));
+        return this.http.get<User>(`${this.apiUrl}/${id}`);
     }
 
     updateUser(id: string, updates: Partial<User>): Observable<User> {
-        // TODO: Implement backend endpoint
-        return throwError(() => new Error('Endpoint not implemented'));
+        return this.http.patch<User>(`${this.apiUrl}/${id}`, updates);
     }
 
     deleteUser(id: string): Observable<boolean> {
-        // TODO: Implement backend endpoint
-        return throwError(() => new Error('Endpoint not implemented'));
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            map(() => true)
+        );
     }
 
     suspendUser(id: string): Observable<boolean> {
-        // TODO: Implement backend endpoint
-        return throwError(() => new Error('Endpoint not implemented'));
+        return this.http.post<void>(`${this.apiUrl}/${id}/suspend`, {}).pipe(
+            map(() => true)
+        );
+    }
+
+    activateUser(id: string): Observable<boolean> {
+        return this.http.post<void>(`${this.apiUrl}/${id}/activate`, {}).pipe(
+            map(() => true)
+        );
     }
 }

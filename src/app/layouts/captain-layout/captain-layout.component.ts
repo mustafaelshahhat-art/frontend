@@ -6,6 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
+import { NotificationService } from '../../core/services/notification.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-captain-layout',
@@ -16,14 +18,18 @@ import { NavItem } from '../../shared/models/nav-item.model';
 export class CaptainLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
+    private notificationService = inject(NotificationService);
 
     isSidebarOpen = true;
     isMobile = false;
     windowSize = window.innerWidth;
     showNotifications = false;
-    unreadCount = 1;
+
+    notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
+    unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
     currentUser = this.authService.getCurrentUser();
+    isPending = this.currentUser?.status === 'Pending';
 
     navItems: NavItem[] = [
         { label: 'لوحة التحكم', icon: 'dashboard', route: '/captain/dashboard' },
@@ -34,16 +40,6 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
         { label: 'الإشعارات', icon: 'notifications', route: '/captain/notifications' }
     ];
 
-    notifications = [
-        {
-            id: '1',
-            title: 'مباراة قادمة',
-            message: 'مباراتكم القادمة ستبدأ خلال ساعة',
-            type: 'info',
-            isRead: false,
-            date: new Date()
-        }
-    ];
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -101,7 +97,7 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     }
 
     viewNotification(notification: any): void {
-        notification.isRead = true;
+        this.notificationService.markAsRead(notification.id).subscribe();
         this.showNotifications = false;
     }
 

@@ -126,6 +126,14 @@
                         </app-select>
                     </div>
 
+                    <!-- Neighborhood -->
+                    <div class="form-group">
+                        <label class="form-label">الحي / المنطقة</label>
+                        <app-select name="neighborhood" [(ngModel)]="form.neighborhood" [options]="neighborhoodOptions"
+                            [disabled]="!form.city" placeholder="اختر الحي">
+                        </app-select>
+                    </div>
+
                     <!-- Password -->
                     <div class="form-group">
                         <label class="form-label">كلمة المرور</label>

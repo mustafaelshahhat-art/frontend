@@ -50,8 +50,10 @@
             التفاصيل
         </app-button>
         <app-button *ngIf="showRegisterButton && tournament.status === TournamentStatus.REGISTRATION_OPEN"
-            variant="outline" style="flex: 1;" (click)="onRegisterClick($event)">
-            تسجيل الآن
+            variant="outline" style="flex: 1;" (click)="onRegisterClick($event)"
+            [disabled]="isUserPending || isRegistered || isBusy"
+            [title]="isUserPending ? 'يجب تفعيل حسابك أولاً لتتمكن من التسجيل' : isRegistered ? 'فريقك مسجل في هذه البطولة' : isBusy ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
+            {{ isRegistered ? 'مسجل' : 'تسجيل الآن' }}
         </app-button>
     </div>
 </div>
