@@ -81,11 +81,11 @@ export class MatchDetailComponent implements OnInit {
         files: [] as File[]
     };
     objectionTypes = [
-        { value: 'MATCH_RESULT', label: 'نتيجة المباراة', icon: 'scoreboard' },
-        { value: 'REFEREE_DECISION', label: 'قرار تحكيمي', icon: 'sports' },
-        { value: 'PLAYER_ELIGIBILITY', label: 'أهلية لاعب', icon: 'person_off' },
-        { value: 'RULE_VIOLATION', label: 'مخالفة قوانين', icon: 'gavel' },
-        { value: 'OTHER', label: 'أخرى', icon: 'more_horiz' }
+        { value: 'MatchResult', label: 'نتيجة المباراة', icon: 'scoreboard' },
+        { value: 'RefereeDecision', label: 'قرار تحكيمي', icon: 'sports' },
+        { value: 'PlayerEligibility', label: 'أهلية لاعب', icon: 'person_off' },
+        { value: 'RuleViolation', label: 'مخالفة قوانين', icon: 'gavel' },
+        { value: 'Other', label: 'أخرى', icon: 'more_horiz' }
     ];
 
     // Admin: Postpone/Reset Schedule Modal

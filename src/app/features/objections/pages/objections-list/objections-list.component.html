@@ -74,7 +74,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let objection of filteredObjections" (click)="selectObjection(objection)"
+                    <tr *ngFor="let objection of filteredObjections" 
+                        [routerLink]="['/admin/objections', objection.id]"
                         style="cursor: pointer;">
                         <td><span style="font-weight: 700; color: #10B981;">#{{ objection.matchId }}</span></td>
                         <td>

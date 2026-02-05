@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { Objection, ObjectionType, ObjectionStatus } from '../../../../core/models/objection.model';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -20,6 +20,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
     imports: [
         CommonModule,
         FormsModule,
+        RouterLink,
         EmptyStateComponent,
         FilterComponent,
         PageHeaderComponent,
@@ -145,9 +146,7 @@ export class ObjectionsListComponent implements OnInit {
 
     selectObjection(objection: Objection): void {
         this.selectedObjection = objection;
-        if (this.isAdmin()) {
-            this.router.navigate(['/admin/objections', objection.id]);
-        }
+        this.router.navigate(['/admin/objections', objection.id]);
     }
 
     submitObjection(): void {

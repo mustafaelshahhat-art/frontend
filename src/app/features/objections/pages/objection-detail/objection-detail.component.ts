@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
@@ -28,7 +28,16 @@ import { FormsModule } from '@angular/forms';
                 <app-button variant="ghost" (click)="navigateBack()" icon="arrow_forward">العودة للقائمة</app-button>
             </app-page-header>
 
-            <div *ngIf="objection" class="grid-3-cols gap-xl mt-xl">
+            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+                <p>جاري تحميل التفاصيل...</p>
+            </div>
+
+            <div *ngIf="!isLoading && !objection" style="text-align: center; padding: 4rem;">
+                <p>لم يتم العثور على الاعتراض المطلوب أو حدث خطأ في التحميل.</p>
+                <app-button (click)="loadObjection()">إعادة المحاولة</app-button>
+            </div>
+
+            <div *ngIf="!isLoading && objection" class="grid-3-cols gap-xl mt-xl">
                 <!-- Main Content -->
                 <div class="col-span-2 flex-col gap-xl">
                     <app-card [title]="'وصف الاعتراض'" icon="description">
@@ -153,16 +162,32 @@ export class ObjectionDetailComponent implements OnInit {
     private router = inject(Router);
     private objectionsService = inject(ObjectionsService);
     private uiFeedback = inject(UIFeedbackService);
+    private cdr = inject(ChangeDetectorRef);
 
     objection: Objection | undefined;
+    isLoading: boolean = false;
     adminNotes: string = '';
     ObjectionStatus = ObjectionStatus;
 
     ngOnInit(): void {
+        this.loadObjection();
+    }
+
+    loadObjection(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.objectionsService.getObjectionById(id).subscribe(data => {
-                this.objection = data;
+            this.isLoading = true;
+            this.objectionsService.getObjectionById(id).subscribe({
+                next: (data) => {
+                    this.objection = data;
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.uiFeedback.error('خطأ', 'فشل في تحميل تفاصيل الاعتراض');
+                    this.cdr.detectChanges();
+                }
             });
         }
     }
@@ -196,7 +221,9 @@ export class ObjectionDetailComponent implements OnInit {
         switch (status) {
             case ObjectionStatus.APPROVED: return 'success';
             case ObjectionStatus.REJECTED: return 'danger';
-            case ObjectionStatus.PENDING: return 'warning';
+            case ObjectionStatus.PENDING:
+            case ObjectionStatus.UNDER_REVIEW:
+                return 'warning';
             default: return 'neutral';
         }
     }
