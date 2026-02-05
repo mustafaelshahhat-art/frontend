@@ -70,13 +70,23 @@
                                     <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
                                         (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
                                         [title]="isUserPending ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
-                                        {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : 'سجل فريقك الآن' }}
+                                        {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration?.status ===
+                                        RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
                                     </app-button>
                                 </ng-container>
 
-                                <div *ngIf="isRegistered" class="registration-status-info">
-                                    <span class="material-symbols-outlined text-success">check_circle</span>
-                                    <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration.status) }})</span>
+                                <div *ngIf="isRegistered" class="registration-status-wrapper">
+                                    <div class="registration-status-info">
+                                        <span class="material-symbols-outlined text-success">check_circle</span>
+                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration.status) }})</span>
+                                    </div>
+
+                                    <!-- Temporary Registration Banner -->
+                                    <div *ngIf="myRegistration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW"
+                                        class="review-banner animate-pulse-subtle">
+                                        <span class="material-symbols-outlined">info</span>
+                                        <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
+                                    </div>
                                 </div>
 
                                 <p *ngIf="isUserPending" class="pending-hint">
@@ -267,8 +277,8 @@
                             </app-badge>
                         </div>
                     </div>
-                    <app-empty-state *ngIf="tournament.registrations.length === 0" icon="groups" title="لا يوجد فرق"
-                        description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
+                    <app-empty-state *ngIf="!tournament.registrations || tournament.registrations.length === 0"
+                        icon="groups" title="لا يوجد فرق" description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
                     </app-empty-state>
                 </div>
             </div>

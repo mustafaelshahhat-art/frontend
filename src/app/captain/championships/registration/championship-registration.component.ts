@@ -109,10 +109,10 @@ export class ChampionshipRegistrationComponent implements OnInit {
 
         this.isLoading = true;
 
-        // Step 1: Register Team (PendingPayment)
+        // Step 1: Register Team (PendingPaymentReview)
         this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
             next: () => {
-                // Step 2: Submit Payment Receipt (PendingApproval)
+                // Step 2: Submit Payment Receipt (PendingPaymentReview)
                 this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.receiptFile!).subscribe({
                     next: () => {
                         this.isLoading = false;

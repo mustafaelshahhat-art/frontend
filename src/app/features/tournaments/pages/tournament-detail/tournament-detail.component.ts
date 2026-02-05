@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus, Match } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, Match, RegistrationStatus } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -49,6 +49,7 @@ export class TournamentDetailComponent implements OnInit {
     isBusyElsewhere = false;
 
     TournamentStatus = TournamentStatus;
+    RegistrationStatus = RegistrationStatus;
 
     // Tabs
     tabs = [
@@ -86,13 +87,12 @@ export class TournamentDetailComponent implements OnInit {
     }
 
     get isRegistered(): boolean {
-        const teamId = this.authService.getCurrentUser()?.teamId;
-        return !!(teamId && this.tournament?.registrations?.some(r => r.teamId === teamId));
+        return !!this.myRegistration && this.myRegistration.status !== RegistrationStatus.REJECTED;
     }
 
     get myRegistration(): any {
         const teamId = this.authService.getCurrentUser()?.teamId;
-        return this.tournament?.registrations?.find(r => r.teamId === teamId);
+        return this.tournament?.registrations?.find((r: any) => r.teamId === teamId);
     }
 
     loadData(id: string): void {
@@ -155,8 +155,7 @@ export class TournamentDetailComponent implements OnInit {
 
     getRegStatusLabel(status: string): string {
         switch (status) {
-            case 'PendingPayment': return 'بانتظار الدفع';
-            case 'PendingApproval': return 'قيد المراجعة';
+            case 'PendingPaymentReview': return 'قيد المراجعة';
             case 'Approved': return 'مؤكد';
             case 'Rejected': return 'مرفوض';
             default: return status;
@@ -165,8 +164,7 @@ export class TournamentDetailComponent implements OnInit {
 
     getRegStatusType(status: string): 'primary' | 'gold' | 'danger' | 'info' | 'warning' | 'success' | 'muted' | 'neutral' | 'live' {
         switch (status) {
-            case 'PendingPayment': return 'warning';
-            case 'PendingApproval': return 'info';
+            case 'PendingPaymentReview': return 'info';
             case 'Approved': return 'success';
             case 'Rejected': return 'danger';
             default: return 'neutral';

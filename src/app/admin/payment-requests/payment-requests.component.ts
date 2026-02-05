@@ -26,6 +26,7 @@ import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/mod
     styleUrls: ['./payment-requests.component.scss']
 })
 export class PaymentRequestsComponent implements OnInit {
+    RegistrationStatus = RegistrationStatus;
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
     private readonly cdr = inject(ChangeDetectorRef);
@@ -37,7 +38,7 @@ export class PaymentRequestsComponent implements OnInit {
 
     filters = [
         { value: 'all', label: 'الكل' },
-        { value: RegistrationStatus.PENDING_APPROVAL, label: 'معلق' },
+        { value: RegistrationStatus.PENDING_PAYMENT_REVIEW, label: 'معلق' },
         { value: RegistrationStatus.APPROVED, label: 'مقبول' }
     ];
 
@@ -110,7 +111,7 @@ export class PaymentRequestsComponent implements OnInit {
 
     getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {
         switch (status) {
-            case RegistrationStatus.PENDING_APPROVAL: return 'warning';
+            case RegistrationStatus.PENDING_PAYMENT_REVIEW: return 'warning';
             case RegistrationStatus.APPROVED: return 'success';
             case RegistrationStatus.REJECTED: return 'danger';
             default: return 'warning';
@@ -119,7 +120,7 @@ export class PaymentRequestsComponent implements OnInit {
 
     getStatusLabel(status: RegistrationStatus): string {
         switch (status) {
-            case RegistrationStatus.PENDING_APPROVAL: return 'معلق';
+            case RegistrationStatus.PENDING_PAYMENT_REVIEW: return 'معلق';
             case RegistrationStatus.APPROVED: return 'مقبول';
             case RegistrationStatus.REJECTED: return 'مرفوض';
             default: return status;

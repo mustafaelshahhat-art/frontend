@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, RegistrationStatus } from '../../../../core/models/tournament.model';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -48,9 +48,15 @@ export class TournamentCardComponent {
         return this.authService.getCurrentUser()?.status === 'Pending';
     }
 
-    get isRegistered(): boolean {
+    RegistrationStatus = RegistrationStatus;
+
+    get myRegistration() {
         const teamId = this.authService.getCurrentUser()?.teamId;
-        return !!(teamId && this.tournament.registrations?.some(r => r.teamId === teamId));
+        return this.tournament.registrations?.find(r => r.teamId === teamId);
+    }
+
+    get isRegistered(): boolean {
+        return !!this.myRegistration && this.myRegistration.status !== RegistrationStatus.REJECTED;
     }
 
     get progressPercent(): number {

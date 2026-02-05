@@ -8,8 +8,7 @@ export enum TournamentStatus {
 }
 
 export enum RegistrationStatus {
-    PENDING_PAYMENT = 'PendingPayment',
-    PENDING_APPROVAL = 'PendingApproval',
+    PENDING_PAYMENT_REVIEW = 'PendingPaymentReview',
     APPROVED = 'Approved',
     REJECTED = 'Rejected'
 }

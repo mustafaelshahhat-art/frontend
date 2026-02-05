@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -19,6 +19,7 @@ export class RegisterComponent {
   private authService = inject(AuthService);
   private uiFeedback = inject(UIFeedbackService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   UserRole = UserRole;
   isLoading = false;
@@ -115,20 +116,19 @@ export class RegisterComponent {
     }
 
     this.isLoading = true;
+    this.cdr.detectChanges(); // Sync state before async call
 
     this.authService.register(this.form).subscribe({
       next: (user) => {
-        setTimeout(() => {
-          this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح!');
-          this.router.navigate(['/auth/pending-approval']);
-          this.isLoading = false;
-        });
+        this.isLoading = false;
+        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح!');
+        this.router.navigate(['/auth/pending-approval']);
+        this.cdr.detectChanges();
       },
-      error: () => {
-        setTimeout(() => {
-          this.uiFeedback.error('خطأ', 'حدث خطأ أثناء التسجيل');
-          this.isLoading = false;
-        });
+      error: (err) => {
+        this.isLoading = false;
+        this.uiFeedback.error('خطأ', 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
+        this.cdr.detectChanges();
       }
     });
   }

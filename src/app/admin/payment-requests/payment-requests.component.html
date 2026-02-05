@@ -55,7 +55,8 @@
                                 </app-button>
                             </td>
                             <td>
-                                <div class="action-buttons" *ngIf="request.registration.status === 'pending_approval'">
+                                <div class="action-buttons"
+                                    *ngIf="request.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
                                     <app-button (click)="approve(request)" variant="ghost" size="sm" icon="check_circle"
                                         class="text-primary">
                                     </app-button>
@@ -63,7 +64,7 @@
                                         class="text-danger">
                                     </app-button>
                                 </div>
-                                <span *ngIf="request.registration.status !== 'pending_approval'"
+                                <span *ngIf="request.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
                                     class="text-muted text-xs">—</span>
                             </td>
                         </tr>
