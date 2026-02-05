@@ -19,6 +19,10 @@ export class MatchService {
         return this.http.get<Match[]>(this.apiUrl);
     }
 
+    getMyMatches(): Observable<Match[]> {
+        return this.http.get<Match[]>(`${this.apiUrl}/my-matches`);
+    }
+
     getMatchById(id: string): Observable<Match | undefined> {
         return this.http.get<Match>(`${this.apiUrl}/${id}`);
     }

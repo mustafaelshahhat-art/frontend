@@ -79,10 +79,16 @@ export class ObjectionsListComponent implements OnInit {
                 error: () => this.handleLoadError()
             });
         } else {
-            this.objectionsService.getObjectionsByTeam('team1').subscribe({
-                next: (data) => this.handleObjectionsLoaded(data),
-                error: () => this.handleLoadError()
-            });
+            const teamId = this.currentUser?.teamId;
+            if (teamId) {
+                this.objectionsService.getObjectionsByTeam(teamId).subscribe({
+                    next: (data) => this.handleObjectionsLoaded(data),
+                    error: () => this.handleLoadError()
+                });
+            } else {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
         }
     }
 
@@ -96,6 +102,7 @@ export class ObjectionsListComponent implements OnInit {
 
     private handleLoadError(): void {
         this.isLoading = false;
+        this.uiFeedback.error('خطأ', 'فشل في تحميل الاعتراضات');
         this.cdr.detectChanges();
     }
 
@@ -150,15 +157,9 @@ export class ObjectionsListComponent implements OnInit {
         }
 
         this.objectionsService.submitObjection({
-            teamId: 'team1',
-            teamName: 'النجوم',
-            tournamentId: 't1',
-            tournamentName: 'بطولة رمضان 2024',
             matchId: this.newObjection.matchId,
             type: this.newObjection.type,
-            description: this.newObjection.description,
-            captainId: 'c1',
-            captainName: this.currentUser?.name || 'كابتن'
+            description: this.newObjection.description
         }).subscribe({
             next: () => {
                 this.uiFeedback.success('تم بنجاح', 'تم تقديم الاعتراض بنجاح');

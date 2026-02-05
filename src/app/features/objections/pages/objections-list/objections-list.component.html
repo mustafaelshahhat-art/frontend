@@ -86,7 +86,7 @@
                                 <span style="font-size: 0.875rem;">{{ objection.captainName }}</span>
                             </div>
                         </td>
-                        <td style="color: #64748b; font-size: 0.875rem;">{{ objection.submittedDate | date:'yyyy/MM/dd'
+                        <td style="color: #64748b; font-size: 0.875rem;">{{ objection.createdAt | date:'yyyy/MM/dd'
                             }}</td>
                         <td style="text-align: center;">
                             <app-badge
@@ -122,7 +122,7 @@
 
                 <div class="objection-meta">
                     <span><span class="material-symbols-outlined">tag</span> المباراة: #{{ objection.matchId }}</span>
-                    <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.submittedDate |
+                    <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
                         date:'yyyy/MM/dd' }}</span>
                 </div>
 

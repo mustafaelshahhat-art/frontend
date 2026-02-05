@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ObjectionsService } from '../../../../core/services/objections.service';
+import { UserService } from '../../../../core/services/user.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -47,6 +49,8 @@ export class MatchDetailComponent implements OnInit {
     private permissionsService = inject(PermissionsService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
+    private userService = inject(UserService);
+    private objectionsService = inject(ObjectionsService);
 
     match: Match | null = null;
     isLoading = true;
@@ -96,17 +100,12 @@ export class MatchDetailComponent implements OnInit {
     // Admin: Delete Event Confirm
     pendingDeleteEventId: string | null = null;
 
-    // Referee Regions (Mock)
-    referees = [
-        { id: 'ref1', name: 'محمد الحكم', region: 'الرياض' },
-        { id: 'ref2', name: 'أحمد سعيد', region: 'جدة' },
-        { id: 'ref3', name: 'فهد العامر', region: 'الدمام' },
-        { id: 'ref4', name: 'سلطان القحطاني', region: 'الرياض' }
-    ];
+    // Referee Regions
+    referees: { id: string, name: string, region: string }[] = [];
 
     get filteredReferees() {
         if (!this.match) return this.referees;
-        // Mock team regions
+        // Mock team regions for now
         const homeTeamRegion = 'الرياض'; // This would normally come from team model
         return this.referees.sort((a, b) => {
             if (a.region === homeTeamRegion && b.region !== homeTeamRegion) return -1;
@@ -358,7 +357,20 @@ export class MatchDetailComponent implements OnInit {
     showRefereeModal = false;
 
     openRefereeModal(): void {
-        this.showRefereeModal = true;
+        this.userService.getUsersByRole('Referee').subscribe({
+            next: (users) => {
+                this.referees = users.map(u => ({
+                    id: u.id,
+                    name: u.name,
+                    region: u.city || 'غير محدد' // Map city to region or use a default
+                }));
+                this.showRefereeModal = true;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.uiFeedback.error('خطأ', 'فشل في تحميل قائمة الحكام');
+            }
+        });
     }
 
     closeRefereeModal(): void {
@@ -541,20 +553,26 @@ export class MatchDetailComponent implements OnInit {
     }
 
     submitObjection(): void {
-        if (!this.objectionForm.type || !this.objectionForm.description) {
+        if (!this.match || !this.objectionForm.type || !this.objectionForm.description) {
             this.uiFeedback.warning('تنبيه', 'يرجى ملء جميع الحقول المطلوبة');
             return;
         }
 
-        // Here you would normally send to API
-        console.log('Submitting objection:', {
-            matchId: this.match?.id,
+        const request = {
+            matchId: this.match.id,
             type: this.objectionForm.type,
-            description: this.objectionForm.description,
-            filesCount: this.objectionForm.files.length
-        });
+            description: this.objectionForm.description
+        };
 
-        this.uiFeedback.success('تم بنجاح', 'تم تقديم الاعتراض بنجاح');
-        this.closeObjectionModal();
+        this.objectionsService.submitObjection(request).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم بنجاح', 'تم تقديم الاعتراض بنجاح');
+                this.closeObjectionModal();
+                this.objectionForm = { type: '', description: '', files: [] };
+            },
+            error: () => {
+                this.uiFeedback.error('خطأ', 'فشل في تقديم الاعتراض');
+            }
+        });
     }
 }

@@ -48,7 +48,7 @@ import { FormsModule } from '@angular/forms';
                     </app-card>
 
                     <!-- Decision Section (Admin Only) -->
-                    <app-card *ngIf="objection.status === ObjectionStatus.PENDING || objection.status === 'under_review'" 
+                    <app-card *ngIf="objection.status === ObjectionStatus.PENDING || objection.status === ObjectionStatus.UNDER_REVIEW" 
                         title="اتخاذ قرار" icon="gavel" class="decision-card">
                         <div class="form-group mb-lg">
                             <label class="label mb-xs">ملاحظات اللجنة (اختياري)</label>
@@ -88,7 +88,7 @@ import { FormsModule } from '@angular/forms';
                             </div>
                             <div class="info-item flex justify-between">
                                 <span class="text-muted text-sm">التاريخ</span>
-                                <span class="text-secondary text-sm font-semibold">{{ objection.submittedDate | date:'yyyy/MM/dd' }}</span>
+                                <span class="text-secondary text-sm font-semibold">{{ objection.createdAt | date:'yyyy/MM/dd' }}</span>
                             </div>
                             <div class="info-item flex justify-between">
                                 <span class="text-muted text-sm">النوع</span>
@@ -212,7 +212,7 @@ export class ObjectionDetailComponent implements OnInit {
             status === ObjectionStatus.APPROVED ? 'info' : 'danger'
         ).subscribe(confirmed => {
             if (confirmed) {
-                this.objectionsService.updateObjectionStatus(this.objection!.id, status, this.adminNotes).subscribe(updated => {
+                this.objectionsService.updateObjectionStatus(this.objection!.id, status, this.adminNotes).subscribe((updated: Objection) => {
                     this.objection = updated;
                     this.uiFeedback.success('تم بنجاح', `تم ${actionText} الاعتراض وتحديث الحالة.`);
                 });

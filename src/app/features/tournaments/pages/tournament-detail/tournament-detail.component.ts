@@ -95,6 +95,35 @@ export class TournamentDetailComponent implements OnInit {
         return this.tournament?.registrations?.find((r: any) => r.teamId === teamId);
     }
 
+    // Match generation
+    isGeneratingMatches = false;
+
+    get canGenerateMatches(): boolean {
+        if (!this.tournament) return false;
+        // Can generate if: has registrations >= 2, no matches yet, tournament not cancelled
+        const regCount = this.tournament.registrations?.length || 0;
+        return regCount >= 2 && this.matches.length === 0 && this.tournament.status !== TournamentStatus.CANCELLED;
+    }
+
+    generateMatches(): void {
+        if (!this.tournament || this.isGeneratingMatches) return;
+
+        this.isGeneratingMatches = true;
+        this.tournamentService.generateMatches(this.tournament.id).subscribe({
+            next: (response) => {
+                this.isGeneratingMatches = false;
+                this.matches = response.matches || [];
+                this.uiFeedback.success('تم بنجاح', response.message || 'تم توليد جدول المباريات');
+                // Reload tournament data
+                this.loadData(this.tournament!.id);
+            },
+            error: (err) => {
+                this.isGeneratingMatches = false;
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل توليد المباريات');
+            }
+        });
+    }
+
     loadData(id: string): void {
         this.isLoading = true;
         this.tournamentService.getTournamentById(id).subscribe({
@@ -102,16 +131,35 @@ export class TournamentDetailComponent implements OnInit {
                 this.tournament = data || null;
 
                 if (this.tournament) {
+                    // Fetch matches
                     this.matchService.getMatchesByTournament(id).subscribe({
                         next: (matches) => {
                             this.matches = matches;
+                            this.cdr.detectChanges();
+                        }
+                    });
+
+                    // Fetch standings
+                    this.tournamentService.getStandings(id).subscribe({
+                        next: (standings) => {
+                            // Map backend DTO to frontend structure if needed
+                            this.standings = standings.map(s => ({
+                                team: s.teamName,
+                                played: s.played,
+                                won: s.won,
+                                draw: s.drawn,
+                                lost: s.lost,
+                                gd: s.goalDifference,
+                                points: s.points,
+                                form: s.form
+                            }));
                             this.isLoading = false;
                             this.checkGlobalBusyStatus();
                             this.cdr.detectChanges();
                         },
                         error: () => {
+                            // Standings might fail if no matches (handled gracefully)
                             this.isLoading = false;
-                            this.cdr.detectChanges();
                         }
                     });
                 } else {

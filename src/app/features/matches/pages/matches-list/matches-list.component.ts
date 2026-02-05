@@ -105,18 +105,26 @@ export class MatchesListComponent implements OnInit {
         const handleSuccess = (data: Match[]) => {
             this.matches.set(data);
             this.isLoading.set(false);
+            this.cdr.detectChanges();
         };
 
         const handleError = () => {
             this.isLoading.set(false);
+            this.cdr.detectChanges();
         };
 
         if (this.userRole === UserRole.ADMIN) {
             this.matchService.getMatches().subscribe({ next: handleSuccess, error: handleError });
         } else if (this.userRole === UserRole.REFEREE) {
-            this.matchService.getMatchesByReferee('ref1').subscribe({ next: handleSuccess, error: handleError });
+            this.matchService.getMyMatches().subscribe({ next: handleSuccess, error: handleError });
         } else {
-            this.matchService.getMatchesByTeam('team1').subscribe({ next: handleSuccess, error: handleError });
+            const teamId = this.currentUser?.teamId;
+            if (teamId) {
+                this.matchService.getMatchesByTeam(teamId).subscribe({ next: handleSuccess, error: handleError });
+            } else {
+                this.isLoading.set(false);
+                this.cdr.detectChanges();
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatchService } from '../../core/services/match.service';
@@ -21,10 +21,12 @@ export class RefereeDashboardComponent implements OnInit {
     private router = inject(Router);
     private matchService = inject(MatchService);
     private uiFeedback = inject(UIFeedbackService);
+    private cdr = inject(ChangeDetectorRef);
 
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
 
     todayMatches: Match[] = [];
+    allMatches: Match[] = [];
     MatchStatus = MatchStatus;
     MatchEventType = MatchEventType;
 
@@ -44,21 +46,26 @@ export class RefereeDashboardComponent implements OnInit {
     }
 
     loadStats(): void {
-        // TODO: Implement backend analytics endpoint for referee stats
+        const finishedMatches = this.allMatches.filter(m => m.status === MatchStatus.FINISHED);
+        const pendingReports = finishedMatches.filter(m => !m.refereeNotes || m.refereeNotes.trim() === '').length;
+
         this.stats = [
-            { label: 'مباريات اليوم', value: '0', icon: 'today', colorClass: 'primary' },
-            { label: 'إجمالي المباريات', value: '0', icon: 'history', colorClass: 'info' },
-            { label: 'تقارير معلقة', value: '0', icon: 'description', colorClass: 'gold' },
-            { label: 'التقييم', value: '0.0', icon: 'star', colorClass: 'info' }
+            { label: 'مباريات اليوم', value: this.todayMatches.length.toString(), icon: 'today', colorClass: 'primary' },
+            { label: 'إجمالي المباريات', value: this.allMatches.length.toString(), icon: 'history', colorClass: 'info' },
+            { label: 'تقارير معلقة', value: pendingReports.toString(), icon: 'description', colorClass: 'gold' },
+            { label: 'التقييم', value: '5.0', icon: 'star', colorClass: 'info' }
         ];
     }
 
     loadMatches(): void {
-        this.matchService.getMatches().subscribe({
+        this.matchService.getMyMatches().subscribe({
             next: (matches) => {
+                this.allMatches = matches;
                 this.todayMatches = matches.filter(m =>
                     m.status === MatchStatus.SCHEDULED || m.status === MatchStatus.LIVE
                 );
+                this.loadStats();
+                this.cdr.detectChanges();
             },
             error: () => {
                 this.todayMatches = [];

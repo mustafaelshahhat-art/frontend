@@ -31,6 +31,16 @@
                 </div>
 
             </app-match-card>
+
+            <div *ngIf="todayMatches.length === 0" class="col-span-full py-xl text-center">
+                <div *ngIf="allMatches.length > 0; else noMatches" class="animate-pulse">
+                    <p class="text-muted">لديك {{ allMatches.length }} مباريات إجمالاً، ولكن لا توجد مباريات جارية أو
+                        مجدولة لليوم.</p>
+                </div>
+                <ng-template #noMatches>
+                    <p class="text-muted">لا توجد مباريات معينة لك حالياً.</p>
+                </ng-template>
+            </div>
         </div>
 
         <!-- Stats Grid -->

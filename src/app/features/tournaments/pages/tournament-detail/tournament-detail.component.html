@@ -61,6 +61,12 @@
                                     {{ tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح
                                     التسجيل' }}
                                 </app-button>
+                                
+                                <!-- Generate Matches Button -->
+                                <app-button *ngIf="canGenerateMatches" variant="outline" size="md" icon="calendar_month"
+                                    (click)="generateMatches()" [disabled]="isGeneratingMatches">
+                                    {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
+                                </app-button>
                             </ng-container>
 
                             <!-- Captain Actions -->

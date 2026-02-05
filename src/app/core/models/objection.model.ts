@@ -11,23 +11,23 @@ export interface Objection {
     description: string;
     evidence?: string[];
     status: ObjectionStatus;
-    submittedDate: Date;
+    createdAt: Date;
     reviewedDate?: Date;
     reviewedBy?: string;
     adminNotes?: string;
 }
 
 export enum ObjectionType {
-    MATCH_RESULT = 'match_result',
-    REFEREE_DECISION = 'referee_decision',
-    PLAYER_ELIGIBILITY = 'player_eligibility',
-    RULE_VIOLATION = 'rule_violation',
-    OTHER = 'other'
+    MATCH_RESULT = 'MatchResult',
+    REFEREE_DECISION = 'RefereeDecision',
+    PLAYER_ELIGIBILITY = 'PlayerEligibility',
+    RULE_VIOLATION = 'RuleViolation',
+    OTHER = 'Other'
 }
 
 export enum ObjectionStatus {
-    PENDING = 'pending',
-    UNDER_REVIEW = 'under_review',
-    APPROVED = 'approved',
-    REJECTED = 'rejected'
+    PENDING = 'Pending',
+    UNDER_REVIEW = 'UnderReview',
+    APPROVED = 'Approved',
+    REJECTED = 'Rejected'
 }

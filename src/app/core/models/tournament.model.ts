@@ -57,12 +57,12 @@ export interface Tournament {
 
 
 export enum MatchStatus {
-    SCHEDULED = 'scheduled',
-    LIVE = 'live',
-    HALFTIME = 'halftime',
-    FINISHED = 'finished',
-    CANCELLED = 'cancelled',
-    POSTPONED = 'postponed'
+    SCHEDULED = 'Scheduled',
+    LIVE = 'Live',
+    HALFTIME = 'Halftime',
+    FINISHED = 'Finished',
+    CANCELLED = 'Cancelled',
+    POSTPONED = 'Postponed'
 }
 
 export interface Match {
@@ -141,11 +141,11 @@ export interface Player {
 }
 
 export enum MatchEventType {
-    GOAL = 'goal',
-    YELLOW_CARD = 'yellow_card',
-    RED_CARD = 'red_card',
-    PENALTY = 'penalty',
-    OWN_GOAL = 'own_goal'
+    GOAL = 'Goal',
+    YELLOW_CARD = 'YellowCard',
+    RED_CARD = 'RedCard',
+    PENALTY = 'Penalty',
+    OWN_GOAL = 'OwnGoal'
 }
 
 export interface MatchEvent {

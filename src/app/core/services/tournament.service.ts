@@ -70,6 +70,14 @@ export class TournamentService {
         return this.http.get<TeamRegistration[]>(`${this.apiUrl}/${tournamentId}/registrations`);
     }
 
+    generateMatches(tournamentId: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
+    }
+
+    getStandings(tournamentId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${tournamentId}/standings`);
+    }
+
     // Helper methods (mock replacement)
     getTeamActiveTournament(teamId: string): Observable<Tournament | null> {
         // This logic usually requires a specific endpoint "active-tournament-for-team".
