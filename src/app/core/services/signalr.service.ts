@@ -16,6 +16,11 @@ export class SignalRService {
         return this.connectionStatus$.asObservable();
     }
 
+    isConnected(hubPath: string): boolean {
+        const connection = this.hubs.get(hubPath);
+        return connection?.state === signalR.HubConnectionState.Connected;
+    }
+
     createConnection(hubPath: string): signalR.HubConnection {
         if (this.hubs.has(hubPath)) {
             return this.hubs.get(hubPath)!;

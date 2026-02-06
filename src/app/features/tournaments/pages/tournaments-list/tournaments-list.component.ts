@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, 
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../core/services/tournament.service';
+import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
@@ -46,6 +47,7 @@ interface TournamentFilter {
 })
 export class TournamentsListComponent implements OnInit {
     private readonly tournamentService = inject(TournamentService);
+    private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly router = inject(Router);
@@ -122,13 +124,39 @@ export class TournamentsListComponent implements OnInit {
         return this.authService.hasRole(UserRole.ADMIN);
     }
 
+    // Team State
+    myTeam = signal<any | null>(null);
+
+    // Derived State
+    isCaptain = computed(() => {
+        const team = this.myTeam();
+        const user = this.authService.getCurrentUser();
+        return team && user ? team.captainId === user.id : false;
+    });
+
     // Check if user has a team (proxy for "Captain" UI section access)
     hasTeam(): boolean {
         return !!this.authService.getCurrentUser()?.teamId;
     }
 
+    // Check if team is disabled
+    isTeamDisabled = computed(() => {
+        const team = this.myTeam();
+        return team ? team.isActive === false : false;
+    });
+
     loadTournaments(): void {
         this.isLoading.set(true);
+
+        // Load team details if user belongs to one
+        const user = this.authService.getCurrentUser();
+        if (user?.teamId) {
+            this.teamService.getTeamById(user.teamId).subscribe({
+                next: (team) => this.myTeam.set(team || null),
+                error: () => this.myTeam.set(null)
+            });
+        }
+
         this.tournamentService.getTournaments().subscribe({
             next: (data) => {
                 this.tournaments.set(data);
@@ -196,6 +224,11 @@ export class TournamentsListComponent implements OnInit {
 
         if (this.isTeamBusy()) {
             this.uiFeedback.error('تنبيه', 'لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت');
+            return;
+        }
+
+        if (this.isTeamDisabled()) {
+            this.uiFeedback.error('تنبيه', 'لا يمكن للفريق المعطل المشاركة في أي أنشطة تنافسية.');
             return;
         }
 

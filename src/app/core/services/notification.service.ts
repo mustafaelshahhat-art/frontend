@@ -47,7 +47,17 @@ export class NotificationService {
     }
 
     private async connectHub(): Promise<void> {
+        // Prevent duplicate connections and listeners
+        if (this.signalRService.isConnected('notifications')) {
+            return;
+        }
+
         const connection = this.signalRService.createConnection('notifications');
+
+        // Ensure clean state for listeners
+        connection.off('ReceiveNotification');
+        connection.off('AccountStatusChanged');
+        connection.off('RemovedFromTeam');
 
         connection.on('ReceiveNotification', (notification: Notification) => {
             const current = this.notifications$.value;

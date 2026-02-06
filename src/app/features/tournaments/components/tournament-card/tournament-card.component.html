@@ -99,11 +99,19 @@
         </div>
     </div>
 
+    <!-- Team Disabled Info -->
+    <div *ngIf="isTeamDisabled" class="context-messages">
+        <div class="context-msg rejected animate-pulse-subtle">
+            <span class="material-symbols-outlined">warning</span>
+            <span>تم تعطيل الفريق بواسطة الإدارة</span>
+        </div>
+    </div>
+
     <!-- Non-Owner Player Info -->
-    <div *ngIf="showNonOwnerHint" class="context-messages">
+    <div *ngIf="showNonOwnerHint && !isTeamDisabled" class="context-messages">
         <div class="context-msg info">
             <span class="material-symbols-outlined">info</span>
-            <span>فقط أصحاب الفرق يمكنهم التسجيل</span>
+            <span>التسجيل متاح لقائد الفريق فقط</span>
         </div>
     </div>
 

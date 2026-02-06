@@ -198,6 +198,8 @@
                                     <th>فاز</th>
                                     <th>تعادل</th>
                                     <th>خسر</th>
+                                    <th>له</th>
+                                    <th>عليه</th>
                                     <th>+/-</th>
                                     <th class="points">نقاط</th>
                                     <th style="text-align: center;">آخر 5</th>
@@ -216,6 +218,8 @@
                                     <td>{{ s.won }}</td>
                                     <td>{{ s.draw }}</td>
                                     <td>{{ s.lost }}</td>
+                                    <td>{{ s.gf }}</td>
+                                    <td>{{ s.ga }}</td>
                                     <td>{{ s.gd }}</td>
                                     <td class="points">{{ s.points }}</td>
                                     <td style="text-align: center;">
@@ -253,6 +257,10 @@
                                 <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.draw
                                         }}</span></div>
                                 <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost
+                                        }}</span></div>
+                                <div class="stat-box"><span class="label">له</span><span class="value">{{ s.gf }}</span>
+                                </div>
+                                <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.ga
                                         }}</span></div>
                                 <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.gd
                                         }}</span></div>

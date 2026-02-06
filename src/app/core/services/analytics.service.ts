@@ -8,6 +8,7 @@ export interface DashboardStats {
     activeTournaments: number;
     matchesToday: number;
     pendingObjections: number;
+    totalGoals: number;
 }
 
 export interface TeamStats {
@@ -40,7 +41,8 @@ export class AnalyticsService {
                 totalUsers: data.totalUsers,
                 activeTournaments: data.activeTournaments,
                 matchesToday: data.matchesToday,
-                pendingObjections: data.pendingObjections
+                pendingObjections: data.pendingObjections,
+                totalGoals: data.totalGoals
             }))
         );
     }

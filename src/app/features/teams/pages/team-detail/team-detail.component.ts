@@ -29,7 +29,8 @@ import { AuthService } from '../../../../core/services/auth.service';
             [canDeleteTeam]="isCaptainOrAdmin"
             (playerAction)="handlePlayerAction($event)"
             (tabChanged)="handleTabChange($event)"
-            (deleteTeam)="handleDeleteTeam()">
+            (deleteTeam)="handleDeleteTeam()"
+            (disableTeam)="handleDisableTeam()">
         </app-team-detail>
 
         <!-- Only show centering spinner if we have NO data yet -->
@@ -135,6 +136,21 @@ export class TeamDetailPageComponent implements OnInit {
             error: (err) => {
                 console.error('Delete failed', err);
                 this.uiFeedback.error('خطأ', 'فشل حذف الفريق');
+            }
+        });
+    }
+
+    handleDisableTeam(): void {
+        if (!this.team) return;
+
+        this.teamService.disableTeam(this.team.id).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
+                this.loadTeam(); // Reload data to reflect changes
+            },
+            error: (err) => {
+                console.error('Disable failed', err);
+                this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
             }
         });
     }

@@ -111,5 +111,9 @@ export class TeamService {
     getTeamFinancials(teamId: string): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/${teamId}/financials`);
     }
+
+    disableTeam(teamId: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/${teamId}/disable`, {});
+    }
 }
 

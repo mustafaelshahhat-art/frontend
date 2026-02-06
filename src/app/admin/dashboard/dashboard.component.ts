@@ -5,6 +5,7 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card.c
 import { ActionCardComponent } from '../../shared/components/action-card/action-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { AnalyticsService, DashboardStats, Activity } from '../../core/services/analytics.service';
 import { MatchService } from '../../core/services/match.service';
 import { Match } from '../../core/models/tournament.model';
@@ -17,7 +18,8 @@ import { Match } from '../../core/models/tournament.model';
         StatCardComponent,
         ActionCardComponent,
         PageHeaderComponent,
-        WelcomeCardComponent
+        WelcomeCardComponent,
+        ButtonComponent
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
@@ -45,6 +47,7 @@ export class AdminDashboardComponent implements OnInit {
                         { label: 'إجمالي المستخدمين', value: data.totalUsers.toLocaleString(), icon: 'groups', colorClass: 'info' },
                         { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'primary' },
                         { label: 'المباريات اليوم', value: data.matchesToday.toString(), icon: 'sports_soccer', colorClass: 'gold' },
+                        { label: 'إجمالي الأهداف', value: data.totalGoals.toString(), icon: 'stars', colorClass: 'success' },
                         { label: 'اعتراضات معلقة', value: data.pendingObjections.toString(), icon: 'report_problem', colorClass: 'danger' }
                     ];
                     this.cdr.detectChanges();
@@ -56,6 +59,7 @@ export class AdminDashboardComponent implements OnInit {
                         { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info' },
                         { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary' },
                         { label: 'المباريات اليوم', value: '0', icon: 'sports_soccer', colorClass: 'gold' },
+                        { label: 'إجمالي الأهداف', value: '0', icon: 'stars', colorClass: 'success' },
                         { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger' }
                     ];
                     this.cdr.detectChanges();

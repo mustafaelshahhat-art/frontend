@@ -103,6 +103,7 @@ export class TeamDetailComponent {
     @Output() editName = new EventEmitter<string>();
     @Output() addPlayer = new EventEmitter<string>();
     @Output() deleteTeam = new EventEmitter<void>();
+    @Output() disableTeam = new EventEmitter<void>();
     @Output() respondRequest = new EventEmitter<{ request: any, approve: boolean }>();
 
     @Input() canSeeRequests: boolean = false;
@@ -259,6 +260,19 @@ export class TeamDetailComponent {
         ).subscribe(confirmed => {
             if (confirmed) {
                 this.deleteTeam.emit();
+            }
+        });
+    }
+
+    onDisableTeamClick(): void {
+        this.uiFeedback.confirm(
+            'تعطيل الفريق',
+            'هل أنت متأكد من تعطيل هذا الفريق؟ سيؤدي ذلك إلى انسحابه من أي بطولة جارية واعتبار مبارياته القادمة خاسرة (0-3). لا يمكن التراجع عن هذا الإجراء بسهولة.',
+            'تأكيد التعطيل',
+            'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.disableTeam.emit();
             }
         });
     }

@@ -158,11 +158,14 @@ export class TournamentDetailComponent implements OnInit {
                         next: (standings) => {
                             // Map backend DTO to frontend structure if needed
                             this.standings = standings.map(s => ({
+                                teamId: s.teamId,
                                 team: s.teamName,
                                 played: s.played,
                                 won: s.won,
                                 draw: s.drawn,
                                 lost: s.lost,
+                                gf: s.goalsFor,
+                                ga: s.goalsAgainst,
                                 gd: s.goalDifference,
                                 points: s.points,
                                 form: s.form

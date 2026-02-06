@@ -37,6 +37,9 @@
                             [dotType]="team.status === 'READY' ? 'active' : 'pending'" class="px-3">
                             {{ team.status === 'READY' ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
                         </app-badge>
+
+                        <app-button *ngIf="canManageStatus && team.isActive" (click)="onDisableTeamClick()"
+                            variant="danger" size="sm" icon="block" class="ms-auto">تعطيل الفريق</app-button>
                     </div>
 
                     <div class="flex items-center gap-lg flex-wrap mobile-center">
@@ -49,6 +52,19 @@
                             <span>الكابتن: <span class="text-primary-light">{{ team.captainName }}</span></span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Disabled Banner -->
+        <div *ngIf="!team.isActive"
+            class="card bg-danger bg-opacity-10 border-danger border-opacity-20 p-lg animate-pulse-subtle">
+            <div class="flex items-center gap-4 text-danger">
+                <span class="material-symbols-outlined text-3xl">warning</span>
+                <div class="flex-col">
+                    <h4 class="font-super-black mb-1">تم تعطيل هذا الفريق بواسطة الإدارة</h4>
+                    <p class="text-sm opacity-80 mb-0">تم إيقاف كافة الأنشطة التنافسية لهذا الفريق وانسحابه من البطولات
+                        الحالية.</p>
                 </div>
             </div>
         </div>
