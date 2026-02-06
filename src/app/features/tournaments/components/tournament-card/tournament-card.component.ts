@@ -4,6 +4,7 @@ import { Tournament, TournamentStatus, RegistrationStatus } from '../../../../co
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
+import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -19,7 +20,8 @@ import { AuthService } from '../../../../core/services/auth.service';
         CardComponent,
         BadgeComponent,
         ButtonComponent,
-        StatusLabelPipe
+        StatusLabelPipe,
+        SmartImageComponent
     ],
     templateUrl: './tournament-card.component.html',
     styleUrls: ['./tournament-card.component.scss']

@@ -100,11 +100,11 @@
                                 <div *ngIf="isRegistered" class="registration-status-wrapper">
                                     <div class="registration-status-info">
                                         <span class="material-symbols-outlined text-success">check_circle</span>
-                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration.status) }})</span>
+                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration?.status || '') }})</span>
                                     </div>
 
                                     <!-- Temporary Registration Banner -->
-                                    <div *ngIf="myRegistration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW"
+                                    <div *ngIf="myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW"
                                         class="review-banner animate-pulse-subtle">
                                         <span class="material-symbols-outlined">info</span>
                                         <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
@@ -213,7 +213,14 @@
                                             class="material-symbols-outlined winner-icon">military_tech</span>
                                         {{ i + 1 }}
                                     </td>
-                                    <td class="team-name">{{ s.team }}</td>
+                                    <td class="team-name">
+                                        <div class="flex items-center gap-2">
+                                            <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
+                                                [initials]="s.team.charAt(0)">
+                                            </app-smart-image>
+                                            <span>{{ s.team }}</span>
+                                        </div>
+                                    </td>
                                     <td>{{ s.played }}</td>
                                     <td>{{ s.won }}</td>
                                     <td>{{ s.draw }}</td>
@@ -243,6 +250,9 @@
                                             class="material-symbols-outlined">military_tech</span>
                                         {{ i + 1 }}
                                     </div>
+                                    <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
+                                        [initials]="s.team.charAt(0)">
+                                    </app-smart-image>
                                     <h4>{{ s.team }}</h4>
                                 </div>
                                 <app-badge [type]="tournament.winnerTeamId === s.teamId ? 'gold' : 'success'">{{
@@ -293,7 +303,9 @@
                 <div *ngSwitchCase="'teams'" class="teams-grid">
                     <div *ngFor="let reg of tournament.registrations" class="team-card">
                         <div class="team-logo">
-                            <span class="material-symbols-outlined">shield</span>
+                            <app-smart-image [src]="$any(reg).teamLogoUrl" type="team" size="sm"
+                                [initials]="reg.teamName.charAt(0)">
+                            </app-smart-image>
                         </div>
                         <div class="team-info">
                             <h3>{{ reg.teamName }}</h3>

@@ -8,8 +8,9 @@
         <div class="profile-sidebar">
             <app-card class="avatar-card">
                 <div class="avatar-wrapper">
-                    <img *ngIf="profilePicture" [src]="profilePicture" [alt]="user?.name">
-                    <span *ngIf="!profilePicture" class="initial">{{ userInitial }}</span>
+                    <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
+                        style="width: 100%; height: 100%;" [initials]="userInitial">
+                    </app-smart-image>
 
                     <div *ngIf="isUploadingPicture" class="uploading-overlay">
                         <div class="loading-spinner"></div>

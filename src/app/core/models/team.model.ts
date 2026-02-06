@@ -38,6 +38,7 @@ export interface TeamRegistration {
     status: 'PendingPaymentReview' | 'Approved' | 'Rejected';
     paymentReceiptUrl?: string;
     rejectionReason?: string;
+    teamLogoUrl?: string;
     registeredAt: Date;
 }
 

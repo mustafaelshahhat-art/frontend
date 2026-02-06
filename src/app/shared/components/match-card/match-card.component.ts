@@ -1,11 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Match, MatchStatus } from '../../../core/models/tournament.model';
+import { SmartImageComponent } from '../smart-image/smart-image.component';
 
 @Component({
     selector: 'app-match-card',
     standalone: true,
-    imports: [CommonModule],
+    imports: [
+        CommonModule,
+        SmartImageComponent
+    ],
     templateUrl: './match-card.component.html',
     styleUrls: ['./match-card.component.scss']
 })

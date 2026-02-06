@@ -1,0 +1,198 @@
+.smart-image-container {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-light, #f8f9fa);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+
+    &.rounded {
+        border-radius: 50%;
+
+        &.team,
+        &.id,
+        &.tournament {
+            border-radius: 12px;
+        }
+    }
+
+    &.bordered {
+        border: 2px solid var(--border-color, rgba(0, 0, 0, 0.05));
+    }
+
+    // Sizes
+    &.xs {
+        width: 24px;
+        height: 24px;
+
+        .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .initials {
+            font-size: 10px;
+        }
+    }
+
+    &.sm {
+        width: 40px;
+        height: 40px;
+
+        .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .initials {
+            font-size: 14px;
+        }
+    }
+
+    &.md {
+        width: 64px;
+        height: 64px;
+
+        .material-symbols-outlined {
+            font-size: 32px;
+        }
+
+        .initials {
+            font-size: 20px;
+        }
+    }
+
+    &.lg {
+        width: 120px;
+        height: 120px;
+
+        .material-symbols-outlined {
+            font-size: 48px;
+        }
+
+        .initials {
+            font-size: 36px;
+        }
+    }
+
+    &.xl {
+        width: 200px;
+        height: 200px;
+
+        .material-symbols-outlined {
+            font-size: 64px;
+        }
+
+        .initials {
+            font-size: 48px;
+        }
+    }
+
+    &.custom {
+        width: 100%;
+        height: 100%;
+    }
+
+    .main-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+
+        &.loaded {
+            opacity: 1;
+        }
+    }
+
+    .skeleton-loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        background-color: #eee;
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    .image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary-light, #e3f2fd), var(--surface-light, #f8f9fa));
+        color: var(--primary, #1976d2);
+
+        .placeholder-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+
+            .material-symbols-outlined {
+                opacity: 0.7;
+            }
+
+            .initials {
+                font-weight: 700;
+                letter-spacing: 1px;
+            }
+
+            .label {
+                font-size: 10px;
+                opacity: 0.6;
+                font-weight: 500;
+            }
+        }
+    }
+
+    // Contextual coloring
+    &.referee .image-placeholder {
+        background: linear-gradient(135deg, #fff3e0, #fff);
+        color: #f57c00;
+    }
+
+    &.team .image-placeholder {
+        background: linear-gradient(135deg, #e8f5e9, #fff);
+        color: #388e3c;
+    }
+
+    &.tournament .image-placeholder {
+        background: linear-gradient(135deg, #fffde7, #fff);
+        color: #fbc02d;
+    }
+
+    &.id .image-placeholder {
+        background: linear-gradient(135deg, #f3e5f5, #fff);
+        color: #7b1fa2;
+    }
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

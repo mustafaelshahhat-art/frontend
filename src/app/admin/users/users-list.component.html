@@ -42,9 +42,10 @@
                             <td class="text-muted">{{ (i + 1).toString().padStart(2, '0') }}</td>
                             <td>
                                 <div class="flex items-center gap-3">
-                                    <div class="avatar avatar-md">
-                                        <span class="text-primary font-bold">{{ user.name.charAt(0) }}</span>
-                                    </div>
+                                    <app-smart-image [src]="user.avatar"
+                                        [type]="user.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
+                                        [initials]="user.name.charAt(0)">
+                                    </app-smart-image>
                                     <div class="flex-col">
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-sm">{{ user.name }}</span>

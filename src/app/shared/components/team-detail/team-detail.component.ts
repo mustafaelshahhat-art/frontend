@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { UIFeedbackService } from '../../services/ui-feedback.service';
 import { FilterComponent } from '../filter/filter.component';
 import { ButtonComponent } from '../button/button.component';
 import { BadgeComponent } from '../badge/badge.component';
+import { SmartImageComponent } from '../smart-image/smart-image.component';
 
 export interface TeamPlayer {
     id: string; // Changed to string (Guid)
@@ -22,10 +23,12 @@ export interface TeamMatch {
     id: string;
     opponent: string;
     date: Date;
-    homeScore?: number;
-    awayScore?: number;
+    score?: string;
     status: string;
     type: string;
+    opponentLogo?: string;
+    teamScore?: number;
+    opponentScore?: number;
 }
 
 export interface TeamFinance {
@@ -75,12 +78,13 @@ export interface TeamData {
         FormsModule,
         FilterComponent,
         ButtonComponent,
-        BadgeComponent
+        BadgeComponent,
+        SmartImageComponent
     ],
     templateUrl: './team-detail.component.html',
     styleUrls: ['./team-detail.component.scss']
 })
-export class TeamDetailComponent {
+export class TeamDetailComponent implements OnChanges {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
 
@@ -112,13 +116,14 @@ export class TeamDetailComponent {
     activeTab = 'overview';
     isEditingName = false;
     tempName = '';
+    filteredTabs: any[] = [];
 
     onRespondRequest(request: any, approve: boolean): void {
         this.respondRequest.emit({ request, approve });
     }
 
-    get filteredTabs() {
-        return this.tabs.filter(tab => {
+    private updateFilteredTabs(): void {
+        this.filteredTabs = this.tabs.filter(tab => {
             if (tab.value === 'requests') return this.canSeeRequests;
             if (tab.value === 'finances') return this.canSeeFinances;
             return true;
@@ -133,9 +138,16 @@ export class TeamDetailComponent {
         { value: 'finances', label: 'المالية', icon: 'payments' }
     ];
 
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['canSeeRequests'] || changes['canSeeFinances']) {
+            this.updateFilteredTabs();
+        }
+    }
+
     ngOnInit(): void {
         this.activeTab = this.initialTab;
         this.tempName = this.team?.name || '';
+        this.updateFilteredTabs();
     }
 
     startEditName(): void {

@@ -9,8 +9,9 @@
 
             <div class="flex items-center gap-xl p-lg flex-wrap mobile-center relative">
                 <!-- Team Logo Square (Premium) -->
-                <div class="avatar-xl shadow-glow-sm border-4 border-surface-light">
-                    <img class="avatar-img" [src]="team.logo" [alt]="team.name">
+                <div class="shadow-glow-sm border-4 border-surface-light rounded-xl overflow-hidden">
+                    <app-smart-image [src]="team.logo" type="team" size="lg" [initials]="team.name.charAt(0)">
+                    </app-smart-image>
                 </div>
 
                 <!-- Identity Details -->
@@ -143,10 +144,9 @@
                     <div *ngFor="let player of team.players" class="player-mobile-card p-3">
                         <div class="flex items-center gap-4">
                             <div class="player-avatar-pill">
-                                <div
-                                    class="avatar avatar-md bg-primary bg-opacity-10 rounded-xl flex items-center justify-center font-super-black text-primary">
-                                    {{ player.name.charAt(0) }}
-                                </div>
+                                <app-smart-image [src]="null" type="avatar" size="sm"
+                                    [initials]="player.name.charAt(0)">
+                                </app-smart-image>
                             </div>
                             <div class="flex-1">
                                 <div class="flex-between items-center">
@@ -206,18 +206,17 @@
 
                     <div class="p-lg flex items-center justify-between gap-xl mobile-center">
                         <div class="flex-1 flex flex-col items-center gap-3">
-                            <div class="avatar-lg bg-surface border border-visible shadow-sm">
-                                <img [src]="team.logo" class="avatar-img" alt="">
-                            </div>
+                            <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)">
+                            </app-smart-image>
                             <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
                         </div>
 
                         <div class="flex flex-col items-center gap-2">
                             <div class="flex items-center gap-5">
-                                <span class="text-5xl font-super-black text-primary">{{ match.homeScore ?? 0
+                                <span class="text-5xl font-super-black text-primary">{{ match.teamScore ?? 0
                                     }}</span>
                                 <span class="text-muted opacity-30 text-3xl">:</span>
-                                <span class="text-5xl font-super-black text-primary">{{ match.awayScore ?? 0
+                                <span class="text-5xl font-super-black text-primary">{{ match.opponentScore ?? 0
                                     }}</span>
                             </div>
                             <app-badge
@@ -229,10 +228,9 @@
                         </div>
 
                         <div class="flex-1 flex flex-col items-center gap-3">
-                            <div class="avatar-lg bg-surface border border-visible shadow-sm">
-                                <img src="https://cdn-icons-png.flaticon.com/512/1165/1165217.png" class="avatar-img"
-                                    alt="">
-                            </div>
+                            <app-smart-image [src]="match.opponentLogo" type="team" size="md"
+                                [initials]="match.opponent.charAt(0)">
+                            </app-smart-image>
                             <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
                         </div>
                     </div>
@@ -278,9 +276,9 @@
                 <div *ngFor="let request of team.invitations"
                     class="card p-md flex-between items-center animate-fade-in">
                     <div class="flex items-center gap-3">
-                        <div class="avatar avatar-md bg-surface-light text-primary font-bold">
-                            {{ request.playerName?.charAt(0) || 'P' }}
-                        </div>
+                        <app-smart-image [src]="null" type="avatar" size="sm"
+                            [initials]="request.playerName?.charAt(0) || 'P'">
+                        </app-smart-image>
                         <div class="flex-col">
                             <span class="font-bold">{{ request.playerName }}</span>
                             <span class="text-xs text-muted">أرسلت في: {{ request.requestDate | date:'y/MM/dd'

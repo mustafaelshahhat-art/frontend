@@ -2,10 +2,13 @@
     [class.is-finished]="tournament.status === TournamentStatus.COMPLETED" (click)="onCardClick()">
     <!-- Banner with Icon and Status Badge -->
     <div class="tournament-banner" [class.winner-glow]="tournament.winnerTeamId">
-        <!-- Winner Trophy for Finished Tournaments -->
+        <app-smart-image [src]="tournament.imageUrl" type="tournament" size="custom"
+            style="height: 100%; width: 100%; position: absolute; inset: 0;">
+        </app-smart-image>
+
+        <!-- Winner Trophy Overlay -->
         <span *ngIf="tournament.winnerTeamId"
             class="material-symbols-outlined trophy-icon animate-bounce-subtle">emoji_events</span>
-        <span *ngIf="!tournament.winnerTeamId" class="material-symbols-outlined emoji-glow">emoji_events</span>
 
         <!-- Status Badge -->
         <div class="status-badge-overlay">

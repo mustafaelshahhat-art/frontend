@@ -37,8 +37,10 @@
 
             <div class="score-card-content">
                 <div class="team-block home clickable" [routerLink]="getTeamRoute(match.homeTeamId)">
-                    <div class="team-shield">
-                        <span class="material-symbols-outlined">shield</span>
+                    <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                        <app-smart-image [src]="match.homeTeamLogoUrl" type="team" size="md"
+                            [initials]="match.homeTeamName.charAt(0)">
+                        </app-smart-image>
                     </div>
                     <h2>{{ match.homeTeamName }}</h2>
                     <span class="team-tag">صاحب الأرض</span>
@@ -53,8 +55,10 @@
                 </div>
 
                 <div class="team-block away clickable" [routerLink]="getTeamRoute(match.awayTeamId)">
-                    <div class="team-shield">
-                        <span class="material-symbols-outlined">shield</span>
+                    <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                        <app-smart-image [src]="match.awayTeamLogoUrl" type="team" size="md"
+                            [initials]="match.awayTeamName.charAt(0)">
+                        </app-smart-image>
                     </div>
                     <h2>{{ match.awayTeamName }}</h2>
                     <span class="team-tag">الضيف</span>
@@ -350,7 +354,8 @@
                 <div *ngFor="let ref of filteredReferees" class="referee-item-opt" (click)="assignReferee(ref)"
                     [class.active]="match?.refereeId === ref.id">
                     <div class="ref-avatar">
-                        <span class="material-symbols-outlined">account_circle</span>
+                        <app-smart-image [src]="null" type="avatar" size="xs" [initials]="ref.name.charAt(0)">
+                        </app-smart-image>
                     </div>
                     <div class="ref-info">
                         <span class="ref-name">{{ ref.name }}</span>

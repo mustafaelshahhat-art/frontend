@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus, Match, RegistrationStatus } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, Match, RegistrationStatus, TeamRegistration } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -15,6 +15,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
 
 @Component({
@@ -31,6 +32,7 @@ import { TeamRegistrationModalComponent } from '../../components/team-registrati
         ButtonComponent,
         MatchCardComponent,
         EmptyStateComponent,
+        SmartImageComponent,
         TeamRegistrationModalComponent
     ],
     templateUrl: './tournament-detail.component.html',
@@ -104,9 +106,9 @@ export class TournamentDetailComponent implements OnInit {
         return !!this.myRegistration && this.myRegistration.status !== RegistrationStatus.REJECTED;
     }
 
-    get myRegistration(): any {
+    get myRegistration(): TeamRegistration | undefined {
         const teamId = this.authService.getCurrentUser()?.teamId;
-        return this.tournament?.registrations?.find((r: any) => r.teamId === teamId);
+        return this.tournament?.registrations?.find((r: TeamRegistration) => r.teamId === teamId);
     }
 
     // Match generation
@@ -160,6 +162,7 @@ export class TournamentDetailComponent implements OnInit {
                             this.standings = standings.map(s => ({
                                 teamId: s.teamId,
                                 team: s.teamName,
+                                teamLogoUrl: s.teamLogoUrl,
                                 played: s.played,
                                 won: s.won,
                                 draw: s.drawn,

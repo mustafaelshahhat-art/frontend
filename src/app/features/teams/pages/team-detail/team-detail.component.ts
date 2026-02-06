@@ -164,9 +164,12 @@ export class TeamDetailPageComponent implements OnInit {
                         matches: matches.map(m => ({
                             id: m.id,
                             opponent: m.homeTeamId === teamId ? m.awayTeamName : m.homeTeamName,
+                            opponentLogo: m.homeTeamId === teamId ? m.awayTeamLogoUrl : m.homeTeamLogoUrl,
                             date: m.date ? new Date(m.date) : new Date(),
                             score: `${m.homeScore}-${m.awayScore}`,
-                            status: this.getMatchResultStatus(m, teamId),
+                            teamScore: m.homeTeamId === teamId ? m.homeScore : m.awayScore,
+                            opponentScore: m.homeTeamId === teamId ? m.awayScore : m.homeScore,
+                            status: m.status,
                             type: 'مباراة دوري'
                         }))
                     };

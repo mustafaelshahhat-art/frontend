@@ -33,8 +33,10 @@
             <!-- User Profile Card -->
             <div class="sidebar-profile hover-lift" [routerLink]="getProfileRoute()"
                 (click)="isMobile && handleClose()">
-                <div class="sidebar-profile-avatar">
-                    <span class="material-symbols-outlined">verified_user</span>
+                <div class="sidebar-profile-avatar-wrapper">
+                    <app-smart-image [src]="currentUser?.avatar" type="avatar" size="xs"
+                        [initials]="currentUser?.name?.charAt(0) || 'U'">
+                    </app-smart-image>
                 </div>
                 <div class="sidebar-profile-info">
                     <p class="sidebar-profile-name">{{ currentUser?.name || 'المستخدم' }}</p>

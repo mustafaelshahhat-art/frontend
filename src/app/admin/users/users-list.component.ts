@@ -8,6 +8,7 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
+import { SmartImageComponent } from '../../shared/components/smart-image/smart-image.component';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { UserService } from '../../core/services/user.service';
 
@@ -22,7 +23,8 @@ import { UserService } from '../../core/services/user.service';
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        SmartImageComponent
     ],
     templateUrl: './users-list.component.html',
     styleUrls: ['./users-list.component.scss']

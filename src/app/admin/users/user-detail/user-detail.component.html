@@ -35,10 +35,11 @@
                 <div class="flex-col gap-xl">
                     <!-- Identity Card -->
                     <div class="card p-xl flex-col items-center text-center animate-fade-in-up">
-                        <div class="avatar avatar-3xl mb-lg relative">
-                            <img class="avatar-img" [src]="user.avatar || 'https://i.pravatar.cc/150?u=' + user.id"
-                                alt="">
-                            <div class="absolute bottom-0 right-0 p-1 bg-surface rounded-full">
+                        <div class="mb-lg relative" style="width: 120px; height: 120px;">
+                            <app-smart-image [src]="user.avatar" [type]="user.role === 'Referee' ? 'referee' : 'avatar'"
+                                size="lg" [initials]="user.name.charAt(0)">
+                            </app-smart-image>
+                            <div class="absolute bottom-1 right-1 p-1 bg-surface rounded-full shadow-sm">
                                 <app-badge [type]="getBadgeType(user.status)">
                                     {{ getStatusLabel(user.status) }}
                                 </app-badge>
@@ -97,22 +98,14 @@
                         <div class="flex-col gap-lg">
                             <div class="id-card-view">
                                 <span class="text-xs text-muted mb-xs block">وجه البطاقة</span>
-                                <div class="id-card-img-wrapper">
-                                    <img [src]="user.idFrontUrl || 'assets/images/placeholder-id.png'" alt="ID Front"
-                                        class="id-card-img">
-                                    <div class="img-overlay">
-                                        <span class="material-symbols-outlined">zoom_in</span>
-                                    </div>
+                                <div class="id-card-img-wrapper" style="height: 160px;">
+                                    <app-smart-image [src]="user.idFrontUrl" type="id" size="custom"></app-smart-image>
                                 </div>
                             </div>
                             <div class="id-card-view">
                                 <span class="text-xs text-muted mb-xs block">ظهر البطاقة</span>
-                                <div class="id-card-img-wrapper">
-                                    <img [src]="user.idBackUrl || 'assets/images/placeholder-id.png'" alt="ID Back"
-                                        class="id-card-img">
-                                    <div class="img-overlay">
-                                        <span class="material-symbols-outlined">zoom_in</span>
-                                    </div>
+                                <div class="id-card-img-wrapper" style="height: 160px;">
+                                    <app-smart-image [src]="user.idBackUrl" type="id" size="custom"></app-smart-image>
                                 </div>
                             </div>
                         </div>

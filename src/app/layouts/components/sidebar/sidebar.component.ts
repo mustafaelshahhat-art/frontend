@@ -2,12 +2,17 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NavItem } from '../../../shared/models/nav-item.model';
+import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [
+        CommonModule,
+        RouterModule,
+        SmartImageComponent
+    ],
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss']
 })

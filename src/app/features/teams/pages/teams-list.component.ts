@@ -8,6 +8,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
+import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
 
@@ -23,7 +24,8 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        SmartImageComponent
     ],
     templateUrl: './teams-list.component.html',
     styleUrls: ['./teams-list.component.scss']

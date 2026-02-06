@@ -10,6 +10,7 @@ import { CardComponent } from '../../../../shared/components/card/card.component
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { UserService } from '../../../../core/services/user.service';
+import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 
 @Component({
     selector: 'app-profile',
@@ -21,7 +22,8 @@ import { UserService } from '../../../../core/services/user.service';
         CardComponent,
         ButtonComponent,
         BadgeComponent,
-        FilterComponent
+        FilterComponent,
+        SmartImageComponent
     ],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']

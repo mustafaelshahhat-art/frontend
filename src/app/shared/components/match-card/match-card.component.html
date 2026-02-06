@@ -24,12 +24,9 @@
             <!-- Home Team -->
             <div class="match-card-team">
                 <div class="match-card-team-avatar">
-                    <ng-container *ngIf="match.homeTeamLogoUrl; else defaultHomeIcon">
-                        <img [src]="match.homeTeamLogoUrl" alt="" class="w-full h-full object-cover rounded-full">
-                    </ng-container>
-                    <ng-template #defaultHomeIcon>
-                        <span class="material-symbols-outlined">shield</span>
-                    </ng-template>
+                    <app-smart-image [src]="match.homeTeamLogoUrl" type="team" size="xs"
+                        [initials]="match.homeTeamName.charAt(0)">
+                    </app-smart-image>
                 </div>
                 <span class="match-card-team-name">{{ match.homeTeamName }}</span>
             </div>
@@ -45,12 +42,9 @@
             <!-- Away Team -->
             <div class="match-card-team">
                 <div class="match-card-team-avatar">
-                    <ng-container *ngIf="match.awayTeamLogoUrl; else defaultAwayIcon">
-                        <img [src]="match.awayTeamLogoUrl" alt="" class="w-full h-full object-cover rounded-full">
-                    </ng-container>
-                    <ng-template #defaultAwayIcon>
-                        <span class="material-symbols-outlined">shield</span>
-                    </ng-template>
+                    <app-smart-image [src]="match.awayTeamLogoUrl" type="team" size="xs"
+                        [initials]="match.awayTeamName.charAt(0)">
+                    </app-smart-image>
                 </div>
                 <span class="match-card-team-name">{{ match.awayTeamName }}</span>
             </div>

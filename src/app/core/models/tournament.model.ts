@@ -24,6 +24,7 @@ export interface TeamRegistration {
     approvedBy?: string;         // Admin who approved/rejected
     approvalDate?: Date;
     rejectionReason?: string;
+    teamLogoUrl?: string;
     registeredAt: Date;
 }
 

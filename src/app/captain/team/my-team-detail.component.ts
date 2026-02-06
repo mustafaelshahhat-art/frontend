@@ -441,59 +441,69 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     handleTabChange(tab: string): void {
         if (!this.teamData) return;
 
-        switch (tab) {
-            case 'players':
-                this.teamService.getTeamPlayers(this.teamData.id).subscribe(players => {
-                    if (this.teamData) this.teamData.players = players.map(p => ({
-                        id: p.id,
-                        name: p.name,
-                        number: p.number || 0,
-                        position: p.position || 'لاعب',
-                        goals: p.goals || 0,
-                        yellowCards: p.yellowCards || 0,
-                        redCards: p.redCards || 0,
-                        status: p.status || 'active'
-                    }));
-                    this.cdr.detectChanges();
-                });
-                break;
-            case 'matches':
-                this.teamService.getTeamMatches(this.teamData.id).subscribe(matches => {
-                    if (this.teamData) this.teamData.matches = matches.map(m => ({
-                        id: m.id,
-                        opponent: m.homeTeamId === this.teamData?.id ? m.awayTeamName : m.homeTeamName,
-                        date: new Date(m.date),
-                        homeScore: m.homeScore,
-                        awayScore: m.awayScore,
-                        status: m.status,
-                        type: 'مباراة بطولة'
-                    }));
-                    this.cdr.detectChanges();
-                });
-                break;
-            case 'finances':
-                this.teamService.getTeamFinancials(this.teamData.id).subscribe(finances => {
-                    if (this.teamData) this.teamData.finances = finances.map(f => ({
-                        id: f.tournamentId,
-                        title: f.tournamentName || 'تسجيل بطولة',
-                        category: 'Tournament Registration',
-                        amount: 0, // Fee could be fetched from tournament but let's keep it simple
-                        date: new Date(f.registeredAt),
-                        status: f.status, // PendingPaymentReview, Approved, Rejected
-                        type: 'expense'
-                    }));
-                    this.cdr.detectChanges();
-                });
-                break;
-            case 'requests':
-                if (this.isCaptain) {
-                    this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                        if (this.teamData) this.teamData.invitations = requests;
-                        this.cdr.detectChanges();
+        // Wrap updates in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        // if the service returns data synchronously (e.g. from cache)
+        setTimeout(() => {
+            switch (tab) {
+                case 'players':
+                    this.teamService.getTeamPlayers(this.teamData!.id).subscribe(players => {
+                        if (this.teamData) {
+                            this.teamData.players = players.map(p => ({
+                                id: p.id,
+                                name: p.name,
+                                number: p.number || 0,
+                                position: p.position || 'لاعب',
+                                goals: p.goals || 0,
+                                yellowCards: p.yellowCards || 0,
+                                redCards: p.redCards || 0,
+                                status: p.status || 'active'
+                            }));
+                            this.cdr.detectChanges();
+                        }
                     });
-                }
-                break;
-        }
+                    break;
+                case 'matches':
+                    this.teamService.getTeamMatches(this.teamData!.id).subscribe(matches => {
+                        if (this.teamData) {
+                            this.teamData.matches = matches.map(m => ({
+                                id: m.id,
+                                opponent: m.homeTeamId === this.teamData?.id ? m.awayTeamName : m.homeTeamName,
+                                date: new Date(m.date),
+                                teamScore: m.homeTeamId === this.teamData?.id ? m.homeScore : m.awayScore,
+                                opponentScore: m.homeTeamId === this.teamData?.id ? m.awayScore : m.homeScore,
+                                status: m.status,
+                                type: 'مباراة بطولة'
+                            }));
+                            this.cdr.detectChanges();
+                        }
+                    });
+                    break;
+                case 'finances':
+                    this.teamService.getTeamFinancials(this.teamData!.id).subscribe(finances => {
+                        if (this.teamData) {
+                            this.teamData.finances = finances.map(f => ({
+                                id: f.tournamentId,
+                                title: f.tournamentName || 'تسجيل بطولة',
+                                category: 'Tournament Registration',
+                                amount: 0,
+                                date: new Date(f.registeredAt),
+                                status: f.status,
+                                type: 'expense'
+                            }));
+                            this.cdr.detectChanges();
+                        }
+                    });
+                    break;
+                case 'requests':
+                    if (this.isCaptain) {
+                        this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                            if (this.teamData) this.teamData.invitations = requests;
+                            this.cdr.detectChanges();
+                        });
+                    }
+                    break;
+            }
+        });
     }
 
     private convertToTeamData(team: any): TeamData {

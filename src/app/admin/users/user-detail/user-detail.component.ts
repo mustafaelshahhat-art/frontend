@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
+import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -16,7 +17,8 @@ import { ChangeDetectorRef } from '@angular/core';
         CommonModule,
         PageHeaderComponent,
         ButtonComponent,
-        BadgeComponent
+        BadgeComponent,
+        SmartImageComponent
     ],
     templateUrl: './user-detail.component.html',
     styleUrls: ['./user-detail.component.scss']

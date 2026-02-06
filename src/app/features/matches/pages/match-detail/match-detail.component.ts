@@ -20,6 +20,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 
 @Component({
     selector: 'app-match-detail',
@@ -35,7 +36,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
         PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
-        EmptyStateComponent
+        EmptyStateComponent,
+        SmartImageComponent
     ],
     templateUrl: './match-detail.component.html',
     styleUrls: ['./match-detail.component.scss']

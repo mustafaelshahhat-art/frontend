@@ -32,10 +32,9 @@
                         <tr *ngFor="let team of filteredTeams" [class.opacity-50]="!team.isActive">
                             <td>
                                 <div class="flex items-center gap-3">
-                                    <div class="avatar avatar-md" [class.avatar-muted]="!team.isActive">
-                                        <span class="material-symbols-outlined"
-                                            [class.text-gold]="team.isActive">shield</span>
-                                    </div>
+                                    <app-smart-image [src]="team.logo" type="team" size="sm"
+                                        [initials]="team.name.charAt(0)">
+                                    </app-smart-image>
                                     <div class="flex-col">
                                         <span class="text-primary font-bold text-sm">{{ team.name }}</span>
                                         <span class="text-muted text-xs">{{ team.city }}</span>
@@ -83,9 +82,8 @@
             <div *ngFor="let team of filteredTeams" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
                 <div class="card-header-flex">
                     <div class="flex items-center gap-3">
-                        <div class="avatar avatar-md" [class.avatar-muted]="!team.isActive">
-                            <span class="material-symbols-outlined" [class.text-gold]="team.isActive">shield</span>
-                        </div>
+                        <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">
+                        </app-smart-image>
                         <div class="flex-col">
                             <span class="text-primary font-bold">{{ team.name }}</span>
                             <span class="text-muted text-xs">{{ team.city }}</span>
