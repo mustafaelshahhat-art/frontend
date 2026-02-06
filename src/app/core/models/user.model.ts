@@ -1,14 +1,15 @@
 export enum UserRole {
     ADMIN = 'Admin',
     REFEREE = 'Referee',
-    CAPTAIN = 'Captain',
     PLAYER = 'Player'
 }
 
 export enum UserStatus {
     ACTIVE = 'Active',
     PENDING = 'Pending',
-    SUSPENDED = 'Suspended'
+    SUSPENDED = 'Suspended',
+    BANNED = 'Banned',
+    DISABLED = 'Disabled'
 }
 
 export interface User {
@@ -30,6 +31,15 @@ export interface User {
     idBackUrl?: string;
     teamId?: string; // ID of the team the user belongs to (as player or captain)
     teamName?: string;
+    isTeamOwner: boolean;
+    createdAt: Date;
+    activities?: Activity[];
+}
+
+export interface Activity {
+    id: string;
+    type: string;
+    message: string;
     createdAt: Date;
 }
 

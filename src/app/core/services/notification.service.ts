@@ -17,6 +17,7 @@ export class NotificationService {
 
     private notifications$ = new BehaviorSubject<Notification[]>([]);
     private unreadCount$ = new BehaviorSubject<number>(0);
+    private joinRequestUpdate$ = new BehaviorSubject<void>(undefined);
 
     get notifications(): Observable<Notification[]> {
         return this.notifications$.asObservable();
@@ -24,6 +25,10 @@ export class NotificationService {
 
     get unreadCount(): Observable<number> {
         return this.unreadCount$.asObservable();
+    }
+
+    get joinRequestUpdate(): Observable<void> {
+        return this.joinRequestUpdate$.asObservable();
     }
 
     constructor() {
@@ -48,6 +53,22 @@ export class NotificationService {
             const current = this.notifications$.value;
             this.notifications$.next([notification, ...current]);
             this.unreadCount$.next(this.unreadCount$.value + 1);
+
+            if (notification.type === 'invite' || notification.type === 'join_request' ||
+                notification.type === 'invite_accepted' || notification.type === 'invite_rejected' ||
+                notification.type === 'join_accepted' || notification.type === 'join_rejected') {
+                this.joinRequestUpdate$.next();
+            }
+        });
+
+        connection.on('AccountStatusChanged', (data: { userId: string, status: string }) => {
+            this.authService.updateUserStatus(data.status);
+        });
+
+        // Handle real-time team removal notification
+        connection.on('RemovedFromTeam', (data: { playerId: string, teamId: string }) => {
+            // Clear team association immediately
+            this.authService.clearTeamAssociation();
         });
 
         await this.signalRService.startConnection('notifications');

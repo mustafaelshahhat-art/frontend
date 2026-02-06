@@ -10,6 +10,13 @@ export interface DashboardStats {
     pendingObjections: number;
 }
 
+export interface TeamStats {
+    playerCount: number;
+    upcomingMatches: number;
+    activeTournaments: number;
+    rank: string;
+}
+
 export interface Activity {
     type: string;
     message: string;
@@ -36,6 +43,10 @@ export class AnalyticsService {
                 pendingObjections: data.pendingObjections
             }))
         );
+    }
+
+    getTeamStats(teamId: string): Observable<TeamStats> {
+        return this.http.get<TeamStats>(`${this.apiUrl}/overview`, { params: { teamId } });
     }
 
     getRecentActivities(): Observable<Activity[]> {

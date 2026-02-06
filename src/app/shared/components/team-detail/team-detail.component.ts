@@ -8,27 +8,28 @@ import { ButtonComponent } from '../button/button.component';
 import { BadgeComponent } from '../badge/badge.component';
 
 export interface TeamPlayer {
-    id: number;
+    id: string; // Changed to string (Guid)
     name: string;
     number: number;
     position: string;
     goals: number;
     yellowCards: number;
     redCards: number;
-    status: 'active' | 'suspended' | 'banned';
+    status: string;
 }
 
 export interface TeamMatch {
-    id: number;
+    id: string;
     opponent: string;
     date: Date;
-    score: string;
-    status: 'win' | 'draw' | 'loss';
+    homeScore?: number;
+    awayScore?: number;
+    status: string;
     type: string;
 }
 
 export interface TeamFinance {
-    id: number;
+    id: string;
     title: string;
     category: string;
     amount: number;
@@ -50,16 +51,20 @@ export interface TeamStats {
 export interface TeamData {
     id: string;
     name: string;
+    captainId: string;
     city: string;
     captainName: string;
     logo: string;
-    status: 'READY' | 'NOT_READY';
+    status: 'READY' | 'NOT_READY' | string;
+    playerCount?: number;
+    maxPlayers?: number;
     isActive: boolean;
     createdAt: Date;
     stats: TeamStats;
     players: TeamPlayer[];
     matches: TeamMatch[];
     finances: TeamFinance[];
+    invitations?: any[];
 }
 
 @Component({
@@ -89,21 +94,41 @@ export class TeamDetailComponent {
     @Input() canAddPlayers: boolean = false;
     @Input() canRemovePlayers: boolean = false;
     @Input() canManageStatus: boolean = false; // للأدمن فقط (تفعيل/تعليق/حظر)
+    @Input() canDeleteTeam: boolean = false; // للكابتن
+    @Input() canManageInvitations: boolean = false; // للكابتن
 
     @Output() playerAction = new EventEmitter<{ player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }>();
     @Output() tabChanged = new EventEmitter<string>();
     @Output() backClicked = new EventEmitter<void>();
     @Output() editName = new EventEmitter<string>();
     @Output() addPlayer = new EventEmitter<string>();
+    @Output() deleteTeam = new EventEmitter<void>();
+    @Output() respondRequest = new EventEmitter<{ request: any, approve: boolean }>();
+
+    @Input() canSeeRequests: boolean = false;
+    @Input() canSeeFinances: boolean = false;
 
     activeTab = 'overview';
     isEditingName = false;
     tempName = '';
 
+    onRespondRequest(request: any, approve: boolean): void {
+        this.respondRequest.emit({ request, approve });
+    }
+
+    get filteredTabs() {
+        return this.tabs.filter(tab => {
+            if (tab.value === 'requests') return this.canSeeRequests;
+            if (tab.value === 'finances') return this.canSeeFinances;
+            return true;
+        });
+    }
+
     tabs = [
         { value: 'overview', label: 'نظرة عامة', icon: 'dashboard' },
         { value: 'players', label: 'قائمة اللاعبين', icon: 'groups' },
         { value: 'matches', label: 'المباريات', icon: 'sports_soccer' },
+        { value: 'requests', label: 'طلبات الانضمام', icon: 'mail' },
         { value: 'finances', label: 'المالية', icon: 'payments' }
     ];
 
@@ -221,6 +246,19 @@ export class TeamDetailComponent {
                 }
 
                 this.uiFeedback.success('تم التحديث', 'تم تنفيذ العملية بنجاح');
+            }
+        });
+    }
+
+    onDeleteTeamClick(): void {
+        this.uiFeedback.confirm(
+            'حذف الفريق',
+            'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق ولكن ستبقى نتائج المباريات محفوظة.',
+            'حذف نهائي',
+            'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.deleteTeam.emit();
             }
         });
     }

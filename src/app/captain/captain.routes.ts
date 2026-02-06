@@ -51,7 +51,8 @@ export const captainRoutes: Routes = [
             },
             {
                 path: 'objections',
-                loadComponent: () => import('../features/objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent)
+                loadComponent: () => import('../features/objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent),
+                canActivate: [permissionGuard([Permission.VIEW_OBJECTIONS])]
             },
             {
                 path: 'notifications',

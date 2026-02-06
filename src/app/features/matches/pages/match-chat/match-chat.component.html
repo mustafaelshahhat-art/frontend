@@ -1,7 +1,8 @@
 <div class="chat-page">
     <app-chat-box *ngIf="!isLoading && isAuthorized && match" [title]="match.homeTeamName + ' vs ' + match.awayTeamName"
         [match]="match" [messages]="mappedMessages" [currentUserId]="currentUser?.id || ''"
-        [participants]="participants" [referee]="getReferee() || null" (back)="goBack()" (send)="onSendMessage($event)">
+        [participants]="participants" [referee]="getReferee() || null" [readOnly]="isMatchFinished" (back)="goBack()"
+        (send)="onSendMessage($event)">
     </app-chat-box>
 
     <!-- Loading State -->

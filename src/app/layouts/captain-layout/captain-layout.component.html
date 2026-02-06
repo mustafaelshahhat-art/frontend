@@ -4,8 +4,9 @@
 <div class="app-layout bg-gradient-page">
 
     <!-- Sidebar -->
-    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser"
-        brandSubtitle="لوحة القائد" userRoleLabel="قائد الفريق" (close)="closeSidebar()" (logout)="handleLogout()">
+    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="filteredNavItems"
+        [currentUser]="currentUser" brandSubtitle="لوحة القائد" userRoleLabel="قائد الفريق" (close)="closeSidebar()"
+        (logout)="handleLogout()">
     </app-sidebar>
 
     <!-- Main Content Area -->

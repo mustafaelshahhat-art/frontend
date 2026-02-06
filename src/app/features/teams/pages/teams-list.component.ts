@@ -85,18 +85,23 @@ export class TeamsListComponent implements OnInit {
     }
 
     requestToggleStatus(team: Team): void {
-        const isActive = (team as any).isActive;
-        const title = isActive ? 'تعطيل الفريق' : 'تفعيل الفريق';
-        const message = isActive
+        const newStatus = !team.isActive;
+        const title = !newStatus ? 'تعطيل الفريق' : 'تفعيل الفريق';
+        const message = !newStatus
             ? `هل أنت متأكد من رغبتك في تعطيل فريق "${team.name}"؟ لن يتمكن الفريق من تعديل بياناته أو اللعب مؤقتاً.`
             : `هل أنت متأكد من رغبتك في تفعيل فريق "${team.name}"؟ سيتمكن الفريق من المشاركة في البطولة فوراً.`;
-        const confirmText = isActive ? 'تعطيل الفريق' : 'تفعيل الآن';
+        const confirmText = !newStatus ? 'تعطيل الفريق' : 'تفعيل الآن';
 
-        this.uiFeedback.confirm(title, message, confirmText, isActive ? 'danger' : 'info').subscribe((confirmed: boolean) => {
+        this.uiFeedback.confirm(title, message, confirmText, !newStatus ? 'danger' : 'info').subscribe((confirmed: boolean) => {
             if (confirmed) {
-                // TODO: Implement backend toggle endpoint
-                (team as any).isActive = !(team as any).isActive;
-                this.uiFeedback.success('تم التحديث', `تم ${(team as any).isActive ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
+                this.teamService.updateTeam({ id: team.id, isActive: newStatus }).subscribe({
+                    next: (updatedTeam) => {
+                        team.isActive = updatedTeam.isActive;
+                        this.uiFeedback.success('تم التحديث', `تم ${team.isActive ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
+                        this.cdr.detectChanges();
+                    },
+                    error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الفريق')
+                });
             }
         });
     }
@@ -109,11 +114,15 @@ export class TeamsListComponent implements OnInit {
             'danger'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                // TODO: Implement backend delete endpoint
                 this.teamService.deleteTeam(team.id, {} as any).subscribe({
                     next: () => {
                         this.teams = this.teams.filter(t => t.id !== team.id);
                         this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                        this.cdr.detectChanges();
+                    },
+                    error: (err) => {
+                        const msg = err.error?.detail || err.error?.message || 'فشل في حذف الفريق';
+                        this.uiFeedback.error('خطأ', msg);
                     }
                 });
             }
@@ -121,7 +130,7 @@ export class TeamsListComponent implements OnInit {
     }
 
     viewTeam(team: Team): void {
-        this.router.navigate(['/admin/teams', team.id]);
+        this.router.navigate(['/admin/teams', team.id], { state: { team } });
     }
 }
 

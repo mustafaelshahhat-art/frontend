@@ -9,9 +9,6 @@ import { environment } from '../../../environments/environment';
 @Injectable({
     providedIn: 'root'
 })
-@Injectable({
-    providedIn: 'root'
-})
 export class TeamService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/teams`;
@@ -56,7 +53,7 @@ export class TeamService {
         // We know user becomes Captain.
         return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.city || 'Unknown', founded: new Date().getFullYear().toString(), logo: '' }).pipe(
             map(team => {
-                const updatedUser = { ...user, teamId: team.id, role: UserRole.CAPTAIN };
+                const updatedUser = { ...user, teamId: team.id };
                 return { team, updatedUser };
             })
         );
@@ -87,18 +84,32 @@ export class TeamService {
         );
     }
 
-    addPlayerByDisplayId(teamId: string, displayId: string, captain: User): Observable<Player> {
-        return this.http.post<Player>(`${this.apiUrl}/${teamId}/players`, { displayId });
+    getTeamRequests(teamId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/requests`);
     }
 
-    removePlayer(teamId: string, playerId: string): Observable<boolean> {
-        return this.http.delete<void>(`${this.apiUrl}/${teamId}/players/${playerId}`).pipe(
-            map(() => true)
-        );
+    invitePlayerByDisplayId(teamId: string, displayId: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/${teamId}/invite`, { displayId });
+    }
+
+    removePlayer(teamId: string, playerId: string): Observable<{ teamRemoved: boolean, playerId: string, teamId: string }> {
+        return this.http.delete<{ teamRemoved: boolean, playerId: string, teamId: string }>(`${this.apiUrl}/${teamId}/players/${playerId}`);
     }
 
     updateTeam(updatedTeam: Partial<Team>): Observable<Team> {
         return this.http.patch<Team>(`${this.apiUrl}/${updatedTeam.id}`, updatedTeam);
+    }
+
+    getTeamPlayers(teamId: string): Observable<Player[]> {
+        return this.http.get<Player[]>(`${this.apiUrl}/${teamId}/players`);
+    }
+
+    getTeamMatches(teamId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/matches`);
+    }
+
+    getTeamFinancials(teamId: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/financials`);
     }
 }
 

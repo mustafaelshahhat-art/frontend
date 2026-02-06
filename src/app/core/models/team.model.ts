@@ -14,6 +14,9 @@ export interface Player extends PlayerStats {
     teamId?: string;
     phone: string;
     userId: string;
+    number?: number;
+    position?: string;
+    status?: string;
 }
 
 export interface JoinRequest {
@@ -23,6 +26,19 @@ export interface JoinRequest {
     playerName: string;
     requestDate: Date;
     status: 'pending' | 'approved' | 'rejected';
+    initiatedByPlayer?: boolean;
+}
+
+export interface TeamRegistration {
+    tournamentId: string;
+    tournamentName?: string;
+    teamId: string;
+    teamName: string;
+    captainName: string;
+    status: 'PendingPaymentReview' | 'Approved' | 'Rejected';
+    paymentReceiptUrl?: string;
+    rejectionReason?: string;
+    registeredAt: Date;
 }
 
 export interface Team {
@@ -34,12 +50,14 @@ export interface Team {
     logo?: string;
     players: Player[];
     joinRequests: JoinRequest[];
+    invitations?: any[]; // for legacy compat if needed
     // Added for UI compatibility
     city?: string;
     playerCount?: number;
     maxPlayers?: number;
     isActive?: boolean;
     status?: string;
+    createdAt?: Date;
 }
 
 // Maximum players in a team (including captain)

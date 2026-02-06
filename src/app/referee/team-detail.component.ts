@@ -64,6 +64,7 @@ export class RefereeTeamDetailComponent implements OnInit {
         return {
             id: team.id,
             name: team.name,
+            captainId: team.captainId || '',
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
             logo: team.logoUrl || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',

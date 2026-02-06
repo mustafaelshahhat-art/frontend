@@ -39,7 +39,7 @@ export class ObjectionsListComponent implements OnInit {
     private cdr = inject(ChangeDetectorRef);
 
     currentUser = this.authService.getCurrentUser();
-    userRole = this.currentUser?.role || UserRole.CAPTAIN;
+    userRole = this.currentUser?.role || UserRole.PLAYER;
 
     objections: Objection[] = [];
     filteredObjections: Objection[] = [];
@@ -218,7 +218,7 @@ export class ObjectionsListComponent implements OnInit {
     }
 
     isCaptain(): boolean {
-        return this.userRole === UserRole.CAPTAIN;
+        return !!this.currentUser?.isTeamOwner;
     }
 
     toggleForm(): void {

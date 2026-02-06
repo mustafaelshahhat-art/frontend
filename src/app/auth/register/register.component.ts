@@ -34,7 +34,7 @@ export class RegisterComponent {
     governorate: '',
     city: '',
     neighborhood: '',
-    role: UserRole.CAPTAIN,
+    role: UserRole.PLAYER,
     password: '',
     confirmPassword: '',
     idFront: null as File | null,

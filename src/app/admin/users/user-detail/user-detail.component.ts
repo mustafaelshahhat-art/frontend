@@ -5,7 +5,9 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
+import { UserService } from '../../../core/services/user.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
     selector: 'app-user-detail',
@@ -22,36 +24,34 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
 export class UserDetailComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly userService = inject(UserService);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
-    user: any = {
-        id: '1',
-        displayId: 'PLR-6001',
-        name: 'سالم عبدالله',
-        username: 'salem_88',
-        email: 'salem@example.com',
-        role: UserRole.CAPTAIN,
-        status: UserStatus.ACTIVE,
-        createdAt: new Date('2024-03-01'),
-        teamName: 'نادي الصقور',
-        phone: '+966 50 123 4567',
-        age: 28,
-        nationalId: '1029384756',
-        governorate: 'الرياض',
-        city: 'الرياض',
-        neighborhood: 'العليا',
-        idFrontUrl: 'https://images.unsplash.com/photo-1613243555988-441166d4d6fd?q=80&w=400&auto=format&fit=crop',
-        idBackUrl: 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?q=80&w=400&auto=format&fit=crop'
-    };
-
-    activities = [
-        { icon: 'login', message: 'تسجيل دخول إلى النظام', time: 'منذ ٤٥ دقيقة' },
-        { icon: 'edit', message: 'تحديث بيانات الفريق', time: 'منذ ساعتين' },
-        { icon: 'sports_soccer', message: 'تسجيل نتيجة مباراة #14', time: 'أمس' }
-    ];
+    user: any = null;
+    isLoading = true;
 
     ngOnInit(): void {
+        this.loadUser();
+    }
+
+    loadUser(): void {
         const id = this.route.snapshot.paramMap.get('id');
+        if (id) {
+            this.isLoading = true;
+            this.userService.getUserById(id).subscribe({
+                next: (data) => {
+                    this.user = data;
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المستخدم');
+                    this.cdr.detectChanges();
+                }
+            });
+        }
     }
 
     navigateBack(): void {
@@ -71,27 +71,60 @@ export class UserDetailComponent implements OnInit {
     }
 
     getRoleLabel(role: string): string {
+        if (role === UserRole.PLAYER && this.user?.isTeamOwner) {
+            return 'كابتن (صاحب فريق)';
+        }
+
         switch (role) {
             case UserRole.ADMIN: return 'مسؤول';
-            case UserRole.CAPTAIN: return 'كابتن';
             case UserRole.REFEREE: return 'حكم';
             default: return 'لاعب';
         }
     }
 
+    getActivityIcon(type: string): string {
+        switch (type?.toLowerCase()) {
+            case 'login': return 'login';
+            case 'match': return 'sports_soccer';
+            case 'system': return 'settings';
+            default: return 'info';
+        }
+    }
+
+    getActivityBadgeClass(type: string): string {
+        switch (type?.toLowerCase()) {
+            case 'login': return 'notification-icon-info';
+            case 'match': return 'notification-icon-success';
+            case 'system': return 'notification-icon-warning';
+            default: return 'notification-icon-info';
+        }
+    }
+
     toggleUserStatus(): void {
-        const newStatus = this.user.status === UserStatus.ACTIVE ? UserStatus.SUSPENDED : UserStatus.ACTIVE;
-        const action = newStatus === UserStatus.ACTIVE ? 'تفعيل' : 'إيقاف';
+        const isActive = this.user.status === UserStatus.ACTIVE;
+        const action = isActive ? 'إيقاف' : 'تفعيل';
 
         this.uiFeedback.confirm(
             `${action} المستخدم`,
             `هل أنت متأكد من ${action} حساب "${this.user.name}"؟`,
             action,
-            newStatus === UserStatus.ACTIVE ? 'info' : 'danger'
+            isActive ? 'danger' : 'info'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.user.status = newStatus;
-                this.uiFeedback.success('تم التحديث', `تم ${action} حساب المستخدم بنجاح`);
+                const request = isActive
+                    ? this.userService.suspendUser(this.user.id)
+                    : this.userService.activateUser(this.user.id);
+
+                request.subscribe({
+                    next: () => {
+                        this.user.status = isActive ? UserStatus.SUSPENDED : UserStatus.ACTIVE;
+                        this.uiFeedback.success('تم التحديث', `تم ${action} حساب المستخدم بنجاح`);
+                        this.cdr.detectChanges();
+                    },
+                    error: () => {
+                        this.uiFeedback.error('خطأ', `فشل في ${action} حساب المستخدم`);
+                    }
+                });
             }
         });
     }

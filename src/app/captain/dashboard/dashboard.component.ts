@@ -42,7 +42,9 @@ export class CaptainDashboardComponent implements OnInit {
     }
 
     loadDashboardData(): void {
-        // TODO: Implement backend analytics endpoint for captain stats
+        const teamId = this.currentUser?.teamId;
+
+        // Initial empty state
         this.stats = [
             { label: 'اللاعبين', value: '0', icon: 'groups', colorClass: 'info' },
             { label: 'المباريات القادمة', value: '0', icon: 'sports_soccer', colorClass: 'primary' },
@@ -50,26 +52,27 @@ export class CaptainDashboardComponent implements OnInit {
             { label: 'الترتيب', value: '-', icon: 'military_tech', colorClass: 'info' }
         ];
 
-        // TODO: Implement actual data fetching from services
-        this.matchService.getUpcomingMatches().subscribe({
-            next: (matches) => {
-                setTimeout(() => {
-                    const myTeamId = this.currentUser?.teamId;
-                    if (myTeamId) {
-                        this.nextMatch = matches.find(m => m.homeTeamId === myTeamId || m.awayTeamId === myTeamId) || null;
-                    }
+        if (teamId) {
+            this.analyticsService.getTeamStats(teamId).subscribe({
+                next: (data) => {
+                    this.stats = [
+                        { label: 'اللاعبين', value: data.playerCount.toString(), icon: 'groups', colorClass: 'info' },
+                        { label: 'المباريات القادمة', value: data.upcomingMatches.toString(), icon: 'sports_soccer', colorClass: 'primary' },
+                        { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'gold' },
+                        { label: 'الترتيب', value: data.rank, icon: 'military_tech', colorClass: 'info' }
+                    ];
                     this.cdr.detectChanges();
-                });
-            },
-            error: () => {
-                setTimeout(() => {
-                    this.nextMatch = null;
-                    this.cdr.detectChanges();
-                });
-            }
-        });
+                }
+            });
 
-        // TODO: Implement notifications service
+            this.matchService.getUpcomingMatches().subscribe({
+                next: (matches) => {
+                    this.nextMatch = matches.find(m => m.homeTeamId === teamId || m.awayTeamId === teamId) || null;
+                    this.cdr.detectChanges();
+                }
+            });
+        }
+
         this.notifications = [];
     }
 

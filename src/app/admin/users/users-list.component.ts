@@ -81,7 +81,7 @@ export class UsersListComponent implements OnInit {
         } else if (type === 'referees') {
             result = result.filter(u => u.role === UserRole.REFEREE);
         } else if (type === 'players') {
-            result = result.filter(u => u.role === UserRole.PLAYER || u.role === UserRole.CAPTAIN);
+            result = result.filter(u => u.role === UserRole.PLAYER);
         }
 
         // Filter by status
@@ -118,10 +118,13 @@ export class UsersListComponent implements OnInit {
         }
     }
 
-    getRoleLabel(role: string): string {
-        switch (role) {
+    getRoleLabel(user: User): string {
+        if (user.role === UserRole.PLAYER && user.isTeamOwner) {
+            return 'قائد فريق';
+        }
+
+        switch (user.role) {
             case UserRole.ADMIN: return 'مسؤول';
-            case UserRole.CAPTAIN: return 'كابتن';
             case UserRole.REFEREE: return 'حكم';
             default: return 'لاعب';
         }

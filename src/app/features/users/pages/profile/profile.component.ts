@@ -34,7 +34,7 @@ export class ProfileComponent implements OnInit {
     private cdr = inject(ChangeDetectorRef);
 
     user: User | null = null;
-    userRole: UserRole = UserRole.CAPTAIN;
+    userRole: UserRole = UserRole.PLAYER;
     profileForm!: FormGroup;
     passwordForm!: FormGroup;
     isLoading = false;
@@ -49,7 +49,7 @@ export class ProfileComponent implements OnInit {
 
     ngOnInit(): void {
         this.user = this.authService.getCurrentUser();
-        this.userRole = this.user?.role || UserRole.CAPTAIN;
+        this.userRole = this.user?.role || UserRole.PLAYER;
         this.initForm();
         this.initPasswordForm();
     }
@@ -89,13 +89,16 @@ export class ProfileComponent implements OnInit {
     }
 
     getRoleLabel(role: UserRole | undefined): string {
-        const roles: Record<UserRole, string> = {
+        if (role === UserRole.PLAYER && this.user?.isTeamOwner) {
+            return 'قائد فريق';
+        }
+
+        const roles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'مدير النظام',
-            [UserRole.CAPTAIN]: 'قائد فريق',
             [UserRole.REFEREE]: 'حكم معتمد',
             [UserRole.PLAYER]: 'لاعب'
         };
-        return role ? roles[role] : '';
+        return role ? (roles[role] || '') : '';
     }
 
     setActiveSection(section: 'info' | 'password'): void {
@@ -182,7 +185,7 @@ export class ProfileComponent implements OnInit {
     }
 
     isCaptain(): boolean {
-        return this.userRole === UserRole.CAPTAIN;
+        return !!this.user?.isTeamOwner;
     }
 
     get userInitial(): string {

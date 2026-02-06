@@ -18,12 +18,22 @@
                     <div class="tournament-main-info">
                         <div class="top-meta">
                             <app-badge
-                                [type]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral'"
+                                [type]="tournament.status === TournamentStatus.COMPLETED ? 'gold' : (tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
                                 class="status-badge">
                                 <span class="dot"></span>
                                 {{ getStatusLabel(tournament.status) }}
                             </app-badge>
                             <span class="created-at">أنشئت في {{ tournament.createdAt | date:'shortDate' }}</span>
+                        </div>
+
+                        <!-- Winner Announcement -->
+                        <div *ngIf="tournament.status === TournamentStatus.COMPLETED && tournament.winnerTeamName"
+                            class="winner-announcement animate-bounce-subtle">
+                            <span class="material-symbols-outlined trophy">emoji_events</span>
+                            <div class="winner-info">
+                                <label>البطل المتوج</label>
+                                <h3>{{ tournament.winnerTeamName }}</h3>
+                            </div>
                         </div>
 
                         <h2>{{ tournament.name }}</h2>
@@ -61,11 +71,17 @@
                                     {{ tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح
                                     التسجيل' }}
                                 </app-button>
-                                
+
                                 <!-- Generate Matches Button -->
                                 <app-button *ngIf="canGenerateMatches" variant="outline" size="md" icon="calendar_month"
                                     (click)="generateMatches()" [disabled]="isGeneratingMatches">
                                     {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
+                                </app-button>
+
+                                <!-- Delete Tournament Button -->
+                                <app-button variant="ghost" size="md" icon="delete" class="text-danger"
+                                    (click)="deleteTournament()">
+                                    حذف البطولة
                                 </app-button>
                             </ng-container>
 
@@ -136,44 +152,35 @@
             <div class="tab-content" [ngSwitch]="activeTab">
                 <!-- Info Tab -->
                 <div *ngSwitchCase="'info'" class="info-grid">
-                    <app-card class="stats-card">
-                        <div class="card-header-premium">
-                            <span class="material-symbols-outlined">military_tech</span>
-                            <h3>الهدافون</h3>
-                        </div>
-                        <div class="scorers-list">
-                            <div *ngFor="let s of scorers" class="scorer-item">
-                                <div class="rank">{{ s.rank }}</div>
-                                <div class="info">
-                                    <span class="name">{{ s.name }}</span>
-                                    <span class="team">{{ s.team }}</span>
-                                </div>
-                                <div class="goals-badge">
-                                    <span class="value">{{ s.goals }}</span>
-                                    <span class="label">أهداف</span>
-                                </div>
-                            </div>
-                        </div>
-                    </app-card>
-
                     <app-card class="rules-card">
                         <div class="card-header-premium">
                             <span class="material-symbols-outlined">gavel</span>
                             <h3>قواعد البطولة</h3>
                         </div>
                         <div class="rules-list">
-                            <div class="rule-item">
+                            <div *ngFor="let rule of rulesList" class="rule-item">
                                 <span class="material-symbols-outlined check">check_circle</span>
-                                <p>الالتزام بالزي الرياضي الموحد لجميع أعضاء الفريق.</p>
+                                <p>{{ rule }}</p>
                             </div>
-                            <div class="rule-item">
-                                <span class="material-symbols-outlined check">check_circle</span>
-                                <p>الحضور قبل موعد المباراة بـ 15 دقيقة على الأقل.</p>
-                            </div>
-                            <div class="rule-item">
-                                <span class="material-symbols-outlined check">check_circle</span>
-                                <p>يمنع الاعتراض غير اللائق على قرارات الحكام.</p>
-                            </div>
+                            <app-empty-state *ngIf="rulesList.length === 0" icon="gavel" title="لا يوجد قواعد"
+                                description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد.">
+                            </app-empty-state>
+                        </div>
+                    </app-card>
+
+                    <app-card class="prizes-card">
+                        <div class="card-header-premium">
+                            <span class="material-symbols-outlined">workspace_premium</span>
+                            <h3>جوائز البطولة</h3>
+                        </div>
+                        <div class="prizes-content">
+                            <p *ngIf="tournament.prizes"
+                                style="white-space: pre-line; line-height: 1.6; color: var(--text-primary);">
+                                {{ tournament.prizes }}
+                            </p>
+                            <app-empty-state *ngIf="!tournament.prizes" icon="military_tech" title="لا يوجد جوائز"
+                                description="لم يتم تحديد الجوائز لهذه البطولة بعد.">
+                            </app-empty-state>
                         </div>
                     </app-card>
                 </div>
@@ -197,8 +204,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let s of standings; let i = index">
-                                    <td class="rank">{{ i + 1 }}</td>
+                                <tr *ngFor="let s of standings; let i = index"
+                                    [class.is-winner]="tournament.winnerTeamId === s.teamId">
+                                    <td class="rank">
+                                        <span *ngIf="tournament.winnerTeamId === s.teamId"
+                                            class="material-symbols-outlined winner-icon">military_tech</span>
+                                        {{ i + 1 }}
+                                    </td>
                                     <td class="team-name">{{ s.team }}</td>
                                     <td>{{ s.played }}</td>
                                     <td>{{ s.won }}</td>
@@ -218,13 +230,19 @@
 
                     <!-- Mobile Shared Grid Design -->
                     <div class="mobile-data-grid">
-                        <div *ngFor="let s of standings; let i = index" class="mobile-data-card">
+                        <div *ngFor="let s of standings; let i = index" class="mobile-data-card"
+                            [class.is-winner]="tournament.winnerTeamId === s.teamId">
                             <div class="card-mobile-header">
                                 <div class="title-group">
-                                    <div class="rank-badge">{{ i + 1 }}</div>
+                                    <div class="rank-badge">
+                                        <span *ngIf="tournament.winnerTeamId === s.teamId"
+                                            class="material-symbols-outlined">military_tech</span>
+                                        {{ i + 1 }}
+                                    </div>
                                     <h4>{{ s.team }}</h4>
                                 </div>
-                                <app-badge type="success">{{ s.points }} نقطة</app-badge>
+                                <app-badge [type]="tournament.winnerTeamId === s.teamId ? 'gold' : 'success'">{{
+                                    s.points }} نقطة</app-badge>
                             </div>
 
                             <div class="card-mobile-stats">
@@ -292,51 +310,7 @@
     </div>
 </div>
 
-<!-- Registration Modal -->
-<div *ngIf="isRegisterModalVisible" class="modal-overlay" (click)="closeRegisterModal()"
-    style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">
-    <app-card class="modal-box" (click)="$event.stopPropagation()" style="width: 100%; max-width: 500px;"
-        title="تسجيل الفريق" icon="rocket_launch">
-        <div class="form-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">الرقم المحول
-                    منه</label>
-                <input type="text" [(ngModel)]="registerForm.fromNumber" class="premium-input"
-                    placeholder="رقم الجوال المحول منه">
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">نوع
-                    التحويل</label>
-                <select [(ngModel)]="registerForm.transferType" class="premium-input">
-                    <option value="">اختر النوع</option>
-                    <option value="STC Pay">STC Pay</option>
-                    <option value="Urpay">Urpay</option>
-                    <option value="Bank Transfer">تحويل بنكي</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">إيصال
-                    الدفع</label>
-                <div (click)="fileInput.click()"
-                    style="border: 2px dashed rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02);"
-                    onmouseover="this.style.borderColor='#10B981'; this.style.background='rgba(16,185,129,0.05)'"
-                    onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.02)'">
-                    <input #fileInput type="file" (change)="onFileSelected($event)" hidden accept="image/*">
-                    <span class="material-symbols-outlined"
-                        style="font-size: 2.5rem; color: #10B981; margin-bottom: 0.5rem;">cloud_upload</span>
-                    <p style="margin: 0; color: #94a3b8;">{{ registerForm.receipt ? registerForm.receipt.name : 'اسحب
-                        الإيصال هنا أو انقر للإرفاق' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
-            <app-button variant="ghost" (click)="closeRegisterModal()">إلغاء</app-button>
-            <app-button variant="primary" icon="send" (click)="submitRegistration()" [isLoading]="isSubmitting"
-                [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال
-                الطلب</app-button>
-        </div>
-    </app-card>
-</div>
+<!-- Registration Modal (Shared) -->
+<app-team-registration-modal [tournament]="tournament" [isVisible]="isRegisterModalVisible"
+    (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()">
+</app-team-registration-modal>

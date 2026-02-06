@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/chat-box.component';
 import { ChatService } from '../../../../core/services/chat.service';
 import { MatchService } from '../../../../core/services/match.service';
-import { MatchMessage } from '../../../../core/models/tournament.model';
+import { MatchMessage, MatchStatus } from '../../../../core/models/tournament.model';
 
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
@@ -57,10 +57,10 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private uiFeedback = inject(UIFeedbackService);
     private chatService = inject(ChatService);
     private matchService = inject(MatchService);
+    private cdr = inject(ChangeDetectorRef);
 
     ChatParticipantRole = ChatParticipantRole;
 
-    messages: ChatMessage[] = [];
     newMessage = '';
     showParticipants = true;
     currentUser: User | null = null;
@@ -100,15 +100,20 @@ export class MatchChatComponent implements OnInit, OnDestroy {
                 if (this.match) {
                     this.checkAuthorization();
                     if (this.isAuthorized) {
-                        this.chatService.joinMatch(this.matchId);
+                        this.chatService.joinMatch(this.matchId).catch(err => {
+                            console.error('SignalR Join Error:', err);
+                        });
                         this.loadParticipants();
                     }
                 }
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
-            error: () => {
+            error: (err) => {
+                console.error('Load Match Error:', err);
                 this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المباراة');
                 this.isLoading = false;
+                this.cdr.detectChanges();
             }
         });
     }
@@ -146,60 +151,42 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private loadParticipants(): void {
         if (!this.match) return;
 
+        // Populate from match data
         this.participants = [
-            // Referee
-            { id: '2', name: 'محمد علي', avatarInitial: 'م', role: ChatParticipantRole.REFEREE, isOnline: true },
-            // Admin (if applicable)
-            { id: '1', name: 'عبد الله أحمد', avatarInitial: 'ع', role: ChatParticipantRole.ADMIN, isOnline: true },
-            // Home team
-            { id: '3', name: 'أحمد القائد', avatarInitial: 'أ', role: ChatParticipantRole.CAPTAIN, teamId: 't1', isOnline: true },
-            { id: 'p1', name: 'محمد اللاعب', avatarInitial: 'م', role: ChatParticipantRole.PLAYER, teamId: 't1', isOnline: true },
-            { id: 'p2', name: 'علي اللاعب', avatarInitial: 'ع', role: ChatParticipantRole.PLAYER, teamId: 't1', isOnline: false },
-            // Away team
-            { id: 'captain-2', name: 'خالد القائد', avatarInitial: 'خ', role: ChatParticipantRole.CAPTAIN, teamId: 'team-2', isOnline: true },
-            { id: 'p4', name: 'سعد اللاعب', avatarInitial: 'س', role: ChatParticipantRole.PLAYER, teamId: 'team-2', isOnline: true },
-            { id: 'p5', name: 'فهد اللاعب', avatarInitial: 'ف', role: ChatParticipantRole.PLAYER, teamId: 'team-2', isOnline: false }
-        ];
-    }
-
-    private loadMessages(): void {
-        // Mock messages - in real app, fetch from API
-        this.messages = [
             {
-                id: 'sys-1',
-                text: 'تم إنشاء غرفة الدردشة للمباراة. يرجى الاتفاق على موعد المباراة خلال 3 أيام.',
-                senderName: 'النظام',
-                senderId: 'system',
-                senderRole: ChatParticipantRole.ADMIN,
-                timestamp: new Date(Date.now() - 86400000),
-                isSystem: true
+                id: this.match.refereeId || 'ref-placeholder',
+                name: this.match.refereeName || 'حكم المباراة',
+                avatarInitial: (this.match.refereeName || 'ح')[0],
+                role: ChatParticipantRole.REFEREE,
+                isOnline: true
             },
             {
-                id: '1',
-                text: 'السلام عليكم، متى يناسبكم موعد المباراة؟',
-                senderName: 'أحمد القائد',
-                senderId: '3',
-                senderRole: ChatParticipantRole.CAPTAIN,
-                timestamp: new Date(Date.now() - 3600000)
+                id: 'system-admin',
+                name: 'الـمشرف',
+                avatarInitial: 'م',
+                role: ChatParticipantRole.ADMIN,
+                isOnline: true
             },
             {
-                id: '2',
-                text: 'وعليكم السلام، يوم الجمعة الساعة 4 العصر مناسب لنا',
-                senderName: 'خالد القائد',
-                senderId: 'captain-2',
-                senderRole: ChatParticipantRole.CAPTAIN,
-                timestamp: new Date(Date.now() - 3000000)
+                id: this.match.homeTeamId + '-cap',
+                name: `قائد ${this.match.homeTeamName}`,
+                avatarInitial: 'ق',
+                role: ChatParticipantRole.CAPTAIN,
+                teamId: this.match.homeTeamId,
+                isOnline: true
             },
             {
-                id: '3',
-                text: 'ممتاز، أنا متاح في هذا الموعد. سأكون جاهزاً للتحكيم.',
-                senderName: 'محمد علي',
-                senderId: '2',
-                senderRole: ChatParticipantRole.REFEREE,
-                timestamp: new Date(Date.now() - 2400000)
+                id: this.match.awayTeamId + '-cap',
+                name: `قائد ${this.match.awayTeamName}`,
+                avatarInitial: 'ق',
+                role: ChatParticipantRole.CAPTAIN,
+                teamId: this.match.awayTeamId,
+                isOnline: true
             }
         ];
     }
+
+
 
     isMe(msg: ChatMessage): boolean {
         return msg.senderId === this.currentUser?.id;
@@ -211,7 +198,8 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         switch (this.currentUser.role) {
             case UserRole.ADMIN: return ChatParticipantRole.ADMIN;
             case UserRole.REFEREE: return ChatParticipantRole.REFEREE;
-            case UserRole.CAPTAIN: return ChatParticipantRole.CAPTAIN;
+            case UserRole.PLAYER:
+                return this.currentUser.isTeamOwner ? ChatParticipantRole.CAPTAIN : ChatParticipantRole.PLAYER;
             default: return ChatParticipantRole.PLAYER;
         }
     }
@@ -279,14 +267,18 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         });
     }
 
+    get isMatchFinished(): boolean {
+        return this.match?.status === MatchStatus.FINISHED;
+    }
+
     get mappedMessages(): ChatMessage[] {
         return this.realTimeMessages().map(m => ({
             id: m.id,
             text: m.content,
             senderId: m.senderId,
             senderName: m.senderName,
-            senderRole: m.role,
-            timestamp: m.timestamp
+            senderRole: m.role?.toLowerCase() || 'player',
+            timestamp: new Date(m.timestamp)
         }));
     }
 
@@ -299,7 +291,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
                 case UserRole.REFEREE:
                     this.router.navigate(['/referee/matches']);
                     break;
-                case UserRole.CAPTAIN:
                 case UserRole.PLAYER:
                     this.router.navigate(['/captain/matches']);
                     break;
@@ -363,34 +354,30 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         this.isSavingSchedule = true;
 
-        // In real app, call API to save
-        setTimeout(() => {
-            this.match!.scheduledDate = this.scheduleDate;
-            this.match!.scheduledTime = this.scheduleTime;
+        // Construct ISO date string (approximate for the day/time)
+        const dateStr = `${this.scheduleDate}T${this.scheduleTime}:00Z`;
 
-            // Add system message
-            const scheduleMessage: ChatMessage = {
-                id: Date.now().toString(),
-                text: `تم تحديد موعد المباراة: ${this.formatScheduledDate(this.scheduleDate)} الساعة ${this.scheduleTime}`,
-                senderName: 'النظام',
-                senderId: 'system',
-                senderRole: ChatParticipantRole.ADMIN,
-                timestamp: new Date(),
-                isSystem: true
-            };
-            this.messages.push(scheduleMessage);
+        this.matchService.updateMatch(this.match.id, { date: new Date(dateStr) }).subscribe({
+            next: () => {
+                this.isSavingSchedule = false;
+                this.showScheduleModal = false;
+                this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد المباراة بنجاح');
 
-            this.isSavingSchedule = false;
-            this.showScheduleModal = false;
-            this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد المباراة بنجاح');
+                // Send chat message
+                const msgText = `تم تحديد موعد المباراة: ${this.formatScheduledDate(this.scheduleDate)} الساعة ${this.scheduleTime}`;
+                this.onSendMessage(msgText);
 
-            // Scroll to bottom
-            setTimeout(() => {
-                if (this.messagesContainer) {
-                    this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
-                }
-            }, 100);
-        }, 500);
+                // Update local match object
+                this.match!.date = new Date(dateStr);
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Schedule Save Error:', err);
+                this.uiFeedback.error('خطأ', 'فشل في حفظ الموعد');
+                this.isSavingSchedule = false;
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     // Format scheduled date for display

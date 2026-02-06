@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Observable, Subscription } from 'rxjs';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../shared/components/team-detail';
 import { TeamService } from '../../core/services/team.service';
 import { Player } from '../../core/models/team.model';
@@ -10,6 +11,9 @@ import { User, UserRole, UserStatus } from '../../core/models/user.model';
 
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { TeamRequestService } from '../../core/services/team-request.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { TeamJoinRequest } from '../../core/models/team-request.model';
 
 @Component({
     selector: 'app-my-team-detail',
@@ -30,11 +34,15 @@ import { ButtonComponent } from '../../shared/components/button/button.component
                 [canAddPlayers]="isCaptain"
                 [canRemovePlayers]="isCaptain"
                 [canManageStatus]="false"
+                [canManageInvitations]="isCaptain"
+                [canSeeRequests]="isCaptain"
+                [canSeeFinances]="isCaptain || isAdmin"
                 [initialTab]="'players'"
                 (playerAction)="handlePlayerAction($event)"
                 (editName)="handleEditName($event)"
                 (addPlayer)="onAddPlayerClick($event)"
-                (tabChanged)="handleTabChange($event)">
+                (tabChanged)="handleTabChange($event)"
+                (respondRequest)="handleRespondRequest($event)">
             </app-team-detail>
         </div>
 
@@ -56,8 +64,23 @@ import { ButtonComponent } from '../../shared/components/button/button.component
                 </app-button>
             </div>
 
-            <!-- Case 2: Account Active, No Team -->
-            <div *ngIf="!isUserPending" class="create-team-card animate-fade-in-up">
+            <!-- Case 2: Account Active, No Team, Has Invitation -->
+            <div *ngIf="!isUserPending && pendingInvitations.length > 0" class="create-team-card invite-card animate-fade-in-up">
+                <div class="icon-circle primary">
+                    <span class="material-symbols-outlined">mail</span>
+                </div>
+                <h2>لديك دعوة للانضمام إلى فريق</h2>
+                <div *ngFor="let invite of pendingInvitations" class="invite-item">
+                    <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
+                    <div class="flex gap-4">
+                        <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check" class="flex-1">قبول</app-button>
+                        <app-button (click)="rejectInvite(invite.id)" variant="outline" icon="close" class="flex-1">رفض</app-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case 3: Account Active, No Team, No Invitation -->
+            <div *ngIf="!isUserPending && pendingInvitations.length === 0" class="create-team-card animate-fade-in-up">
                 <div class="icon-circle">
                     <span class="material-symbols-outlined">groups</span>
                 </div>
@@ -175,8 +198,35 @@ import { ButtonComponent } from '../../shared/components/button/button.component
             box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
         }
 
+        .invite-card {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.02) 100%);
+        }
+
+        .invite-item {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border-visible);
+            margin-bottom: 16px;
+            
+            p { margin-bottom: 16px; font-size: 1.1rem; }
+        }
+
+        .flex { display: flex; }
+        .gap-4 { gap: 1rem; }
+        .flex-1 { flex: 1; }
+
         .icon-circle.warning {
             background: rgba(255, 193, 7, 0.1);
+        }
+
+        .icon-circle.primary {
+            background: rgba(var(--primary-rgb), 0.1);
+        }
+
+        .icon-circle.primary span {
+            color: var(--primary);
         }
 
         .icon-circle.warning span {
@@ -191,19 +241,25 @@ import { ButtonComponent } from '../../shared/components/button/button.component
         .w-full { width: 100%; }
     `]
 })
-export class MyTeamDetailComponent implements OnInit {
+export class MyTeamDetailComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly teamRequestService = inject(TeamRequestService);
+    private readonly notificationService = inject(NotificationService);
     private readonly cdr = inject(ChangeDetectorRef);
+
+    private userSubscription: Subscription | null = null;
 
     currentUser: User | null = null;
     teamData: TeamData | null = null;
     loading = true;
     isCaptain = false;
+    isAdmin = false;
     newTeamName = '';
     creatingTeam = false;
+    pendingInvitations: TeamJoinRequest[] = [];
 
     get isUserPending(): boolean {
         return this.currentUser?.status === UserStatus.PENDING;
@@ -216,44 +272,137 @@ export class MyTeamDetailComponent implements OnInit {
             return;
         }
 
-        this.isCaptain = this.authService.hasRole(UserRole.CAPTAIN);
+        this.isAdmin = (this.currentUser.role as string) === 'Admin';
         this.loadTeamData();
+
+        // Subscribe to user state changes for reactive UI updates
+        this.userSubscription = this.authService.user$.subscribe(user => {
+            if (!user) return;
+
+            // If user.teamId changed to null/undefined, clear team data immediately
+            if (!user.teamId && this.teamData) {
+                this.teamData = null;
+                this.isCaptain = false;
+                this.currentUser = user;
+                this.loadInvitations();
+                this.cdr.detectChanges();
+            } else if (user.teamId && !this.teamData) {
+                // User got a team, reload
+                this.currentUser = user;
+                this.loadTeamData();
+            }
+        });
+
+        // Listen for real-time updates
+        this.notificationService.joinRequestUpdate.subscribe(() => {
+            if (this.currentUser) {
+                // Refresh list
+                if (this.teamData) {
+                    if (this.isCaptain) {
+                        this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                            if (this.teamData) this.teamData.invitations = requests;
+                            this.cdr.detectChanges();
+                        });
+                    }
+                } else {
+                    this.loadInvitations();
+                }
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        if (this.userSubscription) {
+            this.userSubscription.unsubscribe();
+        }
+    }
+
+    loadInvitations(): void {
+        this.teamRequestService.getMyInvitations().subscribe({
+            next: (invites) => {
+                this.pendingInvitations = invites;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    acceptInvite(requestId: string): void {
+        this.loading = true;
+        this.teamRequestService.acceptRequest(requestId).subscribe({
+            next: () => {
+                this.uiFeedback.success('تمت الإضافة', 'أهلاً بك في فريقك الجديد!');
+                // Update local status so UI refreshes
+                setTimeout(() => {
+                    this.authService.refreshUserProfile().subscribe(() => {
+                        this.currentUser = this.authService.getCurrentUser();
+                        this.loadTeamData();
+                    });
+                }, 500);
+            },
+            error: (err) => {
+                this.loading = false;
+                this.uiFeedback.error('فشل القبول', err.message);
+            }
+        });
+    }
+
+    rejectInvite(requestId: string): void {
+        this.teamRequestService.rejectRequest(requestId).subscribe({
+            next: () => {
+                this.pendingInvitations = this.pendingInvitations.filter(i => i.id !== requestId);
+                this.uiFeedback.success('تم الرفض', 'تم رفض الدعوة بنجاح');
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     loadTeamData(): void {
         if (!this.currentUser) return;
 
-        const loadTeam$ = this.isCaptain
-            ? this.teamService.getTeamByCaptainId(this.currentUser.id)
-            : this.currentUser.teamId
-                ? this.teamService.getTeamById(this.currentUser.teamId)
-                : null;
+        // If user has a teamId, load that team first.
+        // If not, we check if they might be a captain whose team is not linked (unlikely in new model but for safety).
+        let loadTeam$: Observable<any> | null = null;
+
+        if (this.currentUser.teamId) {
+            loadTeam$ = this.teamService.getTeamById(this.currentUser.teamId);
+        } else {
+            // Fallback: check if this user is a captain of any team
+            // (Useful if the User.TeamId wasn't updated for some reason)
+            loadTeam$ = this.teamService.getTeamByCaptainId(this.currentUser.id);
+        }
 
         if (!loadTeam$) {
             this.loading = false;
-            this.teamData = null; // Ensure it's null to show create team UI
+            this.teamData = null;
+            this.isCaptain = false;
+            this.loadInvitations();
             return;
         }
 
         this.loading = true;
         loadTeam$.subscribe({
-            next: (team) => {
-                setTimeout(() => {
-                    if (team) {
-                        this.teamData = this.convertToTeamData(team);
-                    } else {
-                        this.teamData = null;
+            next: (team: any) => {
+                if (team) {
+                    this.teamData = this.convertToTeamData(team);
+                    this.isCaptain = this.authService.isTeamOwner(team);
+
+                    if (this.isCaptain) {
+                        this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                            if (this.teamData) this.teamData.invitations = requests;
+                            this.cdr.detectChanges();
+                        });
                     }
-                    this.loading = false;
-                    this.cdr.detectChanges();
-                });
+                } else {
+                    this.teamData = null;
+                    this.isCaptain = false;
+                }
+                this.loading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
-                setTimeout(() => {
-                    this.uiFeedback.error('خطأ', 'حدث خطأ أثناء تحميل بيانات الفريق');
-                    this.loading = false;
-                    this.cdr.detectChanges();
-                });
+                this.uiFeedback.error('خطأ', 'حدث خطأ أثناء تحميل بيانات الفريق');
+                this.loading = false;
+                this.cdr.detectChanges();
             }
         });
     }
@@ -267,45 +416,102 @@ export class MyTeamDetailComponent implements OnInit {
         }
 
         if (!this.newTeamName.trim()) {
-            this.uiFeedback.warning('تنبيه', 'يرجى إدخال اسم المشروع/الفريق');
+            this.uiFeedback.warning('تنبيه', 'يرجى إدخال اسم الفريق');
             return;
         }
 
         this.creatingTeam = true;
         this.teamService.createTeam(this.currentUser, this.newTeamName).subscribe({
             next: (response) => {
-                setTimeout(() => {
-                    this.authService.updateCurrentUser(response.updatedUser);
-                    this.currentUser = response.updatedUser;
-                    this.isCaptain = true;
-                    this.teamData = this.convertToTeamData(response.team);
-                    this.creatingTeam = false;
-                    this.cdr.detectChanges();
-                    this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
-                });
+                this.authService.updateCurrentUser(response.updatedUser);
+                this.currentUser = response.updatedUser;
+                this.teamData = this.convertToTeamData(response.team);
+                this.isCaptain = this.authService.isTeamOwner(response.team);
+                this.creatingTeam = false;
+                this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
+                this.cdr.detectChanges();
             },
             error: (err) => {
-                setTimeout(() => {
-                    this.uiFeedback.error('فشل الإنشاء', err.message);
-                    this.creatingTeam = false;
-                    this.cdr.detectChanges();
-                });
+                this.uiFeedback.error('فشل الإنشاء', err.message);
+                this.creatingTeam = false;
+                this.cdr.detectChanges();
             }
         });
+    }
+
+    handleTabChange(tab: string): void {
+        if (!this.teamData) return;
+
+        switch (tab) {
+            case 'players':
+                this.teamService.getTeamPlayers(this.teamData.id).subscribe(players => {
+                    if (this.teamData) this.teamData.players = players.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        number: p.number || 0,
+                        position: p.position || 'لاعب',
+                        goals: p.goals || 0,
+                        yellowCards: p.yellowCards || 0,
+                        redCards: p.redCards || 0,
+                        status: p.status || 'active'
+                    }));
+                    this.cdr.detectChanges();
+                });
+                break;
+            case 'matches':
+                this.teamService.getTeamMatches(this.teamData.id).subscribe(matches => {
+                    if (this.teamData) this.teamData.matches = matches.map(m => ({
+                        id: m.id,
+                        opponent: m.homeTeamId === this.teamData?.id ? m.awayTeamName : m.homeTeamName,
+                        date: new Date(m.date),
+                        homeScore: m.homeScore,
+                        awayScore: m.awayScore,
+                        status: m.status,
+                        type: 'مباراة بطولة'
+                    }));
+                    this.cdr.detectChanges();
+                });
+                break;
+            case 'finances':
+                this.teamService.getTeamFinancials(this.teamData.id).subscribe(finances => {
+                    if (this.teamData) this.teamData.finances = finances.map(f => ({
+                        id: f.tournamentId,
+                        title: f.tournamentName || 'تسجيل بطولة',
+                        category: 'Tournament Registration',
+                        amount: 0, // Fee could be fetched from tournament but let's keep it simple
+                        date: new Date(f.registeredAt),
+                        status: f.status, // PendingPaymentReview, Approved, Rejected
+                        type: 'expense'
+                    }));
+                    this.cdr.detectChanges();
+                });
+                break;
+            case 'requests':
+                if (this.isCaptain) {
+                    this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                        if (this.teamData) this.teamData.invitations = requests;
+                        this.cdr.detectChanges();
+                    });
+                }
+                break;
+        }
     }
 
     private convertToTeamData(team: any): TeamData {
         return {
             id: team.id,
             name: team.name,
+            captainId: team.captainId || '',
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
-            logo: team.logoUrl || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
-            status: team.isReady ? 'READY' : 'NOT_READY',
+            logo: team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
+            status: team.playerCount >= 5 ? 'READY' : 'NOT_READY',
+            playerCount: team.playerCount,
+            maxPlayers: team.maxPlayers,
             isActive: team.isActive ?? true,
             createdAt: team.createdAt ? new Date(team.createdAt) : new Date(),
             stats: {
-                matches: team.stats?.totalMatches || 0,
+                matches: team.stats?.matches || 0,
                 wins: team.stats?.wins || 0,
                 draws: team.stats?.draws || 0,
                 losses: team.stats?.losses || 0,
@@ -323,24 +529,33 @@ export class MyTeamDetailComponent implements OnInit {
                 redCards: p.redCards || 0,
                 status: p.status || 'active'
             })),
-            matches: (team.matches || []).map((m: any) => ({
-                id: m.id,
-                opponent: m.opponent || 'فريق منافس',
-                date: new Date(m.date),
-                score: m.score || '0-0',
-                status: m.status || 'draw',
-                type: m.type || 'مباراة ودية'
-            })),
-            finances: (team.finances || []).map((f: any) => ({
-                id: f.id,
-                title: f.title || 'معاملة مالية',
-                category: f.category || 'other',
-                amount: f.amount || 0,
-                date: new Date(f.date),
-                status: f.status || 'pending',
-                type: f.type || 'expense'
-            }))
+            matches: [],
+            finances: [],
+            invitations: []
         };
+    }
+
+    handleRespondRequest(event: { request: any, approve: boolean }): void {
+        const { request, approve } = event;
+        if (!this.teamData) return;
+
+        this.teamRequestService.respondToRequest(this.teamData.id, request.id, approve).subscribe({
+            next: () => {
+                this.uiFeedback.success(approve ? 'تم القبول' : 'تم الرفض', 'تم تحديث حالة الطلب بنجاح');
+                // Refresh invitations list for captain
+                this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                    if (this.teamData) this.teamData.invitations = requests;
+                    // If approved, also refresh players list
+                    if (approve) {
+                        this.loadTeamData();
+                    }
+                    this.cdr.detectChanges();
+                });
+            },
+            error: (err) => {
+                this.uiFeedback.error('فشل المعالجة', err.error?.message || 'حدث خطأ أثناء معالجة الطلب');
+            }
+        });
     }
 
     handleEditName(newName: string): void {
@@ -358,29 +573,18 @@ export class MyTeamDetailComponent implements OnInit {
     onAddPlayerClick(playerId: string): void {
         if (!this.teamData || !this.currentUser) return;
 
-        this.teamService.addPlayerByDisplayId(this.teamData.id, playerId, this.currentUser).subscribe({
-            next: (newPlayer: Player) => {
-                const teamPlayer: TeamPlayer = {
-                    id: isNaN(Number(newPlayer.id)) ? Math.floor(Math.random() * 100000) : Number(newPlayer.id),
-                    name: newPlayer.name,
-                    number: 0,
-                    position: 'N/A',
-                    goals: newPlayer.goals || 0,
-                    yellowCards: newPlayer.yellowCards || 0,
-                    redCards: newPlayer.redCards || 0,
-                    status: 'active'
-                };
-                this.teamData!.players.push(teamPlayer);
-                this.uiFeedback.success('تمت الإضافة', `تم إضافة اللاعب "${newPlayer.name}" للفريق بنجاح`);
+        this.teamService.invitePlayerByDisplayId(this.teamData.id, playerId).subscribe({
+            next: (response: any) => {
+                this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
             },
             error: (err: any) => {
-                this.uiFeedback.error('فشل الإضافة', err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
+                this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
             }
         });
     }
 
     handlePlayerAction(event: { player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }): void {
-        if (!this.isCaptain) return;
+        if (!this.isCaptain || !this.teamData) return;
 
         const { player, action } = event;
         const config = {
@@ -399,14 +603,9 @@ export class MyTeamDetailComponent implements OnInit {
                         this.uiFeedback.success('تم الاستبعاد', 'تم إزالة اللاعب من الفريق');
                     });
                 } else {
-                    // العمليات الأخرى للأدمن عادة، لكن الكابتن هنا يستخدم الـ remove
                     this.uiFeedback.success('تم التحديث', 'تمت العملية بنجاح');
                 }
             }
         });
-    }
-
-    handleTabChange(tab: string): void {
-        console.log('Tab changed to:', tab);
     }
 }

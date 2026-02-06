@@ -59,8 +59,12 @@ export class MatchService {
         );
     }
 
+    updateMatch(id: string, data: Partial<Match>): Observable<Match> {
+        return this.http.patch<Match>(`${this.apiUrl}/${id}`, data);
+    }
+
     updateMatchScore(id: string, homeScore: number, awayScore: number): Observable<boolean> {
-        return this.http.patch<Match>(`${this.apiUrl}/${id}`, { homeScore, awayScore }).pipe(map(() => true));
+        return this.updateMatch(id, { homeScore, awayScore } as any).pipe(map(() => true));
     }
 
     updateMatchStatus(id: string, status: MatchStatus): Observable<boolean> {

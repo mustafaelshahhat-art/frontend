@@ -7,7 +7,10 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
+import { PermissionsService } from '../../core/services/permissions.service';
+import { Permission } from '../../core/permissions/permissions.model';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { User, UserStatus } from '../../core/models/user.model';
 
 @Component({
     selector: 'app-captain-layout',
@@ -19,6 +22,7 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private permissionsService = inject(PermissionsService);
 
     isSidebarOpen = true;
     isMobile = false;
@@ -28,10 +32,20 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
     unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
-    currentUser = this.authService.getCurrentUser();
-    isPending = this.currentUser?.status === 'Pending';
+    currentUser$ = this.authService.user$;
+    currentUser: User | null = null;
+    isPending = false;
 
-    navItems: NavItem[] = [
+    get filteredNavItems(): NavItem[] {
+        return this.navItems.filter(item => {
+            if (item.route === '/captain/objections') {
+                return this.permissionsService.hasPermission(Permission.VIEW_OBJECTIONS);
+            }
+            return true;
+        });
+    }
+
+    private navItems: NavItem[] = [
         { label: 'لوحة التحكم', icon: 'dashboard', route: '/captain/dashboard' },
         { label: 'فريقي', icon: 'groups', route: '/captain/team' },
         { label: 'المباريات', icon: 'sports_soccer', route: '/captain/matches' },
@@ -43,6 +57,13 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.checkScreenSize();
+
+        // Listen to current user changes
+        this.authService.user$.subscribe(user => {
+            this.currentUser = user;
+            this.isPending = user?.status === UserStatus.PENDING;
+        });
+
         // Force closed on mobile initially
         if (this.isMobile) {
             this.isSidebarOpen = false;

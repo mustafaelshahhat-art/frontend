@@ -37,6 +37,10 @@ export class TournamentService {
         return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(map(() => true));
     }
 
+    closeRegistration(id: string): Observable<Tournament> {
+        return this.http.post<Tournament>(`${this.apiUrl}/${id}/close-registration`, {});
+    }
+
     requestTournamentRegistration(tournamentId: string, teamId: string, teamName: string, captainId: string, captainName: string): Observable<TeamRegistration> {
         // According to TournamentsController: POST {id}/register
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId });

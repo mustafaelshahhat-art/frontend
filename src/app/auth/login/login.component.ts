@@ -82,7 +82,7 @@ export class LoginComponent {
             this.router.navigate(['/admin/dashboard']);
         } else if (role === UserRole.REFEREE) {
             this.router.navigate(['/referee/dashboard']);
-        } else if (role === UserRole.CAPTAIN || role === UserRole.PLAYER) {
+        } else if (role === UserRole.PLAYER) {
             this.router.navigate(['/captain/dashboard']);
         } else {
             this.router.navigate(['/']);
@@ -105,7 +105,7 @@ export class LoginComponent {
 
         const credentials: Record<string, { email: string, password: string }> = {
             admin: { email: 'admin@test.com', password: 'password' },
-            captain: { email: 'player@test.com', password: 'password' },
+            captain: { email: 'player@test.com', password: 'password' }, // Logic handles that if this user has teamId/isOwner they see the captain view
             referee: { email: 'referee@test.com', password: 'password' },
             player: { email: 'user@test.com', password: 'password' },
             playerClub: { email: 'clubplayer@test.com', password: 'password' }

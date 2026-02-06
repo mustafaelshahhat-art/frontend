@@ -6,120 +6,144 @@
             العودة للمستخدمين
         </button>
 
-        <!-- Standard Page Header -->
-        <app-page-header [title]="user.name" [subtitle]="'@' + user.username + ' • ' + user.email">
-            <app-button (click)="toggleUserStatus()" [variant]="user.status === 'active' ? 'danger' : 'primary'"
-                [icon]="user.status === 'active' ? 'block' : 'check_circle'">
-                {{ user.status === 'active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
-            </app-button>
-        </app-page-header>
-
-        <!-- User Details & Activity -->
-        <div class="grid-3-cols gap-2xl">
-            <div class="flex-col gap-xl">
-                <!-- Identity Card -->
-                <div class="card p-xl flex-col items-center text-center animate-fade-in-up">
-                    <div class="avatar avatar-3xl mb-lg relative">
-                        <img class="avatar-img" [src]="user.avatar || 'https://i.pravatar.cc/150?u=' + user.id" alt="">
-                        <div class="absolute bottom-0 right-0 p-1 bg-surface rounded-full">
-                            <app-badge [type]="getBadgeType(user.status)">
-                                {{ getStatusLabel(user.status) }}
-                            </app-badge>
-                        </div>
-                    </div>
-
-                    <h2 class="text-xl font-bold text-primary mb-1">{{ user.name }}</h2>
-                    <div class="flex items-center gap-2 text-secondary mb-xl">
-                        <span class="material-symbols-outlined text-gold">military_tech</span>
-                        <span class="font-semibold">{{ getRoleLabel(user.role) }}</span>
-                    </div>
-
-                    <div class="w-full border-t pt-md flex justify-between text-sm">
-                        <span class="text-muted">المعرف</span>
-                        <span class="font-mono text-primary font-bold">#{{ user.id }}</span>
-                    </div>
-                </div>
-
-                <!-- Personal Info Card -->
-                <div class="card animate-fade-in-up" style="animation-delay: 0.1s">
-                    <h3 class="card-title flex items-center gap-2 mb-xl">
-                        <span class="material-symbols-outlined text-primary">info</span>
-                        المعلومات الشخصية
-                    </h3>
-                    <div class="flex-col gap-lg">
-                        <div class="grid-2-cols gap-md">
-                            <div class="flex-col gap-1">
-                                <span class="text-xs text-muted">رقم الهوية</span>
-                                <span class="text-sm font-bold text-secondary">{{ user.nationalId || '—' }}</span>
-                            </div>
-                            <div class="flex-col gap-1">
-                                <span class="text-xs text-muted">العمر</span>
-                                <span class="text-sm font-bold text-secondary">{{ user.age || '—' }} سنة</span>
-                            </div>
-                        </div>
-                        <div class="flex-col gap-1">
-                            <span class="text-xs text-muted">العنوان</span>
-                            <span class="text-sm text-secondary">{{ user.governorate }} - {{ user.city }} - {{
-                                user.neighborhood }}</span>
-                        </div>
-                        <div class="flex-col gap-1">
-                            <span class="text-xs text-muted">رقم الهاتف</span>
-                            <span class="text-sm text-secondary font-mono">{{ user.phone || 'غير مسجل' }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Identity Documents Card -->
-                <div class="card animate-fade-in-up" style="animation-delay: 0.2s">
-                    <h3 class="card-title flex items-center gap-2 mb-xl">
-                        <span class="material-symbols-outlined text-primary">domain_verification</span>
-                        وثائق الهوية
-                    </h3>
-                    <div class="flex-col gap-lg">
-                        <div class="id-card-view">
-                            <span class="text-xs text-muted mb-xs block">وجه البطاقة</span>
-                            <div class="id-card-img-wrapper">
-                                <img [src]="user.idFrontUrl" alt="ID Front" class="id-card-img">
-                                <div class="img-overlay">
-                                    <span class="material-symbols-outlined">zoom_in</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="id-card-view">
-                            <span class="text-xs text-muted mb-xs block">ظهر البطاقة</span>
-                            <div class="id-card-img-wrapper">
-                                <img [src]="user.idBackUrl" alt="ID Back" class="id-card-img">
-                                <div class="img-overlay">
-                                    <span class="material-symbols-outlined">zoom_in</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-2">
-                <div class="card h-full animate-fade-in-up" style="animation-delay: 0.2s">
-                    <h3 class="card-title flex items-center gap-2 mb-xl">
-                        <span class="material-symbols-outlined text-primary">history</span>
-                        النشاط الأخير
-                    </h3>
-                    <div class="flex-col gap-lg">
-                        <div *ngFor="let activity of activities" class="card card-hover flex gap-lg p-md">
-                            <div class="avatar avatar-md notification-icon-info flex-shrink-0">
-                                <span class="material-symbols-outlined">{{ activity.icon }}</span>
-                            </div>
-                            <div class="flex-col gap-1">
-                                <p class="text-sm text-secondary mb-0">{{ activity.message }}</p>
-                                <span class="text-xs text-muted">{{ activity.time }}</span>
-                            </div>
-                        </div>
-                        <div *ngIf="activities.length === 0" class="empty-state">
-                            لا يوجد نشاط مسجل حالياً
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="flex-col items-center justify-center p-4xl">
+            <div class="loading-spinner"></div>
+            <p class="text-muted mt-lg">جاري تحميل بيانات المستخدم...</p>
         </div>
+
+        <!-- Error/Not Found State -->
+        <div *ngIf="!isLoading && !user" class="flex-col items-center justify-center p-4xl text-center">
+            <span class="material-symbols-outlined text-4xl text-muted mb-md">person_off</span>
+            <h2 class="text-xl font-bold mb-md">لم يتم العثور على المستخدم</h2>
+            <p class="text-muted mb-xl">قد يكون المستخدم غير موجود أو تم حذفه</p>
+            <app-button (click)="navigateBack()">العودة لقائمة المستخدمين</app-button>
+        </div>
+
+        <!-- User Data Content -->
+        <ng-container *ngIf="!isLoading && user">
+            <!-- Standard Page Header -->
+            <app-page-header [title]="user.name" [subtitle]="'@' + (user.username || user.email) + ' • ' + user.email">
+                <app-button (click)="toggleUserStatus()" [variant]="user.status === 'Active' ? 'danger' : 'primary'"
+                    [icon]="user.status === 'Active' ? 'block' : 'check_circle'">
+                    {{ user.status === 'Active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
+                </app-button>
+            </app-page-header>
+
+            <!-- User Details & Activity -->
+            <div class="grid-3-cols gap-2xl">
+                <div class="flex-col gap-xl">
+                    <!-- Identity Card -->
+                    <div class="card p-xl flex-col items-center text-center animate-fade-in-up">
+                        <div class="avatar avatar-3xl mb-lg relative">
+                            <img class="avatar-img" [src]="user.avatar || 'https://i.pravatar.cc/150?u=' + user.id"
+                                alt="">
+                            <div class="absolute bottom-0 right-0 p-1 bg-surface rounded-full">
+                                <app-badge [type]="getBadgeType(user.status)">
+                                    {{ getStatusLabel(user.status) }}
+                                </app-badge>
+                            </div>
+                        </div>
+
+                        <h2 class="text-xl font-bold text-primary mb-1">{{ user.name }}</h2>
+                        <div class="flex items-center gap-2 text-secondary mb-xl">
+                            <span class="material-symbols-outlined text-gold">military_tech</span>
+                            <span class="font-semibold">{{ getRoleLabel(user.role) }}</span>
+                        </div>
+
+                        <div class="w-full border-t pt-md flex justify-between text-sm">
+                            <span class="text-muted">المعرف</span>
+                            <span class="font-mono text-primary font-bold">#{{ user.id }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info Card -->
+                    <div class="card animate-fade-in-up" style="animation-delay: 0.1s">
+                        <h3 class="card-title flex items-center gap-2 mb-xl">
+                            <span class="material-symbols-outlined text-primary">info</span>
+                            المعلومات الشخصية
+                        </h3>
+                        <div class="flex-col gap-lg">
+                            <div class="grid-2-cols gap-md">
+                                <div class="flex-col gap-1">
+                                    <span class="text-xs text-muted">رقم الهوية</span>
+                                    <span class="text-sm font-bold text-secondary">{{ user.nationalId || '—' }}</span>
+                                </div>
+                                <div class="flex-col gap-1">
+                                    <span class="text-xs text-muted">العمر</span>
+                                    <span class="text-sm font-bold text-secondary">{{ user.age || '—' }} سنة</span>
+                                </div>
+                            </div>
+                            <div class="flex-col gap-1">
+                                <span class="text-xs text-muted">العنوان</span>
+                                <span class="text-sm text-secondary">
+                                    {{ user.governorate || '—' }} - {{ user.city || '—' }} - {{ user.neighborhood || '—'
+                                    }}
+                                </span>
+                            </div>
+                            <div class="flex-col gap-1">
+                                <span class="text-xs text-muted">رقم الهاتف</span>
+                                <span class="text-sm text-secondary font-mono">{{ user.phone || 'غير مسجل' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Identity Documents Card -->
+                    <div class="card animate-fade-in-up" style="animation-delay: 0.2s">
+                        <h3 class="card-title flex items-center gap-2 mb-xl">
+                            <span class="material-symbols-outlined text-primary">domain_verification</span>
+                            وثائق الهوية
+                        </h3>
+                        <div class="flex-col gap-lg">
+                            <div class="id-card-view">
+                                <span class="text-xs text-muted mb-xs block">وجه البطاقة</span>
+                                <div class="id-card-img-wrapper">
+                                    <img [src]="user.idFrontUrl || 'assets/images/placeholder-id.png'" alt="ID Front"
+                                        class="id-card-img">
+                                    <div class="img-overlay">
+                                        <span class="material-symbols-outlined">zoom_in</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="id-card-view">
+                                <span class="text-xs text-muted mb-xs block">ظهر البطاقة</span>
+                                <div class="id-card-img-wrapper">
+                                    <img [src]="user.idBackUrl || 'assets/images/placeholder-id.png'" alt="ID Back"
+                                        class="id-card-img">
+                                    <div class="img-overlay">
+                                        <span class="material-symbols-outlined">zoom_in</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-2">
+                    <div class="card h-full animate-fade-in-up" style="animation-delay: 0.2s">
+                        <h3 class="card-title flex items-center gap-2 mb-xl">
+                            <span class="material-symbols-outlined text-primary">history</span>
+                            النشاط الأخير
+                        </h3>
+                        <div class="flex-col gap-lg">
+                            <div *ngFor="let activity of user.activities" class="card card-hover flex gap-lg p-md">
+                                <div class="avatar avatar-md flex-shrink-0"
+                                    [ngClass]="getActivityBadgeClass(activity.type)">
+                                    <span class="material-symbols-outlined">{{ getActivityIcon(activity.type) }}</span>
+                                </div>
+                                <div class="flex-col gap-1">
+                                    <p class="text-sm text-secondary mb-0">{{ activity.message }}</p>
+                                    <span class="text-xs text-muted">{{ activity.createdAt | date:'yyyy/MM/dd HH:mm'
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div *ngIf="!user.activities || user.activities.length === 0" class="empty-state">
+                                لا يوجد نشاط مسجل حالياً
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
     </div>
 </div>

@@ -1,8 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/components/team-detail';
+import { TeamService } from '../../../../core/services/team.service';
+import { Team } from '../../../../core/models/team.model';
+import { MatchService } from '../../../../core/services/match.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -12,7 +16,9 @@ import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/co
         TeamDetailComponent
     ],
     template: `
+        <!-- Show content if we have team data, even if still loading/refreshing -->
         <app-team-detail 
+            *ngIf="team"
             [team]="team"
             [showBackButton]="true"
             [backRoute]="'/admin/teams'"
@@ -20,56 +26,187 @@ import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/co
             [canAddPlayers]="false"
             [canRemovePlayers]="false"
             [canManageStatus]="true"
+            [canDeleteTeam]="isCaptainOrAdmin"
             (playerAction)="handlePlayerAction($event)"
-            (tabChanged)="handleTabChange($event)">
+            (tabChanged)="handleTabChange($event)"
+            (deleteTeam)="handleDeleteTeam()">
         </app-team-detail>
+
+        <!-- Only show centering spinner if we have NO data yet -->
+        <div *ngIf="isLoading && !team" class="flex-center p-xl" style="min-height: 400px;">
+            <div class="spinner-lg"></div>
+        </div>
+
+        <div *ngIf="!isLoading && !team" class="flex-center p-xl">
+            <p>لم يتم العثور على الفريق</p>
+            <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
+        </div>
     `
 })
 export class TeamDetailPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
-    private readonly router = inject(Router);
+    public readonly router = inject(Router);
+    private readonly teamService = inject(TeamService);
+    private readonly matchService = inject(MatchService);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly authService = inject(AuthService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
-    team: TeamData = {
-        id: '1',
-        name: 'نادي الصقور',
-        city: 'الرياض',
-        captainName: 'محمد أحمد علي',
-        logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCeRoWtZQChDLQJ4rIgwd3mvfJifNZ0W2G8GH2iH8cxlem1klxcPVUj3d_8jp_uHwriwPkhMKvEmuup2FJE05AGOZOCXGVasRDoBV_nkfbQ7N_c3xgwB6FF_03j7jAYx0NKZKUa3e5mC2NGZ1PyoM8m0119mHXhwTUKpdkYBkbmvbXxPT3OLfWDYjVvyFvd9Z1v_O1fbKZQz2vmEPALuSdCLIB1EuTpnWvYQKTTY0erZvKVqbuqNRxY5i_BCPW_3GwUy-k977OoD229',
-        status: 'READY',
-        isActive: true,
-        createdAt: new Date('2023-11-01'),
-        stats: {
-            matches: 12,
-            wins: 8,
-            draws: 2,
-            losses: 2,
-            goalsFor: 28,
-            goalsAgainst: 14,
-            rank: 3
-        },
-        players: [
-            { id: 1, name: 'أحمد سالم', number: 10, position: 'هجوم', goals: 12, yellowCards: 2, redCards: 0, status: 'active' },
-            { id: 2, name: 'سلطان فهد', number: 1, position: 'حارس', goals: 0, yellowCards: 1, redCards: 0, status: 'active' },
-            { id: 3, name: 'خالد محمد', number: 5, position: 'دفاع', goals: 2, yellowCards: 4, redCards: 1, status: 'suspended' },
-            { id: 4, name: 'ياسر القحطاني', number: 9, position: 'هجوم', goals: 15, yellowCards: 1, redCards: 0, status: 'active' },
-            { id: 5, name: 'محمد نور', number: 8, position: 'وسط', goals: 8, yellowCards: 3, redCards: 0, status: 'active' }
-        ],
-        matches: [
-            { id: 1, opponent: 'نجم الشمال', date: new Date('2024-03-15T21:00:00'), score: '3-1', status: 'win', type: 'دوري المجموعات' },
-            { id: 2, opponent: 'أسود الشرقية', date: new Date('2024-03-22T22:30:00'), score: '1-1', status: 'draw', type: 'دوري المجموعات' },
-            { id: 3, opponent: 'برق الغربية', date: new Date('2024-03-29T21:00:00'), score: '0-2', status: 'loss', type: 'دوري المجموعات' }
-        ],
-        finances: [
-            { id: 1, title: 'رسوم اشتراك - بطولة رمضان الكبرى', category: 'registration', amount: 1500, date: new Date('2024-01-10'), status: 'completed', type: 'expense' },
-            { id: 2, title: 'رسوم اشتراك - دوري المحترفين الرمضاني', category: 'registration', amount: 1200, date: new Date('2024-02-15'), status: 'completed', type: 'expense' }
-        ]
-    };
+    team: TeamData | null = null;
+    isLoading = true;
+    isCaptainOrAdmin = false;
 
     ngOnInit(): void {
+        this.checkNavigationState();
+        this.loadTeam();
+    }
+
+    private checkNavigationState(): void {
+        const stateTeam = history.state?.['team'];
+
+        if (stateTeam) {
+            console.log('TeamDetailPage: Found team in navigation state');
+            try {
+                this.team = this.mapDtoToTeamData(stateTeam);
+                this.isLoading = false;
+                this.checkPermissions();
+                this.cdr.detectChanges();
+            } catch (err) {
+                console.warn('Could not map state team:', err);
+            }
+        }
+    }
+
+    loadTeam(): void {
         const id = this.route.snapshot.paramMap.get('id');
-        // TODO: Load team data from API using the id
-        // this.teamService.getTeam(id).subscribe(team => this.team = team);
+        if (!id) {
+            this.isLoading = false;
+            return;
+        }
+
+        if (!this.team) {
+            this.isLoading = true;
+        }
+
+        this.teamService.getTeamById(id).subscribe({
+            next: (teamDto: Team | undefined) => {
+                if (teamDto) {
+                    console.log('Team DTO received from API:', teamDto);
+                    this.team = this.mapDtoToTeamData(teamDto);
+                    this.checkPermissions();
+                    this.loadMatches(id);
+                    this.cdr.detectChanges();
+                }
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                if (!this.team) {
+                    this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات الفريق');
+                }
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    checkPermissions(): void {
+        const user = this.authService.getCurrentUser();
+        if (user && this.team) {
+            this.isCaptainOrAdmin = user.role === 'Admin' || (user.id === this.team.captainId);
+        }
+    }
+
+    handleDeleteTeam(): void {
+        if (!this.team) return;
+        const message = 'جاري حذف الفريق...';
+        // Note: We use authService.getCurrentUser() assuming it's up to date.
+        // The TeamService.deleteTeam needs a User object to update local state.
+        const user = this.authService.getCurrentUser();
+        if (!user) return;
+
+        this.teamService.deleteTeam(this.team.id, user).subscribe({
+            next: (updatedUser) => {
+                // Update local user state if needed (AuthService might need a method to set user)
+                this.authService.updateCurrentUser(updatedUser);
+                this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                this.router.navigate(['/admin/teams']);
+            },
+            error: (err) => {
+                console.error('Delete failed', err);
+                this.uiFeedback.error('خطأ', 'فشل حذف الفريق');
+            }
+        });
+    }
+
+    loadMatches(teamId: string): void {
+        this.matchService.getMatchesByTeam(teamId).subscribe({
+            next: (matches) => {
+                if (this.team) {
+                    this.team = {
+                        ...this.team,
+                        matches: matches.map(m => ({
+                            id: m.id,
+                            opponent: m.homeTeamId === teamId ? m.awayTeamName : m.homeTeamName,
+                            date: m.date ? new Date(m.date) : new Date(),
+                            score: `${m.homeScore}-${m.awayScore}`,
+                            status: this.getMatchResultStatus(m, teamId),
+                            type: 'مباراة دوري'
+                        }))
+                    };
+                    this.cdr.detectChanges();
+                }
+            },
+            error: () => {
+                console.error('Failed to load team matches');
+            }
+        });
+    }
+
+    private getMatchResultStatus(match: any, teamId: string): 'win' | 'draw' | 'loss' {
+        if (match.status !== 'Finished') return 'draw';
+        const isHome = match.homeTeamId === teamId;
+        const teamScore = isHome ? match.homeScore : match.awayScore;
+        const opponentScore = isHome ? match.awayScore : match.homeScore;
+
+        if (teamScore > opponentScore) return 'win';
+        if (teamScore < opponentScore) return 'loss';
+        return 'draw';
+    }
+
+    private mapDtoToTeamData(dto: any): TeamData {
+        return {
+            id: dto.id,
+            name: dto.name,
+            captainId: dto.captainId,
+            city: dto.city || 'غير محدد',
+            captainName: dto.captainName || 'غير معروف',
+            logo: dto.logo || 'assets/images/team-placeholder.png',
+            status: 'READY',
+            isActive: dto.isActive,
+            createdAt: dto.founded ? new Date(dto.founded) : new Date(),
+            stats: {
+                matches: dto.stats?.matches || dto.stats?.Matches || 0,
+                wins: dto.stats?.wins || dto.stats?.Wins || 0,
+                draws: dto.stats?.draws || dto.stats?.Draws || 0,
+                losses: dto.stats?.losses || dto.stats?.Losses || 0,
+                goalsFor: dto.stats?.goalsFor || dto.stats?.GoalsFor || 0,
+                goalsAgainst: dto.stats?.goalsAgainst || dto.stats?.GoalsAgainst || 0,
+                rank: dto.stats?.rank || dto.stats?.Rank || 0
+            },
+            players: (dto.players || []).map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                number: p.number || 0,
+                position: p.position || 'لاعب',
+                goals: p.goals || 0,
+                yellowCards: p.yellowCards || 0,
+                redCards: p.redCards || 0,
+                status: p.status || 'active'
+            })),
+            matches: [],
+            finances: []
+        };
     }
 
     handlePlayerAction(event: { player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }): void {
@@ -88,7 +225,7 @@ export class TeamDetailPageComponent implements OnInit {
                 if (action === 'activate') player.status = 'active';
                 else if (action === 'deactivate') player.status = 'suspended';
                 else if (action === 'ban') player.status = 'banned';
-                else if (action === 'remove') {
+                else if (action === 'remove' && this.team) {
                     this.team.players = this.team.players.filter(p => p.id !== player.id);
                 }
 

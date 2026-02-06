@@ -60,9 +60,10 @@ export class SidebarComponent {
 
         switch (this.currentUser.role) {
             case 'ADMIN': return 'مسؤول النظام';
-            case 'CAPTAIN': return 'قائد الفريق';
             case 'REFEREE': return 'حكم الساحة';
-            case 'PLAYER': return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';
+            case 'PLAYER':
+                if (this.currentUser.isTeamOwner) return 'قائد الفريق';
+                return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';
             default: return this.userRoleLabel;
         }
     }

@@ -21,6 +21,8 @@
                             </h1>
                             <app-button *ngIf="canEditName" (click)="startEditName()" variant="ghost" size="sm"
                                 icon="edit" class="text-primary-light"></app-button>
+                            <app-button *ngIf="canDeleteTeam" (click)="onDeleteTeamClick()" variant="ghost" size="sm"
+                                icon="delete" class="text-danger" title="حذف الفريق"></app-button>
                         </ng-container>
 
                         <div *ngIf="isEditingName" class="flex items-center gap-2">
@@ -31,8 +33,9 @@
                             <app-button (click)="cancelEdit()" variant="ghost" size="sm" icon="close"></app-button>
                         </div>
 
-                        <app-badge type="success" [dot]="true" dotType="active" class="px-3">
-                            {{ team.status === 'READY' ? 'فريق جاهز' : 'غير مكتمل' }}
+                        <app-badge [type]="team.status === 'READY' ? 'success' : 'warning'" [dot]="true"
+                            [dotType]="team.status === 'READY' ? 'active' : 'pending'" class="px-3">
+                            {{ team.status === 'READY' ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
                         </app-badge>
                     </div>
 
@@ -52,7 +55,7 @@
 
         <!-- Tabbed Content Section -->
         <div class="tabs-scroll-container">
-            <app-filter [items]="tabs" [activeValue]="activeTab" (change)="onTabChange($event)"></app-filter>
+            <app-filter [items]="filteredTabs" [activeValue]="activeTab" (change)="onTabChange($event)"></app-filter>
         </div>
 
         <!-- Dynamic Content Area -->
@@ -106,25 +109,10 @@
                         </div>
                     </div>
 
-                    <!-- Quick Insights -->
-                    <div class="card p-lg">
-                        <h3 class="font-super-black text-lg mb-6">إرصادات سريعة</h3>
-                        <div class="flex-col gap-3">
-                            <div class="flex-between bg-surface p-3 rounded-xl border border-visible">
-                                <span class="text-muted text-sm font-bold">القوة الهجومية</span>
-                                <span class="text-primary font-super-black">{{ (team.stats.goalsFor /
-                                    team.stats.matches) | number:'1.1-1' }} هدية/مباراة</span>
-                            </div>
-                            <div class="flex-between bg-surface p-3 rounded-xl border border-visible">
-                                <span class="text-muted text-sm font-bold">نسبة الفوز الجمالية</span>
-                                <span class="text-success font-super-black">{{ (team.stats.wins / team.stats.matches *
-                                    100) | number:'1.0-0' }}%</span>
-                            </div>
-                            <div class="flex-between bg-surface p-3 rounded-xl border border-visible">
-                                <span class="text-muted text-sm font-bold">اكتمال القائمة</span>
-                                <span class="text-primary-light font-super-black">{{ team.players.length }} / 20</span>
-                            </div>
-                        </div>
+                    <div class="flex-between bg-surface p-3 rounded-xl border border-visible">
+                        <span class="text-muted text-sm font-bold">اكتمال القائمة</span>
+                        <span class="text-primary-light font-super-black">{{ team.players.length }} / {{ team.maxPlayers
+                            || 10 }}</span>
                     </div>
                 </div>
             </div>
@@ -147,7 +135,10 @@
                             <div class="flex-1">
                                 <div class="flex-between items-center">
                                     <div class="flex-col items-start">
-                                        <span class="text-sm font-super-black text-primary">{{ player.name }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-super-black text-primary">{{ player.name }}</span>
+                                            <span class="text-xs text-muted">#{{ player.number }}</span>
+                                        </div>
                                         <div class="status-wrapper">
                                             <span class="status-label"
                                                 [class.status-active]="player.status === 'active'"
@@ -178,58 +169,68 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Matches Tab (Match Cards) -->
-                <div *ngSwitchCase="'matches'" class="flex-col gap-4">
-                    <div *ngFor="let match of team.matches" class="card p-0 overflow-hidden match-pro-card">
-                        <div class="match-card-header flex-between p-3">
-                            <div class="flex items-center gap-2">
-                                <app-badge type="gold" class="text-2xs px-2">{{ match.type }}</app-badge>
-                                <span class="text-2xs font-bold text-muted">{{ match.date | date:'y/MM/dd | HH:mm'
-                                    }}</span>
+            <!-- Matches Tab (Match Cards) -->
+            <div *ngSwitchCase="'matches'" class="flex-col gap-4">
+                <div *ngIf="!team.matches || team.matches.length === 0" class="empty-state p-xl text-center">
+                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">sports_soccer</span>
+                    <p class="text-muted">لا يوجد مباريات مسجلة حالياً</p>
+                </div>
+
+                <div *ngFor="let match of team.matches" class="card p-0 overflow-hidden match-pro-card">
+                    <div class="match-card-header flex-between p-3">
+                        <div class="flex items-center gap-2">
+                            <app-badge type="gold" class="text-2xs px-2">{{ match.type }}</app-badge>
+                            <span class="text-2xs font-bold text-muted">{{ match.date | date:'y/MM/dd | HH:mm'
+                                }}</span>
+                        </div>
+                        <span class="material-symbols-outlined text-sm text-muted opacity-50">more_horiz</span>
+                    </div>
+
+                    <div class="p-lg flex items-center justify-between gap-xl mobile-center">
+                        <div class="flex-1 flex flex-col items-center gap-3">
+                            <div class="avatar-lg bg-surface border border-visible shadow-sm">
+                                <img [src]="team.logo" class="avatar-img" alt="">
                             </div>
-                            <span class="material-symbols-outlined text-sm text-muted opacity-50">more_horiz</span>
+                            <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
                         </div>
 
-                        <div class="p-lg flex items-center justify-between gap-xl mobile-center">
-                            <div class="flex-1 flex flex-col items-center gap-3">
-                                <div class="avatar-lg bg-surface border border-visible shadow-sm">
-                                    <img [src]="team.logo" class="avatar-img" alt="">
-                                </div>
-                                <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="flex items-center gap-5">
+                                <span class="text-5xl font-super-black text-primary">{{ match.homeScore ?? 0
+                                    }}</span>
+                                <span class="text-muted opacity-30 text-3xl">:</span>
+                                <span class="text-5xl font-super-black text-primary">{{ match.awayScore ?? 0
+                                    }}</span>
                             </div>
+                            <app-badge
+                                [type]="match.status === 'Finished' ? 'success' : (match.status === 'Scheduled' ? 'warning' : 'primary')">
+                                {{ match.status === 'Finished' ? 'مباراة منتهية' : (match.status === 'Scheduled' ?
+                                'مجدولة'
+                                : 'جارية الآن') }}
+                            </app-badge>
+                        </div>
 
-                            <div class="flex flex-col items-center gap-2">
-                                <div class="flex items-center gap-5">
-                                    <span class="text-5xl font-super-black text-primary">{{
-                                        match.score.split('-')[0]
-                                        }}</span>
-                                    <span class="text-muted opacity-30 text-3xl">:</span>
-                                    <span class="text-5xl font-super-black text-primary">{{
-                                        match.score.split('-')[1]
-                                        }}</span>
-                                </div>
-                                <app-badge
-                                    [type]="match.status === 'win' ? 'success' : (match.status === 'draw' ? 'warning' : 'danger')">
-                                    {{ match.status === 'win' ? 'انتصار مستحق' : (match.status === 'draw' ? 'تعادل'
-                                    :
-                                    'هزيمة') }}
-                                </app-badge>
+                        <div class="flex-1 flex flex-col items-center gap-3">
+                            <div class="avatar-lg bg-surface border border-visible shadow-sm">
+                                <img src="https://cdn-icons-png.flaticon.com/512/1165/1165217.png" class="avatar-img"
+                                    alt="">
                             </div>
-
-                            <div class="flex-1 flex flex-col items-center gap-3">
-                                <div class="avatar-lg bg-surface border border-visible shadow-sm">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/1165/1165217.png"
-                                        class="avatar-img" alt="">
-                                </div>
-                                <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
-                            </div>
+                            <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Finances Tab (Financial Grid) -->
-                <div *ngSwitchCase="'finances'" class="grid-2-cols gap-md">
+            <!-- Finances Tab (Financial Grid) -->
+            <div *ngSwitchCase="'finances'" class="flex-col gap-md">
+                <div *ngIf="!team.finances || team.finances.length === 0" class="empty-state p-xl text-center">
+                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">account_balance_wallet</span>
+                    <p class="text-muted">لا يوجد سجل مالي حالياً</p>
+                </div>
+
+                <div class="grid-2-cols gap-md">
                     <div *ngFor="let entry of team.finances" class="card p-md finance-entry">
                         <div class="flex-between items-center mb-4">
                             <div class="flex flex-col">
@@ -238,15 +239,54 @@
                                 <span class="text-base font-super-black text-primary">{{ entry.title }}</span>
                             </div>
                             <div class="flex flex-col items-end">
-                                <span class="text-xl font-super-black text-danger">{{ entry.amount }} ر.س</span>
-                                <app-badge type="success" [dot]="true" dotType="active" class="text-2xs">تم
-                                    التسوية</app-badge>
+                                <app-badge
+                                    [type]="entry.status === 'Approved' ? 'success' : (entry.status === 'Rejected' ? 'danger' : 'warning')"
+                                    [dot]="true">
+                                    {{ entry.status === 'Approved' ? 'تم الاعتماد' : (entry.status === 'Rejected' ?
+                                    'مرفوض'
+                                    : 'قيد المراجعة') }}
+                                </app-badge>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
+
+            <!-- Requests/Invitations Tab -->
+            <div *ngSwitchCase="'requests'" class="flex-col gap-4">
+                <div *ngIf="!team.invitations || team.invitations.length === 0" class="empty-state p-xl text-center">
+                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">mail_outline</span>
+                    <p class="text-muted">لا يوجد طلبات أو دعوات معلقة حالياً</p>
+                </div>
+
+                <div *ngFor="let request of team.invitations"
+                    class="card p-md flex-between items-center animate-fade-in">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar avatar-md bg-surface-light text-primary font-bold">
+                            {{ request.playerName?.charAt(0) || 'P' }}
+                        </div>
+                        <div class="flex-col">
+                            <span class="font-bold">{{ request.playerName }}</span>
+                            <span class="text-xs text-muted">أرسلت في: {{ request.requestDate | date:'y/MM/dd'
+                                }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <app-badge [type]="request.status === 'pending' ? 'warning' : 'success'">
+                            {{ request.status === 'pending' ? 'بانتظار الرد' : request.status }}
+                        </app-badge>
+
+                        <div *ngIf="canManageInvitations && request.status === 'pending' && request.initiatedByPlayer"
+                            class="flex gap-1">
+                            <app-button (click)="onRespondRequest(request, true)" variant="ghost" size="sm" icon="check"
+                                class="text-success"></app-button>
+                            <app-button (click)="onRespondRequest(request, false)" variant="ghost" size="sm"
+                                icon="close" class="text-danger"></app-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -261,8 +301,9 @@
             </div>
 
             <div class="modal-body pt-4">
-                <p class="text-muted text-sm mb-6">يرجى إدخال الرقم التعريفي للاعب (Display ID) المسجل في المنصة لإضافته
-                    للفريق.</p>
+                <p class="text-muted text-sm mb-6">يرجى إدخال الرقم التعريفي للاعب (Display ID) المسجل في المنصة
+                    لإرسال
+                    دعوة انضمام له.</p>
 
                 <div class="input-group">
                     <span class="material-symbols-outlined input-icon">badge</span>
@@ -273,8 +314,9 @@
 
             <div class="modal-footer border-none pt-0 pb-lg">
                 <app-button variant="ghost" class="flex-1" (click)="closeAddPlayerModal()">إلغاء</app-button>
-                <app-button variant="primary" class="flex-1" icon="add" (click)="submitAddPlayer()">تأكيد
-                    الإضافة</app-button>
+                <app-button variant="primary" class="flex-1" icon="send" (click)="submitAddPlayer()">إرسال
+                    الدعوة</app-button>
             </div>
         </div>
     </div>
+</div>

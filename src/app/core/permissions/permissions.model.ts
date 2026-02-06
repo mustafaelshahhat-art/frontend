@@ -46,21 +46,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
         Permission.VIEW_LOGS, Permission.MANAGE_SETTINGS
     ],
-    [UserRole.CAPTAIN]: [
-        Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT,
-        Permission.VIEW_MATCHES,
-        Permission.VIEW_TEAMS, Permission.MANAGE_MY_TEAM,
-        Permission.VIEW_OBJECTIONS, Permission.CREATE_OBJECTION
-    ],
     [UserRole.REFEREE]: [
         Permission.VIEW_TOURNAMENTS,
         Permission.VIEW_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS
     ],
     [UserRole.PLAYER]: [
-        Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT, // Allow player to register if they have team
+        Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT,
         Permission.VIEW_MATCHES,
-        Permission.VIEW_TEAMS,
-        Permission.MANAGE_MY_TEAM
+        Permission.VIEW_TEAMS, Permission.MANAGE_MY_TEAM,
+        Permission.VIEW_OBJECTIONS, Permission.CREATE_OBJECTION
     ]
 };

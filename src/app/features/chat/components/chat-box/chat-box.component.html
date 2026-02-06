@@ -118,10 +118,12 @@
         <!-- Input Area -->
         <div class="chat-input-area">
             <div class="chat-input-wrapper">
-                <input type="text" class="chat-input" placeholder="اكتب رسالتك هنا..." [(ngModel)]="newMessage"
-                    (keyup.enter)="sendMessage()" [disabled]="isLoading">
+                <input type="text" class="chat-input"
+                    [placeholder]="readOnly ? 'هذه المباراة انتهت، المحادثة للقراءة فقط' : 'اكتب رسالتك هنا...'"
+                    [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" [disabled]="isLoading || readOnly">
 
-                <button class="chat-send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim() || isLoading">
+                <button class="chat-send-btn" (click)="sendMessage()"
+                    [disabled]="!newMessage.trim() || isLoading || readOnly">
                     <span *ngIf="!isLoading" class="material-symbols-outlined">send</span>
                     <span *ngIf="isLoading" class="spinner-sm"></span>
                 </button>

@@ -15,6 +15,7 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
 
 @Component({
     selector: 'app-tournament-detail',
@@ -29,7 +30,8 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
         BadgeComponent,
         ButtonComponent,
         MatchCardComponent,
-        EmptyStateComponent
+        EmptyStateComponent,
+        TeamRegistrationModalComponent
     ],
     templateUrl: './tournament-detail.component.html',
     styleUrls: ['./tournament-detail.component.scss']
@@ -64,6 +66,14 @@ export class TournamentDetailComponent implements OnInit {
     standings: any[] = [];
     scorers: any[] = [];
 
+    get rulesList(): string[] {
+        if (!this.tournament?.rules) return [];
+        return this.tournament.rules
+            .split('\n')
+            .map(r => r.trim())
+            .filter(r => r.length > 0);
+    }
+
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -78,8 +88,12 @@ export class TournamentDetailComponent implements OnInit {
         return this.authService.hasRole(UserRole.ADMIN);
     }
 
+    hasTeam(): boolean {
+        return !!this.authService.getCurrentUser()?.teamId;
+    }
+
     isCaptain(): boolean {
-        return this.authService.hasRole(UserRole.CAPTAIN) || (this.authService.hasRole(UserRole.PLAYER) && !!this.authService.getCurrentUser()?.teamId);
+        return !!this.authService.getCurrentUser()?.isTeamOwner;
     }
 
     get isUserPending(): boolean {
@@ -225,25 +239,8 @@ export class TournamentDetailComponent implements OnInit {
     }
 
     // Registration Modal
+    // Replaced by shared component
     isRegisterModalVisible = false;
-    isSubmitting = false;
-    registerForm = {
-        fromNumber: '',
-        transferType: '',
-        receipt: null as File | null
-    };
-
-    activeDropdown: string | null = null;
-
-    toggleDropdown(name: string, event?: Event): void {
-        event?.stopPropagation();
-        this.activeDropdown = this.activeDropdown === name ? null : name;
-    }
-
-    selectTransferType(type: string): void {
-        this.registerForm.transferType = type;
-        this.activeDropdown = null;
-    }
 
     // Modal Actions
     openRegisterModal(): void {
@@ -252,63 +249,14 @@ export class TournamentDetailComponent implements OnInit {
 
     closeRegisterModal(): void {
         this.isRegisterModalVisible = false;
-        this.resetRegisterForm();
+        // Refresh data on close if needed or just wait for success event
     }
 
-    resetRegisterForm(): void {
-        this.registerForm = {
-            fromNumber: '',
-            transferType: '',
-            receipt: null
-        };
-        this.isSubmitting = false;
-        this.activeDropdown = null;
-    }
-
-    onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-            this.registerForm.receipt = file;
+    onRegistrationSuccess(): void {
+        this.closeRegisterModal();
+        if (this.tournament) {
+            this.loadData(this.tournament.id);
         }
-    }
-
-    submitRegistration(): void {
-        if (!this.registerForm.fromNumber || !this.registerForm.transferType || !this.registerForm.receipt) {
-            this.uiFeedback.error('خطأ', 'يرجى تعبئة جميع الحقول المطلوبة');
-            return;
-        }
-
-        if (!this.tournament) return;
-        const currentUser = this.authService.getCurrentUser();
-        if (!currentUser?.teamId) {
-            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً لتتمكن من التسجيل');
-            return;
-        }
-
-        this.isSubmitting = true;
-
-        // Step 1: Register Team (PendingPayment)
-        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
-            next: () => {
-                // Step 2: Submit Payment Receipt (PendingApproval)
-                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.registerForm.receipt!).subscribe({
-                    next: () => {
-                        this.isSubmitting = false;
-                        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
-                        this.closeRegisterModal();
-                        this.loadData(this.tournament!.id); // Reload teams list
-                    },
-                    error: (err: any) => {
-                        this.isSubmitting = false;
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل إرسال الإيصال');
-                    }
-                });
-            },
-            error: (err: any) => {
-                this.isSubmitting = false;
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');
-            }
-        });
     }
 
     // Admin actions
@@ -318,16 +266,69 @@ export class TournamentDetailComponent implements OnInit {
         }
     }
 
+    deleteTournament(): void {
+        if (!this.tournament) return;
+
+        this.uiFeedback.confirm(
+            'حذف البطولة',
+            `هل أنت متأكد من حذف بطولة "${this.tournament.name}"؟ هذا الإجراء سيؤدي لحذف كافة المباريات والتسجيلات المرتبطة بها ولا يمكن التراجع عنه.`,
+            'حذف نهائي',
+            'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.isLoading = true;
+                this.tournamentService.deleteTournament(this.tournament!.id).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم الحذف', 'تم حذف البطولة بنجاح');
+                        this.router.navigate(['/admin/tournaments']);
+                    },
+                    error: (err) => {
+                        this.isLoading = false;
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حذف البطولة');
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
+        });
+    }
+
     toggleStatus(): void {
         if (!this.tournament) return;
-        // Toggle status
-        const newStatus = this.tournament.status === TournamentStatus.REGISTRATION_OPEN
-            ? TournamentStatus.REGISTRATION_CLOSED
-            : TournamentStatus.REGISTRATION_OPEN;
 
-        // TODO: Implement backend status update
-        this.tournament.status = newStatus;
-        this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة إلى: ${this.getStatusLabel(newStatus)}`);
+        this.isLoading = true;
+
+        if (this.tournament.status === TournamentStatus.REGISTRATION_OPEN) {
+            // Closing Registration - Use dedicated endpoint
+            this.tournamentService.closeRegistration(this.tournament.id).subscribe({
+                next: (updatedTournament) => {
+                    this.tournament = updatedTournament;
+                    this.isLoading = false;
+                    this.uiFeedback.success('تم التحديث', 'تم إغلاق التسجيل بنجاح');
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.uiFeedback.error('خطأ', 'فشل إغلاق التسجيل: ' + (err.error?.message || 'خطأ غير معروف'));
+                    this.cdr.detectChanges();
+                }
+            });
+        } else {
+            // Re-opening or other status change - Use generic update
+            const newStatus = TournamentStatus.REGISTRATION_OPEN;
+            this.tournamentService.updateTournament(this.tournament.id, { status: newStatus }).subscribe({
+                next: (updatedTournament) => {
+                    this.tournament = updatedTournament;
+                    this.isLoading = false;
+                    this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة إلى: ${this.getStatusLabel(newStatus)}`);
+                    this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.uiFeedback.error('خطأ', 'فشل تغيير حالة البطولة: ' + (err.error?.message || 'خطأ غير معروف'));
+                    this.cdr.detectChanges();
+                }
+            });
+        }
     }
 
     // Captain actions
@@ -341,7 +342,7 @@ export class TournamentDetailComponent implements OnInit {
     viewMatch(matchId: string): void {
         if (this.isAdmin()) {
             this.router.navigate(['/admin/matches', matchId]);
-        } else if (this.isCaptain()) {
+        } else if (this.hasTeam()) {
             this.router.navigate(['/captain/matches', matchId]);
         }
     }
@@ -360,10 +361,7 @@ export class TournamentDetailComponent implements OnInit {
         });
     }
 
-    @HostListener('document:click')
-    onDocumentClick(): void {
-        this.activeDropdown = null;
-    }
+
 
 }
 

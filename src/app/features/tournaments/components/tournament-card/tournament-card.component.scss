@@ -1,4 +1,4 @@
-@import 'd:/ramadan/frontend/src/styles/_tokens';
+/* Tokens imported via angular.json stylePreprocessorOptions */
 
 :host {
     display: block;
@@ -20,6 +20,18 @@
 
     &.clickable {
         cursor: pointer;
+    }
+
+    &.is-finished {
+        border-color: rgba(255, 215, 0, 0.2);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+        }
     }
 
     &:hover {
@@ -57,6 +69,12 @@
     overflow: hidden;
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.25);
 
+    /* Winner glow effect */
+    &.winner-glow {
+        background: linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #ffd700 100%);
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.3);
+    }
+
     /* Decorative glow inside banner */
     &::after {
         content: '';
@@ -78,11 +96,51 @@
         transition: var(--transition-bounce);
     }
 
+    .trophy-icon {
+        font-size: 100px;
+        color: #fff;
+        opacity: 0.9;
+        filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+    }
+
     .status-badge-overlay {
         position: absolute;
         top: var(--space-4);
         right: var(--space-4);
         z-index: var(--z-above);
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-inline-end: 6px;
+            animation: pulse 2s infinite;
+
+            &.dot-registration_open {
+                background: #10b981;
+                box-shadow: 0 0 8px #10b981;
+            }
+
+            &.dot-active {
+                background: #3b82f6;
+                box-shadow: 0 0 8px #3b82f6;
+            }
+
+            &.dot-completed {
+                background: #ffd700;
+                box-shadow: 0 0 8px #ffd700;
+            }
+
+            &.dot-registration_closed {
+                background: #f59e0b;
+                box-shadow: 0 0 8px #f59e0b;
+            }
+
+            &.dot-cancelled {
+                background: #ef4444;
+            }
+        }
 
         /* Make badge inside banner pop more */
         ::ng-deep .badge {
@@ -90,6 +148,8 @@
             font-weight: var(--font-black);
             padding: var(--space-2) var(--space-4);
             border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
 
             &.badge-success {
                 background: rgba(16, 185, 129, 0.9);
@@ -111,6 +171,48 @@
                 border: 1px solid rgba(255, 255, 255, 0.3);
                 box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
             }
+
+            &.badge-gold {
+                background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+                color: #1a1a1a;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+            }
+        }
+    }
+
+    /* Winner Overlay */
+    .winner-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+        padding: var(--space-4);
+
+        .winner-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+
+            .crown {
+                font-size: 20px;
+            }
+
+            .winner-label {
+                font-size: 10px;
+                font-weight: var(--font-black);
+                color: #ffd700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+            }
+
+            .winner-name {
+                font-size: var(--text-sm);
+                font-weight: var(--font-black);
+                color: white;
+            }
         }
     }
 }
@@ -130,12 +232,34 @@
     p {
         font-size: var(--text-sm);
         color: var(--text-secondary);
-        margin-bottom: var(--space-5);
+        margin-bottom: var(--space-3);
         line-height: var(--leading-relaxed);
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+    }
+
+    .phase-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-3);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-subtle);
+        margin-bottom: var(--space-4);
+
+        .material-symbols-outlined {
+            font-size: 16px;
+            color: var(--color-primary-light);
+        }
+
+        .phase-text {
+            font-size: 11px;
+            font-weight: var(--font-bold);
+            color: var(--text-muted);
+        }
     }
 }
 
@@ -207,12 +331,117 @@
             border-radius: var(--radius-full);
             transition: width var(--duration-slow) ease-out;
             box-shadow: 0 0 15px var(--color-primary-20);
+
+            &.full {
+                background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+                box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            }
         }
     }
 }
 
+/* Contextual Messages */
+.context-messages {
+    margin-top: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.context-msg {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-lg);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+
+    .material-symbols-outlined {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    &.pending {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    &.approved {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    &.rejected {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    &.busy {
+        background: rgba(107, 114, 128, 0.1);
+        border: 1px solid rgba(107, 114, 128, 0.3);
+        color: #9ca3af;
+    }
+
+    &.warning {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    &.info {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+    }
+
+    &.finished {
+        background: rgba(255, 215, 0, 0.08);
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        color: #ffd700;
+    }
+}
+
 .tournament-actions {
-    margin-top: var(--space-xl);
+    margin-top: var(--space-4);
     display: flex;
     gap: var(--space-4);
+
+    .btn-icon {
+        font-size: 16px;
+        margin-inline-end: 4px;
+        vertical-align: middle;
+    }
+}
+
+/* Animations */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 2s ease-in-out infinite;
+}
+
+@keyframes bounceSubtle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
 }

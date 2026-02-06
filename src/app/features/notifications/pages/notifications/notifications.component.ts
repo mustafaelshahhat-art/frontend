@@ -47,7 +47,7 @@ export class NotificationsComponent implements OnInit {
     private router = inject(Router);
 
     currentUser = this.authService.getCurrentUser();
-    userRole = this.currentUser?.role || UserRole.CAPTAIN;
+    userRole = this.currentUser?.role || UserRole.PLAYER;
 
     isLoading = true;
     notifications: Notification[] = []; // Component interface matches enough if I'm careful
@@ -91,11 +91,10 @@ export class NotificationsComponent implements OnInit {
     }
 
     get pageSubtitle(): string {
-        const subtitles: Record<UserRole, string> = {
+        const subtitles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'إدارة تنبيهات النظام والمستخدمين',
-            [UserRole.CAPTAIN]: 'ابقَ على اطلاع بأحدث مجريات البطولة وقرارات اللجنة',
             [UserRole.REFEREE]: 'تابع آخر التعديلات والتعيينات الخاصة بمبارياتك',
-            [UserRole.PLAYER]: 'تابع آخر أخبار فريقك'
+            [UserRole.PLAYER]: 'ابقَ على اطلاع بأحدث مجريات البطولة وقرارات اللجنة'
         };
         return subtitles[this.userRole] || '';
     }

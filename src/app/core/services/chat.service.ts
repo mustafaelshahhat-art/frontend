@@ -30,6 +30,9 @@ export class ChatService {
 
         const connection = this.signalRService.createConnection('chat');
 
+        // Remove existing listener if any to avoid duplicates
+        connection.off('ReceiveMessage');
+
         connection.on('ReceiveMessage', (message: MatchMessage) => {
             if (message.matchId === this.currentMatchId) {
                 this.messagesSubject.next([...this.messagesSubject.value, message]);
@@ -37,13 +40,18 @@ export class ChatService {
         });
 
         await this.signalRService.startConnection('chat');
-        await connection.invoke('JoinMatchGroup', matchId);
+
+        if (connection.state === 'Connected') {
+            await connection.invoke('JoinMatchGroup', matchId);
+        }
     }
 
     async leaveMatch(matchId: string): Promise<void> {
+        if (!this.currentMatchId) return;
+
         const connection = this.signalRService.createConnection('chat');
         if (connection.state === 'Connected') {
-            await connection.invoke('LeaveMatchGroup', matchId);
+            await connection.invoke('LeaveMatchGroup', this.currentMatchId);
         }
         this.currentMatchId = null;
         this.messagesSubject.next([]);
@@ -52,6 +60,10 @@ export class ChatService {
     sendMessage(matchId: string, content: string): Observable<void> {
         return new Observable<void>(observer => {
             const connection = this.signalRService.createConnection('chat');
+            if (connection.state !== 'Connected') {
+                observer.error('SignalR is not connected');
+                return;
+            }
             connection.invoke('SendMessage', matchId, content)
                 .then(() => {
                     observer.next();
@@ -62,8 +74,14 @@ export class ChatService {
     }
 
     private loadHistory(matchId: string): void {
-        this.http.get<MatchMessage[]>(`${this.apiUrl}/${matchId}/chat`).subscribe(messages => {
-            this.messagesSubject.next(messages);
+        this.http.get<MatchMessage[]>(`${this.apiUrl}/${matchId}/chat`).subscribe({
+            next: (messages) => {
+                this.messagesSubject.next(messages);
+            },
+            error: (err) => {
+                console.error('History load error:', err);
+                this.messagesSubject.next([]);
+            }
         });
     }
 }

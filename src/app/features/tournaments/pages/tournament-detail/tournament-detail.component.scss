@@ -86,6 +86,52 @@
             }
         }
 
+        .winner-announcement {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-6);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 152, 0, 0.05) 100%);
+            border-radius: var(--radius-2xl);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: var(--space-6);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+            backdrop-filter: blur(5px);
+
+            @media (max-width: 992px) {
+                margin-inline: auto;
+            }
+
+            .trophy {
+                font-size: 32px;
+                color: #ffd700;
+                filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+            }
+
+            .winner-info {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: right;
+
+                label {
+                    font-size: 10px;
+                    font-weight: var(--font-black);
+                    color: rgba(255, 215, 0, 0.8);
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                }
+
+                h3 {
+                    font-size: var(--text-lg);
+                    font-weight: var(--font-black);
+                    color: white;
+                    margin: 0;
+                    line-height: 1.2;
+                }
+            }
+        }
+
         h2 {
             font-size: clamp(1.5rem, 4vw, 2.25rem);
             font-weight: var(--font-black);
@@ -225,7 +271,7 @@
                     color: #ffc107;
                     max-width: 400px;
                     text-align: right;
-                    
+
                     .material-symbols-outlined {
                         font-size: 20px;
                         flex-shrink: 0;
@@ -608,6 +654,25 @@
     }
 }
 
+.prizes-card {
+    .prizes-content {
+        padding: var(--space-4);
+        background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--color-primary-10);
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        p {
+            margin: 0;
+            font-size: var(--text-base);
+            font-weight: var(--font-medium);
+        }
+    }
+}
+
 /* Standings Desktop Table Polishing */
 .standings-wrapper {
     width: 100%;
@@ -671,6 +736,22 @@
                     border-bottom: none;
                 }
 
+                &.is-winner {
+                    background: rgba(255, 215, 0, 0.08) !important;
+
+                    td {
+                        color: #ffd700 !important;
+                        font-weight: var(--font-black);
+                    }
+
+                    .winner-icon {
+                        font-size: 18px;
+                        color: #ffd700;
+                        vertical-align: middle;
+                        margin-inline-end: 4px;
+                    }
+                }
+
                 &:hover {
                     background: rgba(255, 255, 255, 0.04);
                 }
@@ -713,6 +794,131 @@
                 &.last-5 {
                     min-width: 180px;
                 }
+            }
+        }
+    }
+}
+
+/* Mobile Standings Grid */
+.mobile-data-grid {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    @media (max-width: 768px) {
+        display: flex;
+    }
+
+    .mobile-data-card {
+        background: var(--bg-surface-glass);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-2xl);
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        transition: var(--transition-premium);
+
+        &.is-winner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 152, 0, 0.05) 100%);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+
+            h4 {
+                color: #ffd700;
+            }
+
+            .rank-badge {
+                background: #ffd700;
+                color: black;
+
+                .material-symbols-outlined {
+                    font-size: 16px;
+                }
+            }
+        }
+
+        .card-mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .title-group {
+                display: flex;
+                align-items: center;
+                gap: var(--space-3);
+
+                .rank-badge {
+                    width: 32px;
+                    height: 32px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: var(--text-sm);
+                    font-weight: var(--font-black);
+                    color: var(--color-primary-light);
+                }
+
+                h4 {
+                    margin: 0;
+                    font-size: var(--text-base);
+                    font-weight: var(--font-bold);
+                    color: var(--text-primary);
+                }
+            }
+        }
+
+        .card-mobile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+            padding: var(--space-3);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-xl);
+
+            .stat-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+
+                &.highlight {
+                    background: rgba(var(--color-primary-rgb), 0.1);
+                    border-radius: var(--radius-lg);
+                    padding: 4px;
+                }
+
+                .label {
+                    font-size: 9px;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                }
+
+                .value {
+                    font-size: var(--text-sm);
+                    font-weight: var(--font-bold);
+                    color: var(--text-primary);
+                }
+            }
+        }
+
+        .card-mobile-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--border-subtle);
+
+            .footer-label {
+                font-size: 10px;
+                color: var(--text-muted);
+            }
+
+            .footer-content {
+                display: flex;
+                gap: 4px;
             }
         }
     }

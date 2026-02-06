@@ -15,6 +15,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { SearchComponent } from '../../../../shared/components/search/search.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { TournamentCardComponent } from '../../components/tournament-card/tournament-card.component';
+import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
 
 // Type-safe filter definition
 type TournamentFilterValue = 'all' | 'available' | 'active' | 'completed';
@@ -36,7 +37,8 @@ interface TournamentFilter {
         ButtonComponent,
         SearchComponent,
         InlineLoadingComponent,
-        TournamentCardComponent
+        TournamentCardComponent,
+        TeamRegistrationModalComponent
     ],
     templateUrl: './tournaments-list.component.html',
     styleUrls: ['./tournaments-list.component.scss'],
@@ -111,13 +113,18 @@ export class TournamentsListComponent implements OnInit {
         this.loadTournaments();
     }
 
+    // Registration Modal State
+    selectedTournamentForRegistration: Tournament | null = null;
+    isRegistrationModalVisible = false;
+
     // Role checks
     isAdmin(): boolean {
         return this.authService.hasRole(UserRole.ADMIN);
     }
 
-    isCaptain(): boolean {
-        return this.authService.hasRole(UserRole.CAPTAIN) || (this.authService.hasRole(UserRole.PLAYER) && !!this.authService.getCurrentUser()?.teamId);
+    // Check if user has a team (proxy for "Captain" UI section access)
+    hasTeam(): boolean {
+        return !!this.authService.getCurrentUser()?.teamId;
     }
 
     loadTournaments(): void {
@@ -151,35 +158,8 @@ export class TournamentsListComponent implements OnInit {
     }
 
     register(tournament: Tournament): void {
-        const user = this.authService.getCurrentUser();
-        if (!user || (!this.authService.hasRole(UserRole.CAPTAIN) && !this.authService.hasRole(UserRole.PLAYER))) {
-            this.uiFeedback.error('غير مصرح', 'يجب أن تكون صاحب فريق للتسجيل');
-            return;
-        }
-
-        if (!user.teamId) {
-            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
-            this.router.navigate(['/captain/my-team']);
-            return;
-        }
-
-        if (this.isTeamBusy()) {
-            this.uiFeedback.error('تنبيه', 'لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت');
-            return;
-        }
-
-        this.isLoading.set(true);
-        this.tournamentService.registerTeam(tournament.id, user.teamId, '').subscribe({
-            next: () => {
-                this.registeredTournaments.update(current => [...current, tournament.id]);
-                this.uiFeedback.success('تم التسجيل', 'تم إرسال طلب التسجيل بنجاح');
-                this.isLoading.set(false);
-            },
-            error: (err) => {
-                this.uiFeedback.error('خطأ', 'فشل التسجيل في البطولة: ' + (err.error?.message || 'خطأ غير معروف'));
-                this.isLoading.set(false);
-            }
-        });
+        // Redundant method legacy support if any HTML references it directly
+        this.registerTeam(tournament);
     }
 
     unregister(id: string): void {
@@ -195,12 +175,62 @@ export class TournamentsListComponent implements OnInit {
     viewDetails(tournament: Tournament): void {
         if (this.isAdmin()) {
             this.router.navigate(['/admin/tournaments', tournament.id]);
-        } else if (this.isCaptain()) {
+        } else if (this.hasTeam()) {
             this.router.navigate(['/captain/championships', tournament.id]);
         }
     }
 
     registerTeam(tournament: Tournament): void {
-        this.router.navigate(['/captain/championships/register', tournament.id]);
+        // Check pre-conditions before opening modal
+        const user = this.authService.getCurrentUser();
+        if (!user || user.role !== UserRole.PLAYER) {
+            this.uiFeedback.error('غير مصرح', 'يجب أن تكون لاعباً وصاحب فريق للتسجيل');
+            return;
+        }
+
+        if (!user.teamId) {
+            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
+            this.router.navigate(['/captain/my-team']);
+            return;
+        }
+
+        if (this.isTeamBusy()) {
+            this.uiFeedback.error('تنبيه', 'لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت');
+            return;
+        }
+
+        this.selectedTournamentForRegistration = tournament;
+        this.isRegistrationModalVisible = true;
+    }
+
+    closeRegistrationModal(): void {
+        this.isRegistrationModalVisible = false;
+        this.selectedTournamentForRegistration = null;
+    }
+
+    onRegistrationSuccess(): void {
+        this.uiFeedback.success('تم التسجيل', 'تم إرسال طلبك بنجاح');
+        this.loadTournaments(); // Refresh list to update status/buttons
+    }
+
+    // Check if user is a player but has no team (neither owner nor member)
+    isPlayerWithoutTeam(): boolean {
+        const user = this.authService.getCurrentUser();
+        if (!user) return false;
+        return user.role === UserRole.PLAYER && !user.teamId;
+    }
+
+    // Contextual empty filter message
+    getEmptyFilterMessage(): string {
+        switch (this.currentFilter()) {
+            case 'available':
+                return 'لا توجد بطولات مفتوحة للتسجيل حالياً. جرب تصفح البطولات الجارية أو المكتملة.';
+            case 'active':
+                return 'لا توجد بطولات جارية في الوقت الحالي. ترقب البطولات القادمة!';
+            case 'completed':
+                return 'لم تنتهِ أي بطولات بعد. تابع البطولات الجارية لمعرفة النتائج.';
+            default:
+                return 'لا توجد بطولات تطابق البحث.';
+        }
     }
 }

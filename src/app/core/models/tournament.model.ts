@@ -51,6 +51,8 @@ export interface Tournament {
     rules: string;
     adminId: string;
     imageUrl?: string;
+    winnerTeamId?: string;
+    winnerTeamName?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -166,7 +168,7 @@ export interface Notification {
     userId: string;
     title: string;
     message: string;
-    type: 'system' | 'match' | 'team';
+    type: 'system' | 'match' | 'team' | 'invite' | 'join_request' | 'invite_accepted' | 'invite_rejected' | 'join_accepted' | 'join_rejected';
     isRead: boolean;
     createdAt: Date;
 }

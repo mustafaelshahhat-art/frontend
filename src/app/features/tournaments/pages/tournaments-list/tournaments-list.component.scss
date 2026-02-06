@@ -31,3 +31,28 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Player Non-Owner Info Banner */
+.player-info-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--radius-xl);
+    margin-top: var(--space-4);
+
+    .material-symbols-outlined {
+        font-size: 24px;
+        color: #60a5fa;
+        flex-shrink: 0;
+    }
+
+    p {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: #93c5fd;
+        font-weight: var(--font-medium);
+    }
+}
