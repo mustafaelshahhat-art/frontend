@@ -46,7 +46,6 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     }
 
     private navItems: NavItem[] = [
-        { label: 'لوحة التحكم', icon: 'dashboard', route: '/captain/dashboard' },
         { label: 'فريقي', icon: 'groups', route: '/captain/team' },
         { label: 'المباريات', icon: 'sports_soccer', route: '/captain/matches' },
         { label: 'البطولات', icon: 'emoji_events', route: '/captain/championships' },

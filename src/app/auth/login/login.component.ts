@@ -83,7 +83,7 @@ export class LoginComponent {
         } else if (role === UserRole.REFEREE) {
             this.router.navigate(['/referee/dashboard']);
         } else if (role === UserRole.PLAYER) {
-            this.router.navigate(['/captain/dashboard']);
+            this.router.navigate(['/captain/team']);
         } else {
             this.router.navigate(['/']);
         }

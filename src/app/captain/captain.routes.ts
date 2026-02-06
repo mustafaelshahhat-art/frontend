@@ -10,10 +10,6 @@ export const captainRoutes: Routes = [
         canActivate: [permissionGuard([Permission.MANAGE_MY_TEAM])],
         children: [
             {
-                path: 'dashboard',
-                loadComponent: () => import('./dashboard/dashboard.component').then(m => m.CaptainDashboardComponent)
-            },
-            {
                 path: 'team',
                 loadComponent: () => import('./team/my-team-detail.component').then(m => m.MyTeamDetailComponent)
             },
@@ -63,8 +59,13 @@ export const captainRoutes: Routes = [
                 loadComponent: () => import('../features/users/pages/profile/profile.component').then(m => m.ProfileComponent)
             },
             {
+                path: 'dashboard',
+                redirectTo: 'team',
+                pathMatch: 'full'
+            },
+            {
                 path: '',
-                redirectTo: 'dashboard',
+                redirectTo: 'team',
                 pathMatch: 'full'
             }
         ]

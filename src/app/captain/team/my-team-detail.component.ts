@@ -28,8 +28,7 @@ import { TeamJoinRequest } from '../../core/models/team-request.model';
         <div *ngIf="!loading && teamData" class="my-team-page">
             <app-team-detail 
                 [team]="teamData"
-                [showBackButton]="true"
-                [backRoute]="'/captain/dashboard'"
+                [showBackButton]="false"
                 [canEditName]="isCaptain"
                 [canAddPlayers]="isCaptain"
                 [canRemovePlayers]="isCaptain"
