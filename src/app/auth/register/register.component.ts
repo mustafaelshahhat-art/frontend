@@ -1,10 +1,11 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { UserRole } from '../../core/models/user.model';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SystemSettingsService } from '../../core/services/system-settings.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
@@ -15,11 +16,27 @@ import { SelectComponent, SelectOption } from '../../shared/components/select/se
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private authService = inject(AuthService);
+  private systemSettings = inject(SystemSettingsService);
   private uiFeedback = inject(UIFeedbackService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+
+  ngOnInit(): void {
+    this.checkMaintenance();
+  }
+
+  private checkMaintenance(): void {
+    this.systemSettings.getMaintenanceStatus().subscribe({
+      next: (status) => {
+        if (status.maintenanceMode) {
+          this.uiFeedback.error('غير متاح', 'التسجيل مغلق حالياً بسبب أعمال الصيانة');
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    });
+  }
 
   UserRole = UserRole;
   isLoading = false;

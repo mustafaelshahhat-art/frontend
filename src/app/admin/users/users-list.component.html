@@ -2,21 +2,19 @@
     <div class="page-content flex-col gap-2xl">
         <!-- Page Heading -->
         <app-page-header title="إدارة المستخدمين" subtitle="عرض وإدارة حسابات المشرفين والحكام واللاعبين في النظام">
+            <!-- Add Admin Button (only visible on admins tab) -->
+            <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary"
+                icon="person_add">
+                إضافة مشرف
+            </app-button>
         </app-page-header>
 
-        <!-- Tabs & Filters Container -->
         <div class="flex-col gap-lg">
-            <!-- Header Row: Tabs + Add Admin Button -->
+            <!-- Header Row: Tabs -->
             <div class="flex items-center justify-between flex-wrap gap-md">
                 <!-- Main Tabs -->
                 <app-filter [items]="userTypeTabs" [activeValue]="userType()"
                     (change)="setUserType($event)"></app-filter>
-
-                <!-- Add Admin Button (only visible on admins tab) -->
-                <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary"
-                    icon="person_add">
-                    إضافة مشرف
-                </app-button>
             </div>
 
             <!-- Status Filter -->
@@ -74,9 +72,10 @@
             <!-- Actions Template -->
             <ng-template #actionsInfo let-row="row">
                 <div class="flex items-center justify-center gap-2">
-                    <!-- Approve (Pending users only) -->
-                    <app-button *ngIf="row.status === 'Pending'" (click)="approveUser(row)" variant="ghost" size="sm"
-                        icon="check_circle" class="text-success">
+                    <!-- Approve/Activate (Pending or Suspended users) -->
+                    <app-button *ngIf="row.status === 'Pending' || row.status === 'Suspended'"
+                        (click)="approveUser(row)" variant="ghost" size="sm" icon="check_circle" class="text-success"
+                        [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'">
                     </app-button>
 
                     <!-- View -->
@@ -84,9 +83,7 @@
                         class="text-info">
                     </app-button>
 
-                    <!-- Warn -->
-                    <app-button (click)="warnUser(row)" variant="ghost" size="sm" icon="warning" class="text-warning">
-                    </app-button>
+
 
                     <!-- Suspend (with last admin protection) -->
                     <ng-container *ngIf="row.status !== 'Suspended'">

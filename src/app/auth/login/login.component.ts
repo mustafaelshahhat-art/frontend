@@ -1,9 +1,10 @@
-import { Component, inject, DestroyRef } from '@angular/core';
+import { Component, inject, DestroyRef, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
+import { SystemSettingsService } from '../../core/services/system-settings.service';
 import { UserRole } from '../../core/models/user.model';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
@@ -23,16 +24,18 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
+    private systemSettings = inject(SystemSettingsService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
     loginForm: FormGroup;
-    isLoading = false;
-    errorMessage: string | null = null;
-    passwordVisible = false;
+    isLoading = signal(false);
+    errorMessage = signal<string | null>(null);
+    passwordVisible = signal(false);
+    isMaintenanceMode = signal(false);
 
     constructor() {
         this.loginForm = this.fb.group({
@@ -41,8 +44,20 @@ export class LoginComponent {
         });
     }
 
+    ngOnInit(): void {
+        this.checkMaintenance();
+    }
+
+    private checkMaintenance(): void {
+        this.systemSettings.getMaintenanceStatus().subscribe({
+            next: (status) => {
+                this.isMaintenanceMode.set(status.maintenanceMode);
+            }
+        });
+    }
+
     togglePasswordVisibility(): void {
-        this.passwordVisible = !this.passwordVisible;
+        this.passwordVisible.update(v => !v);
     }
 
     onSubmit(): void {
@@ -53,8 +68,8 @@ export class LoginComponent {
             return;
         }
 
-        this.isLoading = true;
-        this.errorMessage = null;
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
 
         const email = this.loginForm.value.email?.trim();
         const password = this.loginForm.value.password?.trim();
@@ -65,12 +80,12 @@ export class LoginComponent {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     this.handleNavigation(response.user);
                 },
                 error: (error) => {
-                    this.isLoading = false;
-                    setTimeout(() => this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول');
+                    this.isLoading.set(false);
+                    this.errorMessage.set(error.message || 'حدث خطأ أثناء تسجيل الدخول');
                 }
             });
     }

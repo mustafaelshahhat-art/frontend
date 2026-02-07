@@ -194,19 +194,7 @@ export class UsersListComponent implements OnInit {
         this.router.navigate(['/admin/users', userId]);
     }
 
-    warnUser(user: User): void {
-        this.uiFeedback.confirm(
-            'تحذير المستخدم',
-            `هل تريد إرسال تحذير للمستخدم "${user.name}"؟`,
-            'إرسال تحذير',
-            'warning'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                // TODO: Implement backend warning endpoint
-                this.uiFeedback.success('تم الإرسال', 'تم إرسال التحذير بنجاح');
-            }
-        });
-    }
+
 
     /**
      * Checks if the user is the last admin (cannot be suspended/deleted)
@@ -246,10 +234,17 @@ export class UsersListComponent implements OnInit {
     }
 
     approveUser(user: User): void {
+        const isSuspended = user.status === UserStatus.SUSPENDED;
+        const title = isSuspended ? 'تفعيل الحساب' : 'تفعيل المستخدم';
+        const message = isSuspended
+            ? `هل تريد إعادة تفعيل حساب المستخدم "${user.name}"؟`
+            : `هل تريد تفعيل حساب المستخدم "${user.name}" والموافقة على انضمامه؟`;
+        const actionLabel = isSuspended ? 'تفعيل الآن' : 'موافقة وتفعيل';
+
         this.uiFeedback.confirm(
-            'تفعيل المستخدم',
-            `هل تريد تفعيل حساب المستخدم "${user.name}"؟`,
-            'تفعيل الآن',
+            title,
+            message,
+            actionLabel,
             'info'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
@@ -258,6 +253,9 @@ export class UsersListComponent implements OnInit {
                         this.users.update(prev => prev.map(u => u.id === user.id ? { ...u, status: UserStatus.ACTIVE } : u));
                         this.uiFeedback.success('تم التفعيل', 'تم تفعيل حساب المستخدم بنجاح');
                         this.loadAdminCount(); // Refresh count
+                    },
+                    error: (err) => {
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في تفعيل المستخدم');
                     }
                 });
             }

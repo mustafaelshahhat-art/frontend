@@ -15,13 +15,17 @@
       <p class="text-secondary text-base">كأس رمضان لكرة القدم – بوابة الإدارة</p>
     </header>
 
-    <!-- Error Alert -->
-    <div class="auth-alert-container text-right" aria-live="polite">
-      <div *ngIf="errorMessage" class="mb-6 animate-fade-in">
-        <app-alert type="danger" [dismissible]="true" (onClose)="errorMessage = null">
-          {{ errorMessage }}
-        </app-alert>
-      </div>
+    <div class="auth-card-body">
+      <!-- Maintenance Mode Alert -->
+      <app-alert *ngIf="isMaintenanceMode()" type="warning" title="وضع الصيانة" icon="build" class="mb-lg">
+        النظام تحت الصيانة حالياً. الدخول متاح لمديري النظام فقط.
+      </app-alert>
+
+      <!-- Error Alert -->
+      <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" (onClose)="errorMessage.set(null)"
+        class="mb-lg">
+        {{ errorMessage() }}
+      </app-alert>
     </div>
 
     <!-- Login Form -->
@@ -35,15 +39,15 @@
       </app-form-control>
 
       <!-- Password Field -->
-      <app-form-control formControlName="password" label="كلمة المرور" [type]="passwordVisible ? 'text' : 'password'"
-        placeholder="********" iconLeft="lock" [iconRight]="passwordVisible ? 'visibility_off' : 'visibility'"
+      <app-form-control formControlName="password" label="كلمة المرور" [type]="passwordVisible() ? 'text' : 'password'"
+        placeholder="********" iconLeft="lock" [iconRight]="passwordVisible() ? 'visibility_off' : 'visibility'"
         (iconRightClick)="togglePasswordVisibility()"
         [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined">
       </app-form-control>
 
       <!-- Submit Button -->
-      <app-button type="submit" variant="primary" size="xl" [fullWidth]="true" [isLoading]="isLoading"
-        [disabled]="isLoading" icon="arrow_back" iconPos="left">
+      <app-button type="submit" variant="primary" size="xl" [fullWidth]="true" [isLoading]="isLoading()"
+        [disabled]="isLoading()" icon="arrow_back" iconPos="left">
         تسجيل الدخول
       </app-button>
 
@@ -58,7 +62,7 @@
 
 
     <!-- Register Link -->
-    <div class="text-center pt-6 pb-2">
+    <div *ngIf="!isMaintenanceMode()" class="text-center pt-6 pb-2">
       <p class="text-secondary text-sm m-0">
         ليس لديك حساب؟
         <a routerLink="/auth/register"
