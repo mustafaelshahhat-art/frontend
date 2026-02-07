@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatchEventType } from '../../../../core/models/tournament.model';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 import { Permission } from '../../../../core/permissions/permissions.model';
+import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
 
 export interface TimelineEvent {
     id: string;
@@ -15,7 +16,7 @@ export interface TimelineEvent {
 @Component({
     selector: 'app-match-timeline',
     standalone: true,
-    imports: [CommonModule, HasPermissionDirective],
+    imports: [CommonModule, HasPermissionDirective, IconButtonComponent],
     templateUrl: './match-timeline.component.html',
     styleUrls: ['./match-timeline.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

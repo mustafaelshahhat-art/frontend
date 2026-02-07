@@ -59,13 +59,8 @@ export class TeamService {
         );
     }
 
-    deleteTeam(teamId: string, user: User): Observable<User> {
-        return this.http.delete<void>(`${this.apiUrl}/${teamId}`).pipe(
-            map(() => {
-                const updatedUser = { ...user, teamId: undefined, role: UserRole.PLAYER } as User;
-                return updatedUser;
-            })
-        );
+    deleteTeam(teamId: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${teamId}`);
     }
 
     requestToJoinTeam(teamId: string, user: User): Observable<JoinRequest> {

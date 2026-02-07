@@ -1,0 +1,37 @@
+<div class="file-upload-container" [class.disabled]="disabled" [class.error]="!!error">
+    <input #fileInput type="file" [accept]="accept" [multiple]="multiple" (change)="onFileSelected($event)" hidden />
+
+    <div class="upload-area" (click)="triggerClick(fileInput)">
+        <div class="upload-content">
+            <div class="icon-wrapper">
+                <span class="material-symbols-outlined">cloud_upload</span>
+            </div>
+            <div class="text-content">
+                <span class="label">{{ label }}</span>
+                <span class="hint" *ngIf="!selectedFiles.length">
+                    {{ multiple ? 'Drag and drop files here or click to browse' : 'Click to browse' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="file-list" *ngIf="selectedFiles.length > 0">
+        <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+            <div class="file-info">
+                <span class="material-symbols-outlined file-icon">description</span>
+                <div class="file-details">
+                    <span class="file-name">{{ file.name }}</span>
+                    <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                </div>
+            </div>
+            <button type="button" class="remove-btn" (click)="removeFile(i, $event)" [disabled]="disabled || isLoading">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="error-message" *ngIf="error">
+        <span class="material-symbols-outlined">error</span>
+        {{ error }}
+    </div>
+</div>

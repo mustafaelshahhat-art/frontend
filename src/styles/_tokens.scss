@@ -440,6 +440,45 @@
   --skeleton-gradient: linear-gradient(90deg, var(--bg-surface-light) 25%, var(--border-dark) 50%, var(--bg-surface-light) 75%);
 
   // ==========================================================================
+  // STATUS COLORS - Semantic status indicators
+  // ==========================================================================
+  
+  // Entity Status Colors
+  --color-status-active: var(--color-primary);
+  --color-status-inactive: var(--text-muted);
+  --color-status-pending: var(--color-warning);
+  --color-status-suspended: var(--color-danger);
+  --color-status-ready: var(--color-primary);
+  --color-status-not-ready: var(--color-warning);
+  
+  // Status Backgrounds (10% opacity)
+  --bg-status-active: var(--color-primary-10);
+  --bg-status-inactive: var(--bg-input);
+  --bg-status-pending: var(--color-warning-10);
+  --bg-status-suspended: var(--color-danger-10);
+  
+  // Match Status
+  --color-status-live: var(--color-danger);
+  --color-status-scheduled: var(--color-info);
+  --color-status-finished: var(--text-muted);
+  --color-status-cancelled: var(--color-danger);
+  
+  // ==========================================================================
+  // PLAYER POSITION COLORS - Sport-specific theming
+  // ==========================================================================
+  
+  --color-position-goalkeeper: var(--color-warning);
+  --color-position-defender: var(--color-info);
+  --color-position-midfielder: var(--color-primary);
+  --color-position-forward: var(--color-gold);
+  
+  // Position Backgrounds
+  --bg-position-goalkeeper: var(--color-warning-10);
+  --bg-position-defender: var(--color-info-10);
+  --bg-position-midfielder: var(--color-primary-10);
+  --bg-position-forward: var(--color-gold-10);
+
+  // ==========================================================================
   // RESPONSIVE BREAKPOINTS (for reference)
   // ==========================================================================
   // --breakpoint-xs: 320px

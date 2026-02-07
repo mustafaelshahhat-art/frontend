@@ -58,6 +58,7 @@ export class NotificationService {
         connection.off('ReceiveNotification');
         connection.off('AccountStatusChanged');
         connection.off('RemovedFromTeam');
+        connection.off('TeamDeleted');
 
         connection.on('ReceiveNotification', (notification: Notification) => {
             const current = this.notifications$.value;
@@ -78,6 +79,12 @@ export class NotificationService {
         // Handle real-time team removal notification
         connection.on('RemovedFromTeam', (data: { playerId: string, teamId: string }) => {
             // Clear team association immediately
+            this.authService.clearTeamAssociation();
+        });
+
+        // Handle real-time team deletion notification
+        connection.on('TeamDeleted', (data: { teamId: string }) => {
+            // Clear team association immediately for all members
             this.authService.clearTeamAssociation();
         });
 

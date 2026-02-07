@@ -17,64 +17,9 @@
 
         <!-- Desktop Table View -->
         <div *ngIf="!isLoading && filteredTeams.length > 0" class="table-wrapper hide-on-mobile">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>الفريق</th>
-                            <th>الكابتن</th>
-                            <th>عدد اللاعبين</th>
-                            <th>الحالة الإدارية</th>
-                            <th class="text-left">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let team of filteredTeams" [class.opacity-50]="!team.isActive">
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <app-smart-image [src]="team.logo" type="team" size="sm"
-                                        [initials]="team.name.charAt(0)">
-                                    </app-smart-image>
-                                    <div class="flex-col">
-                                        <span class="text-primary font-bold text-sm">{{ team.name }}</span>
-                                        <span class="text-muted text-xs">{{ team.city }}</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="text-primary text-sm">{{ team.captainName }}</span>
-                            </td>
-                            <td>
-                                <span class="text-gold font-bold">{{ team.playerCount }} / {{ team.maxPlayers }}</span>
-                            </td>
-                            <td>
-                                <app-badge [type]="team.isActive ? 'success' : 'danger'" [dot]="true"
-                                    [dotType]="team.isActive ? 'active' : 'error'">
-                                    {{ team.isActive ? 'مفعل' : 'معطل' }}
-                                </app-badge>
-                            </td>
-                            <td class="text-left">
-                                <div class="flex items-center justify-end gap-2">
-                                    <!-- Deactivate/Activate -->
-                                    <app-button (click)="requestToggleStatus(team)" variant="ghost" size="sm"
-                                        [icon]="team.isActive ? 'block' : 'check_circle'"
-                                        [class.text-warning]="team.isActive" [class.text-success]="!team.isActive">
-                                    </app-button>
-
-                                    <!-- Delete -->
-                                    <app-button (click)="requestDelete(team)" variant="ghost" size="sm" icon="delete"
-                                        class="text-danger">
-                                    </app-button>
-
-                                    <!-- View Details -->
-                                    <app-button (click)="viewTeam(team)" variant="ghost" size="sm" icon="visibility">
-                                    </app-button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <app-table [data]="filteredTeams" [columns]="columns" [loading]="isLoading"
+                emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
+            </app-table>
         </div>
 
         <!-- Mobile Cards View -->
@@ -89,9 +34,11 @@
                             <span class="text-muted text-xs">{{ team.city }}</span>
                         </div>
                     </div>
-                    <app-badge [type]="team.isActive ? 'success' : 'danger'">
-                        {{ team.isActive ? 'مفعل' : 'معطل' }}
-                    </app-badge>
+                    <ng-container *ngIf="getTeamStatusConfig(team.isActive) as status">
+                        <app-badge [type]="status.variant">
+                            {{ status.label }}
+                        </app-badge>
+                    </ng-container>
                 </div>
 
                 <div class="card-body-details">
@@ -106,22 +53,65 @@
                 </div>
 
                 <div class="card-footer-actions">
-                    <button (click)="viewTeam(team)" class="action-btn-pill" title="عرض التفاصيل">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
+                    <app-button (click)="viewTeam(team)" variant="icon" size="md" icon="visibility"
+                        title="عرض التفاصيل"></app-button>
                     <div class="flex-1"></div>
-                    <div class="flex items-center gap-3">
-                        <button (click)="requestToggleStatus(team)" class="action-btn-pill" [class.warn]="team.isActive"
-                            [class.success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
-                            <span class="material-symbols-outlined">{{ team.isActive ? 'block' : 'check_circle'
-                                }}</span>
-                        </button>
-                        <button (click)="requestDelete(team)" class="action-btn-pill danger" title="حذف">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
+                    <div class="flex items-center gap-2">
+                        <app-button (click)="requestToggleStatus(team)" variant="icon" size="md"
+                            [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-warning]="team.isActive"
+                            [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
+                        </app-button>
+                        <app-button (click)="requestDelete(team)" variant="icon" size="md" icon="delete"
+                            class="text-danger" title="حذف">
+                        </app-button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Team Info Template -->
+<ng-template #teamInfo let-row="row">
+    <div class="flex items-center gap-3">
+        <app-smart-image [src]="row.logo" type="team" size="sm" [initials]="row.name.charAt(0)">
+        </app-smart-image>
+        <div class="flex-col">
+            <span class="text-primary font-bold text-sm">{{ row.name }}</span>
+            <span class="text-muted text-xs">{{ row.city }}</span>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Captain Template -->
+<ng-template #captainInfo let-row="row">
+    <span class="text-primary text-sm">{{ row.captainName }}</span>
+</ng-template>
+
+<!-- Players Template -->
+<ng-template #playersInfo let-row="row">
+    <span class="text-gold font-bold">{{ row.playerCount }} / {{ row.maxPlayers }}</span>
+</ng-template>
+
+<!-- Status Template -->
+<ng-template #adminStatusInfo let-row="row">
+    <ng-container *ngIf="getTeamStatusConfig(row.isActive) as status">
+        <app-badge [type]="status.variant" [dot]="true" [dotType]="row.isActive ? 'active' : 'error'">
+            {{ status.label }}
+        </app-badge>
+    </ng-container>
+</ng-template>
+
+<!-- Actions Template -->
+<ng-template #actionsInfo let-row="row">
+    <div class="flex items-center justify-end gap-2">
+        <app-button (click)="requestToggleStatus(row)" variant="icon" size="sm"
+            [icon]="row.isActive ? 'block' : 'check_circle'" [class.text-warning]="row.isActive"
+            [class.text-success]="!row.isActive" [title]="row.isActive ? 'تعطيل' : 'تفعيل'">
+        </app-button>
+        <app-button (click)="requestDelete(row)" variant="icon" size="sm" icon="delete" class="text-danger" title="حذف">
+        </app-button>
+        <app-button (click)="viewTeam(row)" variant="icon" size="sm" icon="visibility" title="عرض التفاصيل">
+        </app-button>
+    </div>
+</ng-template>

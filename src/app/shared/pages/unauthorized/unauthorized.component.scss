@@ -1,119 +1,116 @@
 .error-page {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--bg-body, #0A1612);
+    background: var(--gradient-page);
     direction: rtl;
 
     .error-content {
         text-align: center;
-        padding: 2rem;
+        padding: var(--space-xl);
         animation: fadeIn 0.5s ease-out;
     }
 
     .error-icon-box {
         width: 120px;
         height: 120px;
-        background: linear-gradient(135deg, var(--color-primary, #10B981) 0%, var(--color-primary-dark, #059669) 100%);
-        border-radius: 50%;
+        background: var(--gradient-primary);
+        border-radius: var(--radius-full);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 2rem;
-        box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+        margin: 0 auto var(--space-xl);
+        box-shadow: var(--shadow-glow-primary);
 
         &.danger {
-            background: linear-gradient(135deg, var(--color-danger, #EF4444) 0%, var(--color-danger-dark, #DC2626) 100%);
-            box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.3);
+            background: var(--gradient-danger);
+            box-shadow: var(--shadow-glow-danger);
         }
     }
 
     .icon {
-        font-size: 4rem;
-        color: white;
+        font-size: var(--text-5xl);
+        color: var(--bg-dark);
     }
 
     .error-code {
-        color: white;
-        font-size: 4rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        font-size: var(--text-5xl);
+        font-weight: var(--font-extrabold);
+        margin-bottom: var(--space-2);
         line-height: 1;
+        font-family: var(--font-display);
     }
 
     .error-title {
-        color: var(--color-primary, #10B981);
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+        color: var(--color-primary);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        margin-bottom: var(--space-md);
 
         &.danger {
-            color: var(--color-danger, #EF4444);
+            color: var(--color-danger);
         }
     }
 
     .error-message {
-        color: var(--text-secondary, #94a3b8);
-        font-size: 1rem;
-        margin-bottom: 2rem;
+        color: var(--text-secondary);
+        font-size: var(--text-base);
+        margin-bottom: var(--space-xl);
         max-width: 400px;
         margin-left: auto;
         margin-right: auto;
+        line-height: var(--leading-relaxed);
     }
 
     .error-actions {
         display: flex;
-        gap: 1rem;
+        gap: var(--space-md);
         justify-content: center;
+        flex-wrap: wrap;
     }
 
     .btn-primary {
-        padding: 0.75rem 2rem;
-        background-color: var(--color-primary, #10B981);
-        color: white;
+        padding: var(--space-3) var(--space-xl);
+        background: var(--gradient-primary);
+        color: var(--bg-dark);
         border: none;
-        border-radius: 0.75rem;
-        font-weight: 600;
+        border-radius: var(--radius-xl);
+        font-weight: var(--font-semibold);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s;
+        gap: var(--space-2);
+        transition: var(--transition-base);
+        box-shadow: var(--shadow-btn-primary);
 
         &:hover {
-            background-color: var(--color-primary-dark, #059669);
+            box-shadow: var(--shadow-btn-primary-hover);
             transform: translateY(-2px);
         }
     }
 
     .btn-outline {
-        padding: 0.75rem 2rem;
-        background-color: var(--bg-surface-dark, #1A3522);
-        color: white;
-        border: 1px solid var(--border-subtle, #22492f);
-        border-radius: 0.75rem;
-        font-weight: 600;
+        padding: var(--space-3) var(--space-xl);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        border: 1px solid var(--border-visible);
+        border-radius: var(--radius-xl);
+        font-weight: var(--font-semibold);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s;
+        gap: var(--space-2);
+        transition: var(--transition-base);
 
         &:hover {
-            background-color: var(--bg-surface-darker, #152d1d);
-            border-color: var(--color-primary, #10B981);
+            background: var(--color-primary-10);
+            border-color: var(--color-primary-30);
         }
     }
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+// Note: fadeIn keyframe is defined globally in _base.scss
+// Using the global animation here

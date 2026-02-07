@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
     styleUrls: ['./button.component.scss']
 })
 export class ButtonComponent {
-    @Input() variant: 'primary' | 'gold' | 'danger' | 'ghost' | 'outline' | 'danger-ghost' = 'primary';
+    @Input() variant: 'primary' | 'gold' | 'danger' | 'ghost' | 'outline' | 'danger-ghost' | 'icon' = 'primary';
     @Input() size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
     @Input() type: 'button' | 'submit' | 'reset' = 'button';
     @Input() icon?: string;

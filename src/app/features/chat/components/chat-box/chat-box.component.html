@@ -56,9 +56,7 @@
     <div class="chat-panel">
         <div class="chat-header">
             <div class="chat-header-actions md-hidden">
-                <button class="chat-toggle-btn" (click)="toggleSidebar()">
-                    <span class="material-symbols-outlined">menu</span>
-                </button>
+                <app-icon-button (onClick)="toggleSidebar()" icon="menu" variant="ghost"></app-icon-button>
             </div>
 
             <div class="chat-header-info">
@@ -78,9 +76,7 @@
                     <span class="live-dot"></span>
                     <span class="online-status-text">متصل</span>
                 </div>
-                <button class="chat-back-btn" (click)="navigateBack()">
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                </button>
+                <app-icon-button (onClick)="navigateBack()" icon="arrow_forward" variant="ghost"></app-icon-button>
             </div>
         </div>
 
@@ -118,15 +114,14 @@
         <!-- Input Area -->
         <div class="chat-input-area">
             <div class="chat-input-wrapper">
-                <input type="text" class="chat-input"
+                <app-form-control type="text" [(ngModel)]="newMessage"
                     [placeholder]="readOnly ? 'هذه المباراة انتهت، المحادثة للقراءة فقط' : 'اكتب رسالتك هنا...'"
-                    [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" [disabled]="isLoading || readOnly">
+                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" style="flex: 1;">
+                </app-form-control>
 
-                <button class="chat-send-btn" (click)="sendMessage()"
-                    [disabled]="!newMessage.trim() || isLoading || readOnly">
-                    <span *ngIf="!isLoading" class="material-symbols-outlined">send</span>
-                    <span *ngIf="isLoading" class="spinner-sm"></span>
-                </button>
+                <app-icon-button (onClick)="sendMessage()" icon="send" variant="primary"
+                    [disabled]="!newMessage.trim() || isLoading || readOnly" [isLoading]="isLoading">
+                </app-icon-button>
             </div>
         </div>
     </div>

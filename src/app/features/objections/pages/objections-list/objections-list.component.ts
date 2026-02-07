@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,6 +14,10 @@ import { CardComponent } from '../../../../shared/components/card/card.component
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
+
 @Component({
     selector: 'app-objections-list',
     standalone: true,
@@ -26,7 +30,10 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
         PageHeaderComponent,
         CardComponent,
         BadgeComponent,
-        ButtonComponent
+        ButtonComponent,
+        SelectComponent,
+        FormControlComponent,
+        TableComponent
     ],
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss']
@@ -59,7 +66,6 @@ export class ObjectionsListComponent implements OnInit {
 
     ObjectionStatus = ObjectionStatus;
 
-    // Captain: new objection form
     newObjection = {
         type: ObjectionType.MATCH_RESULT,
         matchId: '',
@@ -67,8 +73,33 @@ export class ObjectionsListComponent implements OnInit {
     };
     ObjectionType = ObjectionType;
 
+    objectionTypeOptions: SelectOption[] = [
+        { label: 'نتيجة مباراة', value: ObjectionType.MATCH_RESULT },
+        { label: 'قرار حكم', value: ObjectionType.REFEREE_DECISION },
+        { label: 'أهلية لاعب', value: ObjectionType.PLAYER_ELIGIBILITY },
+        { label: 'أخرى', value: ObjectionType.OTHER }
+    ];
+
+    columns: TableColumn[] = [];
+    @ViewChild('matchInfo') matchInfo!: TemplateRef<any>;
+    @ViewChild('captainInfo') captainInfo!: TemplateRef<any>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
+    @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
+
     ngOnInit(): void {
         this.loadObjections();
+    }
+
+    ngAfterViewInit(): void {
+        this.columns = [
+            { key: 'match', label: 'المباراة', template: this.matchInfo },
+            { key: 'captain', label: 'الكابتن', template: this.captainInfo },
+            { key: 'date', label: 'التاريخ', template: this.dateInfo },
+            { key: 'status', label: 'الحالة', template: this.statusInfo, align: 'center' },
+            { key: 'action', label: '', width: '50px', template: this.actionInfo }
+        ];
+        this.cdr.detectChanges();
     }
 
     loadObjections(): void {

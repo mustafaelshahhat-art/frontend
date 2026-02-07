@@ -18,59 +18,54 @@
 
         <!-- Table -->
         <div *ngIf="!isLoading && filteredRequests.length > 0" class="card p-0 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>الفريق</th>
-                            <th>المبلغ</th>
-                            <th>التاريخ</th>
-                            <th>الحالة</th>
-                            <th>الإيصال</th>
-                            <th>الإجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let request of filteredRequests">
-                            <td>
-                                <div class="flex-col">
-                                    <span class="text-primary font-bold text-sm">{{ request.registration.teamName
-                                        }}</span>
-                                    <span class="text-xs text-muted">{{ request.tournament.name }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="text-gold font-bold">{{ request.tournament.entryFee }} ريال</span>
-                            </td>
-                            <td class="text-muted text-xs">{{ request.registration.paymentDate | date:'yyyy-MM-dd' }}
-                            </td>
-                            <td>
-                                <app-badge [type]="getBadgeType(request.registration.status)">
-                                    {{ getStatusLabel(request.registration.status) }}
-                                </app-badge>
-                            </td>
-                            <td>
-                                <app-button (click)="viewReceipt(request)" variant="ghost" size="sm" class="text-info">
-                                    عرض الإيصال
-                                </app-button>
-                            </td>
-                            <td>
-                                <div class="action-buttons"
-                                    *ngIf="request.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
-                                    <app-button (click)="approve(request)" variant="ghost" size="sm" icon="check_circle"
-                                        class="text-primary">
-                                    </app-button>
-                                    <app-button (click)="reject(request)" variant="ghost" size="sm" icon="cancel"
-                                        class="text-danger">
-                                    </app-button>
-                                </div>
-                                <span *ngIf="request.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
-                                    class="text-muted text-xs">—</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading">
+            </app-table>
+
+            <!-- Team Template -->
+            <ng-template #teamInfo let-row="row">
+                <div class="flex-col">
+                    <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
+                    <span class="text-xs text-muted">{{ row.tournament.name }}</span>
+                </div>
+            </ng-template>
+
+            <!-- Amount Template -->
+            <ng-template #amountInfo let-row="row">
+                <span class="text-gold font-bold">{{ row.tournament.entryFee }} ريال</span>
+            </ng-template>
+
+            <!-- Date Template -->
+            <ng-template #dateInfo let-row="row">
+                <span class="text-muted text-xs">{{ row.registration.paymentDate | date:'yyyy-MM-dd' }}</span>
+            </ng-template>
+
+            <!-- Status Template -->
+            <ng-template #statusInfo let-row="row">
+                <app-badge [type]="getBadgeType(row.registration.status)">
+                    {{ getStatusLabel(row.registration.status) }}
+                </app-badge>
+            </ng-template>
+
+            <!-- Receipt Template -->
+            <ng-template #receiptInfo let-row="row">
+                <app-button (click)="viewReceipt(row)" variant="ghost" size="sm" class="text-info">
+                    عرض الإيصال
+                </app-button>
+            </ng-template>
+
+            <!-- Action Template -->
+            <ng-template #actionInfo let-row="row">
+                <div class="action-buttons"
+                    *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
+                    <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle"
+                        class="text-primary">
+                    </app-button>
+                    <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
+                    </app-button>
+                </div>
+                <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
+                    class="text-muted text-xs">—</span>
+            </ng-template>
         </div>
 
         <!-- Receipt Modal -->

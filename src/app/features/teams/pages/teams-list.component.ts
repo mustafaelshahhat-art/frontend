@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -9,8 +9,11 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
 import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
+import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
+
+import { TeamStatus, TEAM_STATUS_LABELS, StatusConfig } from '../../../shared/utils/status-labels';
 
 type TeamFilterValue = 'all' | 'active' | 'inactive';
 
@@ -25,7 +28,8 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        TableComponent
     ],
     templateUrl: './teams-list.component.html',
     styleUrls: ['./teams-list.component.scss']
@@ -46,9 +50,27 @@ export class TeamsListComponent implements OnInit {
     ];
 
     teams: Team[] = [];
+    columns: TableColumn[] = [];
+
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
+    @ViewChild('captainInfo') captainInfo!: TemplateRef<any>;
+    @ViewChild('playersInfo') playersInfo!: TemplateRef<any>;
+    @ViewChild('adminStatusInfo') adminStatusInfo!: TemplateRef<any>;
+    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
         this.loadTeams();
+    }
+
+    ngAfterViewInit(): void {
+        this.columns = [
+            { key: 'team', label: 'الفريق', template: this.teamInfo },
+            { key: 'captain', label: 'الكابتن', template: this.captainInfo },
+            { key: 'players', label: 'عدد اللاعبين', template: this.playersInfo },
+            { key: 'status', label: 'الحالة الإدارية', template: this.adminStatusInfo },
+            { key: 'actions', label: 'إجراءات', width: '150px', template: this.actionsInfo }
+        ];
+        this.cdr.detectChanges();
     }
 
     loadTeams(): void {
@@ -116,7 +138,7 @@ export class TeamsListComponent implements OnInit {
             'danger'
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.teamService.deleteTeam(team.id, {} as any).subscribe({
+                this.teamService.deleteTeam(team.id).subscribe({
                     next: () => {
                         this.teams = this.teams.filter(t => t.id !== team.id);
                         this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
@@ -133,6 +155,12 @@ export class TeamsListComponent implements OnInit {
 
     viewTeam(team: Team): void {
         this.router.navigate(['/admin/teams', team.id], { state: { team } });
+    }
+
+    getTeamStatusConfig(isActive: boolean | undefined): StatusConfig {
+        return isActive ?
+            { label: 'نشط', variant: 'success', icon: 'check_circle' } :
+            { label: 'معطل', variant: 'danger', icon: 'block' };
     }
 }
 

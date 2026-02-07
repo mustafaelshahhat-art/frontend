@@ -15,81 +15,74 @@
             </div>
         </div>
 
-        <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل المستخدمين..."></app-inline-loading>
-
-        <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading() && filteredUsers().length === 0" icon="person_off" title="لا يوجد مستخدمين"
-            description="لا يوجد مستخدمين في هذا التصنيف حالياً">
-        </app-empty-state>
-
         <!-- Data Table -->
-        <div *ngIf="!isLoading() && filteredUsers().length > 0" class="card p-0 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>المستخدم</th>
-                            <th>تاريخ التسجيل</th>
-                            <th>الفريق</th>
-                            <th>الحالة</th>
-                            <th class="text-center">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let user of filteredUsers(); let i = index">
-                            <td class="text-muted">{{ (i + 1).toString().padStart(2, '0') }}</td>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <app-smart-image [src]="user.avatar"
-                                        [type]="user.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
-                                        [initials]="user.name.charAt(0)">
-                                    </app-smart-image>
-                                    <div class="flex-col">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold text-sm">{{ user.name }}</span>
-                                            <app-badge *ngIf="user.role === 'Player' && user.isTeamOwner" type="gold"
-                                                size="xs">قائد</app-badge>
-                                        </div>
-                                        <span class="text-xs text-muted">ID: #{{ user.displayId }}</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-sm">{{ user.createdAt | date:'yyyy/MM/dd' }}</td>
-                            <td class="text-sm">{{ user.teamName || '—' }}</td>
-                            <td>
-                                <app-badge [type]="getBadgeType(user.status)" [dot]="true"
-                                    [dotType]="user.status === 'Active' ? 'active' : (user.status === 'Pending' ? 'pending' : 'error')">
-                                    {{ getStatusLabel(user.status) }}
-                                </app-badge>
-                            </td>
-                            <td>
-                                <div class="flex items-center justify-center gap-2">
-                                    <app-button *ngIf="user.status === 'Pending'" (click)="approveUser(user)"
-                                        variant="ghost" size="sm" icon="check_circle" class="text-success">
-                                    </app-button>
-                                    <app-button (click)="viewUser(user.id)" variant="ghost" size="sm" icon="visibility"
-                                        class="text-info">
-                                    </app-button>
-                                    <app-button (click)="warnUser(user)" variant="ghost" size="sm" icon="warning"
-                                        class="text-warning">
-                                    </app-button>
-                                    <app-button *ngIf="user.status !== 'Suspended'" (click)="suspendUser(user)"
-                                        variant="ghost" size="sm" icon="block" class="text-gold">
-                                    </app-button>
-                                    <app-button (click)="deleteUser(user)" variant="ghost" size="sm" icon="delete"
-                                        class="text-danger">
-                                    </app-button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="card p-0 overflow-hidden">
+            <app-table [data]="filteredUsers()" [columns]="columns" [loading]="isLoading()"
+                emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً">
+            </app-table>
+
+            <!-- Index Template -->
+            <ng-template #indexInfo let-index="index">
+                <span class="text-muted">{{ (index + 1).toString().padStart(2, '0') }}</span>
+            </ng-template>
+
+            <!-- User Info Template -->
+            <ng-template #userInfo let-row="row">
+                <div class="flex items-center gap-3">
+                    <app-smart-image [src]="row.avatar" [type]="row.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
+                        [initials]="row.name.charAt(0)">
+                    </app-smart-image>
+                    <div class="flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm">{{ row.name }}</span>
+                            <app-badge *ngIf="row.role === 'Player' && row.isTeamOwner" type="gold"
+                                size="xs">قائد</app-badge>
+                        </div>
+                        <span class="text-xs text-muted">ID: #{{ row.displayId }}</span>
+                    </div>
+                </div>
+            </ng-template>
+
+            <!-- Date Template -->
+            <ng-template #dateInfo let-row="row">
+                <span class="text-sm">{{ row.createdAt | date:'yyyy/MM/dd' }}</span>
+            </ng-template>
+
+            <!-- Team Template -->
+            <ng-template #teamInfo let-row="row">
+                <span class="text-sm">{{ row.teamName || '—' }}</span>
+            </ng-template>
+
+            <!-- Status Template -->
+            <ng-template #statusInfo let-row="row">
+                <app-badge [type]="getBadgeType(row.status)" [dot]="true"
+                    [dotType]="row.status === 'Active' ? 'active' : (row.status === 'Pending' ? 'pending' : 'error')">
+                    {{ getStatusLabel(row.status) }}
+                </app-badge>
+            </ng-template>
+
+            <!-- Actions Template -->
+            <ng-template #actionsInfo let-row="row">
+                <div class="flex items-center justify-center gap-2">
+                    <app-button *ngIf="row.status === 'Pending'" (click)="approveUser(row)" variant="ghost" size="sm"
+                        icon="check_circle" class="text-success">
+                    </app-button>
+                    <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility"
+                        class="text-info">
+                    </app-button>
+                    <app-button (click)="warnUser(row)" variant="ghost" size="sm" icon="warning" class="text-warning">
+                    </app-button>
+                    <app-button *ngIf="row.status !== 'Suspended'" (click)="suspendUser(row)" variant="ghost" size="sm"
+                        icon="block" class="text-gold">
+                    </app-button>
+                    <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger">
+                    </app-button>
+                </div>
+            </ng-template>
+
             <!-- Pagination -->
             <div class="pagination">
-                <span class="pagination-info">عرض 1-{{ filteredUsers().length }} من {{ users().length }} مستخدم</span>
+                <span class="pagination-info">عرض {{ filteredUsers().length }} مستخدم</span>
                 <div class="pagination-controls">
                     <app-button variant="ghost" size="sm" icon="chevron_right"></app-button>
                     <app-button variant="primary" size="sm">1</app-button>

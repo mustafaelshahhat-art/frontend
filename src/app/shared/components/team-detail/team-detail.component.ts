@@ -1,12 +1,19 @@
 import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../services/ui-feedback.service';
 import { FilterComponent } from '../filter/filter.component';
 import { ButtonComponent } from '../button/button.component';
 import { BadgeComponent } from '../badge/badge.component';
 import { SmartImageComponent } from '../smart-image/smart-image.component';
+import { FormControlComponent } from '../form-control/form-control.component';
+import { ModalComponent } from '../modal/modal.component';
+import {
+    getPlayerStatus,
+    PlayerStatus,
+    BadgeVariant
+} from '../../utils/status-labels';
 
 export interface TeamPlayer {
     id: string; // Changed to string (Guid)
@@ -76,10 +83,13 @@ export interface TeamData {
     imports: [
         CommonModule,
         FormsModule,
+        ReactiveFormsModule,
         FilterComponent,
         ButtonComponent,
         BadgeComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        FormControlComponent,
+        ModalComponent
     ],
     templateUrl: './team-detail.component.html',
     styleUrls: ['./team-detail.component.scss']
@@ -100,6 +110,7 @@ export class TeamDetailComponent implements OnChanges {
     @Input() canManageStatus: boolean = false; // للأدمن فقط (تفعيل/تعليق/حظر)
     @Input() canDeleteTeam: boolean = false; // للكابتن
     @Input() canManageInvitations: boolean = false; // للكابتن
+    @Input() isInviteLoading: boolean = false; // حالة تحميل الدعوة
 
     @Output() playerAction = new EventEmitter<{ player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }>();
     @Output() tabChanged = new EventEmitter<string>();
@@ -167,28 +178,28 @@ export class TeamDetailComponent implements OnChanges {
         this.isEditingName = false;
     }
 
-    showAddPlayerModal = false;
-    playerSearchId = '';
-    isSearching = false;
+    // Modal State
+    isInviteModalOpen = false;
+    displayIdControl = new FormControl('', [Validators.required]);
 
     onAddPlayerClick(): void {
-        this.showAddPlayerModal = true;
-        this.playerSearchId = '';
+        this.isInviteModalOpen = true;
+        this.displayIdControl.reset();
     }
 
-    closeAddPlayerModal(): void {
-        this.showAddPlayerModal = false;
-        this.playerSearchId = '';
+    closeInviteModal(): void {
+        this.isInviteModalOpen = false;
+        this.displayIdControl.reset();
     }
 
     submitAddPlayer(): void {
-        if (!this.playerSearchId.trim()) {
+        if (this.displayIdControl.invalid) {
             this.uiFeedback.warning('تنبيه', 'يرجى إدخال الرقم التعريفي للاعب');
             return;
         }
 
-        this.addPlayer.emit(this.playerSearchId);
-        this.showAddPlayerModal = false;
+        const playerId = this.displayIdControl.value || '';
+        this.addPlayer.emit(playerId);
     }
 
     navigateBack(): void {
@@ -204,22 +215,14 @@ export class TeamDetailComponent implements OnChanges {
         this.tabChanged.emit(tab);
     }
 
-    getPlayerStatusBadgeType(status: string): 'success' | 'warning' | 'danger' {
-        switch (status) {
-            case 'active': return 'success';
-            case 'suspended': return 'warning';
-            case 'banned': return 'danger';
-            default: return 'success';
-        }
+    getPlayerStatusBadgeType(status: string): BadgeVariant {
+        const statusConfig = getPlayerStatus(status);
+        return statusConfig.variant;
     }
 
     getPlayerStatusLabel(status: string): string {
-        switch (status) {
-            case 'active': return 'نشط';
-            case 'suspended': return 'موقوف';
-            case 'banned': return 'محظور';
-            default: return 'نشط';
-        }
+        const statusConfig = getPlayerStatus(status);
+        return statusConfig.label;
     }
 
     getMatchResultClass(status: string): string {

@@ -4,59 +4,65 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { Tournament } from '../../../../core/models/tournament.model';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
 
 @Component({
     selector: 'app-team-registration-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule, CardComponent, ButtonComponent],
+    imports: [
+        CommonModule,
+        FormsModule,
+        ButtonComponent,
+        ModalComponent,
+        FormControlComponent,
+        SelectComponent,
+        FileUploadComponent
+    ],
     template: `
-        <div *ngIf="isVisible" class="modal-overlay" (click)="close()"
-            style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1.5rem;">
-            <app-card class="modal-box" (click)="$event.stopPropagation()" style="width: 100%; max-width: 500px;"
-                title="تسجيل الفريق" icon="rocket_launch">
-                <div class="form-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div class="form-group">
-                        <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">الرقم المحول منه</label>
-                        <input type="text" [(ngModel)]="registerForm.fromNumber" class="premium-input"
-                            placeholder="رقم الجوال المحول منه"
-                            style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;">
-                    </div>
+        <app-modal 
+            [visible]="isVisible"
+            title="تسجيل الفريق" 
+            icon="rocket_launch"
+            width="500px"
+            (close)="close()">
+            
+            <div class="form-body">
+                <app-form-control 
+                    label="الرقم المحول منه"
+                    [(ngModel)]="registerForm.fromNumber"
+                    placeholder="رقم الجوال المحول منه">
+                </app-form-control>
 
-                    <div class="form-group">
-                        <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">نوع التحويل</label>
-                        <select [(ngModel)]="registerForm.transferType" class="premium-input"
-                            style="width: 100%; padding: 0.75rem; background: rgba(30, 41, 59, 1); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white;">
-                            <option value="">اختر النوع</option>
-                            <option value="STC Pay">STC Pay</option>
-                            <option value="Urpay">Urpay</option>
-                            <option value="Bank Transfer">تحويل بنكي</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.875rem;">إيصال الدفع</label>
-                        <div (click)="fileInput.click()"
-                            style="border: 2px dashed rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02);"
-                            onmouseover="this.style.borderColor='#10B981'; this.style.background='rgba(16,185,129,0.05)'"
-                            onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.02)'">
-                            <input #fileInput type="file" (change)="onFileSelected($event)" hidden accept="image/*">
-                            <span class="material-symbols-outlined"
-                                style="font-size: 2.5rem; color: #10B981; margin-bottom: 0.5rem;">cloud_upload</span>
-                            <p style="margin: 0; color: #94a3b8;">{{ registerForm.receipt ? registerForm.receipt.name : 'اسحب الإيصال هنا أو انقر للإرفاق' }}</p>
-                        </div>
-                    </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" style="display: block; font-size: 0.875rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; text-align: right;">نوع التحويل</label>
+                    <app-select 
+                        [(ngModel)]="registerForm.transferType"
+                        [options]="transferOptions"
+                        placeholder="اختر النوع">
+                    </app-select>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
-                    <app-button variant="ghost" (click)="close()">إلغاء</app-button>
-                    <app-button variant="primary" icon="send" (click)="submit()" [isLoading]="isSubmitting"
-                        [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال الطلب</app-button>
+                <div class="form-group">
+                    <app-file-upload 
+                        label="إيصال الدفع" 
+                        accept="image/*"
+                        [multiple]="false"
+                        (filesSelected)="onFileSelected($event)">
+                    </app-file-upload>
                 </div>
-            </app-card>
-        </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <app-button variant="ghost" (onClick)="close()">إلغاء</app-button>
+                <app-button variant="primary" icon="send" (onClick)="submit()" [isLoading]="isSubmitting"
+                    [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال الطلب</app-button>
+            </div>
+        </app-modal>
     `
 })
 export class TeamRegistrationModalComponent {
@@ -76,6 +82,12 @@ export class TeamRegistrationModalComponent {
         receipt: null as File | null
     };
 
+    transferOptions: SelectOption[] = [
+        { label: 'STC Pay', value: 'STC Pay', icon: 'payments' },
+        { label: 'Urpay', value: 'Urpay', icon: 'credit_card' },
+        { label: 'تحويل بنكي', value: 'Bank Transfer', icon: 'account_balance' }
+    ];
+
     close(): void {
         this.isVisible = false;
         this.resetForm();
@@ -91,10 +103,9 @@ export class TeamRegistrationModalComponent {
         this.isSubmitting = false;
     }
 
-    onFileSelected(event: any): void {
-        const file = event.target.files[0];
-        if (file) {
-            this.registerForm.receipt = file;
+    onFileSelected(files: File[]): void {
+        if (files && files.length > 0) {
+            this.registerForm.receipt = files[0];
         }
     }
 

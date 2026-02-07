@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
@@ -34,14 +34,17 @@ import { TeamJoinRequest } from '../../core/models/team-request.model';
                 [canRemovePlayers]="isCaptain && teamData.isActive"
                 [canManageStatus]="false"
                 [canManageInvitations]="isCaptain && teamData.isActive"
+                [canDeleteTeam]="isCaptain && teamData.isActive"
                 [canSeeRequests]="isCaptain"
                 [canSeeFinances]="isCaptain || isAdmin"
+                [isInviteLoading]="isAddingPlayer"
                 [initialTab]="'players'"
                 (playerAction)="handlePlayerAction($event)"
                 (editName)="handleEditName($event)"
                 (addPlayer)="onAddPlayerClick($event)"
                 (tabChanged)="handleTabChange($event)"
-                (respondRequest)="handleRespondRequest($event)">
+                (respondRequest)="handleRespondRequest($event)"
+                (deleteTeam)="handleDeleteTeam()">
             </app-team-detail>
         </div>
 
@@ -249,6 +252,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     private readonly notificationService = inject(NotificationService);
     private readonly cdr = inject(ChangeDetectorRef);
 
+    @ViewChild(TeamDetailComponent) teamDetail!: TeamDetailComponent;
+
     private userSubscription: Subscription | null = null;
 
     currentUser: User | null = null;
@@ -256,6 +261,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     loading = true;
     isCaptain = false;
     isAdmin = false;
+    isAddingPlayer = false;
     newTeamName = '';
     creatingTeam = false;
     pendingInvitations: TeamJoinRequest[] = [];
@@ -582,11 +588,15 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     onAddPlayerClick(playerId: string): void {
         if (!this.teamData || !this.currentUser) return;
 
+        this.isAddingPlayer = true;
         this.teamService.invitePlayerByDisplayId(this.teamData.id, playerId).subscribe({
             next: (response: any) => {
+                this.isAddingPlayer = false;
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
+                this.teamDetail.closeInviteModal();
             },
             error: (err: any) => {
+                this.isAddingPlayer = false;
                 this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
             }
         });
@@ -614,6 +624,36 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 } else {
                     this.uiFeedback.success('تم التحديث', 'تمت العملية بنجاح');
                 }
+            }
+        });
+    }
+
+    handleDeleteTeam(): void {
+        if (!this.isCaptain || !this.teamData) return;
+
+        this.uiFeedback.confirm(
+            'حذف الفريق',
+            'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق وإلغاء عضوية جميع اللاعبين.',
+            'حذف نهائي',
+            'danger'
+        ).subscribe((confirmed: boolean) => {
+            if (confirmed && this.teamData) {
+                this.teamService.deleteTeam(this.teamData.id).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                        // Update user state and clear team data
+                        this.authService.refreshUserProfile().subscribe(() => {
+                            this.currentUser = this.authService.getCurrentUser();
+                            this.teamData = null;
+                            this.isCaptain = false;
+                            this.loadInvitations();
+                            this.cdr.detectChanges();
+                        });
+                    },
+                    error: (err) => {
+                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'حدث خطأ أثناء محاولة حذف الفريق');
+                    }
+                });
             }
         });
     }

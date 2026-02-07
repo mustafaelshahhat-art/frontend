@@ -20,7 +20,12 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { resolveStatus, StatusConfig } from '../../../../shared/utils/status-labels';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
+import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
 
 @Component({
     selector: 'app-match-detail',
@@ -37,7 +42,11 @@ import { SmartImageComponent } from '../../../../shared/components/smart-image/s
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        ModalComponent,
+        FormControlComponent,
+        SelectComponent,
+        FileUploadComponent
     ],
     templateUrl: './match-detail.component.html',
     styleUrls: ['./match-detail.component.scss']
@@ -76,13 +85,12 @@ export class MatchDetailComponent implements OnInit {
 
     // Objection Modal
     showObjectionModal = false;
-    objectionDropdownOpen = false;
     objectionForm = {
         type: '',
         description: '',
         files: [] as File[]
     };
-    objectionTypes = [
+    objectionTypeOptions: SelectOption[] = [
         { value: 'MatchResult', label: 'نتيجة المباراة', icon: 'scoreboard' },
         { value: 'RefereeDecision', label: 'قرار تحكيمي', icon: 'sports' },
         { value: 'PlayerEligibility', label: 'أهلية لاعب', icon: 'person_off' },
@@ -103,18 +111,8 @@ export class MatchDetailComponent implements OnInit {
     pendingDeleteEventId: string | null = null;
 
     // Referee Regions
-    referees: { id: string, name: string, region: string }[] = [];
-
-    get filteredReferees() {
-        if (!this.match) return this.referees;
-        // Mock team regions for now
-        const homeTeamRegion = 'الرياض'; // This would normally come from team model
-        return this.referees.sort((a, b) => {
-            if (a.region === homeTeamRegion && b.region !== homeTeamRegion) return -1;
-            if (a.region !== homeTeamRegion && b.region === homeTeamRegion) return 1;
-            return 0;
-        });
-    }
+    refereeOptions: SelectOption[] = [];
+    selectedRefereeId: string = '';
 
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
@@ -319,13 +317,6 @@ export class MatchDetailComponent implements OnInit {
                 if (success && this.match) {
                     this.match.status = MatchStatus.CANCELLED;
                     this.uiFeedback.success('تم الإلغاء', 'تم إلغاء المباراة وإرسال إشعارات لجميع الأطراف');
-                    console.log('Notification sent to Participants:', {
-                        reason: this.cancelReason,
-                        matchId: this.match.id,
-                        homeTeamId: this.match.homeTeamId,
-                        awayTeamId: this.match.awayTeamId,
-                        refereeId: this.match.refereeId
-                    });
                 }
                 this.closeCancelModal();
                 this.cdr.detectChanges();
@@ -361,11 +352,12 @@ export class MatchDetailComponent implements OnInit {
     openRefereeModal(): void {
         this.userService.getUsersByRole('Referee').subscribe({
             next: (users) => {
-                this.referees = users.map(u => ({
-                    id: u.id,
-                    name: u.name,
-                    region: u.city || 'غير محدد' // Map city to region or use a default
+                this.refereeOptions = users.map(u => ({
+                    value: u.id,
+                    label: u.name,
+                    icon: 'person'
                 }));
+                // Sort by region logic if needed (requires fetching regions or adding to user model)
                 this.showRefereeModal = true;
                 this.cdr.detectChanges();
             },
@@ -379,13 +371,15 @@ export class MatchDetailComponent implements OnInit {
         this.showRefereeModal = false;
     }
 
-    assignReferee(referee: { id: string, name: string }): void {
-        if (!this.match) return;
-        this.matchService.assignReferee(this.match.id, referee.id, referee.name).subscribe({
+    assignReferee(): void {
+        if (!this.match || !this.selectedRefereeId) return;
+        const selectedRef = this.refereeOptions.find(ref => ref.value === this.selectedRefereeId);
+
+        this.matchService.assignReferee(this.match.id, this.selectedRefereeId, selectedRef?.label || '').subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
                     this.match = updatedMatch;
-                    this.uiFeedback.success('تم التعيين', `تم تعيين الحكم: ${referee.name}`);
+                    this.uiFeedback.success('تم التعيين', `تم تعيين الحكم: ${selectedRef?.label}`);
                 }
                 this.closeRefereeModal();
                 this.cdr.detectChanges();
@@ -428,69 +422,34 @@ export class MatchDetailComponent implements OnInit {
     // ==================== HELPERS ====================
 
     getEventIcon(type: MatchEventType | string | undefined): string {
-        if (!type) return 'info';
-        const typeStr = typeof type === 'string' ? type.toLowerCase() : type;
-        switch (typeStr) {
-            case MatchEventType.GOAL:
-            case 'goal': return 'sports_soccer';
-            case MatchEventType.YELLOW_CARD:
-            case 'yellow_card':
-            case 'yellow': return 'content_copy';
-            case MatchEventType.RED_CARD:
-            case 'red_card':
-            case 'red': return 'content_copy';
-            case MatchEventType.PENALTY:
-            case 'penalty': return 'sports_soccer';
-            default: return 'info';
-        }
+        return resolveStatus('match-event', type as string).icon || 'info';
     }
 
     getEventColor(type: MatchEventType | string | undefined): string {
-        if (!type) return '#64748b';
-        const typeStr = typeof type === 'string' ? type.toLowerCase() : type;
-        switch (typeStr) {
-            case MatchEventType.GOAL:
-            case 'goal': return '#10B981';
-            case MatchEventType.YELLOW_CARD:
-            case 'yellow_card':
-            case 'yellow': return '#F59E0B';
-            case MatchEventType.RED_CARD:
-            case 'red_card':
-            case 'red': return '#EF4444';
-            default: return '#64748b';
-        }
+        const variant = resolveStatus('match-event', type as string).variant;
+        // Map badge variants to CSS variables directly
+        const colorMap: Record<string, string> = {
+            success: 'var(--color-success)',
+            warning: 'var(--color-warning)',
+            danger: 'var(--color-danger)',
+            info: 'var(--color-info)',
+            primary: 'var(--color-primary)',
+            gold: 'var(--color-gold)',
+            muted: 'var(--text-muted)'
+        };
+        return colorMap[variant as string] || 'var(--text-muted)';
     }
 
     getEventLabel(type: MatchEventType | string | undefined): string {
-        if (!type) return 'حدث';
-        const typeStr = typeof type === 'string' ? type.toLowerCase() : type;
-        switch (typeStr) {
-            case MatchEventType.GOAL:
-            case 'goal': return 'هدف';
-            case MatchEventType.YELLOW_CARD:
-            case 'yellow_card':
-            case 'yellow': return 'بطاقة صفراء';
-            case MatchEventType.RED_CARD:
-            case 'red_card':
-            case 'red': return 'بطاقة حمراء';
-            case MatchEventType.PENALTY:
-            case 'penalty': return 'ركلة جزاء';
-            case MatchEventType.OWN_GOAL:
-            case 'own_goal': return 'هدف بالخطأ';
-            default: return 'حدث';
-        }
+        return resolveStatus('match-event', type as string).label;
     }
 
     getStatusLabel(status: MatchStatus): string {
-        switch (status) {
-            case MatchStatus.LIVE: return 'مباشر الآن';
-            case MatchStatus.FINISHED: return 'منتهية';
-            case MatchStatus.SCHEDULED: return 'مجدولة';
-            case MatchStatus.HALFTIME: return 'استراحة';
-            case MatchStatus.CANCELLED: return 'ملغية';
-            case MatchStatus.POSTPONED: return 'مؤجلة';
-            default: return 'غير معروف';
-        }
+        return resolveStatus('match', status).label;
+    }
+
+    getStatusConfig(status: MatchStatus): StatusConfig {
+        return resolveStatus('match', status);
     }
 
     // ==================== OBJECTION ====================
@@ -501,57 +460,15 @@ export class MatchDetailComponent implements OnInit {
             description: '',
             files: []
         };
-        this.objectionDropdownOpen = false;
         this.showObjectionModal = true;
     }
 
     closeObjectionModal(): void {
         this.showObjectionModal = false;
-        this.objectionDropdownOpen = false;
     }
 
-    getObjectionIcon(type: string): string {
-        const found = this.objectionTypes.find(t => t.value === type);
-        return found?.icon || 'help';
-    }
-
-    getObjectionLabel(type: string): string {
-        const found = this.objectionTypes.find(t => t.value === type);
-        return found?.label || '';
-    }
-
-    onFilesSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        if (input.files) {
-            this.addFiles(Array.from(input.files));
-        }
-    }
-
-    onFileDrop(event: DragEvent): void {
-        event.preventDefault();
-        if (event.dataTransfer?.files) {
-            this.addFiles(Array.from(event.dataTransfer.files));
-        }
-    }
-
-    addFiles(files: File[]): void {
-        const validFiles = files.filter(file => {
-            const isImage = file.type.startsWith('image/');
-            const isVideo = file.type.startsWith('video/');
-            const maxSize = 50 * 1024 * 1024; // 50MB
-            return (isImage || isVideo) && file.size <= maxSize;
-        });
-        this.objectionForm.files.push(...validFiles);
-    }
-
-    removeFile(index: number): void {
-        this.objectionForm.files.splice(index, 1);
-    }
-
-    formatFileSize(bytes: number): string {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    onFilesSelected(files: File[]): void {
+        this.objectionForm.files = files;
     }
 
     submitObjection(): void {

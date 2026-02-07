@@ -19,10 +19,9 @@
                 <span class="event-label">{{ getEventLabel(event.type) }}</span>
             </div>
 
-            <button *appHasPermission="Permission.MANAGE_MATCHES" (click)="onDelete(event.id)" class="btn-delete-event"
-                title="حذف الحدث">
-                <span class="material-symbols-outlined icon-sm">delete</span>
-            </button>
+            <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (onClick)="onDelete(event.id)" icon="delete"
+                variant="danger" size="sm" tooltip="حذف الحدث">
+            </app-icon-button>
         </div>
     </div>
 </div>

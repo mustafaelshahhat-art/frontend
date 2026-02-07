@@ -6,12 +6,13 @@ import { TeamService } from '../../../../core/services/team.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Match, MatchEventType } from '../../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-match-event-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule, ModalComponent, ButtonComponent],
+    imports: [CommonModule, FormsModule, ModalComponent, ButtonComponent, SelectComponent],
     templateUrl: './match-event-modal.component.html',
     styleUrls: ['./match-event-modal.component.scss']
 })
@@ -29,17 +30,25 @@ export class MatchEventModalComponent implements OnChanges {
     MatchEventType = MatchEventType;
 
     // Dropdown State
-    activeDropdown: 'type' | 'team' | 'player' | null = null;
-    teamPlayers: any[] = [];
     isPlayersLoading = false;
     isSubmitting = false;
 
     eventForm = {
         type: MatchEventType.GOAL,
-        playerName: '',
+        playerName: '', // This will hold the player object or name from select
         teamId: '',
         description: ''
     };
+
+    // Select Options
+    eventTypeOptions: SelectOption[] = [
+        { label: 'هدف', value: MatchEventType.GOAL, icon: 'sports_soccer' },
+        { label: 'بطاقة صفراء', value: MatchEventType.YELLOW_CARD, icon: 'content_copy' }, // Style handling needed? select handles icons only
+        { label: 'بطاقة حمراء', value: MatchEventType.RED_CARD, icon: 'content_copy' }
+    ];
+
+    teamOptions: SelectOption[] = [];
+    playerOptions: SelectOption[] = [];
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['match'] && this.match) {
@@ -49,76 +58,47 @@ export class MatchEventModalComponent implements OnChanges {
                 teamId: this.match.homeTeamId,
                 description: ''
             };
+
+            this.teamOptions = [
+                { label: this.match.homeTeamName, value: this.match.homeTeamId },
+                { label: this.match.awayTeamName, value: this.match.awayTeamId }
+            ];
+
             this.loadTeamPlayers(this.match.homeTeamId);
         }
-        if (changes['visible'] && this.visible && this.match) {
-            this.activeDropdown = null;
-        }
     }
 
-    toggleDropdown(name: 'type' | 'team' | 'player', event?: Event): void {
-        event?.stopPropagation();
-        this.activeDropdown = this.activeDropdown === name ? null : name;
-    }
-
-    selectEventType(type: MatchEventType): void {
+    onTypeChange(type: any): void {
         this.eventForm.type = type;
-        this.activeDropdown = null;
     }
 
-    selectEventTeam(teamId: string): void {
+    onTeamChange(teamId: any): void {
         this.eventForm.teamId = teamId;
         this.eventForm.playerName = '';
-        this.activeDropdown = null;
         this.loadTeamPlayers(teamId);
     }
 
-    selectEventPlayer(player: any): void {
-        this.eventForm.playerName = player.name;
-        this.activeDropdown = null;
+    onPlayerChange(player: any): void {
+        this.eventForm.playerName = player; // Select stores value, here value is player object or name
     }
 
     loadTeamPlayers(teamId: string): void {
         this.isPlayersLoading = true;
+        this.playerOptions = []; // Clear current
         this.teamService.getTeamById(teamId).subscribe(team => {
-            this.teamPlayers = team ? team.players : [];
+            if (team && team.players) {
+                this.playerOptions = team.players.map((p: any) => ({
+                    label: `${p.name} (#${p.displayId?.split('-')[1] || '?'})`,
+                    value: p.name, // We only need name for backend currently
+                    icon: 'person'
+                }));
+            }
             this.isPlayersLoading = false;
         });
     }
 
-    getEventIcon(type: MatchEventType | string): string {
-        switch (type) {
-            case MatchEventType.GOAL: return 'sports_soccer';
-            case MatchEventType.YELLOW_CARD: return 'content_copy';
-            case MatchEventType.RED_CARD: return 'content_copy';
-            default: return 'info';
-        }
-    }
-
-    getEventColor(type: MatchEventType | string): string {
-        switch (type) {
-            case MatchEventType.GOAL: return '#10B981';
-            case MatchEventType.YELLOW_CARD: return '#F59E0B';
-            case MatchEventType.RED_CARD: return '#EF4444';
-            default: return '#64748b';
-        }
-    }
-
-    getEventLabel(type: MatchEventType | string): string {
-        switch (type) {
-            case MatchEventType.GOAL: return 'هدف';
-            case MatchEventType.YELLOW_CARD: return 'بطاقة صفراء';
-            case MatchEventType.RED_CARD: return 'بطاقة حمراء';
-            default: return 'حدث';
-        }
-    }
-
     submit(): void {
-        const selectedPlayerName = typeof this.eventForm.playerName === 'string'
-            ? this.eventForm.playerName
-            : (this.eventForm.playerName as any)?.name;
-
-        if (!this.match || !selectedPlayerName) {
+        if (!this.match || !this.eventForm.playerName) {
             this.uiFeedback.error('خطأ', 'يرجى اختيار اللاعب');
             return;
         }
@@ -126,7 +106,7 @@ export class MatchEventModalComponent implements OnChanges {
         this.isSubmitting = true;
         this.matchService.addMatchEvent(this.match.id, {
             type: this.eventForm.type,
-            playerName: selectedPlayerName,
+            playerName: this.eventForm.playerName,
             teamId: this.eventForm.teamId,
             description: this.eventForm.description
         }).subscribe({
@@ -151,11 +131,5 @@ export class MatchEventModalComponent implements OnChanges {
     close(): void {
         this.visible = false;
         this.visibleChange.emit(false);
-        this.activeDropdown = null;
-    }
-
-    @HostListener('document:click')
-    onDocumentClick(): void {
-        this.activeDropdown = null;
     }
 }

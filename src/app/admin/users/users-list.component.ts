@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
@@ -24,7 +25,8 @@ import { UserService } from '../../core/services/user.service';
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        TableComponent
     ],
     templateUrl: './users-list.component.html',
     styleUrls: ['./users-list.component.scss']
@@ -48,6 +50,9 @@ export class UsersListComponent implements OnInit {
         { value: 'players', label: 'اللاعبين' }
     ];
 
+    // Table Columns
+    columns: TableColumn[] = [];
+
     filters = [
         { value: 'all', label: 'الكل' },
         { value: UserStatus.ACTIVE, label: 'نشط' },
@@ -55,8 +60,27 @@ export class UsersListComponent implements OnInit {
         { value: UserStatus.SUSPENDED, label: 'موقوف' }
     ];
 
+    @ViewChild('indexInfo') indexInfo!: TemplateRef<any>;
+    @ViewChild('userInfo') userInfo!: TemplateRef<any>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
+    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
+
     ngOnInit(): void {
         this.loadUsers();
+    }
+
+    ngAfterViewInit(): void {
+        this.columns = [
+            { key: 'index', label: '#', width: '60px', template: this.indexInfo },
+            { key: 'user', label: 'المستخدم', template: this.userInfo },
+            { key: 'createdAt', label: 'تاريخ التسجيل', sortable: true, template: this.dateInfo },
+            { key: 'teamName', label: 'الفريق', template: this.teamInfo },
+            { key: 'status', label: 'الحالة', sortable: true, template: this.statusInfo },
+            { key: 'actions', label: 'إجراءات', width: '180px', template: this.actionsInfo }
+        ];
+        this.cdr.detectChanges();
     }
 
     loadUsers(): void {

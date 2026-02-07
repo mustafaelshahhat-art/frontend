@@ -9,6 +9,11 @@
     margin-bottom: var(--space-lg);
     position: relative;
     width: 100%;
+
+    &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
 }
 
 .form-label {
@@ -28,69 +33,62 @@
     width: 100%;
 }
 
-::ng-deep {
+.form-input {
+    width: 100%;
+    background: var(--bg-surface-light);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    font-family: var(--font-body);
+    transition: var(--transition-base);
+    min-height: var(--height-input);
+    text-align: right;
 
-    input,
-    textarea,
-    select {
-        width: 100%;
-        background: var(--bg-surface-light) !important;
-        border: 1px solid var(--border-visible) !important;
-        border-radius: var(--radius-xl) !important;
-        padding: var(--space-3) var(--space-4) !important;
-        color: var(--text-primary) !important;
-        font-size: var(--text-base) !important;
-        font-family: var(--font-body) !important;
-        transition: var(--transition-base) !important;
-        min-height: var(--height-input);
+    &::placeholder {
+        color: var(--text-muted);
+        opacity: 0.6;
         text-align: right;
-
-        &::placeholder {
-            color: var(--text-muted);
-            opacity: 0.6;
-            text-align: right;
-        }
-
-        &:focus {
-            border-color: var(--color-primary) !important;
-            background: var(--bg-card-hover) !important;
-            box-shadow: var(--shadow-glow-sm) !important;
-            outline: none !important;
-        }
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Hide browser-specific date icons to avoid overlap with our custom icons */
-        &[type="date"] {
-            &::-webkit-calendar-picker-indicator {
-                position: absolute;
-                inset-inline-start: 1rem;
-                opacity: 0;
-                width: 24px;
-                height: 24px;
-                cursor: pointer;
-            }
-
-            &::-webkit-inner-spin-button,
-            &::-webkit-clear-button {
-                display: none;
-            }
-        }
     }
 
-    /* Padding for icons */
-    .has-icon-left input,
-    .has-icon-left textarea {
-        padding-inline-start: 3.25rem !important;
+    &:focus {
+        border-color: var(--color-primary);
+        background: var(--bg-card-hover);
+        box-shadow: var(--shadow-glow-sm);
+        outline: none;
     }
 
-    .has-icon-right input,
-    .has-icon-right textarea {
-        padding-inline-end: 3.25rem !important;
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
+
+    /* Hide browser-specific date icons to avoid overlap with our custom icons */
+    &[type="date"] {
+        &::-webkit-calendar-picker-indicator {
+            position: absolute;
+            inset-inline-start: 1rem;
+            opacity: 0;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-clear-button {
+            display: none;
+        }
+    }
+}
+
+/* Padding for icons */
+.has-icon-left .form-input {
+    padding-inline-start: 3.25rem !important;
+}
+
+.has-icon-right .form-input {
+    padding-inline-end: 3.25rem !important;
 }
 
 .form-icon {
@@ -111,6 +109,16 @@
 
     &.icon-right {
         inset-inline-end: 1rem;
+    }
+
+    &.clickable {
+        pointer-events: auto;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-primary);
+            transform: scale(1.1) translateY(-50%);
+        }
     }
 }
 

@@ -2,6 +2,9 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterVie
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 
 export interface ChatMessage {
     id: string;
@@ -22,7 +25,7 @@ export interface ChatParticipant {
 @Component({
     selector: 'app-chat-box',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ButtonComponent, IconButtonComponent, FormControlComponent],
     templateUrl: './chat-box.component.html',
     styleUrls: ['./chat-box.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

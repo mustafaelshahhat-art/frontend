@@ -189,54 +189,30 @@
                 <div *ngSwitchCase="'standings'" class="standings-wrapper">
                     <!-- Desktop Table -->
                     <div class="desktop-only">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th class="rank">#</th>
-                                    <th class="team-name">الفريق</th>
-                                    <th>لعب</th>
-                                    <th>فاز</th>
-                                    <th>تعادل</th>
-                                    <th>خسر</th>
-                                    <th>له</th>
-                                    <th>عليه</th>
-                                    <th>+/-</th>
-                                    <th class="points">نقاط</th>
-                                    <th style="text-align: center;">آخر 5</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let s of standings; let i = index"
-                                    [class.is-winner]="tournament.winnerTeamId === s.teamId">
-                                    <td class="rank">
-                                        <span *ngIf="tournament.winnerTeamId === s.teamId"
-                                            class="material-symbols-outlined winner-icon">military_tech</span>
-                                        {{ i + 1 }}
-                                    </td>
-                                    <td class="team-name">
-                                        <div class="flex items-center gap-2">
-                                            <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                                [initials]="s.team.charAt(0)">
-                                            </app-smart-image>
-                                            <span>{{ s.team }}</span>
-                                        </div>
-                                    </td>
-                                    <td>{{ s.played }}</td>
-                                    <td>{{ s.won }}</td>
-                                    <td>{{ s.draw }}</td>
-                                    <td>{{ s.lost }}</td>
-                                    <td>{{ s.gf }}</td>
-                                    <td>{{ s.ga }}</td>
-                                    <td>{{ s.gd }}</td>
-                                    <td class="points">{{ s.points }}</td>
-                                    <td style="text-align: center;">
-                                        <div style="display: flex; gap: 4px; justify-content: center;">
-                                            <span *ngFor="let r of s.form" class="form-dot" [class]="r">{{ r }}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <ng-template #rankTemplate let-row>
+                            <div class="rank-cell">
+                                <span *ngIf="tournament?.winnerTeamId === row.teamId"
+                                    class="material-symbols-outlined winner-icon">military_tech</span>
+                                {{ row.rank }}
+                            </div>
+                        </ng-template>
+
+                        <ng-template #teamTemplate let-row>
+                            <div class="flex items-center gap-2">
+                                <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
+                                    [initials]="row.team.charAt(0)"></app-smart-image>
+                                <span>{{ row.team }}</span>
+                            </div>
+                        </ng-template>
+
+                        <ng-template #formTemplate let-row>
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <span *ngFor="let r of row.form" class="form-dot" [class]="r">{{ r }}</span>
+                            </div>
+                        </ng-template>
+
+                        <app-table [columns]="tableColumns" [data]="standings" [loading]="isLoading">
+                        </app-table>
                     </div>
 
                     <!-- Mobile Shared Grid Design -->

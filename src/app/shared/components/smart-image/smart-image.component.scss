@@ -4,22 +4,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--surface-light, #f8f9fa);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-surface);
+    transition: var(--transition-base);
     flex-shrink: 0;
 
     &.rounded {
-        border-radius: 50%;
+        border-radius: var(--radius-full);
 
         &.team,
         &.id,
         &.tournament {
-            border-radius: 12px;
+            border-radius: var(--radius-xl);
         }
     }
 
     &.bordered {
-        border: 2px solid var(--border-color, rgba(0, 0, 0, 0.05));
+        border: 2px solid var(--border-visible);
     }
 
     // Sizes
@@ -32,7 +32,7 @@
         }
 
         .initials {
-            font-size: 10px;
+            font-size: var(--text-2xs);
         }
     }
 
@@ -45,7 +45,7 @@
         }
 
         .initials {
-            font-size: 14px;
+            font-size: var(--text-sm);
         }
     }
 
@@ -58,7 +58,7 @@
         }
 
         .initials {
-            font-size: 20px;
+            font-size: var(--text-lg);
         }
     }
 
@@ -71,7 +71,7 @@
         }
 
         .initials {
-            font-size: 36px;
+            font-size: var(--text-3xl);
         }
     }
 
@@ -84,7 +84,7 @@
         }
 
         .initials {
-            font-size: 48px;
+            font-size: var(--text-4xl);
         }
     }
 
@@ -98,7 +98,7 @@
         height: 100%;
         object-fit: cover;
         opacity: 0;
-        transition: opacity 0.5s ease;
+        transition: opacity var(--transition-slow);
 
         &.loaded {
             opacity: 1;
@@ -111,8 +111,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        background-color: #eee;
+        background: var(--skeleton-gradient);
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
     }
@@ -123,51 +122,51 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--primary-light, #e3f2fd), var(--surface-light, #f8f9fa));
-        color: var(--primary, #1976d2);
+        background: linear-gradient(135deg, var(--color-primary-10), var(--bg-surface));
+        color: var(--color-primary);
 
         .placeholder-content {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: var(--space-1);
 
             .material-symbols-outlined {
                 opacity: 0.7;
             }
 
             .initials {
-                font-weight: 700;
-                letter-spacing: 1px;
+                font-weight: var(--font-bold);
+                letter-spacing: 0.05em;
             }
 
             .label {
-                font-size: 10px;
+                font-size: var(--text-2xs);
                 opacity: 0.6;
-                font-weight: 500;
+                font-weight: var(--font-medium);
             }
         }
     }
 
-    // Contextual coloring
+    // Contextual coloring using theme variables
     &.referee .image-placeholder {
-        background: linear-gradient(135deg, #fff3e0, #fff);
-        color: #f57c00;
+        background: linear-gradient(135deg, var(--color-warning-10), var(--bg-surface));
+        color: var(--color-warning);
     }
 
     &.team .image-placeholder {
-        background: linear-gradient(135deg, #e8f5e9, #fff);
-        color: #388e3c;
+        background: linear-gradient(135deg, var(--color-primary-10), var(--bg-surface));
+        color: var(--color-primary);
     }
 
     &.tournament .image-placeholder {
-        background: linear-gradient(135deg, #fffde7, #fff);
-        color: #fbc02d;
+        background: linear-gradient(135deg, var(--color-gold-10), var(--bg-surface));
+        color: var(--color-gold);
     }
 
     &.id .image-placeholder {
-        background: linear-gradient(135deg, #f3e5f5, #fff);
-        color: #7b1fa2;
+        background: linear-gradient(135deg, var(--color-secondary-10), var(--bg-surface));
+        color: var(--color-secondary);
     }
 }
 
@@ -181,18 +180,5 @@
     }
 }
 
-.animate-fade-in {
-    animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
+// Note: animate-fade-in and fadeIn keyframes are defined globally in _base.scss
+// Use the global .animate-fade-in class instead of redefining here

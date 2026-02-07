@@ -13,44 +13,36 @@
 
         <!-- Table -->
         <div *ngIf="!isLoading && logs.length > 0" class="card p-0 overflow-hidden">
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>المستخدم</th>
-                            <th>العملية</th>
-                            <th>الوقت</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let log of logs">
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="avatar avatar-sm">
-                                        <span class="text-primary font-bold">{{ (log.userName || 'U').charAt(0)
-                                            }}</span>
-                                    </div>
-                                    <span class="text-primary font-bold text-sm">{{ log.userName || 'نظام' }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="text-secondary text-sm">{{ log.action || log.message }}</span>
-                            </td>
-                            <td>
-                                <span class="text-muted text-xs font-mono">{{ (log.timestamp || log.time) |
-                                    date:'yyyy-MM-dd HH:mm:ss'
-                                    }}</span>
-                            </td>
-                            <td>
-                                <app-badge [type]="getBadgeType(log.status || log.type)">
-                                    {{ getStatusLabel(log.status || log.type) }}
-                                </app-badge>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <app-table [data]="logs" [columns]="columns" [loading]="isLoading">
+            </app-table>
+
+            <!-- User Template -->
+            <ng-template #userInfo let-row="row">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-surface-dark flex items-center justify-center">
+                        <span class="text-primary font-bold text-sm">{{ (row.userName || 'U').charAt(0) }}</span>
+                    </div>
+                    <span class="text-primary font-bold text-sm">{{ row.userName || 'نظام' }}</span>
+                </div>
+            </ng-template>
+
+            <!-- Action Template -->
+            <ng-template #actionInfo let-row="row">
+                <span class="text-secondary text-sm">{{ row.action || row.message }}</span>
+            </ng-template>
+
+            <!-- Time Template -->
+            <ng-template #timeInfo let-row="row">
+                <span class="text-muted text-xs font-mono">{{ (row.timestamp || row.time) | date:'yyyy-MM-dd HH:mm:ss'
+                    }}</span>
+            </ng-template>
+
+            <!-- Status Template -->
+            <ng-template #statusInfo let-row="row">
+                <app-badge [type]="getBadgeType(row.status || row.type)">
+                    {{ getStatusLabel(row.status || row.type) }}
+                </app-badge>
+            </ng-template>
         </div>
     </div>
 </div>

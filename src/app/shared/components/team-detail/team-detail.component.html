@@ -176,7 +176,7 @@
                                                 size="sm" icon="person_off" class="text-danger"></app-button>
                                         </ng-container>
 
-                                        <app-button *ngIf="canRemovePlayers"
+                                        <app-button *ngIf="canRemovePlayers && player.id !== team.captainId"
                                             (click)="requestPlayerAction(player, 'remove')" variant="ghost" size="sm"
                                             icon="delete" class="text-danger"></app-button>
                                     </div>
@@ -305,32 +305,26 @@
     </div>
 
     <!-- Modal: Add Player by ID -->
-    <div *ngIf="showAddPlayerModal" class="modal-backdrop animate-fade-in" (click)="closeAddPlayerModal()">
-        <div class="modal-container mobile-bottom animate-slide-up" (click)="$event.stopPropagation()">
-            <div class="modal-header border-none pb-0">
-                <h3 class="font-super-black text-xl mb-0">إضافة لاعب جديد</h3>
-                <button class="close-btn" (click)="closeAddPlayerModal()">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
+    <app-modal [visible]="isInviteModalOpen" title="إضافة لاعب جديد" (onClose)="closeInviteModal()">
 
-            <div class="modal-body pt-4">
-                <p class="text-muted text-sm mb-6">يرجى إدخال الرقم التعريفي للاعب (Display ID) المسجل في المنصة
-                    لإرسال
-                    دعوة انضمام له.</p>
+        <div class="flex-col gap-4">
+            <p class="text-muted text-sm mb-2">
+                يرجى إدخال الرقم التعريفي للاعب (Display ID) المسجل في المنصة لإرسال دعوة انضمام له.
+            </p>
 
-                <div class="input-group">
-                    <span class="material-symbols-outlined input-icon">badge</span>
-                    <input type="text" [(ngModel)]="playerSearchId" placeholder="مثال: #123456" class="form-control-lg"
-                        (keyup.enter)="submitAddPlayer()">
-                </div>
-            </div>
-
-            <div class="modal-footer border-none pt-0 pb-lg">
-                <app-button variant="ghost" class="flex-1" (click)="closeAddPlayerModal()">إلغاء</app-button>
-                <app-button variant="primary" class="flex-1" icon="send" (click)="submitAddPlayer()">إرسال
-                    الدعوة</app-button>
-            </div>
+            <app-form-control label="الرقم التعريفي للاعب" [formControl]="displayIdControl" placeholder="مثال: #123456"
+                iconLeft="badge">
+            </app-form-control>
         </div>
-    </div>
+
+        <div footer class="flex gap-3 w-full">
+            <app-button variant="outline" class="flex-1" (click)="closeInviteModal()">
+                إلغاء
+            </app-button>
+            <app-button variant="primary" class="flex-1" icon="send" [isLoading]="isInviteLoading"
+                (click)="submitAddPlayer()">
+                إرسال الدعوة
+            </app-button>
+        </div>
+    </app-modal>
 </div>

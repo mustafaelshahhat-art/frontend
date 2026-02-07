@@ -29,47 +29,17 @@
 
       <!-- Email Field -->
       <!-- Added .relative class to ensure icon positioning context -->
-      <div class="relative w-full">
-        <app-form-control label="البريد الإلكتروني"
-          [error]="(email?.invalid && email?.touched) ? 'يرجى إدخال بريد إلكتروني صحيح' : undefined">
-
-          <div class="relative w-full">
-            <input formControlName="email" type="email" placeholder="name@example.com" autocomplete="email"
-              class="form-input form-input-lg form-input-with-icon-right w-full" />
-
-            <span class="material-symbols-outlined form-icon-right text-muted text-xl" aria-hidden="true">mail</span>
-          </div>
-
-        </app-form-control>
-      </div>
+      <!-- Email Field -->
+      <app-form-control formControlName="email" label="البريد الإلكتروني" type="email" placeholder="name@example.com"
+        iconLeft="mail" [error]="(email?.invalid && email?.touched) ? 'يرجى إدخال بريد إلكتروني صحيح' : undefined">
+      </app-form-control>
 
       <!-- Password Field -->
-      <div class="form-group w-full">
-        <div class="flex justify-between items-center mb-2">
-          <label class="form-label font-semibold text-sm">كلمة المرور</label>
-        </div>
-
-        <div class="relative w-full">
-          <input formControlName="password" [type]="passwordVisible ? 'text' : 'password'" placeholder="********"
-            autocomplete="current-password" class="form-input form-input-lg form-input-with-icon-both w-full" />
-
-          <!-- Lock Icon (Right/Start) -->
-          <span class="material-symbols-outlined form-icon-right text-brand text-xl" aria-hidden="true">lock</span>
-
-          <!-- Visibility Toggle (Left/End) -->
-          <button (click)="togglePasswordVisibility()" type="button"
-            [attr.aria-label]="passwordVisible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'"
-            class="form-icon-left flex-center cursor-pointer text-muted p-0 border-none bg-transparent hover:text-primary transition-colors">
-            <span class="material-symbols-outlined text-xl">
-              {{ passwordVisible ? 'visibility_off' : 'visibility' }}
-            </span>
-          </button>
-        </div>
-
-        <span *ngIf="password?.invalid && password?.touched" class="form-error block mt-2 text-xs text-danger">
-          كلمة المرور يجب أن تكون 6 أحرف على الأقل
-        </span>
-      </div>
+      <app-form-control formControlName="password" label="كلمة المرور" [type]="passwordVisible ? 'text' : 'password'"
+        placeholder="********" iconLeft="lock" [iconRight]="passwordVisible ? 'visibility_off' : 'visibility'"
+        (iconRightClick)="togglePasswordVisibility()"
+        [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined">
+      </app-form-control>
 
       <!-- Submit Button -->
       <app-button type="submit" variant="primary" size="xl" [fullWidth]="true" [isLoading]="isLoading"

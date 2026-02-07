@@ -44,7 +44,7 @@ import { Match } from '../../../../core/models/tournament.model';
 @Component({
     selector: 'app-match-chat',
     standalone: true,
-    imports: [CommonModule, ChatBoxComponent],
+    imports: [CommonModule, ChatBoxComponent, ButtonComponent],
     templateUrl: './match-chat.component.html',
     styleUrls: ['./match-chat.component.scss']
 })

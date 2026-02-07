@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
@@ -9,6 +9,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
 import { TournamentService } from '../../core/services/tournament.service';
 import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/models/tournament.model';
+import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 
 @Component({
     selector: 'app-payment-requests',
@@ -20,12 +21,13 @@ import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/mod
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        TableComponent
     ],
     templateUrl: './payment-requests.component.html',
     styleUrls: ['./payment-requests.component.scss']
 })
-export class PaymentRequestsComponent implements OnInit {
+export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     RegistrationStatus = RegistrationStatus;
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
@@ -43,9 +45,29 @@ export class PaymentRequestsComponent implements OnInit {
     ];
 
     requests: { tournament: Tournament, registration: TeamRegistration }[] = [];
+    columns: TableColumn[] = [];
+
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
+    @ViewChild('amountInfo') amountInfo!: TemplateRef<any>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
+    @ViewChild('receiptInfo') receiptInfo!: TemplateRef<any>;
+    @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
         this.loadRequests();
+    }
+
+    ngAfterViewInit(): void {
+        this.columns = [
+            { key: 'team', label: 'الفريق', template: this.teamInfo },
+            { key: 'amount', label: 'المبلغ', template: this.amountInfo },
+            { key: 'date', label: 'التاريخ', template: this.dateInfo },
+            { key: 'status', label: 'الحالة', template: this.statusInfo },
+            { key: 'receipt', label: 'الإيصال', template: this.receiptInfo },
+            { key: 'action', label: 'الإجراء', template: this.actionInfo }
+        ];
+        this.cdr.detectChanges();
     }
 
     loadRequests(): void {

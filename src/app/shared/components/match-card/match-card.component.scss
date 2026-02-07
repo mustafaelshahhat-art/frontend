@@ -52,7 +52,7 @@
         }
 
         .match-card-badge .live-dot {
-            background: #fff;
+            background: var(--text-primary);
             box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
         }
     }
@@ -63,7 +63,7 @@
         box-shadow: var(--shadow-sm);
 
         &:hover {
-            box-shadow: 0 8px 28px rgba(71, 85, 105, 0.35);
+            box-shadow: 0 8px 28px rgba(71, 85, 105, 0.35); // Keep opacity adjustments but could be tokenized if strict
         }
 
         .match-card-team-avatar {
@@ -111,10 +111,10 @@
     .live-dot {
         width: 6px;
         height: 6px;
-        background: #22c55e;
+        background: var(--color-success);
         border-radius: 50%;
         animation: pulse-dot 1.5s ease-in-out infinite;
-        box-shadow: 0 0 6px #22c55e;
+        box-shadow: 0 0 6px var(--color-success);
     }
 }
 
@@ -195,13 +195,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 2px 8px var(--color-primary-25);
     flex-shrink: 0;
     overflow: hidden;
 
     .material-symbols-outlined {
         font-size: 18px;
-        color: white;
+        color: var(--text-primary);
     }
 
     @media (max-width: 480px) {
@@ -312,7 +312,7 @@
 
             &:hover {
                 background: rgba(255, 255, 255, 0.3);
-                color: #fff;
+                color: var(--text-primary);
             }
         }
 

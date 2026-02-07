@@ -120,22 +120,17 @@ export class TeamDetailPageComponent implements OnInit {
 
     handleDeleteTeam(): void {
         if (!this.team) return;
-        const message = 'جاري حذف الفريق...';
-        // Note: We use authService.getCurrentUser() assuming it's up to date.
-        // The TeamService.deleteTeam needs a User object to update local state.
-        const user = this.authService.getCurrentUser();
-        if (!user) return;
 
-        this.teamService.deleteTeam(this.team.id, user).subscribe({
-            next: (updatedUser) => {
-                // Update local user state if needed (AuthService might need a method to set user)
-                this.authService.updateCurrentUser(updatedUser);
+        this.teamService.deleteTeam(this.team.id).subscribe({
+            next: () => {
+                // Refresh user profile and navigate
+                this.authService.refreshUserProfile().subscribe();
                 this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
                 this.router.navigate(['/admin/teams']);
             },
             error: (err) => {
                 console.error('Delete failed', err);
-                this.uiFeedback.error('خطأ', 'فشل حذف الفريق');
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
             }
         });
     }

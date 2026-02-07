@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,7 @@ import { MatchCardComponent } from '../../../../shared/components/match-card/mat
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
+import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 
 @Component({
     selector: 'app-tournament-detail',
@@ -33,12 +34,13 @@ import { TeamRegistrationModalComponent } from '../../components/team-registrati
         MatchCardComponent,
         EmptyStateComponent,
         SmartImageComponent,
-        TeamRegistrationModalComponent
+        TeamRegistrationModalComponent,
+        TableComponent
     ],
     templateUrl: './tournament-detail.component.html',
     styleUrls: ['./tournament-detail.component.scss']
 })
-export class TournamentDetailComponent implements OnInit {
+export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private tournamentService = inject(TournamentService);
@@ -46,6 +48,10 @@ export class TournamentDetailComponent implements OnInit {
     private authService = inject(AuthService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
+
+    @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
+    @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
+    @ViewChild('formTemplate') formTemplate!: TemplateRef<any>;
 
     tournament: Tournament | null = null;
     matches: Match[] = [];
@@ -64,7 +70,9 @@ export class TournamentDetailComponent implements OnInit {
     ];
     activeTab = 'info';
 
-    // Standings and Scorers (TODO: Implement backend endpoints)
+    // Standings Configuration
+    tableColumns: TableColumn[] = [];
+
     standings: any[] = [];
     scorers: any[] = [];
 
@@ -83,6 +91,24 @@ export class TournamentDetailComponent implements OnInit {
         } else {
             this.navigateBack();
         }
+    }
+
+    ngAfterViewInit(): void {
+        // Initialize columns with templates after view init
+        this.tableColumns = [
+            { key: 'rank', label: '#', sortable: false, width: '60px', template: this.rankTemplate },
+            { key: 'team', label: 'الفريق', sortable: false, template: this.teamTemplate },
+            { key: 'played', label: 'لعب', sortable: true },
+            { key: 'won', label: 'فاز', sortable: true },
+            { key: 'draw', label: 'تعادل', sortable: true },
+            { key: 'lost', label: 'خسر', sortable: true },
+            { key: 'gf', label: 'له', sortable: true },
+            { key: 'ga', label: 'عليه', sortable: true },
+            { key: 'gd', label: '+/-', sortable: true },
+            { key: 'points', label: 'نقاط', sortable: true },
+            { key: 'form', label: 'آخر 5', sortable: false, template: this.formTemplate }
+        ];
+        this.cdr.detectChanges();
     }
 
     // Role checks
@@ -159,7 +185,7 @@ export class TournamentDetailComponent implements OnInit {
                     this.tournamentService.getStandings(id).subscribe({
                         next: (standings) => {
                             // Map backend DTO to frontend structure if needed
-                            this.standings = standings.map(s => ({
+                            this.standings = standings.map((s, index) => ({
                                 teamId: s.teamId,
                                 team: s.teamName,
                                 teamLogoUrl: s.teamLogoUrl,
@@ -171,7 +197,8 @@ export class TournamentDetailComponent implements OnInit {
                                 ga: s.goalsAgainst,
                                 gd: s.goalDifference,
                                 points: s.points,
-                                form: s.form
+                                form: s.form,
+                                rank: index + 1
                             }));
                             this.isLoading = false;
                             this.checkGlobalBusyStatus();
@@ -370,4 +397,3 @@ export class TournamentDetailComponent implements OnInit {
 
 
 }
-

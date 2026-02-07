@@ -218,16 +218,16 @@
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-lg);
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-overlay-dark);
+    border-radius: var(--radius-3xl);
+    border: 1px solid var(--border-subtle);
     margin-bottom: var(--space-lg);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-base);
 
     &:hover {
-        background: rgba(255, 255, 255, 0.03);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: var(--bg-input);
+        border-color: var(--border-visible);
         transform: translateY(-2px);
     }
 }
@@ -263,7 +263,7 @@
 }
 
 .text-brand {
-    color: #10b981; // Using teal/green for IDs
+    color: var(--color-primary);
 }
 
 .sidebar-profile-role {
@@ -295,9 +295,9 @@
 .status-dot {
     width: 6px;
     height: 6px;
-    background: #10b981;
+    background: var(--color-primary);
     border-radius: var(--radius-full);
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+    box-shadow: var(--shadow-glow-sm);
     display: inline-block;
 }
 

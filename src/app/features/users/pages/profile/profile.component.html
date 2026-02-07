@@ -20,12 +20,9 @@
                 <span class="username">@{{ user?.username }}</span>
 
                 <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <app-button variant="outline" size="sm" icon="photo_camera" (click)="fileInput.click()"
-                        [isLoading]="isUploadingPicture">
-                        تغيير الصورة
-                    </app-button>
-                    <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*"
-                        style="display: none;">
+                    <app-file-upload label="تغيير الصورة" accept="image/*" [disabled]="isUploadingPicture"
+                        (filesSelected)="onFileSelected($event)">
+                    </app-file-upload>
 
                     <app-button *ngIf="profilePicture && !isUploadingPicture" variant="ghost" size="sm" icon="delete"
                         (click)="removePicture()" variant="danger">
@@ -58,40 +55,44 @@
                 <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label>الاسم الكامل</label>
-                            <input formControlName="name" class="premium-input"
-                                placeholder="الاسم الرباعي كما في الهوية">
+                            <app-form-control controlName="name" label="الاسم الكامل"
+                                [control]="profileForm.get('name')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>البريد الإلكتروني</label>
-                            <input formControlName="email" type="email" class="premium-input">
+                            <app-form-control controlName="email" label="البريد الإلكتروني" type="email"
+                                [control]="profileForm.get('email')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>رقم الجوال</label>
-                            <input formControlName="phone" type="tel" class="premium-input" placeholder="05XXXXXXXX">
+                            <app-form-control controlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX" type="tel"
+                                [control]="profileForm.get('phone')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>اسم المستخدم</label>
-                            <input formControlName="username" class="premium-input" [disabled]="true">
+                            <app-form-control controlName="username" label="اسم المستخدم" [disabled]="true"
+                                [control]="profileForm.get('username')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>رقم الهوية (محمي)</label>
-                            <input formControlName="nationalId" class="premium-input" [disabled]="true"
-                                style="font-family: monospace;">
+                            <app-form-control controlName="nationalId" label="رقم الهوية (محمي)" [disabled]="true"
+                                [control]="profileForm.get('nationalId')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>المحافظة</label>
-                            <input formControlName="governorate" class="premium-input">
+                            <app-form-control controlName="governorate" label="المحافظة"
+                                [control]="profileForm.get('governorate')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>المدينة</label>
-                            <input formControlName="city" class="premium-input">
+                            <app-form-control controlName="city" label="المدينة" [control]="profileForm.get('city')">
+                            </app-form-control>
                         </div>
                     </div>
 
@@ -108,21 +109,22 @@
                 <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
                     <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px;">
                         <div class="form-group">
-                            <label>كلمة المرور الحالية</label>
-                            <input type="password" formControlName="currentPassword" class="premium-input"
-                                placeholder="أدخل كلمة المرور الحالية">
+                            <app-form-control controlName="currentPassword" label="كلمة المرور الحالية" type="password"
+                                placeholder="أدخل كلمة المرور الحالية" [control]="passwordForm.get('currentPassword')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>كلمة المرور الجديدة</label>
-                            <input type="password" formControlName="newPassword" class="premium-input"
-                                placeholder="6 أحرف على الأقل">
+                            <app-form-control controlName="newPassword" label="كلمة المرور الجديدة" type="password"
+                                placeholder="6 أحرف على الأقل" [control]="passwordForm.get('newPassword')">
+                            </app-form-control>
                         </div>
 
                         <div class="form-group">
-                            <label>تأكيد كلمة المرور الجديدة</label>
-                            <input type="password" formControlName="confirmPassword" class="premium-input"
-                                placeholder="أعد إدخال كلمة المرور">
+                            <app-form-control controlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
+                                type="password" placeholder="أعد إدخال كلمة المرور"
+                                [control]="passwordForm.get('confirmPassword')">
+                            </app-form-control>
                         </div>
                     </div>
 

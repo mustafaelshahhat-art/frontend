@@ -11,6 +11,8 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { UserService } from '../../../../core/services/user.service';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
+import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 
 @Component({
     selector: 'app-profile',
@@ -23,7 +25,9 @@ import { SmartImageComponent } from '../../../../shared/components/smart-image/s
         ButtonComponent,
         BadgeComponent,
         FilterComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        FileUploadComponent,
+        FormControlComponent
     ],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
@@ -147,10 +151,9 @@ export class ProfileComponent implements OnInit {
         }
     }
 
-    onFileSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
+    onFileSelected(files: File[]): void {
+        if (files && files[0]) {
+            const file = files[0];
 
             if (!file.type.startsWith('image/')) {
                 this.uiFeedback.error('خطأ', 'يرجى اختيار ملف صورة صالح');
@@ -198,4 +201,3 @@ export class ProfileComponent implements OnInit {
         return this.user?.displayId || this.user?.id || '';
     }
 }
-

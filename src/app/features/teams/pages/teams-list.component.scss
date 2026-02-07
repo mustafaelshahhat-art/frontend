@@ -43,203 +43,13 @@
     animation: fadeIn var(--duration-normal) ease-out;
 }
 
-.table-container {
-    overflow-x: auto;
 
-    &::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: var(--border-strong);
-        border-radius: var(--radius-full);
-    }
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: right;
-
-    thead {
-        background: rgba(0, 0, 0, 0.25);
-
-        th {
-            padding: var(--space-6) var(--space-4);
-            color: var(--text-muted);
-            font-weight: var(--font-black);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: var(--tracking-wider);
-            border-bottom: 2px solid var(--border-visible);
-            text-align: center;
-
-            &:first-child {
-                text-align: right;
-                padding-inline-start: var(--space-8);
-            }
-
-            &:last-child {
-                text-align: left;
-                padding-inline-end: var(--space-8);
-            }
-        }
-    }
-
-    tbody {
-        tr {
-            transition: var(--transition-base);
-            border-bottom: 1px solid var(--border-subtle);
-
-            &:last-child {
-                border-bottom: none;
-            }
-
-            &:hover {
-                background: rgba(255, 255, 255, 0.04);
-            }
-
-            &.opacity-50 {
-                opacity: 0.4;
-                filter: grayscale(1);
-            }
-        }
-
-        td {
-            padding: var(--space-5) var(--space-4);
-            color: var(--text-primary);
-            font-size: var(--text-sm);
-            text-align: center;
-            vertical-align: middle;
-
-            &:first-child {
-                text-align: right;
-                padding-inline-start: var(--space-8);
-            }
-
-            &:last-child {
-                text-align: left;
-                padding-inline-end: var(--space-8);
-            }
-
-            &.text-left {
-                text-align: left;
-            }
-
-            .font-bold {
-                font-family: var(--font-mono);
-                color: var(--color-gold-light);
-            }
-        }
-    }
-}
-
-/* Row Action Buttons Styling */
-.flex.items-center.justify-end.gap-2 {
-    display: flex;
-    justify-content: flex-end !important;
-    gap: var(--space-3) !important;
-    padding-inline-end: var(--space-4);
-
-    app-button {
-        display: inline-flex !important;
-
-        ::ng-deep .btn {
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            border-radius: 14px !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-
-            .material-symbols-outlined {
-                font-size: 22px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                display: block !important;
-                line-height: 1 !important;
-                transition: transform 0.2s ease !important;
-            }
-
-            /* CRITICAL: Hide empty text span to fix centering */
-            .btn-text {
-                display: none !important;
-            }
-
-            &:hover {
-                transform: translateY(-3px) !important;
-                background: rgba(255, 255, 255, 0.1) !important;
-                border-color: rgba(255, 255, 255, 0.2) !important;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2) !important;
-            }
-        }
-
-        /* Color Customization per Action */
-
-        // 1. Status Toggle (Orange/Gold)
-        &.text-warning ::ng-deep .material-symbols-outlined {
-            color: #ff9800 !important; // Vibrant Orange
-            filter: drop-shadow(0 0 5px rgba(255, 152, 0, 0.3));
-        }
-
-        // 2. Status Activate (Green)
-        &.text-success ::ng-deep .material-symbols-outlined {
-            color: #00e676 !important; // Vibrant Green
-            filter: drop-shadow(0 0 5px rgba(0, 230, 118, 0.3));
-        }
-
-        // 3. Delete Action (Red)
-        &.text-danger ::ng-deep .material-symbols-outlined {
-            color: #ff5252 !important; // Vibrant Red
-            filter: drop-shadow(0 0 5px rgba(255, 82, 82, 0.3));
-        }
-
-        // 4. View Details (Blue/Cyan)
-        &:not(.text-warning):not(.text-success):not(.text-danger) ::ng-deep .material-symbols-outlined {
-            color: #40c4ff !important; // Vibrant Light Blue
-            filter: drop-shadow(0 0 5px rgba(64, 196, 255, 0.2));
-        }
-
-        /* Hover Enhanced State */
-        &:hover ::ng-deep .material-symbols-outlined {
-            transform: scale(1.1);
-        }
-    }
-}
-
-.avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-xl);
-    background: var(--bg-surface-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-subtle);
-    transition: var(--transition-fast);
-
-    .material-symbols-outlined {
-        font-size: 24px;
-        color: var(--color-primary-light);
-    }
-
-    &-muted {
-        background: var(--bg-dark);
-        opacity: 0.6;
-    }
-}
 
 /* Mobile Teams List */
 .mobile-teams-list {
     display: none;
     flex-direction: column;
-    gap: var(--space-6); // Added clear gap to prevent cards from touching
+    gap: var(--space-6);
 }
 
 .team-mobile-card {
@@ -252,7 +62,7 @@
     flex-direction: column;
     gap: var(--space-4);
     transition: var(--transition-premium);
-    margin-bottom: var(--space-4); // Explicit margin for spacing between cards
+    margin-bottom: var(--space-4);
 
     &:last-child {
         margin-bottom: 0;
@@ -304,41 +114,6 @@
 
         .flex-1 {
             flex: 1;
-        }
-
-        .action-btn-pill {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-xl);
-            background: var(--bg-surface-light);
-            border: 1px solid var(--border-visible);
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition-bounce);
-
-            &:hover {
-                transform: translateY(-2px);
-                background: var(--bg-card-hover);
-                border-color: var(--border-strong);
-            }
-
-            &.warn {
-                color: var(--color-gold);
-            }
-
-            &.success {
-                color: var(--color-success);
-            }
-
-            &.danger {
-                color: var(--color-danger);
-            }
-
-            .material-symbols-outlined {
-                font-size: 20px;
-            }
         }
     }
 }

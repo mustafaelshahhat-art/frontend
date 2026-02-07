@@ -36,10 +36,10 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-3xl);
     padding: var(--space-3xl);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-2xl);
     /* Deep shadow */
-    max-width: 440px;
-    /* Slightly narrower for modern look */
+    max-width: var(--width-card-sm);
+    /* Slightly wider standard card */
     width: 100%;
     margin: 0 auto;
     position: relative;
@@ -68,8 +68,8 @@
 }
 
 .auth-logo {
-    width: 88px;
-    height: 88px;
+    width: var(--space-20);
+    height: var(--space-20);
     background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
     border-radius: var(--radius-2xl);
     display: flex;
@@ -151,77 +151,7 @@
     }
 }
 
-/* ==========================================================================
-   Form Input Fixes (RTL & Icon Position)
-   ========================================================================== */
 
-/* Ensure proper relative positioning for icon placement */
-.form-group .relative,
-app-form-control .relative {
-    position: relative;
-    display: block;
-}
-
-/* Fix overlapping icons in RTL */
-.form-input-with-icon-right {
-    padding-right: 48px !important;
-    /* Force padding for start icon */
-    padding-left: var(--space-4);
-}
-
-.form-input-with-icon-both {
-    padding-right: 48px !important;
-    padding-left: 48px !important;
-}
-
-/* Vertically center icons */
-.form-icon-right,
-.form-icon-left {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 44px;
-    /* Reduced width slightly */
-    z-index: 2;
-    pointer-events: none;
-    /* Let clicks pass through static icons */
-}
-
-.form-icon-right {
-    right: 4px;
-    /* Offset from edge */
-}
-
-.form-icon-left {
-    left: 4px;
-    /* Offset from edge */
-}
-
-/* Make actionable icons pointer-events-auto */
-button.form-icon-left {
-    pointer-events: auto;
-    cursor: pointer;
-    border-radius: var(--radius-full);
-    /* Round hover effect */
-    height: 40px;
-    /* Constrain height */
-    width: 40px;
-
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-        transform: translateY(-50%) !important;
-        /* Prevent global button hover jump */
-    }
-
-    &:focus-visible {
-        background-color: rgba(255, 255, 255, 0.1);
-        outline: none;
-    }
-}
 
 /* ==========================================================================
    Quick Login Grid

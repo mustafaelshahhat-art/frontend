@@ -1,24 +1,33 @@
-<div class="form-group" [class.has-error]="error" [class.has-icon-left]="iconLeft" [class.has-icon-right]="iconRight">
+<div class="form-group" [class.has-error]="errorMessage" [class.has-icon-left]="iconLeft"
+    [class.has-icon-right]="iconRight" [class.disabled]="disabled">
     <label *ngIf="label" class="form-label">{{ label }}</label>
 
     <div class="input-wrapper">
-        <span *ngIf="iconLeft" class="material-symbols-outlined form-icon icon-left">
+        <span *ngIf="iconLeft" class="material-symbols-outlined form-icon icon-left"
+            [class.clickable]="iconLeftClick.observed" (click)="iconLeftClick.emit()">
             {{ iconLeft }}
         </span>
 
-        <ng-content></ng-content>
+        <textarea *ngIf="type === 'textarea'" [rows]="rows" [placeholder]="placeholder" [value]="value"
+            [disabled]="disabled" (input)="onInput($event)" (blur)="onBlur()" class="form-input"
+            style="height: auto; min-height: 100px; resize: vertical;">
+        </textarea>
 
-        <span *ngIf="iconRight" class="material-symbols-outlined form-icon icon-right">
+        <input *ngIf="type !== 'textarea'" [type]="type" [placeholder]="placeholder" [value]="value"
+            [disabled]="disabled" [attr.min]="min" (input)="onInput($event)" (blur)="onBlur()" class="form-input">
+
+        <span *ngIf="iconRight" class="material-symbols-outlined form-icon icon-right"
+            [class.clickable]="iconRightClick.observed" (click)="iconRightClick.emit()">
             {{ iconRight }}
         </span>
     </div>
 
-    <div *ngIf="error" class="form-error animate-fade-in">
+    <div *ngIf="errorMessage" class="form-error animate-fade-in">
         <span class="material-symbols-outlined" style="font-size: 14px">error</span>
-        {{ error }}
+        {{ errorMessage }}
     </div>
 
-    <div *ngIf="hint && !error" class="form-hint">
+    <div *ngIf="hint && !errorMessage" class="form-hint">
         {{ hint }}
     </div>
 </div>

@@ -13,6 +13,6 @@
     <!-- Unauthorized State -->
     <div *ngIf="!isLoading && !isAuthorized" class="chat-unauthorized">
         <h2>غير مصرح لك بالدخول</h2>
-        <button (click)="goBack()">العودة</button>
+        <app-button (onClick)="goBack()">العودة</app-button>
     </div>
 </div>

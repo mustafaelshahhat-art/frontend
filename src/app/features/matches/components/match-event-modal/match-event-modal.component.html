@@ -3,87 +3,27 @@
     <div class="form-grid">
         <!-- Event Type -->
         <div class="form-field">
-            <label>نوع الحدث</label>
-            <div class="custom-select" [class.is-open]="activeDropdown === 'type'"
-                (click)="toggleDropdown('type', $event)">
-                <div class="select-trigger">
-                    <div class="value-wrapper">
-                        <span class="material-symbols-outlined icon-inline"
-                            [style.color]="getEventColor(eventForm.type)">
-                            {{ getEventIcon(eventForm.type) }}
-                        </span>
-                        <span class="value-text">{{ getEventLabel(eventForm.type) }}</span>
-                    </div>
-                    <span class="material-symbols-outlined arrow-icon">expand_more</span>
-                </div>
-                <div class="select-options" *ngIf="activeDropdown === 'type'">
-                    <div class="option-item" (click)="selectEventType(MatchEventType.GOAL); $event.stopPropagation()">
-                        <span class="material-symbols-outlined icon-inline" style="color: #10B981">sports_soccer</span>
-                        هدف
-                    </div>
-                    <div class="option-item"
-                        (click)="selectEventType(MatchEventType.YELLOW_CARD); $event.stopPropagation()">
-                        <span class="material-symbols-outlined icon-inline" style="color: #F59E0B">content_copy</span>
-                        صفراء
-                    </div>
-                    <div class="option-item"
-                        (click)="selectEventType(MatchEventType.RED_CARD); $event.stopPropagation()">
-                        <span class="material-symbols-outlined icon-inline" style="color: #EF4444">content_copy</span>
-                        حمراء
-                    </div>
-                </div>
-            </div>
+            <label class="form-label">نوع الحدث</label>
+            <app-select [options]="eventTypeOptions" [ngModel]="eventForm.type" (ngModelChange)="onTypeChange($event)"
+                placeholder="اختر الحدث">
+            </app-select>
         </div>
 
         <!-- Team Selection -->
         <div class="form-field">
-            <label>الفريق</label>
-            <div class="custom-select" [class.is-open]="activeDropdown === 'team'"
-                (click)="toggleDropdown('team', $event)">
-                <div class="select-trigger">
-                    <span class="value-text">
-                        {{ eventForm.teamId === match?.homeTeamId ? match?.homeTeamName : match?.awayTeamName }}
-                    </span>
-                    <span class="material-symbols-outlined arrow-icon">expand_more</span>
-                </div>
-                <div class="select-options" *ngIf="activeDropdown === 'team'">
-                    <div class="option-item" (click)="selectEventTeam(match!.homeTeamId); $event.stopPropagation()">
-                        {{ match?.homeTeamName }}
-                    </div>
-                    <div class="option-item" (click)="selectEventTeam(match!.awayTeamId); $event.stopPropagation()">
-                        {{ match?.awayTeamName }}
-                    </div>
-                </div>
-            </div>
+            <label class="form-label">الفريق</label>
+            <app-select [options]="teamOptions" [ngModel]="eventForm.teamId" (ngModelChange)="onTeamChange($event)"
+                placeholder="اختر الفريق">
+            </app-select>
         </div>
     </div>
 
     <!-- Player Selection -->
     <div class="form-field full-width mt-4">
-        <label>اسم اللاعب</label>
-        <div class="custom-select open-up" [class.is-open]="activeDropdown === 'player'"
-            (click)="toggleDropdown('player', $event)">
-            <div class="select-trigger">
-                <span class="value-text" [class.text-muted]="!eventForm.playerName">
-                    {{ eventForm.playerName || 'اختر اللاعب' }}
-                </span>
-                <span class="material-symbols-outlined arrow-icon">expand_more</span>
-            </div>
-            <div class="select-options" *ngIf="activeDropdown === 'player'">
-                <div *ngIf="isPlayersLoading" class="p-3 text-center text-muted text-sm">
-                    جاري التحميل...
-                </div>
-                <div *ngIf="!isPlayersLoading && teamPlayers.length === 0" class="p-3 text-center text-muted text-sm">
-                    لا يوجد لاعبين في هذا الفريق
-                </div>
-                <div *ngFor="let player of teamPlayers" class="option-item"
-                    (click)="selectEventPlayer(player); $event.stopPropagation()">
-                    <span class="material-symbols-outlined icon-inline">person</span>
-                    {{ player.name }}
-                    <span class="text-xs text-muted mr-auto">#{{ player.displayId?.split('-')[1] }}</span>
-                </div>
-            </div>
-        </div>
+        <label class="form-label">اسم اللاعب</label>
+        <app-select [options]="playerOptions" [ngModel]="eventForm.playerName" (ngModelChange)="onPlayerChange($event)"
+            placeholder="اختر اللاعب" [disabled]="isPlayersLoading">
+        </app-select>
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">

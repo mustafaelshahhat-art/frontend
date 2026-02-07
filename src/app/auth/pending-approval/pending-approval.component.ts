@@ -22,4 +22,8 @@ export class PendingApprovalComponent {
         this.authService.logout();
         this.router.navigate(['/auth/login']);
     }
+
+    reloadPage(): void {
+        window.location.reload();
+    }
 }
