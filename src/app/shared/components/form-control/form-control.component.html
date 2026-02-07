@@ -1,5 +1,5 @@
 <div class="form-group" [class.has-error]="errorMessage" [class.has-icon-left]="iconLeft"
-    [class.has-icon-right]="iconRight" [class.disabled]="disabled">
+    [class.has-icon-right]="iconRight || isPasswordField" [class.disabled]="disabled">
     <label *ngIf="label" class="form-label">{{ label }}</label>
 
     <div class="input-wrapper">
@@ -13,10 +13,21 @@
             style="height: auto; min-height: 100px; resize: vertical;">
         </textarea>
 
-        <input *ngIf="type !== 'textarea'" [type]="type" [placeholder]="placeholder" [value]="value"
-            [disabled]="disabled" [attr.min]="min" (input)="onInput($event)" (blur)="onBlur()" class="form-input">
+        <input *ngIf="type !== 'textarea'" [type]="inputType" [placeholder]="placeholder" [value]="value"
+            [disabled]="disabled" [attr.min]="min" (input)="onInput($event)" (blur)="onBlur()" class="form-input"
+            [attr.autocomplete]="isPasswordField ? 'current-password' : null">
 
-        <span *ngIf="iconRight" class="material-symbols-outlined form-icon icon-right"
+        <!-- Password visibility toggle (auto-shown for password fields) -->
+        <button *ngIf="isPasswordField" type="button" class="password-toggle form-icon icon-right clickable"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="passwordVisible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'"
+            [attr.aria-pressed]="passwordVisible"
+            tabindex="0">
+            <span class="material-symbols-outlined">{{ passwordToggleIcon }}</span>
+        </button>
+
+        <!-- Custom right icon (only if not a password field) -->
+        <span *ngIf="iconRight && !isPasswordField" class="material-symbols-outlined form-icon icon-right"
             [class.clickable]="iconRightClick.observed" (click)="iconRightClick.emit()">
             {{ iconRight }}
         </span>

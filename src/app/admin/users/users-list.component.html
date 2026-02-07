@@ -139,9 +139,8 @@
         </app-form-control>
 
         <!-- Password -->
-        <app-form-control label="كلمة المرور" placeholder="6 أحرف على الأقل" iconLeft="lock"
-            [control]="adminForm.get('password')">
-            <input type="password" formControlName="password" class="form-input" placeholder="6 أحرف على الأقل">
+        <app-form-control label="كلمة المرور" type="password" formControlName="password"
+            placeholder="6 أحرف على الأقل" iconLeft="lock" [control]="adminForm.get('password')">
         </app-form-control>
 
         <!-- Status -->

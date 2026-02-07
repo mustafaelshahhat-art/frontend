@@ -145,3 +145,33 @@
     margin-top: var(--space-2);
     padding-inline-start: var(--space-1);
 }
+
+// Password visibility toggle button
+.password-toggle {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-primary-light);
+    transition: var(--transition-base);
+    
+    &:hover,
+    &:focus {
+        color: var(--color-primary);
+        outline: none;
+    }
+    
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+    }
+    
+    .material-symbols-outlined {
+        font-size: 22px;
+    }
+}

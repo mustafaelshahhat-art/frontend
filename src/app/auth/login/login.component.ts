@@ -34,7 +34,6 @@ export class LoginComponent implements OnInit {
     loginForm: FormGroup;
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
-    passwordVisible = signal(false);
     isMaintenanceMode = signal(false);
 
     constructor() {
@@ -54,10 +53,6 @@ export class LoginComponent implements OnInit {
                 this.isMaintenanceMode.set(status.maintenanceMode);
             }
         });
-    }
-
-    togglePasswordVisibility(): void {
-        this.passwordVisible.update(v => !v);
     }
 
     onSubmit(): void {

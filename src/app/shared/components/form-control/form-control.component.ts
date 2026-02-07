@@ -34,9 +34,35 @@ export class FormControlComponent implements ControlValueAccessor {
     @Input() disabled: boolean = false;
     @Input() min?: number | string;
 
+    // Password visibility toggle state
+    passwordVisible: boolean = false;
+
     value: any = '';
     onChange: any = () => { };
     onTouched: any = () => { };
+
+    // Computed input type - handles password visibility toggle
+    get inputType(): string {
+        if (this.type === 'password') {
+            return this.passwordVisible ? 'text' : 'password';
+        }
+        return this.type;
+    }
+
+    // Icon to show for password toggle
+    get passwordToggleIcon(): string {
+        return this.passwordVisible ? 'visibility_off' : 'visibility';
+    }
+
+    // Check if this is a password field
+    get isPasswordField(): boolean {
+        return this.type === 'password';
+    }
+
+    // Toggle password visibility
+    togglePasswordVisibility(): void {
+        this.passwordVisible = !this.passwordVisible;
+    }
 
     get errorMessage(): string | null {
         if (this.control && this.control.invalid && (this.control.dirty || this.control.touched)) {

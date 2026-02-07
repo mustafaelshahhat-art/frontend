@@ -8,11 +8,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
+import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, SelectComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, SelectComponent, FormControlComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })

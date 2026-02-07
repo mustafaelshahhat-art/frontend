@@ -39,9 +39,8 @@
       </app-form-control>
 
       <!-- Password Field -->
-      <app-form-control formControlName="password" label="كلمة المرور" [type]="passwordVisible() ? 'text' : 'password'"
-        placeholder="********" iconLeft="lock" [iconRight]="passwordVisible() ? 'visibility_off' : 'visibility'"
-        (iconRightClick)="togglePasswordVisibility()"
+      <app-form-control formControlName="password" label="كلمة المرور" type="password"
+        placeholder="********" iconLeft="lock"
         [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined">
       </app-form-control>
 

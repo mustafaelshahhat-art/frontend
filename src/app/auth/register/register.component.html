@@ -136,16 +136,16 @@
 
                     <!-- Password -->
                     <div class="form-group">
-                        <label class="form-label">كلمة المرور</label>
-                        <input type="password" name="password" [(ngModel)]="form.password" required class="form-input"
-                            placeholder="••••••••">
+                        <app-form-control label="كلمة المرور" type="password" name="password" 
+                            [(ngModel)]="form.password" placeholder="••••••••" iconLeft="lock">
+                        </app-form-control>
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="form-group">
-                        <label class="form-label">تأكيد كلمة المرور</label>
-                        <input type="password" name="confirmPassword" [(ngModel)]="form.confirmPassword" required
-                            class="form-input" placeholder="••••••••">
+                        <app-form-control label="تأكيد كلمة المرور" type="password" name="confirmPassword"
+                            [(ngModel)]="form.confirmPassword" placeholder="••••••••" iconLeft="lock">
+                        </app-form-control>
                     </div>
                 </div>
 
