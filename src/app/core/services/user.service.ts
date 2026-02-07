@@ -1,8 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError, map } from 'rxjs';
 import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment';
+
+export interface CreateAdminRequest {
+    name: string;
+    email: string;
+    password: string;
+    status: 'Active' | 'Suspended';
+}
+
+export interface AdminCountDto {
+    totalAdmins: number;
+    isLastAdmin: boolean;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -44,4 +56,23 @@ export class UserService {
             map(() => true)
         );
     }
+
+    /**
+     * Creates a new admin user. Only callable by existing admins.
+     */
+    createAdmin(request: CreateAdminRequest): Observable<User> {
+        return this.http.post<User>(`${this.apiUrl}/create-admin`, request);
+    }
+
+    /**
+     * Gets the count of active admins. Used for safety checks.
+     */
+    getAdminCount(userId?: string): Observable<AdminCountDto> {
+        let params = new HttpParams();
+        if (userId) {
+            params = params.set('userId', userId);
+        }
+        return this.http.get<AdminCountDto>(`${this.apiUrl}/admin-count`, { params });
+    }
 }
+

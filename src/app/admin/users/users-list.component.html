@@ -6,8 +6,18 @@
 
         <!-- Tabs & Filters Container -->
         <div class="flex-col gap-lg">
-            <!-- Main Tabs -->
-            <app-filter [items]="userTypeTabs" [activeValue]="userType()" (change)="setUserType($event)"></app-filter>
+            <!-- Header Row: Tabs + Add Admin Button -->
+            <div class="flex items-center justify-between flex-wrap gap-md">
+                <!-- Main Tabs -->
+                <app-filter [items]="userTypeTabs" [activeValue]="userType()"
+                    (change)="setUserType($event)"></app-filter>
+
+                <!-- Add Admin Button (only visible on admins tab) -->
+                <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary"
+                    icon="person_add">
+                    إضافة مشرف
+                </app-button>
+            </div>
 
             <!-- Status Filter -->
             <div class="mb-2xl animate-fade-in-up">
@@ -64,19 +74,39 @@
             <!-- Actions Template -->
             <ng-template #actionsInfo let-row="row">
                 <div class="flex items-center justify-center gap-2">
+                    <!-- Approve (Pending users only) -->
                     <app-button *ngIf="row.status === 'Pending'" (click)="approveUser(row)" variant="ghost" size="sm"
                         icon="check_circle" class="text-success">
                     </app-button>
+
+                    <!-- View -->
                     <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility"
                         class="text-info">
                     </app-button>
+
+                    <!-- Warn -->
                     <app-button (click)="warnUser(row)" variant="ghost" size="sm" icon="warning" class="text-warning">
                     </app-button>
-                    <app-button *ngIf="row.status !== 'Suspended'" (click)="suspendUser(row)" variant="ghost" size="sm"
-                        icon="block" class="text-gold">
-                    </app-button>
-                    <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger">
-                    </app-button>
+
+                    <!-- Suspend (with last admin protection) -->
+                    <ng-container *ngIf="row.status !== 'Suspended'">
+                        <app-button *ngIf="!isLastAdmin(row)" (click)="suspendUser(row)" variant="ghost" size="sm"
+                            icon="block" class="text-gold">
+                        </app-button>
+                        <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
+                            <span class="material-symbols-outlined text-muted">lock</span>
+                        </span>
+                    </ng-container>
+
+                    <!-- Delete (with last admin protection) -->
+                    <ng-container>
+                        <app-button *ngIf="!isLastAdmin(row)" (click)="deleteUser(row)" variant="ghost" size="sm"
+                            icon="delete" class="text-danger">
+                        </app-button>
+                        <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن حذف آخر مشرف">
+                            <span class="material-symbols-outlined text-muted">shield</span>
+                        </span>
+                    </ng-container>
                 </div>
             </ng-template>
 
@@ -93,3 +123,54 @@
         </div>
     </div>
 </div>
+
+<!-- Add Admin Modal -->
+<app-modal [visible]="showAddAdminModal()" title="إضافة مشرف جديد" icon="person_add" size="md"
+    (onClose)="closeAddAdminModal()">
+
+    <form [formGroup]="adminForm" class="flex-col gap-lg">
+        <!-- Full Name -->
+        <app-form-control label="الاسم الكامل" placeholder="أدخل اسم المشرف" iconLeft="person"
+            [control]="adminForm.get('name')">
+            <input type="text" formControlName="name" class="form-input" placeholder="أدخل اسم المشرف">
+        </app-form-control>
+
+        <!-- Email -->
+        <app-form-control label="البريد الإلكتروني" placeholder="example@domain.com" iconLeft="email"
+            [control]="adminForm.get('email')">
+            <input type="email" formControlName="email" class="form-input" placeholder="example@domain.com" dir="ltr">
+        </app-form-control>
+
+        <!-- Password -->
+        <app-form-control label="كلمة المرور" placeholder="6 أحرف على الأقل" iconLeft="lock"
+            [control]="adminForm.get('password')">
+            <input type="password" formControlName="password" class="form-input" placeholder="6 أحرف على الأقل">
+        </app-form-control>
+
+        <!-- Status -->
+        <div class="form-group">
+            <label class="form-label">حالة الحساب</label>
+            <div class="status-options">
+                <label class="status-option" [class.active]="adminForm.get('status')?.value === 'Active'">
+                    <input type="radio" formControlName="status" value="Active">
+                    <span class="status-dot active"></span>
+                    <span>نشط</span>
+                </label>
+                <label class="status-option" [class.active]="adminForm.get('status')?.value === 'Suspended'">
+                    <input type="radio" formControlName="status" value="Suspended">
+                    <span class="status-dot suspended"></span>
+                    <span>موقوف</span>
+                </label>
+            </div>
+        </div>
+    </form>
+
+    <!-- Footer -->
+    <div modal-footer class="flex items-center justify-end gap-md">
+        <app-button variant="ghost" (click)="closeAddAdminModal()">إلغاء</app-button>
+        <app-button variant="primary" icon="check" [isLoading]="isCreatingAdmin()" [disabled]="adminForm.invalid"
+            (click)="submitAdminForm()">
+            إنشاء المشرف
+        </app-button>
+    </div>
+</app-modal>
