@@ -126,24 +126,32 @@ export class TeamRegistrationModalComponent {
 
         // Step 1: Register Team (PendingPayment)
         this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
+            next: () => this.uploadPayment(currentUser.teamId!),
+            error: (err: any) => {
+                if (err.status === 409) {
+                    // Already registered, try to just upload the payment
+                    this.uploadPayment(currentUser.teamId!);
+                } else {
+                    this.isSubmitting = false;
+                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');
+                }
+            }
+        });
+    }
+
+    private uploadPayment(teamId: string): void {
+        if (!this.tournament || !this.registerForm.receipt) return;
+
+        this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt).subscribe({
             next: () => {
-                // Step 2: Submit Payment Receipt (PendingApproval)
-                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.registerForm.receipt!).subscribe({
-                    next: () => {
-                        this.isSubmitting = false;
-                        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح');
-                        this.successEvent.emit();
-                        this.close();
-                    },
-                    error: (err: any) => {
-                        this.isSubmitting = false;
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل إرسال الإيصال');
-                    }
-                });
+                this.isSubmitting = false;
+                this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل وإيصال الدفع بنجاح');
+                this.successEvent.emit();
+                this.close();
             },
             error: (err: any) => {
                 this.isSubmitting = false;
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');
+                this.uiFeedback.error('خطأ في رفع الإيصال', err.error?.message || 'تم حجز مكانك ولكن فشل رفع الإيصال، يرجى المحاولة مرة أخرى');
             }
         });
     }
