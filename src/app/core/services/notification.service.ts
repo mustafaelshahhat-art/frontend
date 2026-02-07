@@ -2,9 +2,11 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Notification } from '../models/tournament.model';
+import { Notification, Match } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
+import { MatchService } from './match.service';
+import { RealTimeUpdateService } from './real-time-update.service';
 
 @Injectable({
     providedIn: 'root'
@@ -13,6 +15,8 @@ export class NotificationService {
     private readonly http = inject(HttpClient);
     private readonly signalRService = inject(SignalRService);
     private readonly authService = inject(AuthService);
+    private readonly matchService = inject(MatchService);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
     private readonly apiUrl = `${environment.apiUrl}/notifications`;
 
     private notifications$ = new BehaviorSubject<Notification[]>([]);
@@ -59,6 +63,7 @@ export class NotificationService {
         connection.off('AccountStatusChanged');
         connection.off('RemovedFromTeam');
         connection.off('TeamDeleted');
+        connection.off('SystemEvent');
 
         connection.on('ReceiveNotification', (notification: Notification) => {
             const current = this.notifications$.value;
@@ -82,13 +87,23 @@ export class NotificationService {
             this.authService.clearTeamAssociation();
         });
 
-        // Handle real-time team deletion notification
-        connection.on('TeamDeleted', (data: { teamId: string }) => {
-            // Clear team association immediately for all members
-            this.authService.clearTeamAssociation();
+        // Handle real-time match updates (legacy/full-data)
+        connection.on('MatchUpdated', (match: Match) => {
+            this.matchService.emitMatchUpdate(match);
+        });
+
+        // Handle Lightweight System Events
+        connection.on('SystemEvent', (event: any) => {
+            this.realTimeUpdate.dispatch(event);
         });
 
         await this.signalRService.startConnection('notifications');
+
+        // Join Role Group
+        const user = this.authService.getCurrentUser();
+        if (user && user.role) {
+            this.subscribeToRole(user.role);
+        }
     }
 
     private disconnect(): void {
@@ -126,5 +141,30 @@ export class NotificationService {
                 this.unreadCount$.next(0);
             })
         );
+    }
+
+    // ========================================
+    // Group Management
+    // ========================================
+
+    async subscribeToRole(role: string): Promise<void> {
+        const connection = this.signalRService.createConnection('notifications');
+        if (connection.state === 'Connected') {
+            await connection.invoke('SubscribeToRole', role);
+        }
+    }
+
+    async subscribeToTournament(tournamentId: string): Promise<void> {
+        const connection = this.signalRService.createConnection('notifications');
+        if (connection.state === 'Connected') {
+            await connection.invoke('SubscribeToTournament', tournamentId);
+        }
+    }
+
+    async subscribeToMatch(matchId: string): Promise<void> {
+        const connection = this.signalRService.createConnection('notifications');
+        if (connection.state === 'Connected') {
+            await connection.invoke('SubscribeToMatch', matchId);
+        }
     }
 }

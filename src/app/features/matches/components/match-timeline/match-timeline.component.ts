@@ -24,6 +24,8 @@ export interface TimelineEvent {
 export class MatchTimelineComponent {
     @Input() events: TimelineEvent[] = [];
     @Input() homeTeamId: string = '';
+    @Input() homeTeamName: string = 'صاحب الأرض';
+    @Input() awayTeamName: string = 'الضيف';
 
     // Permission for template usage
     Permission = Permission;
@@ -35,28 +37,31 @@ export class MatchTimelineComponent {
     }
 
     getEventIcon(type: MatchEventType | string): string {
-        const typeStr = typeof type === 'string' ? type.toLowerCase() : type;
+        const typeStr = String(type).toLowerCase();
         switch (typeStr) {
-            case MatchEventType.GOAL:
             case 'goal': return 'sports_soccer';
-            case MatchEventType.YELLOW_CARD:
+            case 'yellowcard':
             case 'yellow_card': return 'content_copy';
-            case MatchEventType.RED_CARD:
-            case 'red_card': return 'content_copy'; // Should ideally specific icon or color
-            case MatchEventType.PENALTY:
+            case 'redcard':
+            case 'red_card': return 'content_copy';
             case 'penalty': return 'sports_soccer';
+            case 'owngoal':
+            case 'own_goal': return 'block';
             default: return 'info';
         }
     }
 
     getEventLabel(type: MatchEventType | string): string {
-        const typeStr = typeof type === 'string' ? type.toLowerCase() : type;
+        const typeStr = String(type).toLowerCase();
         switch (typeStr) {
-            case MatchEventType.GOAL: return 'هدف';
-            case MatchEventType.YELLOW_CARD: return 'بطاقة صفراء';
-            case MatchEventType.RED_CARD: return 'بطاقة حمراء';
-            case MatchEventType.PENALTY: return 'ركلة جزاء';
-            case MatchEventType.OWN_GOAL: return 'هدف في مرماه';
+            case 'goal': return 'هدف';
+            case 'yellowcard':
+            case 'yellow_card': return 'بطاقة صفراء';
+            case 'redcard':
+            case 'red_card': return 'بطاقة حمراء';
+            case 'penalty': return 'ركلة جزاء';
+            case 'owngoal':
+            case 'own_goal': return 'هدف في مرماه';
             default: return 'حدث';
         }
     }

@@ -1,9 +1,32 @@
 <div class="chat-page">
     <app-chat-box *ngIf="!isLoading && isAuthorized && match" [title]="match.homeTeamName + ' vs ' + match.awayTeamName"
         [match]="match" [messages]="mappedMessages" [currentUserId]="currentUser?.id || ''"
-        [participants]="participants" [referee]="getReferee() || null" [readOnly]="isMatchFinished" (back)="goBack()"
-        (send)="onSendMessage($event)">
+        [participants]="participants" [referee]="getReferee() || null" [readOnly]="isMatchFinished"
+        [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
+        (schedule)="openScheduleModal()">
     </app-chat-box>
+
+    <!-- Schedule Modal -->
+    <app-modal [visible]="showScheduleModal" title="تحديد موعد اللقاء" icon="calendar_month"
+        (onClose)="closeScheduleModal()">
+        <div class="form-grid">
+            <div class="form-field">
+                <label class="form-label">تاريخ اللقاء الجديد</label>
+                <app-form-control type="date" [(ngModel)]="scheduleDate" iconLeft="calendar_today"></app-form-control>
+            </div>
+            <div class="form-field">
+                <label class="form-label">وقت اللقاء</label>
+                <app-form-control type="time" [(ngModel)]="scheduleTime" iconLeft="schedule"></app-form-control>
+            </div>
+        </div>
+
+        <div modal-footer class="flex justify-end gap-3 w-full">
+            <app-button (click)="closeScheduleModal()" variant="ghost">إلغاء</app-button>
+            <app-button (click)="saveSchedule()" variant="primary" [isLoading]="isSavingSchedule">
+                تأكيد الموعد
+            </app-button>
+        </div>
+    </app-modal>
 
     <!-- Loading State -->
     <div *ngIf="isLoading" class="flex-center p-xl">

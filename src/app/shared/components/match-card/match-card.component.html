@@ -1,20 +1,25 @@
 <div class="match-card-compact" [class.is-live]="isLive" [class.is-finished]="isFinished"
-    [class.clickable]="isClickable" (click)="onCardClick()">
+    [class.is-cancelled]="isCancelled" [class.is-postponed]="isPostponed" [class.clickable]="isClickable"
+    (click)="onCardClick()">
 
     <!-- Header -->
     <div class="match-card-header">
         <div class="match-card-icon">
-            <span class="material-symbols-outlined">{{ isLive ? 'sensors' : 'sports_soccer' }}</span>
+            <span class="material-symbols-outlined">{{ statusConfig.icon || 'sports_soccer' }}</span>
         </div>
-        <span class="match-card-badge">
+        <span class="match-card-badge" [attr.data-variant]="statusConfig.variant">
             <span *ngIf="isLive" class="live-dot"></span>
-            {{ statusLabel }}
+            {{ statusConfig.label }}
         </span>
     </div>
 
     <!-- Title -->
     <div class="match-card-title">
         <h4>{{ title || match.tournamentName || 'مباراة ودية' }}</h4>
+        <div class="match-time-badge" *ngIf="match.date">
+            <span class="material-symbols-outlined icon-xs">schedule</span>
+            {{ match.date | date:'hh:mm a' }} - {{ match.date | date:'yyyy/MM/dd' }}
+        </div>
         <p *ngIf="subtitle">{{ subtitle }}</p>
     </div>
 

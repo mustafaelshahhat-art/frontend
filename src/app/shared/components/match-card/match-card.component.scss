@@ -63,12 +63,44 @@
         box-shadow: var(--shadow-sm);
 
         &:hover {
-            box-shadow: 0 8px 28px rgba(71, 85, 105, 0.35); // Keep opacity adjustments but could be tokenized if strict
+            box-shadow: 0 8px 28px rgba(71, 85, 105, 0.35);
         }
 
         .match-card-team-avatar {
             background: rgba(255, 255, 255, 0.12);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    // Cancelled Match - Muted Danger
+    &.is-cancelled {
+        background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(0, 0, 0, 0.4));
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        box-shadow: var(--shadow-sm);
+
+        .match-card-icon {
+            color: var(--color-danger);
+        }
+
+        .match-card-team-avatar {
+            opacity: 0.6;
+            filter: grayscale(1);
+        }
+
+        .match-card-score {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+    }
+
+    // Postponed Match - Warning/Muted
+    &.is-postponed {
+        background: linear-gradient(145deg, rgba(245, 158, 11, 0.15), rgba(0, 0, 0, 0.4));
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        box-shadow: var(--shadow-sm);
+
+        .match-card-icon {
+            color: var(--color-warning);
         }
     }
 }
@@ -101,20 +133,54 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-1-5);
-    padding: var(--space-1) var(--space-2-5);
-    background: rgba(0, 0, 0, 0.18);
+    padding: var(--space-1) var(--space-4);
+    background: #000;
     border-radius: var(--radius-full);
-    font-size: 11px;
-    font-weight: var(--font-bold);
-    color: rgba(0, 0, 0, 0.85);
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    /* Contextual updates based on card state */
+    .is-live & {
+        background: #fff;
+        color: var(--color-danger);
+    }
+
+    &[data-variant="danger"] {
+        background: var(--color-danger);
+        color: #fff;
+    }
+
+    &[data-variant="warning"] {
+        background: var(--color-warning);
+        color: #000;
+    }
+
+    &[data-variant="info"] {
+        background: var(--color-info);
+        color: #fff;
+    }
+
+    &[data-variant="muted"] {
+        background: var(--bg-dark);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
 
     .live-dot {
-        width: 6px;
-        height: 6px;
-        background: var(--color-success);
+        width: 8px;
+        height: 8px;
+        background: var(--color-danger);
         border-radius: 50%;
         animation: pulse-dot 1.5s ease-in-out infinite;
-        box-shadow: 0 0 6px var(--color-success);
+        box-shadow: 0 0 6px var(--color-danger);
+
+        .is-live & {
+            background: var(--color-danger);
+        }
     }
 }
 

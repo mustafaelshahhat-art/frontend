@@ -36,6 +36,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            transform: scale(1.05);
+            border-color: var(--color-primary-hover, #059669);
+        }
 
         img {
             width: 100%;
@@ -48,6 +55,38 @@
             font-weight: 800;
             color: var(--color-primary, #10B981);
         }
+    }
+    
+    .edit-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        gap: var(--space-2, 8px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        border-radius: 50%;
+        
+        .material-symbols-outlined {
+            font-size: 32px;
+            color: var(--color-primary, #10B981);
+        }
+        
+        span {
+            font-size: var(--text-sm, 14px);
+            font-weight: var(--font-semibold, 600);
+            text-align: center;
+        }
+    }
+    
+    .avatar-wrapper.editable:hover .edit-overlay {
+        opacity: 1;
+        pointer-events: all;
     }
 
     h2 {

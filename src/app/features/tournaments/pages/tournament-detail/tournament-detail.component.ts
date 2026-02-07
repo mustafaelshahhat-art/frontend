@@ -7,6 +7,7 @@ import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Tournament, TournamentStatus, Match, RegistrationStatus, TeamRegistration } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
+import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
@@ -48,6 +49,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private authService = inject(AuthService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
+    private realTimeUpdate = inject(RealTimeUpdateService);
 
     @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
     @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
@@ -88,9 +90,27 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.loadData(id);
+            this.setupRealTimeUpdates(id);
         } else {
             this.navigateBack();
         }
+    }
+
+    private setupRealTimeUpdates(id: string): void {
+        this.realTimeUpdate.on(['TOURNAMENT_UPDATED', 'PAYMENT_APPROVED', 'PAYMENT_REJECTED']).subscribe((event: SystemEvent) => {
+            if (event.metadata.TournamentId === id) {
+                if (!this.isRegisterModalVisible) {
+                    this.loadData(id);
+                }
+            }
+        });
+
+        // Listen for match status changes to refresh standings
+        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED']).subscribe(() => {
+            if (!this.isRegisterModalVisible) {
+                this.loadData(id);
+            }
+        });
     }
 
     ngAfterViewInit(): void {
@@ -278,10 +298,12 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     // Modal Actions
     openRegisterModal(): void {
         this.isRegisterModalVisible = true;
+        this.realTimeUpdate.setEditingState(true);
     }
 
     closeRegisterModal(): void {
         this.isRegisterModalVisible = false;
+        this.realTimeUpdate.setEditingState(false);
         // Refresh data on close if needed or just wait for success event
     }
 

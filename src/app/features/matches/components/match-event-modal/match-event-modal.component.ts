@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, HostListener, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, HostListener, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatchService } from '../../../../core/services/match.service';
@@ -20,6 +20,7 @@ export class MatchEventModalComponent implements OnChanges {
     private matchService = inject(MatchService);
     private teamService = inject(TeamService);
     private uiFeedback = inject(UIFeedbackService);
+    private cdr = inject(ChangeDetectorRef);
 
     @Input() match: Match | null = null;
     @Input() visible = false;
@@ -35,16 +36,19 @@ export class MatchEventModalComponent implements OnChanges {
 
     eventForm = {
         type: MatchEventType.GOAL,
-        playerName: '', // This will hold the player object or name from select
+        playerId: '',
         teamId: '',
-        description: ''
+        description: '',
+        minute: 0
     };
 
     // Select Options
     eventTypeOptions: SelectOption[] = [
         { label: 'هدف', value: MatchEventType.GOAL, icon: 'sports_soccer' },
-        { label: 'بطاقة صفراء', value: MatchEventType.YELLOW_CARD, icon: 'content_copy' }, // Style handling needed? select handles icons only
-        { label: 'بطاقة حمراء', value: MatchEventType.RED_CARD, icon: 'content_copy' }
+        { label: 'بطاقة صفراء', value: MatchEventType.YELLOW_CARD, icon: 'content_copy' },
+        { label: 'بطاقة حمراء', value: MatchEventType.RED_CARD, icon: 'content_copy' },
+        { label: 'ركلة جزاء', value: MatchEventType.PENALTY, icon: 'sports_soccer' },
+        { label: 'هدف في مرماه', value: MatchEventType.OWN_GOAL, icon: 'block' }
     ];
 
     teamOptions: SelectOption[] = [];
@@ -54,9 +58,10 @@ export class MatchEventModalComponent implements OnChanges {
         if (changes['match'] && this.match) {
             this.eventForm = {
                 type: MatchEventType.GOAL,
-                playerName: '',
+                playerId: '',
                 teamId: this.match.homeTeamId,
-                description: ''
+                description: '',
+                minute: 0
             };
 
             this.teamOptions = [
@@ -74,31 +79,38 @@ export class MatchEventModalComponent implements OnChanges {
 
     onTeamChange(teamId: any): void {
         this.eventForm.teamId = teamId;
-        this.eventForm.playerName = '';
+        this.eventForm.playerId = '';
         this.loadTeamPlayers(teamId);
     }
 
-    onPlayerChange(player: any): void {
-        this.eventForm.playerName = player; // Select stores value, here value is player object or name
+    onPlayerChange(playerId: any): void {
+        this.eventForm.playerId = playerId;
     }
 
     loadTeamPlayers(teamId: string): void {
         this.isPlayersLoading = true;
-        this.playerOptions = []; // Clear current
+        this.playerOptions = [];
         this.teamService.getTeamById(teamId).subscribe(team => {
-            if (team && team.players) {
-                this.playerOptions = team.players.map((p: any) => ({
-                    label: `${p.name} (#${p.displayId?.split('-')[1] || '?'})`,
-                    value: p.name, // We only need name for backend currently
-                    icon: 'person'
-                }));
-            }
-            this.isPlayersLoading = false;
+            // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+            // which can happen if the service returns synchronously
+            setTimeout(() => {
+                if (team && team.players) {
+                    this.playerOptions = team.players.map((p: any) => ({
+                        label: p.name,
+                        value: p.id,
+                        icon: 'person'
+                    }));
+                } else {
+                    this.playerOptions = [];
+                }
+                this.isPlayersLoading = false;
+                this.cdr.markForCheck();
+            });
         });
     }
 
     submit(): void {
-        if (!this.match || !this.eventForm.playerName) {
+        if (!this.match || !this.eventForm.playerId) {
             this.uiFeedback.error('خطأ', 'يرجى اختيار اللاعب');
             return;
         }
@@ -106,9 +118,10 @@ export class MatchEventModalComponent implements OnChanges {
         this.isSubmitting = true;
         this.matchService.addMatchEvent(this.match.id, {
             type: this.eventForm.type,
-            playerName: this.eventForm.playerName,
+            playerId: this.eventForm.playerId,
             teamId: this.eventForm.teamId,
-            description: this.eventForm.description
+            description: this.eventForm.description,
+            minute: this.eventForm.minute
         }).subscribe({
             next: (updatedMatch) => {
                 this.uiFeedback.success('تم الإضافة', 'تم إضافة الحدث');

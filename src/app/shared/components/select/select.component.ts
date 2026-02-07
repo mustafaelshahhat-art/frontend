@@ -23,7 +23,16 @@ export interface SelectOption {
     ]
 })
 export class SelectComponent implements ControlValueAccessor {
-    @Input() options: SelectOption[] = [];
+    private _options: SelectOption[] = [];
+
+    @Input()
+    set options(value: SelectOption[]) {
+        this._options = value || [];
+        this.syncSelectedLabel();
+    }
+    get options(): SelectOption[] {
+        return this._options;
+    }
     @Input() placeholder: string = 'اختر خياراً';
     @Input() label?: string;
     @Input() disabled: boolean = false;
@@ -56,8 +65,23 @@ export class SelectComponent implements ControlValueAccessor {
 
     writeValue(value: any): void {
         this.selectedValue = value;
-        const option = this.options.find(o => o.value === value);
-        this.selectedLabel = option ? option.label : '';
+        this.syncSelectedLabel(true);
+    }
+
+    private syncSelectedLabel(allowValueFallback: boolean = false): void {
+        const value = this.selectedValue;
+        const option = this._options.find(o => o.value === value);
+        if (option) {
+            this.selectedLabel = option.label;
+            return;
+        }
+
+        if (allowValueFallback && value !== null && value !== undefined && value !== '') {
+            this.selectedLabel = String(value);
+            return;
+        }
+
+        this.selectedLabel = '';
     }
 
     registerOnChange(fn: any): void {

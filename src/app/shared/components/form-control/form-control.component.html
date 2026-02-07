@@ -1,10 +1,11 @@
-<div class="form-group" [class.has-error]="errorMessage" [class.has-icon-left]="iconLeft"
-    [class.has-icon-right]="iconRight || isPasswordField" [class.disabled]="disabled">
+<div class="form-group" [class.has-error]="errorMessage" [class.has-icon-left]="!!iconLeft && !isPasswordField"
+    [class.has-icon-right]="!!iconRight || isPasswordField" [class.disabled]="disabled">
     <label *ngIf="label" class="form-label">{{ label }}</label>
 
     <div class="input-wrapper">
-        <span *ngIf="iconLeft" class="material-symbols-outlined form-icon icon-left"
-            [class.clickable]="iconLeftClick.observed" (click)="iconLeftClick.emit()">
+        <span *ngIf="iconLeft && !isPasswordField" class="material-symbols-outlined form-icon" [class.icon-left]="!isPasswordField"
+            [class.icon-right]="isPasswordField" [class.clickable]="iconLeftClick.observed"
+            (click)="iconLeftClick.emit()">
             {{ iconLeft }}
         </span>
 
@@ -18,11 +19,11 @@
             [attr.autocomplete]="isPasswordField ? 'current-password' : null">
 
         <!-- Password visibility toggle (auto-shown for password fields) -->
-        <button *ngIf="isPasswordField" type="button" class="password-toggle form-icon icon-right clickable"
+        <button *ngIf="isPasswordField" type="button" class="password-toggle form-icon icon-left clickable"
             (click)="togglePasswordVisibility()"
             [attr.aria-label]="passwordVisible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'"
             [attr.aria-pressed]="passwordVisible"
-            tabindex="0">
+            tabindex="0" [class.left-padding]="!!iconLeft">
             <span class="material-symbols-outlined">{{ passwordToggleIcon }}</span>
         </button>
 

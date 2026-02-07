@@ -1,64 +1,7 @@
 <div class="chat-container">
-    <!-- Chat Sidebar (Desktop Only or Toggled) -->
-    <div class="chat-sidebar" [class.open]="sidebarOpen" [class.hidden-mobile]="!sidebarOpen">
-        <div class="chat-sidebar-header">
-            <div class="chat-sidebar-title">
-                <span class="material-symbols-outlined">group</span>
-                المسؤولون
-            </div>
-            <div class="chat-sidebar-count">{{ participants.length + 1 }}</div>
-        </div>
-
-        <div class="chat-sections">
-            <!-- Referee Section -->
-            <div *ngIf="referee" class="chat-section">
-                <div class="chat-section-label">
-                    <span>حكم المباراة</span>
-                    <div class="chat-section-line"></div>
-                </div>
-                <div class="chat-referee-card">
-                    <div class="chat-referee-avatar">
-                        {{ referee.name.charAt(0) }}
-                    </div>
-                    <div class="chat-referee-info">
-                        <h4 class="chat-referee-name">{{ referee.name }}</h4>
-                        <div class="chat-referee-status">
-                            <span class="material-symbols-outlined icon-xs text-info">verified</span>
-                            <span class="chat-referee-status-text">حكم الساحة</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Participants Section -->
-            <div class="chat-section">
-                <div class="chat-section-label">
-                    <span>المشاركون</span>
-                    <div class="chat-section-line"></div>
-                </div>
-                <div class="chat-participant-list">
-                    <div *ngFor="let p of participants; trackBy: trackByParticipant" class="chat-participant-item">
-                        <div class="chat-participant-avatar"
-                            [class.chat-participant-avatar-home]="p.teamId === match?.homeTeamId"
-                            [class.chat-participant-avatar-away]="p.teamId !== match?.awayTeamId">
-                            {{ p.name.charAt(0) }}
-                        </div>
-                        <div class="chat-participant-info">
-                            <h5 class="chat-participant-name">{{ p.name }}</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Main Chat Panel -->
     <div class="chat-panel">
         <div class="chat-header">
-            <div class="chat-header-actions md-hidden">
-                <app-icon-button (onClick)="toggleSidebar()" icon="menu" variant="ghost"></app-icon-button>
-            </div>
-
             <div class="chat-header-info">
                 <div class="icon-wrapper bg-primary-subtle">
                     <span class="material-symbols-outlined text-primary">forum</span>
@@ -67,6 +10,9 @@
                     <h2 class="chat-title">{{ title }}</h2>
                     <div class="chat-subtitle">
                         {{ match?.homeTeamName }} <span class="chat-subtitle-vs">VS</span> {{ match?.awayTeamName }}
+                        <span class="chat-subtitle-date" *ngIf="match?.date">
+                            - {{ match.date | date:'hh:mm a' }} ({{ match.date | date:'yyyy/MM/dd' }})
+                        </span>
                     </div>
                 </div>
             </div>
@@ -76,6 +22,8 @@
                     <span class="live-dot"></span>
                     <span class="online-status-text">متصل</span>
                 </div>
+                <app-icon-button *ngIf="canSchedule" (onClick)="schedule.emit()" icon="calendar_month" variant="ghost"
+                    title="تحديد موعد اللقاء"></app-icon-button>
                 <app-icon-button (onClick)="navigateBack()" icon="arrow_forward" variant="ghost"></app-icon-button>
             </div>
         </div>

@@ -1,54 +1,66 @@
 <div class="page-container animate-fade-in-up">
     <div class="page-content">
 
-        <!-- Welcome Header -->
+        <!-- Welcome Header (always shown) -->
         <app-welcome-card title="لوحة الحكم" subtitle="مرحباً بك، جدول مباريات اليوم" icon="sports" iconClass="warning"
             [status]="'اليوم: ' + todayMatches.length" badgeClass="badge-info" statusIcon="event">
         </app-welcome-card>
 
-        <!-- Today's Matches Section -->
-        <div class="match-cards-grid mb-md">
-            <app-match-card *ngFor="let match of todayMatches" [match]="match" [title]="match.tournamentName"
-                [subtitle]="match.status === MatchStatus.LIVE ? 'المباراة جارية' : 'أنت الحكم المسؤول'">
+        <!-- Pending Status - Replace content when pending -->
+        <ng-container *ngIf="isPending; else mainContent">
+            <app-pending-status-card title="حسابك قيد المراجعة"
+                message="عذراً، لا يمكنك إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
+                [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="refreshStatus()">
+            </app-pending-status-card>
+        </ng-container>
 
-                <div class="match-card-actions w-full flex-wrap flex gap-sm mt-auto" actions>
-                    <button *ngIf="match.status === MatchStatus.SCHEDULED || match.status === MatchStatus.POSTPONED" (click)="startMatch(match.id)"
-                        class="match-card-action">
-                        <span class="material-symbols-outlined">play_arrow</span>
-                        بدء المباراة
-                    </button>
+        <!-- Main Content (only when not pending) -->
+        <ng-template #mainContent>
+            <!-- Today's Matches Section -->
+            <div class="match-cards-grid mb-md">
+                <app-match-card *ngFor="let match of todayMatches" [match]="match" [title]="match.tournamentName"
+                    [subtitle]="match.status === MatchStatus.LIVE ? 'المباراة جارية' : 'أنت الحكم المسؤول'">
 
-                    <div *ngIf="isMatchLive(match)" class="flex gap-2 w-full">
-                        <button (click)="openEventModal(match)" class="match-card-action primary-btn flex-1">
-                            <span class="material-symbols-outlined">edit_note</span>
-                            تسجيل حدث
+                    <div class="match-card-actions w-full flex-wrap flex gap-sm mt-auto" actions>
+                        <button *ngIf="match.status === MatchStatus.SCHEDULED || match.status === MatchStatus.POSTPONED"
+                            (click)="startMatch(match.id)" class="match-card-action">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                            بدء المباراة
                         </button>
-                        <button (click)="onEndMatchClick(match.id)" class="match-card-action danger-btn flex-1">
-                            <span class="material-symbols-outlined">stop_circle</span>
-                            إنهاء
-                        </button>
+
+                        <div *ngIf="isMatchLive(match)" class="flex gap-2 w-full">
+                            <button (click)="openEventModal(match)" class="match-card-action primary-btn flex-1">
+                                <span class="material-symbols-outlined">edit_note</span>
+                                تسجيل حدث
+                            </button>
+                            <button (click)="onEndMatchClick(match.id)" class="match-card-action danger-btn flex-1">
+                                <span class="material-symbols-outlined">stop_circle</span>
+                                إنهاء
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-            </app-match-card>
+                </app-match-card>
 
-            <div *ngIf="todayMatches.length === 0" class="col-span-full py-xl text-center">
-                <div *ngIf="allMatches.length > 0; else noMatches" class="animate-pulse">
-                    <p class="text-muted">لديك {{ allMatches.length }} مباريات إجمالاً، ولكن لا توجد مباريات جارية أو
-                        مجدولة لليوم.</p>
+                <div *ngIf="todayMatches.length === 0" class="col-span-full py-xl text-center">
+                    <div *ngIf="allMatches.length > 0; else noMatches" class="animate-pulse">
+                        <p class="text-muted">لديك {{ allMatches.length }} مباريات إجمالاً، ولكن لا توجد مباريات جارية
+                            أو
+                            مجدولة لليوم.</p>
+                    </div>
+                    <ng-template #noMatches>
+                        <p class="text-muted">لا توجد مباريات معينة لك حالياً.</p>
+                    </ng-template>
                 </div>
-                <ng-template #noMatches>
-                    <p class="text-muted">لا توجد مباريات معينة لك حالياً.</p>
-                </ng-template>
             </div>
-        </div>
 
-        <!-- Stats Grid -->
-        <div class="grid-stats">
-            <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
-                [colorClass]="stat.colorClass">
-            </app-stat-card>
-        </div>
+            <!-- Stats Grid -->
+            <div class="grid-stats">
+                <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
+                    [colorClass]="stat.colorClass">
+                </app-stat-card>
+            </div>
+        </ng-template>
     </div>
 </div>
 

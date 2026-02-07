@@ -82,20 +82,26 @@
     }
 }
 
-/* Padding for icons */
+/* Padding for icons - icons are visually on the LEFT, text on the RIGHT */
 .has-icon-left .form-input {
-    padding-inline-start: 3.25rem !important;
+    padding-left: 3.25rem !important;
+    padding-right: var(--space-4) !important;
 }
 
 .has-icon-right .form-input {
-    padding-inline-end: 3.25rem !important;
+    padding-left: 3.25rem !important;
+}
+
+/* Password fields may show icons on the left side. */
+.has-icon-left.has-icon-right .form-input {
+    padding-left: 3.25rem !important;
+    padding-right: var(--space-4) !important;
 }
 
 .form-icon {
     position: absolute;
     top: 50%;
-    margin-top: -12px;
-    /* Precise centering for 24px icons */
+    transform: translateY(-50%);
     color: var(--color-primary-light);
     pointer-events: none;
     z-index: var(--z-above);
@@ -103,12 +109,16 @@
     transition: var(--transition-base);
     font-size: 22px;
 
+    /* In RTL: inline-start = LEFT visually */
     &.icon-left {
-        inset-inline-start: 1rem;
+        left: 1rem;
+        right: auto;
     }
 
+    /* icon-right also on the left for password fields */
     &.icon-right {
-        inset-inline-end: 1rem;
+        left: 1rem;
+        right: auto;
     }
 
     &.clickable {
@@ -117,7 +127,7 @@
 
         &:hover {
             color: var(--color-primary);
-            transform: scale(1.1) translateY(-50%);
+            transform: translateY(-50%) scale(1.1);
         }
     }
 }
@@ -125,7 +135,7 @@
 .form-group:focus-within .form-icon {
     color: var(--color-primary);
     opacity: 1;
-    transform: scale(1.1);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .form-error {
@@ -158,19 +168,19 @@
     cursor: pointer;
     color: var(--color-primary-light);
     transition: var(--transition-base);
-    
+
     &:hover,
     &:focus {
         color: var(--color-primary);
         outline: none;
     }
-    
+
     &:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
         border-radius: var(--radius-sm);
     }
-    
+
     .material-symbols-outlined {
         font-size: 22px;
     }

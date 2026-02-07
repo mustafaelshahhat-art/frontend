@@ -520,7 +520,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
             logo: team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
-            status: team.playerCount >= 5 ? 'READY' : 'NOT_READY',
+            status: team.playerCount >= 8 ? 'READY' : 'NOT_READY',
             playerCount: team.playerCount,
             maxPlayers: team.maxPlayers,
             isActive: team.isActive ?? true,

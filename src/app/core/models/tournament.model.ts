@@ -160,6 +160,7 @@ export interface MatchEvent {
     playerId?: string;
     playerName?: string;
     teamId: string;
+    minute?: number;
     description?: string;
     createdAt: Date;
 }

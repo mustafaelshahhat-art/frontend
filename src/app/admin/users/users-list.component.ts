@@ -15,6 +15,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { UserService, AdminCountDto } from '../../core/services/user.service';
+import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
 
 @Component({
     selector: 'app-users-list',
@@ -43,6 +44,7 @@ export class UsersListComponent implements OnInit {
     private readonly userService = inject(UserService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly fb = inject(FormBuilder);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
     users = signal<User[]>([]);
     isLoading = signal<boolean>(true);
@@ -92,6 +94,16 @@ export class UsersListComponent implements OnInit {
     ngOnInit(): void {
         this.loadUsers();
         this.loadAdminCount();
+        this.setupRealTimeUpdates();
+    }
+
+    private setupRealTimeUpdates(): void {
+        this.realTimeUpdate.on(['USER_APPROVED', 'USER_BLOCKED']).subscribe(() => {
+            if (!this.showAddAdminModal()) {
+                this.loadUsers();
+                this.loadAdminCount();
+            }
+        });
     }
 
     ngAfterViewInit(): void {
@@ -297,10 +309,12 @@ export class UsersListComponent implements OnInit {
     openAddAdminModal(): void {
         this.adminForm.reset({ status: 'Active' });
         this.showAddAdminModal.set(true);
+        this.realTimeUpdate.setEditingState(true);
     }
 
     closeAddAdminModal(): void {
         this.showAddAdminModal.set(false);
+        this.realTimeUpdate.setEditingState(false);
         this.adminForm.reset({ status: 'Active' });
     }
 

@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { RealTimeUpdateService } from '../../../../core/services/real-time-update.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 
@@ -16,9 +17,10 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
+import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 
 // Type-safe filter definition
-type MatchFilterValue = 'all' | 'upcoming' | 'live' | 'finished';
+type MatchFilterValue = 'all' | 'upcoming' | 'live' | 'finished' | 'cancelled';
 
 interface MatchFilter {
     label: string;
@@ -39,7 +41,8 @@ interface MatchFilter {
         PageHeaderComponent,
         MatchCardComponent,
         ButtonComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        PendingStatusCardComponent
     ],
     templateUrl: './matches-list.component.html',
     styleUrls: ['./matches-list.component.scss'],
@@ -51,6 +54,7 @@ export class MatchesListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly cdr = inject(ChangeDetectorRef); // Still useful for manual triggers if needed, but Signals handle most
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
     // Signals State
     matches = signal<Match[]>([]);
@@ -59,6 +63,7 @@ export class MatchesListComponent implements OnInit {
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.PLAYER;
+    isPending = this.currentUser?.status?.toLowerCase() === 'pending';
 
     // Expose enums to template
     MatchStatus = MatchStatus;
@@ -75,7 +80,8 @@ export class MatchesListComponent implements OnInit {
         { label: 'الكل', value: 'all', icon: 'all_inclusive' },
         { label: 'القادمة', value: 'upcoming', icon: 'calendar_month' },
         { label: 'مباشر', value: 'live', icon: 'sensors' },
-        { label: 'المنتهية', value: 'finished', icon: 'task_alt' }
+        { label: 'المنتهية', value: 'finished', icon: 'task_alt' },
+        { label: 'الملغاة', value: 'cancelled', icon: 'block' }
     ];
 
     // Computed Filter Logic
@@ -86,19 +92,17 @@ export class MatchesListComponent implements OnInit {
         switch (filter) {
             case 'upcoming':
                 // Include Scheduled, Postponed, and Rescheduled matches
-                return currentMatches.filter(m => 
-                    m.status === MatchStatus.SCHEDULED || 
-                    m.status === MatchStatus.POSTPONED || 
+                return currentMatches.filter(m =>
+                    m.status === MatchStatus.SCHEDULED ||
+                    m.status === MatchStatus.POSTPONED ||
                     m.status === MatchStatus.RESCHEDULED
                 );
             case 'live':
                 return currentMatches.filter(m => m.status === MatchStatus.LIVE);
             case 'finished':
-                // Include Finished and Cancelled matches
-                return currentMatches.filter(m => 
-                    m.status === MatchStatus.FINISHED || 
-                    m.status === MatchStatus.CANCELLED
-                );
+                return currentMatches.filter(m => m.status === MatchStatus.FINISHED);
+            case 'cancelled':
+                return currentMatches.filter(m => m.status === MatchStatus.CANCELLED);
             default:
                 return currentMatches;
         }
@@ -106,6 +110,27 @@ export class MatchesListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadMatches();
+
+        // Intelligent Real-Time Updates
+        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe(() => {
+            // Re-fetch list safely without full reload
+            this.loadMatches();
+        });
+
+        // Still listen to legacy full-data updates for live score badges
+        this.matchService.matchUpdated$.subscribe(updatedMatch => {
+            if (updatedMatch) {
+                this.matches.update(current => {
+                    const index = current.findIndex(m => m.id === updatedMatch.id);
+                    if (index !== -1) {
+                        const newMatches = [...current];
+                        newMatches[index] = { ...updatedMatch };
+                        return newMatches;
+                    }
+                    return current;
+                });
+            }
+        });
     }
 
     loadMatches(): void {
@@ -257,5 +282,17 @@ export class MatchesListComponent implements OnInit {
         }
         this.activeMatch = null;
         this.activeMatchId = null;
+    }
+
+    // ==========================================
+    // Captain/Player Actions
+    // ==========================================
+
+    openChat(matchId: string): void {
+        this.router.navigate([this.getRoutePrefix(), 'matches', matchId, 'chat']);
+    }
+
+    submitObjection(matchId: string): void {
+        this.router.navigate([this.getRoutePrefix(), 'matches', matchId], { queryParams: { action: 'objection' } });
     }
 }

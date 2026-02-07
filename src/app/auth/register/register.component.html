@@ -48,8 +48,8 @@
             </div>
 
             <div class="flex justify-center mt-xl">
-                <app-button variant="primary" size="xl" (onClick)="currentStep = 2" icon="arrow_back" iconPos="right"
-                    [fullWidth]="true">
+                <app-button variant="primary" size="xl" (onClick)="nextStep(form.role)" icon="arrow_back"
+                    iconPos="right">
                     متابعة
                 </app-button>
             </div>
@@ -113,30 +113,33 @@
                     <!-- Governorate -->
                     <div class="form-group">
                         <label class="form-label">المحافظة</label>
-                        <app-select name="governorate" [(ngModel)]="form.governorate" [options]="governorateOptions"
-                            placeholder="اختر المحافظة" (change)="onGovChange($event)">
+                        <app-select [options]="governorateOptions" [ngModel]="form.governorate"
+                            (ngModelChange)="onGovChange($event)" placeholder="اختر المحافظة"
+                            [ngModelOptions]="{standalone: true}">
                         </app-select>
                     </div>
 
                     <!-- City -->
                     <div class="form-group">
                         <label class="form-label">المدينة</label>
-                        <app-select name="city" [(ngModel)]="form.city" [options]="cityOptions"
-                            [disabled]="!form.governorate" placeholder="اختر المدينة" (change)="onCityChange($event)">
+                        <app-select [options]="cityOptions" [ngModel]="form.city" (ngModelChange)="onCityChange($event)"
+                            [disabled]="!form.governorate" placeholder="اختر المدينة"
+                            [ngModelOptions]="{standalone: true}">
                         </app-select>
                     </div>
 
                     <!-- Neighborhood -->
                     <div class="form-group">
                         <label class="form-label">الحي / المنطقة</label>
-                        <app-select name="neighborhood" [(ngModel)]="form.neighborhood" [options]="neighborhoodOptions"
-                            [disabled]="!form.city" placeholder="اختر الحي">
+                        <app-select [options]="neighborhoodOptions" [ngModel]="form.neighborhood"
+                            (ngModelChange)="form.neighborhood = $event" [disabled]="!form.city" placeholder="اختر الحي"
+                            [ngModelOptions]="{standalone: true}">
                         </app-select>
                     </div>
 
                     <!-- Password -->
                     <div class="form-group">
-                        <app-form-control label="كلمة المرور" type="password" name="password" 
+                        <app-form-control label="كلمة المرور" type="password" name="password"
                             [(ngModel)]="form.password" placeholder="••••••••" iconLeft="lock">
                         </app-form-control>
                     </div>
@@ -169,10 +172,12 @@
                 </div>
 
 
-                <app-button type="submit" variant="primary" size="xl" [fullWidth]="true" [isLoading]="isLoading"
-                    [disabled]="isLoading || !registerForm.valid">
-                    إرسال طلب التسجيل
-                </app-button>
+                <div class="flex justify-center">
+                    <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading"
+                        [disabled]="isLoading || !registerForm.valid">
+                        إرسال طلب التسجيل
+                    </app-button>
+                </div>
 
                 <div class="text-center mt-4">
                     <app-button variant="ghost" (onClick)="currentStep = 1">

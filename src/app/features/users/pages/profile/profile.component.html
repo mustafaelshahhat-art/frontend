@@ -3,139 +3,178 @@
         <app-badge type="primary">{{ roleBadge }}</app-badge>
     </app-page-header>
 
-    <div class="profile-container">
-        <!-- Sidebar -->
-        <div class="profile-sidebar">
-            <app-card class="avatar-card">
-                <div class="avatar-wrapper">
-                    <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
-                        style="width: 100%; height: 100%;" [initials]="userInitial">
-                    </app-smart-image>
+    <!-- Pending Status - Replace content when pending -->
+    <ng-container *ngIf="isPending; else mainContent">
+        <app-pending-status-card title="حسابك قيد المراجعة"
+            message="عذراً، لا يمكنك الوصول لإعدادات الحساب حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
+            [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="loadUserProfile()">
+        </app-pending-status-card>
+    </ng-container>
 
-                    <div *ngIf="isUploadingPicture" class="uploading-overlay">
-                        <div class="loading-spinner"></div>
+    <!-- Main Content (only when not pending) -->
+    <ng-template #mainContent>
+        <div class="profile-nav" style="margin-top: 0.75rem; margin-bottom: 1.5rem;">
+            <app-filter
+                [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
+                [activeValue]="activeSection" (change)="setActiveSection($event)">
+            </app-filter>
+        </div>
+
+        <div class="profile-container">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+                <app-card class="avatar-card">
+                    <div class="avatar-wrapper" [class.editable]="isEditing" (click)="isEditing && fileInput.click()">
+                        <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
+                            style="width: 100%; height: 100%;" [initials]="userInitial">
+                        </app-smart-image>
+
+                        <div *ngIf="isUploadingPicture" class="uploading-overlay">
+                            <div class="loading-spinner"></div>
+                        </div>
+
+                        <div *ngIf="isEditing && !isUploadingPicture" class="edit-overlay"
+                            (click)="fileInput.click(); $event.stopPropagation()">
+                            <span class="material-symbols-outlined">edit</span>
+                            <span>تغيير الصورة</span>
+                        </div>
                     </div>
-                </div>
-                <h2>{{ user?.name }}</h2>
-                <span class="username">@{{ user?.username }}</span>
+                    <input #fileInput type="file" accept="image/*" (change)="onFileInputChange($event)"
+                        style="display: none;" />
+                    <h2>{{ user?.name }}</h2>
+                    <span class="username">@{{ user?.username }}</span>
 
-                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <app-file-upload label="تغيير الصورة" accept="image/*" [disabled]="isUploadingPicture"
-                        (filesSelected)="onFileSelected($event)">
-                    </app-file-upload>
+                    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <app-button *ngIf="profilePicture && !isUploadingPicture && isEditing" variant="ghost" size="sm"
+                            icon="delete" (onClick)="removePicture()" variant="danger">
+                            حذف الصورة
+                        </app-button>
+                    </div>
 
-                    <app-button *ngIf="profilePicture && !isUploadingPicture" variant="ghost" size="sm" icon="delete"
-                        (click)="removePicture()" variant="danger">
-                        حذف الصورة
-                    </app-button>
-                </div>
+                    <div class="membership-info"
+                        style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                        <p style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">معرف
+                            العضوية</p>
+                        <p
+                            style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #10B981; letter-spacing: 1px;">
+                            {{ displayId || user?.username }}</p>
+                    </div>
+                </app-card>
+            </div>
 
-                <div class="membership-info"
-                    style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                    <p style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">معرف
-                        العضوية</p>
-                    <p
-                        style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #10B981; letter-spacing: 1px;">
-                        {{ displayId || user?.username }}</p>
-                </div>
-            </app-card>
+            <!-- Content Area -->
+            <div class="profile-content">
+                <!-- Edit Info Section -->
+                <app-card *ngIf="activeSection === 'info' && profileForm" title="المعلومات الشخصية"
+                    icon="settings_account_box">
+                    <form [formGroup]="profileForm" (ngSubmit)="toggleEditMode()">
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <app-form-control formControlName="name" label="الاسم الكامل"
+                                    [control]="profileForm?.get('name')" [disabled]="isFormDisabled">
+                                </app-form-control>
+                            </div>
 
-            <div class="profile-nav" style="margin-top: 1.5rem;">
-                <app-filter
-                    [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
-                    [activeValue]="activeSection" (change)="setActiveSection($event)">
-                </app-filter>
+                            <div class="form-group">
+                                <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
+                                    [control]="profileForm?.get('email')" [disabled]="isFormDisabled">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
+                                    type="tel" [control]="profileForm?.get('phone')" [disabled]="isFormDisabled">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
+                                    [control]="profileForm?.get('username')">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)"
+                                    [disabled]="true" [control]="profileForm?.get('nationalId')">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-select [options]="governorateOptions"
+                                    [ngModel]="profileForm.get('governorate')?.value"
+                                    (ngModelChange)="onGovernorateChange($event)" label="المحافظة"
+                                    placeholder="اختر المحافظة" [disabled]="isFormDisabled"
+                                    [ngModelOptions]="{standalone: true}">
+                                </app-select>
+                            </div>
+
+                            <div class="form-group">
+                                <app-select [options]="cityOptions" [ngModel]="profileForm.get('city')?.value"
+                                    (ngModelChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
+                                    [disabled]="isFormDisabled || !profileForm.get('governorate')?.value"
+                                    [ngModelOptions]="{standalone: true}">
+                                </app-select>
+                            </div>
+
+                            <div class="form-group">
+                                <app-select [options]="districtOptions"
+                                    [ngModel]="profileForm.get('neighborhood')?.value"
+                                    (ngModelChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
+                                    [disabled]="isFormDisabled || !profileForm.get('city')?.value"
+                                    [ngModelOptions]="{standalone: true}">
+                                </app-select>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                            <ng-container *ngIf="isEditing">
+                                <app-button type="button" (onClick)="cancelEdit()" variant="outline">
+                                    إلغاء
+                                </app-button>
+                            </ng-container>
+                            <app-button type="submit" [isLoading]="isLoading" icon="save"
+                                [disabled]="isLoading || (isEditing && profileForm.invalid)">
+                                {{ saveButtonLabel }}
+                            </app-button>
+                        </div>
+                    </form>
+                </app-card>
+
+                <!-- Change Password Section -->
+                <app-card *ngIf="activeSection === 'password' && passwordForm" title="تغيير كلمة المرور" icon="key">
+                    <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px;">
+                            <div class="form-group">
+                                <app-form-control formControlName="currentPassword" label="كلمة المرور الحالية"
+                                    type="password" placeholder="أدخل كلمة المرور الحالية"
+                                    [control]="passwordForm?.get('currentPassword')">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-form-control formControlName="newPassword" label="كلمة المرور الجديدة"
+                                    type="password" placeholder="6 أحرف على الأقل"
+                                    [control]="passwordForm?.get('newPassword')">
+                                </app-form-control>
+                            </div>
+
+                            <div class="form-group">
+                                <app-form-control formControlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
+                                    type="password" placeholder="أعد إدخال كلمة المرور"
+                                    [control]="passwordForm?.get('confirmPassword')">
+                                </app-form-control>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                            <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading"
+                                icon="lock_reset" [disabled]="passwordForm.invalid">
+                                تحديث كلمة المرور
+                            </app-button>
+                        </div>
+                    </form>
+                </app-card>
             </div>
         </div>
-
-        <!-- Content Area -->
-        <div class="profile-content">
-            <!-- Edit Info Section -->
-            <app-card *ngIf="activeSection === 'info'" title="المعلومات الشخصية" icon="settings_account_box">
-                <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <app-form-control controlName="name" label="الاسم الكامل"
-                                [control]="profileForm.get('name')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="email" label="البريد الإلكتروني" type="email"
-                                [control]="profileForm.get('email')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX" type="tel"
-                                [control]="profileForm.get('phone')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="username" label="اسم المستخدم" [disabled]="true"
-                                [control]="profileForm.get('username')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="nationalId" label="رقم الهوية (محمي)" [disabled]="true"
-                                [control]="profileForm.get('nationalId')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="governorate" label="المحافظة"
-                                [control]="profileForm.get('governorate')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="city" label="المدينة" [control]="profileForm.get('city')">
-                            </app-form-control>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                        <app-button type="submit" [isLoading]="isLoading" icon="save" [disabled]="profileForm.invalid">
-                            حفظ التغييرات
-                        </app-button>
-                    </div>
-                </form>
-            </app-card>
-
-            <!-- Change Password Section -->
-            <app-card *ngIf="activeSection === 'password'" title="تغيير كلمة المرور" icon="key">
-                <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px;">
-                        <div class="form-group">
-                            <app-form-control controlName="currentPassword" label="كلمة المرور الحالية" type="password"
-                                placeholder="أدخل كلمة المرور الحالية" [control]="passwordForm.get('currentPassword')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="newPassword" label="كلمة المرور الجديدة" type="password"
-                                placeholder="6 أحرف على الأقل" [control]="passwordForm.get('newPassword')">
-                            </app-form-control>
-                        </div>
-
-                        <div class="form-group">
-                            <app-form-control controlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
-                                type="password" placeholder="أعد إدخال كلمة المرور"
-                                [control]="passwordForm.get('confirmPassword')">
-                            </app-form-control>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                        <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading" icon="lock_reset"
-                            [disabled]="passwordForm.invalid">
-                            تحديث كلمة المرور
-                        </app-button>
-                    </div>
-                </form>
-            </app-card>
-        </div>
-    </div>
+    </ng-template>
 </div>

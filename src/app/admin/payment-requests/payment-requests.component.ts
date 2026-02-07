@@ -10,6 +10,7 @@ import { InlineLoadingComponent } from '../../shared/components/inline-loading/i
 import { TournamentService } from '../../core/services/tournament.service';
 import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/models/tournament.model';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
+import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
 
 @Component({
     selector: 'app-payment-requests',
@@ -32,6 +33,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
     currentFilter = 'all';
     isLoading = true;
@@ -57,6 +59,13 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
 
     ngOnInit(): void {
         this.loadRequests();
+        this.setupRealTimeUpdates();
+    }
+
+    private setupRealTimeUpdates(): void {
+        this.realTimeUpdate.on(['PAYMENT_APPROVED', 'PAYMENT_REJECTED']).subscribe(() => {
+            this.loadRequests();
+        });
     }
 
     ngAfterViewInit(): void {

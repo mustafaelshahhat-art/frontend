@@ -11,7 +11,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/chat-box.component';
 import { ChatService } from '../../../../core/services/chat.service';
 import { MatchService } from '../../../../core/services/match.service';
-import { MatchMessage, MatchStatus } from '../../../../core/models/tournament.model';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
+import { Match, MatchMessage, MatchStatus } from '../../../../core/models/tournament.model';
 
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
@@ -39,12 +41,15 @@ interface ChatParticipant {
     isOnline: boolean;
 }
 
-import { Match } from '../../../../core/models/tournament.model';
+
+
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 
 @Component({
     selector: 'app-match-chat',
     standalone: true,
-    imports: [CommonModule, ChatBoxComponent, ButtonComponent],
+    imports: [CommonModule, ChatBoxComponent, ButtonComponent, ModalComponent, FormControlComponent, FormsModule],
     templateUrl: './match-chat.component.html',
     styleUrls: ['./match-chat.component.scss']
 })
@@ -57,6 +62,8 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private uiFeedback = inject(UIFeedbackService);
     private chatService = inject(ChatService);
     private matchService = inject(MatchService);
+    private notificationService = inject(NotificationService);
+    private realTimeUpdate = inject(RealTimeUpdateService);
     private cdr = inject(ChangeDetectorRef);
 
     ChatParticipantRole = ChatParticipantRole;
@@ -84,6 +91,20 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         // Load match data and check authorization
         this.loadMatchData();
+
+        // Subscription to this specific match updates
+        this.notificationService.subscribeToMatch(this.matchId);
+        this.setupRealTimeUpdates();
+    }
+
+    private setupRealTimeUpdates(): void {
+        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe((event: SystemEvent) => {
+            if (event.metadata.MatchId === this.matchId) {
+                if (!this.showScheduleModal) {
+                    this.loadMatchData();
+                }
+            }
+        });
     }
 
     ngOnDestroy(): void {
@@ -104,6 +125,14 @@ export class MatchChatComponent implements OnInit, OnDestroy {
                             console.error('SignalR Join Error:', err);
                         });
                         this.loadParticipants();
+
+                        // SignalR Match Updates
+                        this.matchService.matchUpdated$.subscribe(updatedMatch => {
+                            if (updatedMatch && updatedMatch.id === this.matchId) {
+                                this.match = updatedMatch;
+                                this.cdr.detectChanges();
+                            }
+                        });
                     }
                 }
                 this.isLoading = false;
@@ -339,11 +368,13 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         }
 
         this.showScheduleModal = true;
+        this.realTimeUpdate.setEditingState(true);
     }
 
     // Close schedule modal
     closeScheduleModal(): void {
         this.showScheduleModal = false;
+        this.realTimeUpdate.setEditingState(false);
         this.scheduleDate = '';
         this.scheduleTime = '';
     }

@@ -39,14 +39,15 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
     @Input() referee: ChatParticipant | null = null;
     @Input() isLoading = false;
     @Input() readOnly = false;
+    @Input() canSchedule = false;
 
     @Output() send = new EventEmitter<string>();
     @Output() back = new EventEmitter<void>();
+    @Output() schedule = new EventEmitter<void>();
 
     @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
 
     newMessage = '';
-    sidebarOpen = false;
 
     constructor(private router: Router) { }
 
@@ -71,10 +72,6 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
         }
     }
 
-    toggleSidebar(): void {
-        this.sidebarOpen = !this.sidebarOpen;
-    }
-
     navigateBack(): void {
         this.back.emit();
     }
@@ -85,9 +82,5 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
 
     trackByMessage(index: number, message: ChatMessage): string {
         return message.id;
-    }
-
-    trackByParticipant(index: number, participant: ChatParticipant): string {
-        return participant.id;
     }
 }

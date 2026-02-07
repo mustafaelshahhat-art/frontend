@@ -12,15 +12,27 @@
             </div>
 
             <div class="event-info">
-                <div class="flex-between w-full">
-                    <span class="player-name">{{ event.playerName }}</span>
+                <div class="event-top-row">
+                    <span class="event-type-label">{{ getEventLabel(event.type) }}</span>
                     <span class="event-time" *ngIf="event.minute">{{ event.minute }}'</span>
                 </div>
-                <span class="event-label">{{ getEventLabel(event.type) }}</span>
+
+                <h4 class="player-name">{{ event.playerName || 'لاعب غير معروف' }}</h4>
+
+                <div class="team-meta">
+                    <span class="team-badge" [class.home]="event.teamId === homeTeamId"
+                        [class.away]="event.teamId !== homeTeamId">
+                        <span class="material-symbols-outlined">shield</span>
+                        {{ event.teamId === homeTeamId ? homeTeamName : awayTeamName }}
+                    </span>
+                </div>
             </div>
 
+            <div class="card-side-indicator" [class.home]="event.teamId === homeTeamId"
+                [class.away]="event.teamId !== homeTeamId"></div>
+
             <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (onClick)="onDelete(event.id)" icon="delete"
-                variant="danger" size="sm" tooltip="حذف الحدث">
+                variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn">
             </app-icon-button>
         </div>
     </div>

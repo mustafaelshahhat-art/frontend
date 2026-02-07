@@ -6,6 +6,7 @@ import { UserRole } from '../../core/models/user.model';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
+import { LocationService } from '../../core/services/location.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
@@ -23,6 +24,7 @@ export class RegisterComponent implements OnInit {
   private uiFeedback = inject(UIFeedbackService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private locationService = inject(LocationService);
 
   ngOnInit(): void {
     this.checkMaintenance();
@@ -59,60 +61,83 @@ export class RegisterComponent implements OnInit {
     idBack: null as File | null
   };
 
-  // Mock Location Data
-  locations = [
-    {
-      name: 'القاهرة',
-      cities: [
-        { name: 'المعادي', neighborhoods: ['الحي التاسع', 'المعادي السرايات', 'زهراء المعادي'] },
-        { name: 'القاهرة الجديدة', neighborhoods: ['التجمع الخامس', 'التجمع الثالث', 'الرحاب'] },
-        { name: 'مصر الجديدة', neighborhoods: ['الكوربة', 'ميدان الحجاز', 'جسد السويس'] }
-      ]
-    },
-    {
-      name: 'الجيزة',
-      cities: [
-        { name: 'الدقي', neighborhoods: ['ميدان المساحة', 'شارع التحرير', 'البحوث'] },
-        { name: 'الالمهندسين', neighborhoods: ['شارع أحمد عرابي', 'شارع جامعة الدول', 'ميدان سفنكس'] },
-        { name: '6 أكتوبر', neighborhoods: ['الحي المتميز', 'الحي الأول', 'الحي الثامن'] }
-      ]
-    }
-  ];
+  governorateOptions: SelectOption[] = [];
+  cityOptions: SelectOption[] = [];
+  neighborhoodOptions: SelectOption[] = [];
 
-  selectedGovernorate: any = null;
-  selectedCity: any = null;
-
-  get governorateOptions(): SelectOption[] {
-    return this.locations.map(gov => ({ label: gov.name, value: gov.name }));
-  }
-
-  get cityOptions(): SelectOption[] {
-    if (!this.selectedGovernorate) return [];
-    return this.selectedGovernorate.cities.map((city: any) => ({ label: city.name, value: city.name }));
-  }
-
-  get neighborhoodOptions(): SelectOption[] {
-    if (!this.selectedCity) return [];
-    return this.selectedCity.neighborhoods.map((n: string) => ({ label: n, value: n }));
-  }
+  selectedGovernorate = '';
+  selectedCity = '';
 
   nextStep(role: UserRole): void {
     this.form.role = role;
     this.currentStep = 2;
+    if (this.governorateOptions.length === 0) {
+      this.loadGovernorates();
+    }
+  }
+
+  private loadGovernorates(): void {
+    this.locationService.getGovernorates().subscribe({
+      next: (govs) => {
+        this.governorateOptions = govs.map(g => ({ label: g, value: g }));
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.governorateOptions = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadCities(governorate: string): void {
+    this.locationService.getCities(governorate).subscribe({
+      next: (cities) => {
+        this.cityOptions = cities.map(c => ({ label: c, value: c }));
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cityOptions = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadNeighborhoods(city: string): void {
+    this.locationService.getDistricts(city).subscribe({
+      next: (districts) => {
+        this.neighborhoodOptions = districts.map(d => ({ label: d, value: d }));
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.neighborhoodOptions = [];
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onGovChange(value: string): void {
-    this.selectedGovernorate = this.locations.find(l => l.name === value);
+    this.form.governorate = value;  // Update form value
+    this.selectedGovernorate = value;
     this.form.city = '';
     this.form.neighborhood = '';
-    this.selectedCity = null;
+    this.selectedCity = '';
+    this.cityOptions = [];
+    this.neighborhoodOptions = [];
+    if (value) {
+      this.loadCities(value);
+    }
+    this.cdr.detectChanges();
   }
 
   onCityChange(value: string): void {
-    if (this.selectedGovernorate) {
-      this.selectedCity = this.selectedGovernorate.cities.find((c: any) => c.name === value);
-    }
+    this.form.city = value;  // Update form value
+    this.selectedCity = value;
     this.form.neighborhood = '';
+    this.neighborhoodOptions = [];
+    if (value) {
+      this.loadNeighborhoods(value);
+    }
+    this.cdr.detectChanges();
   }
 
   onFileChange(event: any, field: 'idFront' | 'idBack'): void {

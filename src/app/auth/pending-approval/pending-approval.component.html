@@ -1,78 +1,64 @@
-<div class="pending-container relative min-h-screen flex flex-col items-center justify-center p-xl overflow-hidden">
-    <!-- Background -->
-    <div class="bg-pattern absolute inset-0 z-0"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-primary-900/90 to-primary-950/95 z-0"></div>
+<div class="pending-container">
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
 
-    <!-- Header -->
-    <header class="pending-header w-full flex justify-between items-center relative z-10 mb-3xl max-w-7xl mx-auto">
-        <div class="brand flex items-center gap-3">
-            <div class="brand-icon w-12 h-12 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow">
-                <span class="material-symbols-outlined text-white text-2xl">sports_soccer</span>
-            </div>
-            <span class="text-white text-xl font-bold tracking-tight">بطولة رمضان</span>
-        </div>
+    <!-- Main Card -->
+    <div class="pending-card">
+        <!-- Decorative Elements -->
+        <div class="card-glow"></div>
 
-        <app-button variant="ghost" icon="help" size="sm" class="text-white/80 hover:text-white">
-            المساعدة
-        </app-button>
-    </header>
-
-    <!-- Main Content -->
-    <main class="relative z-10 w-full max-w-lg mt-8">
-        <div
-            class="card pending-card bg-surface-glass backdrop-blur-xl border border-white/10 rounded-3xl p-2xl text-center shadow-2xl relative overflow-hidden">
-            <!-- Glow Effect -->
-            <div
-                class="absolute -top-20 -right-20 w-64 h-64 bg-primary-500/20 rounded-full blur-3xl pointer-events-none">
-            </div>
-            <div
-                class="absolute -bottom-20 -left-20 w-64 h-64 bg-secondary-500/20 rounded-full blur-3xl pointer-events-none">
-            </div>
-
-            <!-- Icon -->
-            <div class="status-icon-wrapper mb-xl relative inline-block">
-                <div class="absolute inset-0 bg-gold/20 rounded-full blur-xl animate-pulse-slow"></div>
-                <div
-                    class="w-24 h-24 rounded-full bg-surface-dark border borfer-gold/30 flex items-center justify-center relative z-10 mx-auto">
-                    <span
-                        class="material-symbols-outlined text-5xl text-gold animate-bounce-gentle">hourglass_top</span>
-                </div>
-            </div>
-
-            <div class="hero-content flex flex-col gap-4 mb-xl">
-                <h1 class="text-3xl font-black text-white tracking-tight">الحساب قيد المراجعة</h1>
-                <p class="text-white/70 text-lg leading-relaxed">
-                    شكراً لتسجيلك يا <span class="text-gold font-bold">{{ currentUser?.name }}</span>.
-                    حسابك حالياً قيد المراجعة من قبل إدارة البطولة.
-                </p>
-            </div>
-
-            <div class="info-box bg-white/5 border border-white/5 rounded-xl p-lg mb-xl text-right">
-                <div class="flex items-center gap-3 mb-3">
-                    <span class="material-symbols-outlined text-gold">info</span>
-                    <span class="text-white font-bold text-sm">ماذا يحدث الآن؟</span>
-                </div>
-                <p class="text-white/60 text-sm leading-relaxed m-0">
-                    سيقوم المسؤولون بمراجعة طلب انضمامك وتفعيله في أقرب وقت. ستتلقى إشعاراً بريدياً فور تفعيل الحساب
-                    لتتمكن من الدخول والمشاركة.
-                </p>
-            </div>
-
-            <div class="actions flex flex-col gap-4">
-                <app-button variant="primary" size="lg" [fullWidth]="true" icon="refresh" (click)="reloadPage()">
-                    تحديث الحالة
-                </app-button>
-
-                <app-button variant="ghost" size="md" [fullWidth]="true" icon="logout" (click)="onLogout()"
-                    class="text-white/60 hover:text-danger hover:bg-white/5">
-                    تسجيل الخروج
-                </app-button>
+        <!-- Icon Animation -->
+        <div class="icon-container">
+            <div class="icon-ring"></div>
+            <div class="icon-ring ring-2"></div>
+            <div class="icon-bg">
+                <span class="material-symbols-outlined icon-main">hourglass_top</span>
             </div>
         </div>
 
-        <div class="mt-8 text-center">
-            <p class="text-white/30 text-xs font-mono" dir="ltr">Reference ID: #{{ currentUser?.id?.substring(0, 8) }}
+        <!-- Content -->
+        <div class="content">
+            <h1 class="title">الحساب قيد المراجعة</h1>
+            <p class="subtitle">
+                شكراً لتسجيلك يا <span class="highlight">{{ currentUser?.name || 'صديقنا' }}</span>
+            </p>
+            <p class="description">
+                حسابك حالياً قيد المراجعة من قبل إدارة البطولة.
+                ستتلقى إشعاراً فور الموافقة على حسابك.
             </p>
         </div>
-    </main>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-icon">
+                <span class="material-symbols-outlined">schedule</span>
+            </div>
+            <div class="info-content">
+                <span class="info-title">وقت المراجعة المتوقع</span>
+                <span class="info-value">24 - 48 ساعة</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn btn-primary" (click)="goToHome()">
+                <span class="material-symbols-outlined">home</span>
+                <span>الصفحة الرئيسية</span>
+            </button>
+            <button class="btn btn-secondary" (click)="onLogout()">
+                <span class="material-symbols-outlined">logout</span>
+                <span>تسجيل الخروج</span>
+            </button>
+        </div>
+
+        <!-- Reference ID -->
+        <div class="reference">
+            <span>رقم الطلب:</span>
+            <code>#{{ currentUser?.id?.substring(0, 8) || 'N/A' }}</code>
+        </div>
+    </div>
 </div>

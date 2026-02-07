@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Match, MatchStatus } from '../../../core/models/tournament.model';
 import { SmartImageComponent } from '../smart-image/smart-image.component';
+import { resolveStatus, StatusConfig } from '../../utils/status-labels';
 
 @Component({
     selector: 'app-match-card',
@@ -32,13 +33,21 @@ export class MatchCardComponent {
     }
 
     get isScheduled(): boolean {
-        return this.match.status === MatchStatus.SCHEDULED;
+        return this.match.status === MatchStatus.SCHEDULED ||
+            this.match.status === MatchStatus.POSTPONED ||
+            this.match.status === MatchStatus.RESCHEDULED;
     }
 
-    get statusLabel(): string {
-        if (this.isLive) return 'مباشر الآن';
-        if (this.isFinished) return 'انتهت';
-        return 'مباراة قادمة'; // Or specific date formatting if needed
+    get isCancelled(): boolean {
+        return this.match.status === MatchStatus.CANCELLED;
+    }
+
+    get isPostponed(): boolean {
+        return this.match.status === MatchStatus.POSTPONED;
+    }
+
+    get statusConfig(): StatusConfig {
+        return resolveStatus('match', this.match.status);
     }
 
     onCardClick(): void {

@@ -12,6 +12,7 @@ import { CardComponent } from '../../shared/components/card/card.component';
 import { AnalyticsService, DashboardStats, Activity } from '../../core/services/analytics.service';
 import { MatchService } from '../../core/services/match.service';
 import { Match } from '../../core/models/tournament.model';
+import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -35,6 +36,7 @@ export class AdminDashboardComponent implements OnInit {
     private readonly analyticsService = inject(AnalyticsService);
     private readonly matchService = inject(MatchService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
     recentActivities: Activity[] = [];
@@ -42,6 +44,29 @@ export class AdminDashboardComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadDashboardData();
+        this.setupRealTimeUpdates();
+    }
+
+    private setupRealTimeUpdates(): void {
+        const dashboardEvents = [
+            'MATCH_STATUS_CHANGED',
+            'MATCH_RESCHEDULED',
+            'MATCH_SCHEDULED',
+            'TOURNAMENT_CREATED',
+            'TOURNAMENT_UPDATED',
+            'PAYMENT_APPROVED', // Success stats change
+            'NOTIFICATION_CREATED' // Might mean new activities or objections
+        ];
+
+        this.realTimeUpdate.on(dashboardEvents).subscribe(() => {
+            // Smart decision: Refresh data every time a relevant event occurs
+            this.loadDashboardData();
+        });
+
+        // Also handle legacy match updates for score badges
+        this.matchService.matchUpdated$.subscribe(() => {
+            this.loadDashboardData();
+        });
     }
 
     loadDashboardData(): void {

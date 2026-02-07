@@ -211,5 +211,14 @@ export class AuthService {
             throw new Error('Could not decode token');
         }
     }
+
+    /**
+     * Changes the current user's password
+     */
+    changePassword(currentPassword: string, newPassword: string): Observable<void> {
+        const url = `${environment.apiUrl}/Users/change-password`;
+        const body = { currentPassword, newPassword };
+        return this.http.post<void>(url, body);
+    }
 }
 

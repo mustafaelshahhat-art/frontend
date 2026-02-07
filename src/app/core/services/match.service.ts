@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Match, MatchStatus, Card, Goal, MatchEvent, MatchReport } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
@@ -14,6 +14,15 @@ import { environment } from '../../../environments/environment';
 export class MatchService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/matches`;
+    private readonly matchUpdatedSubject = new BehaviorSubject<Match | null>(null);
+
+    get matchUpdated$(): Observable<Match | null> {
+        return this.matchUpdatedSubject.asObservable();
+    }
+
+    emitMatchUpdate(match: Match): void {
+        this.matchUpdatedSubject.next(match);
+    }
 
     getMatches(): Observable<Match[]> {
         return this.http.get<Match[]>(this.apiUrl);

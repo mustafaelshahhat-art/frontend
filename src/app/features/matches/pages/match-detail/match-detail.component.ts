@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,6 +9,7 @@ import { UserService } from '../../../../core/services/user.service';
 import { LocationService } from '../../../../core/services/location.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
+import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
@@ -58,6 +59,7 @@ export class MatchDetailComponent implements OnInit {
     private router = inject(Router);
     private matchService = inject(MatchService);
     private authService = inject(AuthService);
+    private realTimeUpdate = inject(RealTimeUpdateService);
     private permissionsService = inject(PermissionsService);
     private locationService = inject(LocationService);
     private uiFeedback = inject(UIFeedbackService);
@@ -99,6 +101,24 @@ export class MatchDetailComponent implements OnInit {
     showScoreModal = signal(false);
     scoreForm = { homeScore: 0, awayScore: 0 };
 
+    isAnyModalOpen = computed(() =>
+        this.showEventModal() ||
+        this.showEndMatchConfirm() ||
+        this.showReportModal() ||
+        this.showScoreModal() ||
+        this.showObjectionModal() ||
+        this.showScheduleModal() ||
+        this.showCancelModal() ||
+        this.showRefereeModal()
+    );
+
+    constructor() {
+        // Automatically sync editing state with realTimeUpdate service
+        effect(() => {
+            this.realTimeUpdate.setEditingState(this.isAnyModalOpen());
+        });
+    }
+
     // Objection Modal
     showObjectionModal = signal(false);
     objectionForm = {
@@ -116,8 +136,19 @@ export class MatchDetailComponent implements OnInit {
 
     // Admin: Postpone/Reset Schedule Modal
     showScheduleModal = signal(false);
-    scheduleType: 'postpone' | 'reset' = 'postpone';
+    scheduleType: 'postpone' | 'reset' | 'schedule' = 'postpone';
     scheduleForm = { date: '', time: '' };
+
+    openSetScheduleModal(): void {
+        const currentMatch = this.match();
+        this.scheduleType = 'schedule';
+        if (currentMatch?.date) {
+            const dt = new Date(currentMatch.date);
+            this.scheduleForm.date = dt.toISOString().split('T')[0];
+            this.scheduleForm.time = dt.toTimeString().substring(0, 5);
+        }
+        this.showScheduleModal.set(true);
+    }
 
     // Admin: Cancel Modal
     showCancelModal = signal(false);
@@ -143,6 +174,34 @@ export class MatchDetailComponent implements OnInit {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.loadMatch(id);
+
+            // Handle auto-actions from query params
+            this.route.queryParams.subscribe(params => {
+                if (params['action'] === 'objection') {
+                    // Slight delay to ensure data is loaded or modal instance is ready if needed
+                    setTimeout(() => {
+                        this.openObjectionModal();
+                    }, 500);
+                }
+            });
+
+            // Intelligent Real-Time Updates
+            this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe((event: SystemEvent) => {
+                if (event.metadata.MatchId === id) {
+                    this.loadMatch(id);
+                }
+            });
+
+            // Legacy full-data updates
+            this.matchService.matchUpdated$.subscribe(updatedMatch => {
+                if (updatedMatch && updatedMatch.id === id) {
+                    // Only apply if not editing, or if it's a live score update which is acceptable
+                    if (!this.isAnyModalOpen()) {
+                        this.match.set(updatedMatch);
+                        this.cdr.detectChanges();
+                    }
+                }
+            });
         } else {
             this.navigateBack();
         }
@@ -319,7 +378,7 @@ export class MatchDetailComponent implements OnInit {
                     this.cdr.detectChanges();
                 }
             });
-        } else {
+        } else if (this.scheduleType === 'reset') {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate,
                 status: MatchStatus.RESCHEDULED,
@@ -330,6 +389,20 @@ export class MatchDetailComponent implements OnInit {
                     if (updated) {
                         this.match.set(updated);
                         this.uiFeedback.success('تمت الإعادة', 'تم إعادة المباراة وجدولتها في الموعد الجديد');
+                    }
+                    this.closeScheduleModal();
+                    this.cdr.detectChanges();
+                }
+            });
+        } else {
+            // New Type: 'schedule'
+            this.matchService.updateMatch(currentMatch.id, {
+                date: newDate
+            } as any).subscribe({
+                next: (updated) => {
+                    if (updated) {
+                        this.match.set(updated);
+                        this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد اللقاء');
                     }
                     this.closeScheduleModal();
                     this.cdr.detectChanges();

@@ -17,6 +17,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
+import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 
 @Component({
     selector: 'app-objections-list',
@@ -33,7 +34,8 @@ import { TableComponent, TableColumn } from '../../../../shared/components/table
         ButtonComponent,
         SelectComponent,
         FormControlComponent,
-        TableComponent
+        TableComponent,
+        PendingStatusCardComponent
     ],
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss']
@@ -47,6 +49,7 @@ export class ObjectionsListComponent implements OnInit {
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.PLAYER;
+    isPending = this.currentUser?.status?.toLowerCase() === 'pending';
 
     objections: Objection[] = [];
     filteredObjections: Objection[] = [];

@@ -2,74 +2,85 @@
     <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
     </app-page-header>
 
-    <div class="objections-container">
-        <!-- Filters (Admin) -->
-        <div *ngIf="isAdmin()" style="margin-bottom: 1rem;">
-            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
-        </div>
+    <!-- Pending Status - Replace content when pending (only for non-admin) -->
+    <ng-container *ngIf="isPending && !isAdmin(); else mainContent">
+        <app-pending-status-card title="حسابك قيد المراجعة"
+            message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
+            [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="loadObjections()">
+        </app-pending-status-card>
+    </ng-container>
 
-        <!-- Loading -->
-        <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
-            <div class="loading-spinner"
-                style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
+    <!-- Main Content (only when not pending or when admin) -->
+    <ng-template #mainContent>
+        <div class="objections-container">
+            <!-- Filters (Admin) -->
+            <div *ngIf="isAdmin()" style="margin-bottom: 1rem;">
+                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
             </div>
-            <p style="color: #64748b;">جاري تحميل الاعتراضات...</p>
-        </div>
 
+            <!-- Loading -->
+            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+                <div class="loading-spinner"
+                    style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
+                </div>
+                <p style="color: #64748b;">جاري تحميل الاعتراضات...</p>
+            </div>
 
+            <!-- Empty State -->
+            <app-empty-state
+                *ngIf="!isLoading && (isAdmin() ? filteredObjections.length === 0 : objections.length === 0) && !showForm"
+                icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
+                [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
+            </app-empty-state>
 
-        <!-- Empty State -->
-        <app-empty-state
-            *ngIf="!isLoading && (isAdmin() ? filteredObjections.length === 0 : objections.length === 0) && !showForm"
-            icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
-            [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
-        </app-empty-state>
+            <!-- Admin: Table View -->
+            <div *ngIf="!isLoading && isAdmin() && filteredObjections.length > 0"
+                class="card p-0 overflow-hidden objections-table-card">
+                <app-table [data]="filteredObjections" [columns]="columns" [loading]="isLoading">
+                </app-table>
+            </div>
 
-        <!-- Admin: Table View -->
-        <div *ngIf="!isLoading && isAdmin() && filteredObjections.length > 0"
-            class="card p-0 overflow-hidden objections-table-card">
-            <app-table [data]="filteredObjections" [columns]="columns" [loading]="isLoading">
-            </app-table>
-
-        </div>
-
-        <!-- Captain: Card View -->
-        <div *ngIf="!isLoading && !isAdmin() && objections.length > 0"
-            style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <app-card *ngFor="let objection of objections" class="objection-item-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
-                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ objection.tournamentName }}</h3>
+            <!-- Captain: Card View -->
+            <div *ngIf="!isLoading && !isAdmin() && objections.length > 0"
+                style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <app-card *ngFor="let objection of objections" class="objection-item-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
+                            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ objection.tournamentName }}
+                            </h3>
+                        </div>
+                        <app-badge
+                            [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
+                            {{ getStatusLabel(objection.status) }}
+                        </app-badge>
                     </div>
-                    <app-badge
-                        [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
-                        {{ getStatusLabel(objection.status) }}
-                    </app-badge>
-                </div>
 
-                <div class="objection-description">
-                    {{ objection.description }}
-                </div>
-
-                <div class="objection-meta">
-                    <span><span class="material-symbols-outlined">tag</span> المباراة: #{{ objection.matchId }}</span>
-                    <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
-                        date:'yyyy/MM/dd' }}</span>
-                </div>
-
-                <div *ngIf="objection.adminNotes" class="admin-response">
-                    <div class="response-header">
-                        <span class="material-symbols-outlined">feedback</span>
-                        قرار اللجنة
+                    <div class="objection-description">
+                        {{ objection.description }}
                     </div>
-                    <p>{{ objection.adminNotes }}</p>
-                </div>
-            </app-card>
-        </div>
-    </div>
 
-    <!-- Templates moved outside to be accessible by ViewChild even when loading -->
+                    <div class="objection-meta">
+                        <span><span class="material-symbols-outlined">tag</span> المباراة: #{{ objection.matchId
+                            }}</span>
+                        <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
+                            date:'yyyy/MM/dd' }}</span>
+                    </div>
+
+                    <div *ngIf="objection.adminNotes" class="admin-response">
+                        <div class="response-header">
+                            <span class="material-symbols-outlined">feedback</span>
+                            قرار اللجنة
+                        </div>
+                        <p>{{ objection.adminNotes }}</p>
+                    </div>
+                </app-card>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- Templates for table columns -->
     <ng-template #matchInfo let-row="row">
         <span class="font-bold text-success text-lg">#{{ row.matchId }}</span>
     </ng-template>

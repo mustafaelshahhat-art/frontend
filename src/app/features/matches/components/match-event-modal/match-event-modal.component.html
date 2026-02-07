@@ -18,12 +18,21 @@
         </div>
     </div>
 
-    <!-- Player Selection -->
-    <div class="form-field full-width mt-4">
-        <label class="form-label">اسم اللاعب</label>
-        <app-select [options]="playerOptions" [ngModel]="eventForm.playerName" (ngModelChange)="onPlayerChange($event)"
-            placeholder="اختر اللاعب" [disabled]="isPlayersLoading">
-        </app-select>
+    <!-- Row for Player and Minute -->
+    <div class="form-grid mt-4">
+        <!-- Player Selection -->
+        <div class="form-field" style="flex: 2;">
+            <label class="form-label">اسم اللاعب</label>
+            <app-select [options]="playerOptions" [ngModel]="eventForm.playerId"
+                (ngModelChange)="onPlayerChange($event)" placeholder="اختر اللاعب" [disabled]="isPlayersLoading">
+            </app-select>
+        </div>
+
+        <!-- Minute -->
+        <div class="form-field" style="flex: 1;">
+            <label class="form-label">الدقيقة</label>
+            <input type="number" [(ngModel)]="eventForm.minute" class="form-input" min="0" max="150" placeholder="0">
+        </div>
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">

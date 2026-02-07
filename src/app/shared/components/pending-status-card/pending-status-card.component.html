@@ -1,0 +1,22 @@
+<div class="pending-status-card">
+    <!-- Icon -->
+    <div class="icon-container">
+        <div class="icon-pulse"></div>
+        <div class="icon-bg">
+            <span class="material-symbols-outlined">{{ icon }}</span>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <h3 class="title">{{ title }}</h3>
+        <p class="message">{{ message }}</p>
+        <p class="sub-message" *ngIf="subMessage">{{ subMessage }}</p>
+    </div>
+
+    <!-- Action -->
+    <button *ngIf="showRefreshButton" class="refresh-btn" (click)="refresh()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>{{ refreshButtonText }}</span>
+    </button>
+</div>

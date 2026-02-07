@@ -6,6 +6,7 @@ import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
+import { RealTimeUpdateService } from '../../../../core/services/real-time-update.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 
 // Shared Components
@@ -52,6 +53,7 @@ export class TournamentsListComponent implements OnInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly router = inject(Router);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
     // Signals State
     tournaments = signal<Tournament[]>([]);
@@ -113,6 +115,15 @@ export class TournamentsListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadTournaments();
+        this.setupRealTimeUpdates();
+    }
+
+    private setupRealTimeUpdates(): void {
+        this.realTimeUpdate.on(['TOURNAMENT_CREATED', 'TOURNAMENT_UPDATED']).subscribe(() => {
+            if (!this.isRegistrationModalVisible) {
+                this.loadTournaments();
+            }
+        });
     }
 
     // Registration Modal State
@@ -234,11 +245,13 @@ export class TournamentsListComponent implements OnInit {
 
         this.selectedTournamentForRegistration = tournament;
         this.isRegistrationModalVisible = true;
+        this.realTimeUpdate.setEditingState(true);
     }
 
     closeRegistrationModal(): void {
         this.isRegistrationModalVisible = false;
         this.selectedTournamentForRegistration = null;
+        this.realTimeUpdate.setEditingState(false);
     }
 
     onRegistrationSuccess(): void {
