@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -63,28 +63,28 @@ export class MatchDetailComponent implements OnInit {
     private userService = inject(UserService);
     private objectionsService = inject(ObjectionsService);
 
-    match: Match | null = null;
-    isLoading = true;
+    match = signal<Match | null>(null);
+    isLoading = signal(true);
 
     // Enums for template
     MatchStatus = MatchStatus;
     MatchEventType = MatchEventType;
 
     // Modals
-    showEventModal = false;
-    showEndMatchConfirm = false;
+    showEventModal = signal(false);
+    showEndMatchConfirm = signal(false);
 
     // Referee: Report modal
     reportNotes = '';
-    showReportModal = false;
-    isSubmittingReport = false;
+    showReportModal = signal(false);
+    isSubmittingReport = signal(false);
 
     // Admin: Score update
-    showScoreModal = false;
+    showScoreModal = signal(false);
     scoreForm = { homeScore: 0, awayScore: 0 };
 
     // Objection Modal
-    showObjectionModal = false;
+    showObjectionModal = signal(false);
     objectionForm = {
         type: '',
         description: '',
@@ -99,12 +99,12 @@ export class MatchDetailComponent implements OnInit {
     ];
 
     // Admin: Postpone/Reset Schedule Modal
-    showScheduleModal = false;
+    showScheduleModal = signal(false);
     scheduleType: 'postpone' | 'reset' = 'postpone';
     scheduleForm = { date: '', time: '' };
 
     // Admin: Cancel Modal
-    showCancelModal = false;
+    showCancelModal = signal(false);
     cancelReason = '';
 
     // Admin: Delete Event Confirm
@@ -127,23 +127,24 @@ export class MatchDetailComponent implements OnInit {
     Permission = Permission;
 
     loadMatch(id: string): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.matchService.getMatchById(id).subscribe({
             next: (match) => {
-                this.match = match ?? null;
-                if (this.match) {
-                    this.scoreForm.homeScore = this.match.homeScore;
-                    this.scoreForm.awayScore = this.match.awayScore;
-                    if (!this.match.events) {
-                        this.match.events = [];
+                const finalMatch = match ?? null;
+                if (finalMatch) {
+                    this.scoreForm.homeScore = finalMatch.homeScore;
+                    this.scoreForm.awayScore = finalMatch.awayScore;
+                    if (!finalMatch.events) {
+                        finalMatch.events = [];
                     }
                 }
-                this.isLoading = false;
+                this.match.set(finalMatch);
+                this.isLoading.set(false);
                 this.cdr.detectChanges();
             },
             error: () => {
                 this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المباراة');
-                this.isLoading = false;
+                this.isLoading.set(false);
                 this.cdr.detectChanges();
             }
         });
@@ -165,11 +166,12 @@ export class MatchDetailComponent implements OnInit {
         return '/captain/matches';
     }
 
-    getChatRoute(): string[] {
-        if (!this.match) return [];
-        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/matches', this.match.id, 'chat'];
-        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/matches', this.match.id, 'chat'];
-        return ['/captain/matches', this.match.id, 'chat'];
+    getChatRoute(): any[] {
+        const currentMatch = this.match();
+        if (!currentMatch) return [];
+        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/matches', currentMatch.id, 'chat'];
+        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/matches', currentMatch.id, 'chat'];
+        return ['/captain/matches', currentMatch.id, 'chat'];
     }
 
     getTeamRoute(teamId: string): string[] {
@@ -181,11 +183,12 @@ export class MatchDetailComponent implements OnInit {
     // ==================== REFEREE ACTIONS ====================
 
     startMatch(): void {
-        if (!this.match) return;
-        this.matchService.startMatch(this.match.id).subscribe({
+        const currentMatch = this.match();
+        if (!currentMatch) return;
+        this.matchService.startMatch(currentMatch.id).subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
-                    this.match = { ...updatedMatch }; // Force reference change
+                    this.match.set({ ...updatedMatch }); // Force reference change
                 }
                 this.uiFeedback.success('تم البدء', 'انطلقت المباراة الآن! - الوضع المباشر');
                 this.cdr.detectChanges();
@@ -195,56 +198,57 @@ export class MatchDetailComponent implements OnInit {
     }
 
     onEndMatchClick(): void {
-        this.showEndMatchConfirm = true;
+        this.showEndMatchConfirm.set(true);
     }
 
     onMatchEnded(updatedMatch: Match): void {
         if (updatedMatch) {
-            this.match = updatedMatch;
+            this.match.set(updatedMatch);
         }
         this.cdr.detectChanges();
     }
 
     openEventModal(): void {
-        this.showEventModal = true;
+        this.showEventModal.set(true);
     }
 
     onEventAdded(updatedMatch: Match): void {
         if (updatedMatch) {
-            this.match = updatedMatch;
+            this.match.set(updatedMatch);
         }
         this.cdr.detectChanges();
     }
 
     openReportModal(): void {
-        this.showReportModal = true;
+        this.showReportModal.set(true);
     }
 
     closeReportModal(): void {
-        this.showReportModal = false;
+        this.showReportModal.set(false);
         this.reportNotes = '';
     }
 
     submitReport(): void {
-        if (!this.match) return;
+        const currentMatch = this.match();
+        if (!currentMatch) return;
 
-        this.isSubmittingReport = true;
+        this.isSubmittingReport.set(true);
         this.matchService.submitMatchReport(
-            this.match.id,
+            currentMatch.id,
             this.reportNotes,
-            this.match.refereeId,
-            this.match.refereeName
+            currentMatch.refereeId,
+            currentMatch.refereeName
         ).subscribe({
             next: (updatedMatch) => {
-                if (updatedMatch) this.match = updatedMatch;
+                if (updatedMatch) this.match.set(updatedMatch);
                 this.uiFeedback.success('تم بنجاح', 'تم تقديم تقرير المباراة بنجاح');
-                this.isSubmittingReport = false;
+                this.isSubmittingReport.set(false);
                 this.closeReportModal();
                 this.cdr.detectChanges();
             },
             error: (err) => {
                 this.uiFeedback.error('خطأ', err.message || 'فشل في تقديم التقرير');
-                this.isSubmittingReport = false;
+                this.isSubmittingReport.set(false);
                 this.cdr.detectChanges();
             }
         });
@@ -254,21 +258,22 @@ export class MatchDetailComponent implements OnInit {
 
     openPostponeModal(): void {
         this.scheduleType = 'postpone';
-        this.showScheduleModal = true;
+        this.showScheduleModal.set(true);
     }
 
     openResetModal(): void {
         this.scheduleType = 'reset';
-        this.showScheduleModal = true;
+        this.showScheduleModal.set(true);
     }
 
     closeScheduleModal(): void {
-        this.showScheduleModal = false;
+        this.showScheduleModal.set(false);
         this.scheduleForm = { date: '', time: '' };
     }
 
     submitScheduleChange(): void {
-        if (!this.match || !this.scheduleForm.date || !this.scheduleForm.time) {
+        const currentMatch = this.match();
+        if (!currentMatch || !this.scheduleForm.date || !this.scheduleForm.time) {
             this.uiFeedback.warning('تنبيه', 'يرجى اختيار التاريخ والوقت');
             return;
         }
@@ -276,19 +281,21 @@ export class MatchDetailComponent implements OnInit {
         const newDate = new Date(`${this.scheduleForm.date}T${this.scheduleForm.time}`);
 
         if (this.scheduleType === 'postpone') {
-            this.matchService.postponeMatch(this.match.id).subscribe(() => {
-                if (this.match) {
-                    this.match.status = MatchStatus.POSTPONED;
-                    this.match.date = newDate;
-                    this.uiFeedback.success('تم التأجيل', 'تم تأجيل المباراة للموعد الجديد');
-                }
+            this.matchService.postponeMatch(currentMatch.id).subscribe(() => {
+                this.match.update((m: Match | null) => {
+                    if (m) {
+                        return { ...m, status: MatchStatus.POSTPONED, date: newDate };
+                    }
+                    return m;
+                });
+                this.uiFeedback.success('تم التأجيل', 'تم تأجيل المباراة للموعد الجديد');
                 this.closeScheduleModal();
                 this.cdr.detectChanges();
             });
         } else {
-            this.matchService.resetMatch(this.match.id).subscribe((updated) => {
+            this.matchService.resetMatch(currentMatch.id).subscribe((updated) => {
                 if (updated) {
-                    this.match = { ...updated, date: newDate };
+                    this.match.set({ ...updated, date: newDate });
                     this.uiFeedback.success('تمت الإعادة', 'تم إعادة المباراة وجدولتها في الموعد الجديد');
                 }
                 this.closeScheduleModal();
@@ -298,24 +305,25 @@ export class MatchDetailComponent implements OnInit {
     }
 
     openCancelModal(): void {
-        this.showCancelModal = true;
+        this.showCancelModal.set(true);
     }
 
     closeCancelModal(): void {
-        this.showCancelModal = false;
+        this.showCancelModal.set(false);
         this.cancelReason = '';
     }
 
     submitCancellation(): void {
-        if (!this.match || !this.cancelReason.trim()) {
+        const currentMatch = this.match();
+        if (!currentMatch || !this.cancelReason.trim()) {
             this.uiFeedback.warning('تنبيه', 'يرجى إدخال سبب الإلغاء');
             return;
         }
 
-        this.matchService.updateMatchStatus(this.match.id, MatchStatus.CANCELLED).subscribe({
+        this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).subscribe({
             next: (success) => {
-                if (success && this.match) {
-                    this.match.status = MatchStatus.CANCELLED;
+                if (success) {
+                    this.match.update((m: Match | null) => m ? { ...m, status: MatchStatus.CANCELLED } : m);
                     this.uiFeedback.success('تم الإلغاء', 'تم إلغاء المباراة وإرسال إشعارات لجميع الأطراف');
                 }
                 this.closeCancelModal();
@@ -331,15 +339,28 @@ export class MatchDetailComponent implements OnInit {
             'حذف الحدث',
             'danger'
         ).subscribe((confirmed: boolean) => {
-            if (confirmed && this.match) {
-                const eventToDelete = this.match.events?.find(e => e.id === eventId);
+            const currentMatch = this.match();
+            if (confirmed && currentMatch) {
+                const eventToDelete = currentMatch.events?.find((e: any) => e.id === eventId);
 
-                if (eventToDelete && eventToDelete.type === MatchEventType.GOAL) {
-                    if (eventToDelete.teamId === this.match.homeTeamId) this.match.homeScore--;
-                    else this.match.awayScore--;
-                }
+                this.match.update((m: Match | null) => {
+                    if (!m) return m;
+                    let homeScore = m.homeScore;
+                    let awayScore = m.awayScore;
 
-                this.match.events = this.match.events?.filter(e => e.id !== eventId);
+                    if (eventToDelete && eventToDelete.type === MatchEventType.GOAL) {
+                        if (eventToDelete.teamId === m.homeTeamId) homeScore--;
+                        else awayScore--;
+                    }
+
+                    return {
+                        ...m,
+                        homeScore,
+                        awayScore,
+                        events: m.events?.filter((e: any) => e.id !== eventId)
+                    };
+                });
+
                 this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
                 this.cdr.detectChanges();
             }
@@ -347,7 +368,7 @@ export class MatchDetailComponent implements OnInit {
     }
 
     // Referee Modal
-    showRefereeModal = false;
+    showRefereeModal = signal(false);
 
     openRefereeModal(): void {
         this.userService.getUsersByRole('Referee').subscribe({
@@ -358,7 +379,7 @@ export class MatchDetailComponent implements OnInit {
                     icon: 'person'
                 }));
                 // Sort by region logic if needed (requires fetching regions or adding to user model)
-                this.showRefereeModal = true;
+                this.showRefereeModal.set(true);
                 this.cdr.detectChanges();
             },
             error: () => {
@@ -368,17 +389,18 @@ export class MatchDetailComponent implements OnInit {
     }
 
     closeRefereeModal(): void {
-        this.showRefereeModal = false;
+        this.showRefereeModal.set(false);
     }
 
     assignReferee(): void {
-        if (!this.match || !this.selectedRefereeId) return;
+        const currentMatch = this.match();
+        if (!currentMatch || !this.selectedRefereeId) return;
         const selectedRef = this.refereeOptions.find(ref => ref.value === this.selectedRefereeId);
 
-        this.matchService.assignReferee(this.match.id, this.selectedRefereeId, selectedRef?.label || '').subscribe({
+        this.matchService.assignReferee(currentMatch.id, this.selectedRefereeId, selectedRef?.label || '').subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
-                    this.match = updatedMatch;
+                    this.match.set(updatedMatch);
                     this.uiFeedback.success('تم التعيين', `تم تعيين الحكم: ${selectedRef?.label}`);
                 }
                 this.closeRefereeModal();
@@ -388,28 +410,27 @@ export class MatchDetailComponent implements OnInit {
     }
 
     openScoreModal(): void {
-        if (this.match) {
-            this.scoreForm.homeScore = this.match.homeScore;
-            this.scoreForm.awayScore = this.match.awayScore;
+        const currentMatch = this.match();
+        if (currentMatch) {
+            this.scoreForm.homeScore = currentMatch.homeScore;
+            this.scoreForm.awayScore = currentMatch.awayScore;
         }
-        this.showScoreModal = true;
+        this.showScoreModal.set(true);
     }
 
     closeScoreModal(): void {
-        this.showScoreModal = false;
+        this.showScoreModal.set(false);
     }
 
     updateScore(): void {
-        if (!this.match) return;
+        const currentMatch = this.match();
+        if (!currentMatch) return;
 
-        this.matchService.updateMatchScore(this.match.id, this.scoreForm.homeScore, this.scoreForm.awayScore)
+        this.matchService.updateMatchScore(currentMatch.id, this.scoreForm.homeScore, this.scoreForm.awayScore)
             .subscribe({
                 next: (success: boolean) => {
                     if (success) {
-                        if (this.match) {
-                            this.match.homeScore = this.scoreForm.homeScore;
-                            this.match.awayScore = this.scoreForm.awayScore;
-                        }
+                        this.match.update((m: Match | null) => m ? { ...m, homeScore: this.scoreForm.homeScore, awayScore: this.scoreForm.awayScore } : m);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديث النتيجة');
                     }
                     this.closeScoreModal();
@@ -460,11 +481,11 @@ export class MatchDetailComponent implements OnInit {
             description: '',
             files: []
         };
-        this.showObjectionModal = true;
+        this.showObjectionModal.set(true);
     }
 
     closeObjectionModal(): void {
-        this.showObjectionModal = false;
+        this.showObjectionModal.set(false);
     }
 
     onFilesSelected(files: File[]): void {
@@ -472,13 +493,14 @@ export class MatchDetailComponent implements OnInit {
     }
 
     submitObjection(): void {
-        if (!this.match || !this.objectionForm.type || !this.objectionForm.description) {
+        const currentMatch = this.match();
+        if (!currentMatch || !this.objectionForm.type || !this.objectionForm.description) {
             this.uiFeedback.warning('تنبيه', 'يرجى ملء جميع الحقول المطلوبة');
             return;
         }
 
         const request = {
-            matchId: this.match.id,
+            matchId: currentMatch.id,
             type: this.objectionForm.type,
             description: this.objectionForm.description
         };

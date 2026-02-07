@@ -1,7 +1,7 @@
 ﻿<div class="match-detail-page">
 
     <!-- Loading State -->
-    <div *ngIf="isLoading" class="match-detail-loading">
+    <div *ngIf="isLoading()" class="match-detail-loading">
         <div class="loading-content">
             <div class="loading-spinner-lg"></div>
             <p>جاري تحميل تفاصيل المباراة...</p>
@@ -9,20 +9,22 @@
     </div>
 
     <!-- Match Content -->
-    <ng-container *ngIf="!isLoading && match">
+    <ng-container *ngIf="!isLoading() && match() as matchData">
 
-        <app-page-header [title]="match.tournamentName || ''" [showBack]="true" (back)="navigateBack()">
+        <app-page-header [title]="matchData.tournamentName || ''" [showBack]="true" (back)="navigateBack()">
 
             <div class="actions flex-center-gap">
-                <app-button
-                    *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
-                    [routerLink]="getChatRoute()" variant="ghost" icon="chat">
-                    المحادثة
-                </app-button>
+                <ng-container *ngIf="matchData.status !== MatchStatus.FINISHED">
+                    <app-button
+                        *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
+                        [routerLink]="getChatRoute()" variant="ghost" icon="chat">
+                        المحادثة
+                    </app-button>
+                </ng-container>
 
-                <ng-container *ngIf="getStatusConfig(match.status) as statusConfig">
-                    <app-badge [type]="statusConfig.variant" [pulse]="match.status === MatchStatus.LIVE"
-                        [dot]="match.status === MatchStatus.LIVE" dotType="live">
+                <ng-container *ngIf="getStatusConfig(matchData.status) as statusConfig">
+                    <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
+                        [dot]="matchData.status === MatchStatus.LIVE" dotType="live">
                         {{ statusConfig.label }}
                     </app-badge>
                 </ng-container>
@@ -30,47 +32,47 @@
         </app-page-header>
 
         <!-- Main Score Hero -->
-        <div class="score-card-hero" [class.is-live]="match.status === MatchStatus.LIVE"
-            [class.is-finished]="match.status === MatchStatus.FINISHED">
+        <div class="score-card-hero" [class.is-live]="matchData.status === MatchStatus.LIVE"
+            [class.is-finished]="matchData.status === MatchStatus.FINISHED">
 
-            <div *ngIf="match.status === MatchStatus.LIVE" class="live-banner">
+            <div *ngIf="matchData.status === MatchStatus.LIVE" class="live-banner">
                 <span class="pulse-dot"></span>
                 مباراة جارية الآن
             </div>
 
             <div class="score-card-content">
-                <div class="team-block home clickable" [routerLink]="getTeamRoute(match.homeTeamId)">
+                <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
                     <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
-                        <app-smart-image [src]="match.homeTeamLogoUrl" type="team" size="md"
-                            [initials]="match.homeTeamName.charAt(0)">
+                        <app-smart-image [src]="matchData.homeTeamLogoUrl" type="team" size="md"
+                            [initials]="matchData.homeTeamName.charAt(0)">
                         </app-smart-image>
                     </div>
-                    <h2>{{ match.homeTeamName }}</h2>
+                    <h2>{{ matchData.homeTeamName }}</h2>
                     <span class="team-tag">صاحب الأرض</span>
                 </div>
 
                 <div class="score-block">
                     <div class="score-numbers">
-                        <span class="score home">{{ match.homeScore }}</span>
+                        <span class="score home">{{ matchData.homeScore }}</span>
                         <span class="score-divider">:</span>
-                        <span class="score away">{{ match.awayScore }}</span>
+                        <span class="score away">{{ matchData.awayScore }}</span>
                     </div>
                 </div>
 
-                <div class="team-block away clickable" [routerLink]="getTeamRoute(match.awayTeamId)">
+                <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
                     <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
-                        <app-smart-image [src]="match.awayTeamLogoUrl" type="team" size="md"
-                            [initials]="match.awayTeamName.charAt(0)">
+                        <app-smart-image [src]="matchData.awayTeamLogoUrl" type="team" size="md"
+                            [initials]="matchData.awayTeamName.charAt(0)">
                         </app-smart-image>
                     </div>
-                    <h2>{{ match.awayTeamName }}</h2>
+                    <h2>{{ matchData.awayTeamName }}</h2>
                     <span class="team-tag">الضيف</span>
                 </div>
             </div>
 
-            <div *ngIf="match.refereeName" class="referee-bar">
+            <div *ngIf="matchData.refereeName" class="referee-bar">
                 <span class="material-symbols-outlined">sports</span>
-                الحكم: {{ match.refereeName }}
+                الحكم: {{ matchData.refereeName }}
             </div>
         </div>
 
@@ -83,17 +85,18 @@
                     <div class="panel-header">
                         <span class="material-symbols-outlined">timeline</span>
                         <h3>أحداث المباراة</h3>
-                        <span class="events-badge">{{ match.events?.length || 0 }}</span>
+                        <span class="events-badge">{{ matchData.events?.length || 0 }}</span>
                     </div>
 
                     <!-- Empty State -->
-                    <app-empty-state *ngIf="!match.events || match.events.length === 0" icon="sports_soccer"
+                    <app-empty-state *ngIf="!matchData.events || matchData.events.length === 0" icon="sports_soccer"
                         title="لا توجد أحداث" description="لا توجد أحداث حتى الآن">
                     </app-empty-state>
 
                     <!-- Events List -->
-                    <app-match-timeline *ngIf="match.events && match.events.length > 0" [events]="match.events"
-                        [homeTeamId]="match.homeTeamId" (deleteEvent)="deleteEvent($event)">
+                    <app-match-timeline *ngIf="matchData.events && matchData.events.length > 0"
+                        [events]="matchData.events" [homeTeamId]="matchData.homeTeamId"
+                        (deleteEvent)="deleteEvent($event)">
                     </app-match-timeline>
                 </div>
             </div>
@@ -123,7 +126,7 @@
                         <div class="admin-grid"
                             style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
                             <app-button variant="outline" icon="person_pin" (click)="openRefereeModal()">
-                                {{ match.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
+                                {{ matchData.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
                             </app-button>
                             <app-button variant="outline" icon="edit_note" (click)="openEventModal()">
                                 إدارة الأحداث
@@ -155,17 +158,17 @@
                         <h3>مركز التحكم</h3>
                     </div>
                     <div class="panel-body">
-                        <app-button *ngIf="match.status === MatchStatus.SCHEDULED" (click)="startMatch()"
+                        <app-button *ngIf="matchData.status === MatchStatus.SCHEDULED" (click)="startMatch()"
                             style="width: 100%;" variant="primary" icon="play_circle">
                             بدء المباراة
                         </app-button>
 
-                        <app-button *ngIf="match.status === MatchStatus.LIVE" (click)="onEndMatchClick()"
+                        <app-button *ngIf="matchData.status === MatchStatus.LIVE" (click)="onEndMatchClick()"
                             style="width: 100%;" variant="danger" icon="stop_circle">
                             إنهاء المباراة
                         </app-button>
 
-                        <div *ngIf="match.status === MatchStatus.FINISHED" class="report-done">
+                        <div *ngIf="matchData.status === MatchStatus.FINISHED" class="report-done">
                             <span class="material-symbols-outlined">task_alt</span>
                             تم إنهاء المباراة
                         </div>
@@ -187,16 +190,16 @@
 
                 <!-- Report Preview -->
                 <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
-                    <ng-container *ngIf="match.report?.isSubmitted">
+                    <ng-container *ngIf="matchData.report?.isSubmitted">
                         <div class="panel-header">
                             <span class="material-symbols-outlined">description</span>
                             <h3>تقرير المباراة</h3>
                         </div>
                         <div class="panel-body">
-                            <p class="report-notes">"{{ match.report?.notes || 'لا توجد ملاحظات' }}"</p>
+                            <p class="report-notes">"{{ matchData.report?.notes || 'لا توجد ملاحظات' }}"</p>
                             <div class="report-date">
                                 <span class="material-symbols-outlined">schedule</span>
-                                {{ match.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
+                                {{ matchData.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
                             </div>
                         </div>
                     </ng-container>
@@ -223,15 +226,15 @@
 </div>
 
 <!-- Score Modal -->
-<app-modal [visible]="showScoreModal" title="تحديث النتيجة" icon="scoreboard" (onClose)="closeScoreModal()">
+<app-modal [visible]="showScoreModal()" title="تحديث النتيجة" icon="scoreboard" (onClose)="closeScoreModal()">
     <div class="score-form">
         <div class="score-team-input">
-            <label>{{ match?.homeTeamName }}</label>
+            <label>{{ match()?.homeTeamName }}</label>
             <app-form-control type="number" [(ngModel)]="scoreForm.homeScore" [min]="0"></app-form-control>
         </div>
         <span class="score-colon">:</span>
         <div class="score-team-input">
-            <label>{{ match?.awayTeamName }}</label>
+            <label>{{ match()?.awayTeamName }}</label>
             <app-form-control type="number" [(ngModel)]="scoreForm.awayScore" [min]="0"></app-form-control>
         </div>
     </div>
@@ -242,20 +245,22 @@
 </app-modal>
 
 <!-- Centralized End Match Confirmation Dialog -->
-<app-end-match-confirm [matchId]="match?.id || ''" [(visible)]="showEndMatchConfirm"
-    (matchEnded)="onMatchEnded($event)">
+<app-end-match-confirm [matchId]="match()?.id || ''" [visible]="showEndMatchConfirm()"
+    (visibleChange)="showEndMatchConfirm.set($event)" (matchEnded)="onMatchEnded($event)">
 </app-end-match-confirm>
 
 <!-- Centralized Event Recording Modal -->
-<app-match-event-modal [match]="match" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)">
+<app-match-event-modal [match]="match()" [visible]="showEventModal()" (visibleChange)="showEventModal.set($event)"
+    (eventAdded)="onEventAdded($event)">
 </app-match-event-modal>
 
 <!-- Objection Modal -->
-<app-modal [visible]="showObjectionModal" title="تقديم اعتراض" icon="gavel" (onClose)="closeObjectionModal()" size="lg">
+<app-modal [visible]="showObjectionModal()" title="تقديم اعتراض" icon="gavel" (onClose)="closeObjectionModal()"
+    size="lg">
     <div class="objection-form-content">
         <!-- Header Info -->
         <div class="mb-4">
-            <p class="text-secondary">{{ match?.homeTeamName }} vs {{ match?.awayTeamName }}</p>
+            <p class="text-secondary">{{ match()?.homeTeamName }} vs {{ match()?.awayTeamName }}</p>
         </div>
 
         <div class="form-grid">
@@ -294,7 +299,7 @@
 </app-modal>
 
 <!-- Referee Selection Modal -->
-<app-modal [visible]="showRefereeModal" title="تعيين حكم للمباراة" icon="person_pin" (onClose)="closeRefereeModal()">
+<app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin" (onClose)="closeRefereeModal()">
     <div class="form-field full-width" style="min-height: 200px;">
         <app-select [options]="refereeOptions" [(ngModel)]="selectedRefereeId" label="اختر الحكم"
             placeholder="ابحث عن حكم...">
@@ -308,7 +313,7 @@
 </app-modal>
 
 <!-- Postpone/Reset Schedule Modal -->
-<app-modal [visible]="showScheduleModal"
+<app-modal [visible]="showScheduleModal()"
     [title]="scheduleType === 'postpone' ? 'تأجيل المباراة' : 'إعادة جدولة المباراة'"
     [icon]="scheduleType === 'postpone' ? 'schedule' : 'restart_alt'" (onClose)="closeScheduleModal()">
 
@@ -332,7 +337,7 @@
 </app-modal>
 
 <!-- Cancel Match Modal -->
-<app-modal [visible]="showCancelModal" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
+<app-modal [visible]="showCancelModal()" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
     (onClose)="closeCancelModal()">
     <div class="prose mb-4">
         <p class="text-secondary">سيتم إرسال إشعار فوري لجميع اللاعبين والحكم بسبب الإلغاء.</p>

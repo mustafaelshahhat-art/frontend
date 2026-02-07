@@ -24,10 +24,10 @@ export enum UserStatus {
 }
 
 export enum MatchStatus {
-    SCHEDULED = 'SCHEDULED',
-    LIVE = 'LIVE',
-    FINISHED = 'FINISHED',
-    CANCELLED = 'CANCELLED'
+    SCHEDULED = 'Scheduled',
+    LIVE = 'Live',
+    FINISHED = 'Finished',
+    CANCELLED = 'Cancelled'
 }
 
 export enum TournamentStatus {
@@ -168,7 +168,7 @@ export const USER_STATUS_LABELS: Record<string, StatusConfig> = {
 
 export const MATCH_STATUS_LABELS: Record<string, StatusConfig> = {
     [MatchStatus.SCHEDULED]: {
-        label: 'مجدولة',
+        label: 'قادمة',
         variant: 'info',
         icon: 'schedule'
     },
@@ -302,7 +302,14 @@ export function getUserStatus(status: string): StatusConfig {
  * Get match status configuration
  */
 export function getMatchStatus(status: string): StatusConfig {
-    return MATCH_STATUS_LABELS[status] || MATCH_STATUS_LABELS[MatchStatus.SCHEDULED];
+    // Try exact, then capitalized, then uppercase
+    const normalized = status?.charAt(0).toUpperCase() + status?.slice(1).toLowerCase();
+    const upper = status?.toUpperCase();
+
+    return MATCH_STATUS_LABELS[status]
+        || MATCH_STATUS_LABELS[normalized]
+        || MATCH_STATUS_LABELS[upper]
+        || MATCH_STATUS_LABELS[MatchStatus.SCHEDULED];
 }
 
 /**
