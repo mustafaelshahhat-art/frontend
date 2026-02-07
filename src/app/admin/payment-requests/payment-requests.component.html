@@ -25,18 +25,18 @@
             <ng-template #teamInfo let-row="row">
                 <div class="flex-col">
                     <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
-                    <span class="text-xs text-muted">{{ row.tournament.name }}</span>
+                    <span class="text-xs text-muted">{{ row.tournament?.name }}</span>
                 </div>
             </ng-template>
 
             <!-- Amount Template -->
             <ng-template #amountInfo let-row="row">
-                <span class="text-gold font-bold">{{ row.tournament.entryFee }} ريال</span>
+                <span class="text-gold font-bold">{{ row.tournament?.entryFee }} ريال</span>
             </ng-template>
 
             <!-- Date Template -->
             <ng-template #dateInfo let-row="row">
-                <span class="text-muted text-xs">{{ row.registration.paymentDate | date:'yyyy-MM-dd' }}</span>
+                <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
             </ng-template>
 
             <!-- Status Template -->
