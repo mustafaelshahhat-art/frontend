@@ -16,6 +16,182 @@
     gap: var(--space-xl, 24px);
 }
 
+.grid-2-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-xl);
+}
+
+.widget-card {
+    transition: var(--transition-base);
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+
+    &:hover {
+        box-shadow: var(--shadow-xl);
+        border-color: var(--color-primary-20);
+    }
+
+    // Force internal container to take full height for centering
+    .p-md {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 2;
+
+        app-empty-state {
+            margin: auto 0;
+            padding: var(--space-xl) 0;
+        }
+    }
+}
+
+// Activity Styles
+.activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-sm);
+    border-bottom: 1px solid var(--border-visible);
+    transition: background-color var(--duration-fast), outline-color var(--duration-fast);
+    border-radius: var(--radius-lg);
+    position: relative;
+    z-index: 1;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--bg-surface-light);
+        outline: 1px solid var(--border-visible);
+        z-index: 2;
+    }
+}
+
+.activity-icon-container {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    border: 1px solid var(--border-visible);
+    flex-shrink: 0;
+
+    &.danger-style {
+        color: var(--color-danger);
+        background: var(--color-danger-5);
+        border-color: var(--color-danger-20);
+    }
+
+    .material-symbols-outlined {
+        font-size: 20px;
+    }
+}
+
+.activity-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .activity-msg {
+        margin: 0;
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .activity-type {
+        margin: 4px 0 0 0;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+    }
+}
+
+.activity-time-badge {
+    flex-shrink: 0;
+}
+
+// Match Mini Styles
+.live-matches-mini {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.match-mini-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    transition: var(--transition-base);
+
+    &:hover {
+        border-color: var(--color-primary-30);
+        background: var(--bg-input);
+    }
+
+    .team-side {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+
+        &.home {
+            justify-content: flex-end;
+            text-align: left;
+        }
+
+        &.away {
+            justify-content: flex-start;
+            text-align: right;
+        }
+
+        .team-name {
+            font-size: var(--text-sm);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .score-center {
+        padding: 0 var(--space-md);
+
+        .score-pill {
+            background: var(--color-gold-10);
+            color: var(--color-gold);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            font-weight: var(--font-black);
+            font-size: var(--text-sm);
+            letter-spacing: 0.1em;
+            border: 1px solid var(--color-gold-20);
+            display: inline-block;
+        }
+    }
+}
+
 .mb-md {
     margin-bottom: var(--space-xl, 24px);
 }

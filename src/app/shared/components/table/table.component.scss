@@ -30,6 +30,9 @@ table {
         letter-spacing: var(--tracking-wider);
         border-bottom: 1px solid var(--border-visible);
         white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 3;
     }
 
     td {
@@ -45,9 +48,12 @@ table {
 
     &.hoverable tbody tr {
         transition: background-color var(--duration-fast);
+        position: relative;
+        z-index: 1;
 
         &:hover {
             background-color: var(--bg-surface-light);
+            z-index: 2;
         }
     }
 

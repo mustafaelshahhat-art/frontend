@@ -2,8 +2,7 @@
     <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
         <app-button *ngIf="isCaptain() && !showForm" variant="primary" icon="add" (click)="toggleForm()">تقديم اعتراض
             جديد</app-button>
-        <app-badge *ngIf="isAdmin()" type="warning" style="margin-right: 1rem;">{{ pendingCount }} قيد
-            الانتظار</app-badge>
+
     </app-page-header>
 
     <div class="objections-container">

@@ -7,6 +7,8 @@ import { InlineLoadingComponent } from '../../shared/components/inline-loading/i
 import { AnalyticsService, Activity } from '../../core/services/analytics.service';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 
+import { FilterComponent } from '../../shared/components/filter/filter.component';
+
 @Component({
     selector: 'app-activity-log',
     standalone: true,
@@ -16,7 +18,8 @@ import { TableComponent, TableColumn } from '../../shared/components/table/table
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
-        TableComponent
+        TableComponent,
+        FilterComponent
     ],
     templateUrl: './activity-log.component.html',
     styleUrls: ['./activity-log.component.scss']
@@ -29,6 +32,31 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
     isLoading = true;
     columns: TableColumn[] = [];
 
+    filters = [
+        { label: 'الكل', value: 'all' },
+        { label: 'المستخدمين', value: 'user' },
+        { label: 'الفرق', value: 'team' },
+        { label: 'البطولات', value: 'tournament' },
+        { label: 'المباريات', value: 'match' },
+        { label: 'الاعتراضات', value: 'objection' },
+        { label: 'الدفع', value: 'payment' }
+    ];
+    currentFilter = 'all';
+
+    get filteredLogs(): Activity[] {
+        if (this.currentFilter === 'all') return this.logs;
+        const filter = this.currentFilter.toLowerCase();
+        return this.logs.filter(log => {
+            const type = (log.type || '').toLowerCase();
+            const status = (log.status || '').toLowerCase();
+            return type.includes(filter) || status.includes(filter);
+        });
+    }
+
+    setFilter(value: string): void {
+        this.currentFilter = value;
+    }
+
     @ViewChild('userInfo') userInfo!: TemplateRef<any>;
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
     @ViewChild('timeInfo') timeInfo!: TemplateRef<any>;
@@ -40,10 +68,10 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.columns = [
-            { key: 'user', label: 'المستخدم', template: this.userInfo },
-            { key: 'action', label: 'العملية', template: this.actionInfo },
+            { key: 'userName', label: 'المستخدم', template: this.userInfo },
+            { key: 'message', label: 'العملية', template: this.actionInfo },
             { key: 'time', label: 'الوقت', template: this.timeInfo },
-            { key: 'status', label: 'الحالة', template: this.statusInfo }
+            { key: 'type', label: 'التصنيف', template: this.statusInfo }
         ];
         this.cdr.detectChanges();
     }
@@ -69,19 +97,38 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
     }
 
     getBadgeType(type: string): 'success' | 'warning' | 'danger' | 'neutral' {
-        // TODO: Map activity type to badge type
-        switch (type) {
-            case 'user': return 'success';
-            case 'tournament': return 'neutral';
-            case 'match': return 'warning';
-            case 'objection': return 'danger';
-            default: return 'neutral';
-        }
+        const t = (type || '').toLowerCase();
+        if (t.includes('activated')) return 'success';
+        if (t.includes('deactivated') || t.includes('disabled') || t.includes('closed')) return 'danger';
+        if (t.includes('login') || t.includes('logged in')) return 'success';
+        if (t.includes('user')) return 'success';
+        if (t.includes('team')) return 'neutral';
+        if (t.includes('tournament')) return 'neutral';
+        if (t.includes('match')) return 'warning';
+        if (t.includes('objection')) return 'danger';
+        if (t.includes('payment') || t.includes('registration')) return 'success';
+        return 'neutral';
     }
 
     getStatusLabel(type: string): string {
-        // TODO: Map activity type to label
-        return type;
+        const t = type.toLowerCase();
+        if (t.includes('team activated') || t.includes('team_activated')) return 'تفعيل فريق';
+        if (t.includes('team deactivated') || t.includes('team_deactivated') || t.includes('team disabled')) return 'تعطيل فريق';
+        if (t.includes('login') || t.includes('logged in')) return 'دخول';
+        if (t.includes('user created')) return 'مستخدم جديد';
+        if (t.includes('tournament created')) return 'إنشاء بطولة';
+        if (t.includes('registration closed')) return 'إغلاق التسجيل';
+        if (t.includes('registration approved')) return 'قبول تسجيل';
+        if (t.includes('payment created')) return 'دفع';
+
+        switch (t) {
+            case 'user': return 'مستخدم';
+            case 'team': return 'فريق';
+            case 'tournament': return 'بطولة';
+            case 'match': return 'مباراة';
+            case 'objection': return 'اعتراض';
+            default: return type;
+        }
     }
 }
 

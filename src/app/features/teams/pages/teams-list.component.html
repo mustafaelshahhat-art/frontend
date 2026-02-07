@@ -53,15 +53,15 @@
                 </div>
 
                 <div class="card-footer-actions">
-                    <app-button (click)="viewTeam(team)" variant="icon" size="md" icon="visibility"
+                    <app-button (click)="viewTeam(team)" variant="ghost" size="md" icon="visibility" class="text-info"
                         title="عرض التفاصيل"></app-button>
                     <div class="flex-1"></div>
                     <div class="flex items-center gap-2">
-                        <app-button (click)="requestToggleStatus(team)" variant="icon" size="md"
-                            [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-warning]="team.isActive"
+                        <app-button (click)="requestToggleStatus(team)" variant="ghost" size="md"
+                            [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-danger]="team.isActive"
                             [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
                         </app-button>
-                        <app-button (click)="requestDelete(team)" variant="icon" size="md" icon="delete"
+                        <app-button (click)="requestDelete(team)" variant="ghost" size="md" icon="delete"
                             class="text-danger" title="حذف">
                         </app-button>
                     </div>
@@ -105,13 +105,15 @@
 <!-- Actions Template -->
 <ng-template #actionsInfo let-row="row">
     <div class="flex items-center justify-end gap-2">
-        <app-button (click)="requestToggleStatus(row)" variant="icon" size="sm"
-            [icon]="row.isActive ? 'block' : 'check_circle'" [class.text-warning]="row.isActive"
+        <app-button (click)="viewTeam(row)" variant="ghost" size="sm" icon="visibility" class="text-info"
+            title="عرض التفاصيل">
+        </app-button>
+        <app-button (click)="requestDelete(row)" variant="ghost" size="sm" icon="delete" class="text-danger"
+            title="حذف">
+        </app-button>
+        <app-button (click)="requestToggleStatus(row)" variant="ghost" size="sm"
+            [icon]="row.isActive ? 'block' : 'check_circle'" [class.text-danger]="row.isActive"
             [class.text-success]="!row.isActive" [title]="row.isActive ? 'تعطيل' : 'تفعيل'">
-        </app-button>
-        <app-button (click)="requestDelete(row)" variant="icon" size="sm" icon="delete" class="text-danger" title="حذف">
-        </app-button>
-        <app-button (click)="viewTeam(row)" variant="icon" size="sm" icon="visibility" title="عرض التفاصيل">
         </app-button>
     </div>
 </ng-template>

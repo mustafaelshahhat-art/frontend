@@ -23,7 +23,62 @@
     letter-spacing: 0.01em;
     white-space: nowrap;
     touch-action: manipulation;
-    width: 100%;
+    width: auto; // Changed from 100%
+    min-height: 44px;
+    line-height: 1;
+
+    .material-symbols-outlined {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        line-height: 1;
+        font-size: 20px;
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+
+    .btn-text {
+        line-height: 1;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    // Centering for icon-only buttons
+    &.is-icon-only {
+        padding: 0;
+        gap: 0;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        border-radius: var(--radius-xl);
+
+        .btn-text {
+            display: none !important;
+        }
+
+        &.btn-sm {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px;
+            border-radius: var(--radius-lg);
+
+            .material-symbols-outlined {
+                font-size: 18px;
+            }
+        }
+
+        &.btn-lg {
+            width: 56px !important;
+            height: 56px !important;
+            min-width: 56px !important;
+            min-height: 56px;
+        }
+    }
 
     &:disabled {
         opacity: 0.5;
@@ -34,6 +89,7 @@
     @media (max-width: 480px) {
         padding: var(--space-2-5) var(--space-4);
         font-size: var(--text-xs);
+        min-height: 40px;
     }
 
     // Variants
@@ -72,19 +128,6 @@
         }
     }
 
-    &.btn-danger-ghost {
-        background: transparent;
-        border: 1px solid var(--color-danger-20);
-        color: var(--color-danger);
-
-        &:hover:not(:disabled) {
-            background: var(--color-danger-10);
-            border-color: var(--color-danger-40);
-            color: var(--color-danger-light);
-            transform: translateY(-1px);
-        }
-    }
-
     &.btn-ghost {
         background: var(--bg-input);
         border: 1px solid var(--border-visible);
@@ -115,17 +158,14 @@
         padding: var(--space-2) var(--space-4);
         font-size: var(--text-xs);
         border-radius: var(--radius-lg);
+        min-height: 36px;
     }
 
     &.btn-lg {
         padding: var(--space-4) var(--space-8);
         font-size: var(--text-md);
         border-radius: var(--radius-2xl);
-
-        @media (max-width: 480px) {
-            padding: var(--space-3-5) var(--space-6);
-            font-size: var(--text-sm);
-        }
+        min-height: 56px;
     }
 
     &.btn-xl {
@@ -133,27 +173,13 @@
         font-size: var(--text-base);
         font-weight: var(--font-bold);
         border-radius: var(--radius-xl);
-
-        @media (max-width: 480px) {
-            padding: var(--space-3-5) var(--space-6);
-            font-size: var(--text-sm);
-        }
+        min-height: 64px;
     }
 
     &.btn-icon {
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        min-width: 40px; // Ensure circle shape
-        border-radius: var(--radius-xl);
         background: transparent;
         color: var(--text-secondary);
         border: 1px solid transparent;
-        justify-content: center; // Ensure centering
-
-        .btn-text {
-            display: none;
-        }
 
         &:hover:not(:disabled) {
             background: var(--bg-surface-light);
@@ -162,13 +188,6 @@
             transform: translateY(-1px);
         }
 
-        @media (max-width: 480px) {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-        }
-
-        // Allow overriding via color classes (e.g. text-danger)
         &.text-danger:hover:not(:disabled) {
             color: var(--color-danger);
             background: var(--color-danger-5);
@@ -192,6 +211,21 @@
             background: var(--color-primary-5);
             border-color: var(--color-primary-20);
         }
+    }
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 

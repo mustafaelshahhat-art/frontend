@@ -3,7 +3,7 @@
 
         <!-- Welcome Header -->
         <app-welcome-card title="منصة التحكم للمدير" subtitle="مرحباً بك، إليك ملخص النشاط الحالي"
-            icon="admin_panel_settings" status="متصل" statusClass="status-dot-online" [showLogout]="true">
+            icon="admin_panel_settings">
         </app-welcome-card>
 
         <!-- Stats Grid -->
@@ -34,52 +34,64 @@
         </div>
 
         <div class="grid-2-cols gap-xl mt-xl">
-            <!-- Recent Activity -->
-            <div class="card card-glass rounded-xl p-md overflow-hidden">
-                <app-page-header title="آخر النشاطات" icon="history">
-                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/activity-log')">الكل</app-button>
-                </app-page-header>
+            <!-- Recent Activity Widget -->
+            <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+                <div class="p-md">
+                    <app-page-header title="آخر النشاطات" icon="history">
+                        <app-button variant="ghost" size="sm"
+                            (click)="navigateTo('/admin/activity-log')">الكل</app-button>
+                    </app-page-header>
 
-                <div class="activity-list mt-md">
-                    <div *ngFor="let activity of recentActivities.slice(0, 5)"
-                        class="activity-item py-sm border-b border-visible last:border-0">
-                        <div class="flex items-center gap-md">
-                            <div class="activity-icon bg-surface rounded-full p-xs text-primary">
-                                <span class="material-symbols-outlined text-sm">bolt</span>
+                    <div class="activity-list mt-md" *ngIf="recentActivities.length > 0">
+                        <div *ngFor="let activity of recentActivities.slice(0, 5)" class="activity-item">
+                            <div class="activity-icon-container"
+                                [class.danger-style]="activity.message.includes('تعطيل') || activity.message.includes('إغلاق')">
+                                <span class="material-symbols-outlined">{{ activity.type.toLowerCase().includes('user')
+                                    ? 'person' : (activity.type.toLowerCase().includes('team') ? 'groups' : 'bolt')
+                                    }}</span>
                             </div>
-                            <div class="flex-col">
-                                <p class="m-0 text-sm font-bold text-main">{{ activity.type }}</p>
-                                <p class="m-0 text-xs text-muted">{{ activity.message }}</p>
+                            <div class="activity-content">
+                                <p class="activity-msg">{{ activity.message }}</p>
+                                <p class="activity-type">{{ activity.type }}</p>
                             </div>
-                            <span class="ms-auto text-xs text-muted">{{ activity.time }}</span>
+                            <app-badge type="neutral" size="xs" class="activity-time-badge">
+                                {{ activity.time }}
+                            </app-badge>
                         </div>
                     </div>
+
+                    <app-empty-state *ngIf="recentActivities.length === 0" icon="history" title="لا توجد نشاطات بعد"
+                        description="سيظهر سجل العمليات هنا فور حدوث أي نشاط">
+                    </app-empty-state>
                 </div>
-                <div *ngIf="recentActivities.length === 0" class="p-xl text-center text-muted">لا يوجد نشاط مؤخراً</div>
-            </div>
+            </app-card>
 
-            <!-- Live Matches -->
-            <div class="card card-glass rounded-xl p-md overflow-hidden">
-                <app-page-header title="مباريات اليوم" icon="live_tv">
-                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/matches')">الكل</app-button>
-                </app-page-header>
+            <!-- Live Matches Widget -->
+            <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+                <div class="p-md">
+                    <app-page-header title="مباريات اليوم" icon="live_tv">
+                        <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/matches')">الكل</app-button>
+                    </app-page-header>
 
-                <div class="live-matches-mini mt-md">
-                    <div *ngFor="let match of liveMatches.slice(0, 3)"
-                        class="match-mini-row py-sm px-md bg-surface rounded-lg mb-sm">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold truncate w-24 text-center">{{ match.homeTeamName }}</span>
-                            <div
-                                class="score-pill bg-gold bg-opacity-10 text-gold px-sm py-xs rounded font-bold text-sm mx-sm">
-                                {{ match.homeScore }} - {{ match.awayScore }}
+                    <div class="live-matches-mini mt-md" *ngIf="liveMatches.length > 0">
+                        <div *ngFor="let match of liveMatches.slice(0, 3)" class="match-mini-row">
+                            <div class="team-side home">
+                                <span class="team-name">{{ match.homeTeamName }}</span>
                             </div>
-                            <span class="text-sm font-bold truncate w-24 text-center">{{ match.awayTeamName }}</span>
+                            <div class="score-center">
+                                <span class="score-pill">{{ match.homeScore }} - {{ match.awayScore }}</span>
+                            </div>
+                            <div class="team-side away">
+                                <span class="team-name">{{ match.awayTeamName }}</span>
+                            </div>
                         </div>
                     </div>
+
+                    <app-empty-state *ngIf="liveMatches.length === 0" icon="sports_soccer"
+                        title="لا توجد مباريات مجدولة اليوم" description="سيتم عرض المباريات المباشرة واليومية هنا">
+                    </app-empty-state>
                 </div>
-                <div *ngIf="liveMatches.length === 0" class="p-xl text-center text-muted">لا توجد مباريات جارية اليوم
-                </div>
-            </div>
+            </app-card>
         </div>
     </div>
 </div>

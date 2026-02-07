@@ -9,7 +9,7 @@
     padding: var(--space-lg);
     transition: var(--transition-premium);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: var(--shadow-sm);
     z-index: 1;
 
@@ -33,8 +33,8 @@
     }
 
     &:hover {
-        transform: translateY(-4px);
         box-shadow: var(--shadow-card-hover);
+        border-color: var(--color-primary-20);
 
         &::before {
             opacity: 1;
@@ -87,7 +87,6 @@
 
     // Features
     &.card-hover:hover {
-        transform: translateY(-4px);
         border-color: var(--color-primary-20);
         box-shadow: var(--shadow-lg);
     }

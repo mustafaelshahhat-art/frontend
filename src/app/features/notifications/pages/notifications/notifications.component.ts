@@ -23,6 +23,7 @@ interface Notification {
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
     selector: 'app-notifications',
@@ -34,7 +35,8 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge.compon
         PageHeaderComponent,
         CardComponent,
         ButtonComponent,
-        BadgeComponent
+        BadgeComponent,
+        InlineLoadingComponent
     ],
     templateUrl: './notifications.component.html',
     styleUrls: ['./notifications.component.scss'],

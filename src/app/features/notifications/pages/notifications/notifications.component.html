@@ -1,33 +1,26 @@
-<div class="notifications-page">
-    <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
+<div class="page-container">
+    <div class="page-content flex-col gap-xl">
+        <!-- Page Header -->
+        <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
+            <div class="actions flex-center-gap">
+                <app-button *ngIf="unreadCount > 0" variant="outline" size="sm" icon="done_all"
+                    (click)="markAllAsRead()">
+                    تحديد الكل كمقروء
+                </app-button>
+                <app-badge *ngIf="unreadCount > 0" type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
+            </div>
+        </app-page-header>
 
-        <div class="actions flex-center-gap">
-            <app-button *ngIf="unreadCount > 0" variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
-                تحديد الكل كمقروء
-            </app-button>
-            <app-badge *ngIf="unreadCount > 0" type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
-        </div>
-    </app-page-header>
+        <!-- Loading State -->
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل التنبيهات..."></app-inline-loading>
 
-    <div class="notifications-content">
+        <!-- Empty State -->
+        <app-empty-state *ngIf="!isLoading && notifications.length === 0" icon="notifications_off"
+            title="لا توجد تنبيهات" description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
+        </app-empty-state>
 
         <!-- Notifications List -->
-        <div class="notifications-list">
-            <!-- Loading -->
-            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
-                <div class="loading-spinner"
-                    style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
-                </div>
-                <p style="color: #94a3b8;">جاري تحميل التنبيهات...</p>
-            </div>
-
-            <!-- Empty -->
-            <app-empty-state *ngIf="!isLoading && notifications.length === 0" icon="notifications_off"
-                title="لا توجد تنبيهات"
-                description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
-            </app-empty-state>
-
-            <!-- Items -->
+        <div *ngIf="!isLoading && notifications.length > 0" class="notifications-list">
             <app-card *ngFor="let notif of notifications; trackBy: trackByNotification" class="notification-item"
                 [class.unread]="!notif.isRead" (click)="markAsRead(notif)" [isClickable]="true">
 
@@ -35,13 +28,12 @@
                     <div class="notif-icon-box" [attr.data-type]="notif.type">
                         <span class="material-symbols-outlined">{{ getIcon(notif.type) }}</span>
                     </div>
-                    <div class="notif-details" style="flex: 1;">
-                        <div class="notif-header"
-                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
-                            <h3 style="margin: 0; font-size: 1rem;">{{ notif.title }}</h3>
-                            <span class="notif-time" style="color: #64748b; font-size: 0.75rem;">{{ notif.time }}</span>
+                    <div class="notif-details">
+                        <div class="notif-header">
+                            <h3>{{ notif.title }}</h3>
+                            <span class="notif-time">{{ notif.time }}</span>
                         </div>
-                        <p style="margin: 0; font-size: 0.875rem;">{{ notif.message }}</p>
+                        <p>{{ notif.message }}</p>
                     </div>
                 </div>
             </app-card>

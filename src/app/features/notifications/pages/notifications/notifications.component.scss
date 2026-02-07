@@ -1,14 +1,6 @@
-.notifications-page {
-    padding: var(--space-xl);
-    max-width: 800px;
-    margin: 0 auto;
-}
+// Use global .page-container and .page-content classes from _layout.scss
+// Only add component-specific overrides here
 
-.notifications-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xl);
-}
 
 .admin-panel {
     display: flex;
@@ -54,7 +46,8 @@
     }
 
     &:hover {
-        transform: translateY(-2px);
+        border-color: var(--color-primary-20);
+        box-shadow: var(--shadow-md);
     }
 }
 

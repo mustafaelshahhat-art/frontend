@@ -2,11 +2,12 @@
     <div class="page-content flex-col gap-xl">
         <!-- Page Header -->
         <app-page-header title="طلبات الدفع" subtitle="مراجعة وتأكيد إيصالات دفع رسوم اشتراك الفرق">
-            <!-- Filter Tabs -->
-            <div class="mb-2xl animate-fade-in-up">
-                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
-            </div>
         </app-page-header>
+
+        <!-- Filter Tabs -->
+        <div class="mb-xl animate-fade-in-up">
+            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+        </div>
 
         <!-- Loading State -->
         <app-inline-loading *ngIf="isLoading" message="جاري تحميل الطلبات..."></app-inline-loading>

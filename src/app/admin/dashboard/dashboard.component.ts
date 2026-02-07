@@ -6,6 +6,9 @@ import { ActionCardComponent } from '../../shared/components/action-card/action-
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { CardComponent } from '../../shared/components/card/card.component';
 import { AnalyticsService, DashboardStats, Activity } from '../../core/services/analytics.service';
 import { MatchService } from '../../core/services/match.service';
 import { Match } from '../../core/models/tournament.model';
@@ -19,7 +22,10 @@ import { Match } from '../../core/models/tournament.model';
         ActionCardComponent,
         PageHeaderComponent,
         WelcomeCardComponent,
-        ButtonComponent
+        ButtonComponent,
+        BadgeComponent,
+        EmptyStateComponent,
+        CardComponent
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
