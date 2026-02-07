@@ -25,12 +25,13 @@ export class StatusLabelPipe implements PipeTransform {
     };
 
     private readonly matchLabels: Record<MatchStatus, string> = {
-        [MatchStatus.SCHEDULED]: 'مجدولة',
+        [MatchStatus.SCHEDULED]: 'قادمة',
         [MatchStatus.LIVE]: 'مباشر',
         [MatchStatus.HALFTIME]: 'استراحة',
         [MatchStatus.FINISHED]: 'منتهية',
         [MatchStatus.CANCELLED]: 'ملغية',
-        [MatchStatus.POSTPONED]: 'مؤجلة'
+        [MatchStatus.POSTPONED]: 'مؤجلة',
+        [MatchStatus.RESCHEDULED]: 'معاد جدولتها'
     };
 
     transform(value: TournamentStatus | MatchStatus | string): string {

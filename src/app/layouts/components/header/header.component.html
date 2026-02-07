@@ -22,7 +22,7 @@
         <div class="relative notifications-wrapper">
             <button (click)="toggleNotifications()" class="header-btn">
                 <span class="material-symbols-outlined text-xl">notifications</span>
-                <span *ngIf="unreadCount > 0" class="header-btn-badge-dot"></span>
+                <span *ngIf="unreadCount > 0" class="header-btn-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
             </button>
 
             <!-- Notifications Dropdown -->

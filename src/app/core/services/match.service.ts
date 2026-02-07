@@ -126,9 +126,13 @@ export class MatchService {
         return this.updateMatchStatus(matchId, MatchStatus.SCHEDULED).pipe(map(() => undefined));
     }
 
-    assignReferee(matchId: string, refereeId: string, refereeName: string): Observable<Match | undefined> {
+    assignReferee(matchId: string, refereeId: string): Observable<Match | undefined> {
         // Backend update patch
         return this.http.patch<Match>(`${this.apiUrl}/${matchId}`, { refereeId });
+    }
+
+    deleteMatchEvent(matchId: string, eventId: string): Observable<Match> {
+        return this.http.delete<Match>(`${this.apiUrl}/${matchId}/events/${eventId}`);
     }
 }
 

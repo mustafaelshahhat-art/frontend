@@ -11,11 +11,12 @@ import { PermissionsService } from '../../core/services/permissions.service';
 import { Permission } from '../../core/permissions/permissions.model';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { User, UserStatus } from '../../core/models/user.model';
+import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
     selector: 'app-captain-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent],
     templateUrl: './captain-layout.component.html'
 })
 export class CaptainLayoutComponent implements OnInit, OnDestroy {

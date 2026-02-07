@@ -27,7 +27,9 @@ export enum MatchStatus {
     SCHEDULED = 'Scheduled',
     LIVE = 'Live',
     FINISHED = 'Finished',
-    CANCELLED = 'Cancelled'
+    CANCELLED = 'Cancelled',
+    POSTPONED = 'Postponed',
+    RESCHEDULED = 'Rescheduled'
 }
 
 export enum TournamentStatus {
@@ -186,6 +188,16 @@ export const MATCH_STATUS_LABELS: Record<string, StatusConfig> = {
         label: 'ملغاة',
         variant: 'danger',
         icon: 'cancel'
+    },
+    [MatchStatus.POSTPONED]: {
+        label: 'مؤجلة',
+        variant: 'warning',
+        icon: 'event_busy'
+    },
+    [MatchStatus.RESCHEDULED]: {
+        label: 'معاد جدولتها',
+        variant: 'info',
+        icon: 'event_repeat'
     }
 };
 

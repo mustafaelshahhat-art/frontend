@@ -143,16 +143,16 @@
                         <div class="status-grid" style="display: flex; gap: 0.5rem;">
                             <app-button variant="outline" size="sm" icon="schedule" (click)="openPostponeModal()"
                                 style="flex: 1;">تأجيل</app-button>
-                            <app-button variant="outline" size="sm" icon="restart_alt" (click)="openResetModal()"
+                            <app-button variant="outline" size="sm" icon="replay" (click)="openRescheduleModal()"
                                 style="flex: 1;">إعادة</app-button>
-                            <app-button variant="danger" size="sm" icon="block" (click)="openCancelModal()"
+                            <app-button variant="danger" size="sm" icon="cancel" (click)="openCancelModal()"
                                 style="flex: 1;">إلغاء</app-button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Referee Controls -->
-                <div *appHasPermission="Permission.START_MATCH" class="control-panel">
+                <div *ngIf="canShowRefereeControls()" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">dashboard_customize</span>
                         <h3>مركز التحكم</h3>
@@ -176,7 +176,7 @@
                 </div>
 
                 <!-- Add Event Button -->
-                <div *appHasPermission="Permission.MANAGE_MATCH_EVENTS" class="control-panel">
+                <div *ngIf="canShowRefereeControls()" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">edit_note</span>
                         <h3>تسجيل حدث</h3>
@@ -206,7 +206,7 @@
                 </div>
 
                 <!-- Captain: Submit Objection -->
-                <div *appHasPermission="Permission.CREATE_OBJECTION" class="control-panel">
+                <div *ngIf="canShowObjectionSection()" class="control-panel">
                     <div class="panel-header">
                         <span class="material-symbols-outlined">gavel</span>
                         <h3>تقديم اعتراض</h3>
@@ -300,10 +300,38 @@
 
 <!-- Referee Selection Modal -->
 <app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin" (onClose)="closeRefereeModal()">
-    <div class="form-field full-width" style="min-height: 200px;">
-        <app-select [options]="refereeOptions" [(ngModel)]="selectedRefereeId" label="اختر الحكم"
-            placeholder="ابحث عن حكم...">
-        </app-select>
+    <div class="form-grid" style="grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <!-- Governorate -->
+        <div class="form-field">
+            <app-select [options]="governorateOptions()" [ngModel]="selectedGovernorate()"
+                (ngModelChange)="onGovernorateChange($event)" label="المحافظة" placeholder="اختر المحافظة"
+                [loading]="isLocationsLoading() && !selectedGovernorate()">
+            </app-select>
+        </div>
+
+        <!-- City -->
+        <div class="form-field">
+            <app-select [options]="cityOptions()" [ngModel]="selectedCity()" (ngModelChange)="onCityChange($event)"
+                label="المدينة" placeholder="اختر المدينة" [disabled]="!selectedGovernorate()"
+                [loading]="isLocationsLoading() && !!selectedGovernorate() && !selectedCity()">
+            </app-select>
+        </div>
+
+        <!-- District -->
+        <div class="form-field">
+            <app-select [options]="districtOptions()" [ngModel]="selectedDistrict()"
+                (ngModelChange)="onDistrictChange($event)" label="الحي / منطقة السكن" placeholder="اختر الحي"
+                [disabled]="!selectedCity()" [loading]="isLocationsLoading() && !!selectedCity() && !selectedDistrict()">
+            </app-select>
+        </div>
+
+        <!-- Referee -->
+        <div class="form-field">
+            <app-select [options]="refereeOptions" [(ngModel)]="selectedRefereeId" label="الحكم المتاح"
+                placeholder="اختر الحكم" [disabled]="!selectedDistrict()"
+                [loading]="isLocationsLoading() && !!selectedDistrict()">
+            </app-select>
+        </div>
     </div>
     <div modal-footer class="flex justify-end gap-3 w-full">
         <app-button (click)="closeRefereeModal()" variant="ghost">إلغاء</app-button>

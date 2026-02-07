@@ -18,7 +18,7 @@
                         بدء المباراة
                     </button>
 
-                    <div *ngIf="match.status === MatchStatus.LIVE" class="flex gap-2 w-full">
+                    <div *ngIf="isMatchLive(match)" class="flex gap-2 w-full">
                         <button (click)="openEventModal(match)" class="match-card-action primary-btn flex-1">
                             <span class="material-symbols-outlined">edit_note</span>
                             تسجيل حدث

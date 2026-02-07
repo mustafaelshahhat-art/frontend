@@ -122,4 +122,11 @@ export class RefereeDashboardComponent implements OnInit {
     goToMatchDetail(matchId: string): void {
         this.router.navigate(['/referee/matches', matchId]);
     }
+
+    /**
+     * Checks if a match is currently live - used for referee control visibility.
+     */
+    isMatchLive(match: Match): boolean {
+        return match.status === MatchStatus.LIVE;
+    }
 }

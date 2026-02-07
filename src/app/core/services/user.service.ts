@@ -74,5 +74,13 @@ export class UserService {
         }
         return this.http.get<AdminCountDto>(`${this.apiUrl}/admin-count`, { params });
     }
+
+    getReferees(districtId?: string, cityId?: string, governorateId?: string): Observable<User[]> {
+        let params = new HttpParams();
+        if (districtId) params = params.set('districtId', districtId);
+        if (cityId) params = params.set('cityId', cityId);
+        if (governorateId) params = params.set('governorateId', governorateId);
+        return this.http.get<User[]>(`${environment.apiUrl}/referees`, { params });
+    }
 }
 

@@ -8,11 +8,12 @@ import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
     selector: 'app-referee-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent],
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent],
     templateUrl: './referee-layout.component.html'
 })
 export class RefereeLayoutComponent implements OnInit, OnDestroy {

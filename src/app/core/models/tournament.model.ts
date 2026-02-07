@@ -66,7 +66,8 @@ export enum MatchStatus {
     HALFTIME = 'Halftime',
     FINISHED = 'Finished',
     CANCELLED = 'Cancelled',
-    POSTPONED = 'Postponed'
+    POSTPONED = 'Postponed',
+    RESCHEDULED = 'Rescheduled'
 }
 
 export interface Match {

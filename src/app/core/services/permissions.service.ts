@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { Permission, ROLE_PERMISSIONS } from '../permissions/permissions.model';
 import { UserRole } from '../models/user.model';
+import { MatchStatus } from '../models/tournament.model';
 
 @Injectable({
     providedIn: 'root'
@@ -40,5 +41,29 @@ export class PermissionsService {
 
         const rolePermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
         return permissions.every(p => rolePermissions.includes(p));
+    }
+
+    /**
+     * Checks if current user can manage live match controls (Referee only, Live matches only).
+     * Used for referee-specific actions like "مركز التحكم", "تسجيل حدث", "تسجيل حدث جديد".
+     */
+    canManageLiveMatch(matchStatus: MatchStatus): boolean {
+        // Must be Referee (has START_MATCH but NOT MANAGE_MATCHES to exclude Admin)
+        const isReferee = this.hasPermission(Permission.START_MATCH) &&
+                          !this.hasPermission(Permission.MANAGE_MATCHES);
+        // Match must be Live
+        return isReferee && matchStatus === MatchStatus.LIVE;
+    }
+
+    /**
+     * Checks if current user can submit objections (Player only, Finished matches only).
+     * Used for "تقديم اعتراض" section visibility.
+     */
+    canSubmitObjection(matchStatus: MatchStatus): boolean {
+        // Must be Player (has CREATE_OBJECTION but NOT START_MATCH to exclude Referee)
+        const isPlayer = this.hasPermission(Permission.CREATE_OBJECTION) &&
+                         !this.hasPermission(Permission.START_MATCH);
+        // Match must be Finished
+        return isPlayer && matchStatus === MatchStatus.FINISHED;
     }
 }
