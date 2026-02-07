@@ -20,6 +20,7 @@ export interface TeamRegistration {
     captainName: string;
     status: RegistrationStatus;
     paymentReceiptUrl?: string;  // URL to payment receipt image
+    senderNumber?: string;
     paymentDate?: Date;
     approvedBy?: string;         // Admin who approved/rejected
     approvalDate?: Date;

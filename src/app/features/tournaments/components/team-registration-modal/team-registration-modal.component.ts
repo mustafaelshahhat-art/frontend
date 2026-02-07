@@ -142,7 +142,7 @@ export class TeamRegistrationModalComponent {
     private uploadPayment(teamId: string): void {
         if (!this.tournament || !this.registerForm.receipt) return;
 
-        this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt).subscribe({
+        this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt, this.registerForm.fromNumber).subscribe({
             next: () => {
                 this.isSubmitting = false;
                 this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل وإيصال الدفع بنجاح');

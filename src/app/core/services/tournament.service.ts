@@ -43,9 +43,12 @@ export class TournamentService {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId });
     }
 
-    submitPaymentReceipt(tournamentId: string, teamId: string, receipt: File): Observable<TeamRegistration> {
+    submitPaymentReceipt(tournamentId: string, teamId: string, receipt: File, senderNumber?: string): Observable<TeamRegistration> {
         const formData = new FormData();
         formData.append('receipt', receipt);
+        if (senderNumber) {
+            formData.append('senderNumber', senderNumber);
+        }
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/payment`, formData);
     }
 

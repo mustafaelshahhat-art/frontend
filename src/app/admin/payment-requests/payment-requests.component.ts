@@ -50,6 +50,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
     @ViewChild('amountInfo') amountInfo!: TemplateRef<any>;
     @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
+    @ViewChild('senderNumberInfo') senderNumberInfo!: TemplateRef<any>;
     @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
     @ViewChild('receiptInfo') receiptInfo!: TemplateRef<any>;
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
@@ -63,6 +64,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
             { key: 'team', label: 'الفريق', template: this.teamInfo },
             { key: 'amount', label: 'المبلغ', template: this.amountInfo },
             { key: 'date', label: 'التاريخ', template: this.dateInfo },
+            { key: 'senderNumber', label: 'الرقم المحول منه', template: this.senderNumberInfo },
             { key: 'status', label: 'الحالة', template: this.statusInfo },
             { key: 'receipt', label: 'الإيصال', template: this.receiptInfo },
             { key: 'action', label: 'الإجراء', template: this.actionInfo }

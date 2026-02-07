@@ -113,7 +113,7 @@ export class ChampionshipRegistrationComponent implements OnInit {
         this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
             next: () => {
                 // Step 2: Submit Payment Receipt (PendingPaymentReview)
-                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.receiptFile!).subscribe({
+                this.tournamentService.submitPaymentReceipt(this.tournament!.id, currentUser.teamId!, this.receiptFile!, this.regForm.value.phone).subscribe({
                     next: () => {
                         this.isLoading = false;
                         this.submitted = true;

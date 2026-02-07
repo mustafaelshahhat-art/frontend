@@ -40,6 +40,11 @@
             <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
         </ng-template>
 
+        <!-- Sender Number Template -->
+        <ng-template #senderNumberInfo let-row="row">
+            <span class="text-info font-medium">{{ row.registration.senderNumber || '-' }}</span>
+        </ng-template>
+
         <!-- Status Template -->
         <ng-template #statusInfo let-row="row">
             <app-badge [type]="getBadgeType(row.registration.status)">
