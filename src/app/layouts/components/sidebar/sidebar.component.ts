@@ -50,9 +50,9 @@ export class SidebarComponent {
         if (!this.currentUser) return '/';
 
         switch (this.currentUser.role) {
-            case 'ADMIN':
+            case 'Admin':
                 return '/admin/settings';
-            case 'REFEREE':
+            case 'Referee':
                 return '/referee/profile';
             default:
                 // Both Player and Captain currently share the 'captain' layout routes
@@ -64,9 +64,9 @@ export class SidebarComponent {
         if (!this.currentUser) return this.userRoleLabel;
 
         switch (this.currentUser.role) {
-            case 'ADMIN': return 'مسؤول النظام';
-            case 'REFEREE': return 'حكم الساحة';
-            case 'PLAYER':
+            case 'Admin': return 'مسؤول النظام';
+            case 'Referee': return 'حكم الساحة';
+            case 'Player':
                 if (this.currentUser.isTeamOwner) return 'قائد الفريق';
                 return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';
             default: return this.userRoleLabel;

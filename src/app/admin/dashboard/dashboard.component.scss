@@ -1,41 +1,94 @@
+// ==========================================================================
+// ADMIN DASHBOARD - Responsive Layout
+// ==========================================================================
+
 .page-container {
-    padding: var(--space-xl, 24px);
+    padding: var(--space-xl);
     max-width: 1400px;
     margin: 0 auto;
+
+    @media (max-width: 992px) {
+        padding: var(--space-lg);
+    }
+
+    @media (max-width: 768px) {
+        padding: var(--space-md);
+    }
+
+    @media (max-width: 480px) {
+        padding: var(--space-sm);
+    }
 }
 
 .page-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl, 24px);
+    gap: var(--space-xl);
+
+    @media (max-width: 768px) {
+        gap: var(--space-lg);
+    }
+
+    @media (max-width: 480px) {
+        gap: var(--space-md);
+    }
 }
 
+// Stats Grid - Fully Responsive
 .grid-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--space-xl, 24px);
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xl);
+
+    @media (max-width: 1200px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-lg);
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
 }
 
+// Widgets Grid - Fully Responsive
 .grid-2-cols {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-xl);
+
+    @media (max-width: 992px) {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    @media (max-width: 480px) {
+        gap: var(--space-md);
+    }
 }
 
+// Widget Cards
 .widget-card {
     transition: var(--transition-base);
-    min-height: 440px;
+    min-height: 380px;
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 1;
+
+    @media (max-width: 768px) {
+        min-height: 320px;
+    }
+
+    @media (max-width: 480px) {
+        min-height: auto;
+    }
 
     &:hover {
         box-shadow: var(--shadow-xl);
         border-color: var(--color-primary-20);
     }
 
-    // Force internal container to take full height for centering
     .p-md {
         flex: 1;
         display: flex;
@@ -46,11 +99,18 @@
         app-empty-state {
             margin: auto 0;
             padding: var(--space-xl) 0;
+
+            @media (max-width: 480px) {
+                padding: var(--space-lg) 0;
+            }
         }
     }
 }
 
-// Activity Styles
+// ==========================================================================
+// ACTIVITY STYLES - Responsive
+// ==========================================================================
+
 .activity-list {
     display: flex;
     flex-direction: column;
@@ -66,6 +126,12 @@
     border-radius: var(--radius-lg);
     position: relative;
     z-index: 1;
+
+    @media (max-width: 480px) {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+        flex-wrap: wrap;
+    }
 
     &:last-child {
         border-bottom: none;
@@ -90,6 +156,11 @@
     border: 1px solid var(--border-visible);
     flex-shrink: 0;
 
+    @media (max-width: 480px) {
+        width: 36px;
+        height: 36px;
+    }
+
     &.danger-style {
         color: var(--color-danger);
         background: var(--color-danger-5);
@@ -98,6 +169,10 @@
 
     .material-symbols-outlined {
         font-size: 20px;
+
+        @media (max-width: 480px) {
+            font-size: 18px;
+        }
     }
 }
 
@@ -107,6 +182,12 @@
     flex-direction: column;
     min-width: 0;
 
+    @media (max-width: 480px) {
+        order: 2;
+        width: 100%;
+        flex-basis: 100%;
+    }
+
     .activity-msg {
         margin: 0;
         font-size: var(--text-sm);
@@ -115,6 +196,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        @media (max-width: 480px) {
+            font-size: var(--text-xs);
+            white-space: normal;
+            line-height: var(--leading-snug);
+        }
     }
 
     .activity-type {
@@ -126,13 +213,25 @@
 
 .activity-time-badge {
     flex-shrink: 0;
+
+    @media (max-width: 480px) {
+        order: 1;
+        margin-right: auto;
+    }
 }
 
-// Match Mini Styles
+// ==========================================================================
+// MATCH STYLES - Responsive
+// ==========================================================================
+
 .live-matches-mini {
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+
+    @media (max-width: 480px) {
+        gap: var(--space-sm);
+    }
 }
 
 .match-mini-row {
@@ -145,6 +244,12 @@
     border-radius: var(--radius-xl);
     transition: var(--transition-base);
 
+    @media (max-width: 480px) {
+        padding: var(--space-sm);
+        border-radius: var(--radius-lg);
+        gap: var(--space-xs);
+    }
+
     &:hover {
         border-color: var(--color-primary-30);
         background: var(--bg-input);
@@ -154,6 +259,10 @@
         display: flex;
         align-items: center;
         gap: var(--space-sm);
+
+        @media (max-width: 480px) {
+            gap: var(--space-xs);
+        }
 
         &.home {
             justify-content: flex-end;
@@ -172,11 +281,24 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+
+            @media (max-width: 480px) {
+                font-size: var(--text-xs);
+                max-width: 80px;
+            }
+
+            @media (max-width: 360px) {
+                max-width: 60px;
+            }
         }
     }
 
     .score-center {
         padding: 0 var(--space-md);
+
+        @media (max-width: 480px) {
+            padding: 0 var(--space-sm);
+        }
 
         .score-pill {
             background: var(--color-gold-10);
@@ -188,10 +310,20 @@
             letter-spacing: 0.1em;
             border: 1px solid var(--color-gold-20);
             display: inline-block;
+
+            @media (max-width: 480px) {
+                padding: var(--space-xs) var(--space-sm);
+                font-size: var(--text-xs);
+            }
         }
     }
 }
 
+// Utilities
 .mb-md {
-    margin-bottom: var(--space-xl, 24px);
+    margin-bottom: var(--space-xl);
+
+    @media (max-width: 480px) {
+        margin-bottom: var(--space-lg);
+    }
 }

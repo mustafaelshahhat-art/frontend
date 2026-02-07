@@ -5,6 +5,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -18,7 +19,8 @@ import { ChangeDetectorRef } from '@angular/core';
         PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
-        SmartImageComponent
+        SmartImageComponent,
+        EmptyStateComponent
     ],
     templateUrl: './user-detail.component.html',
     styleUrls: ['./user-detail.component.scss']
@@ -88,17 +90,21 @@ export class UserDetailComponent implements OnInit {
         switch (type?.toLowerCase()) {
             case 'login': return 'login';
             case 'match': return 'sports_soccer';
+            case 'team': return 'groups';
             case 'system': return 'settings';
+            case 'registration': return 'person_add';
             default: return 'info';
         }
     }
 
     getActivityBadgeClass(type: string): string {
         switch (type?.toLowerCase()) {
-            case 'login': return 'notification-icon-info';
-            case 'match': return 'notification-icon-success';
-            case 'system': return 'notification-icon-warning';
-            default: return 'notification-icon-info';
+            case 'login': return 'badge-info';
+            case 'match': return 'badge-success';
+            case 'team': return 'badge-warning';
+            case 'system': return 'badge-danger';
+            case 'registration': return 'badge-success';
+            default: return 'badge-info';
         }
     }
 

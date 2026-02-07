@@ -1,137 +1,214 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-2xl">
-        <!-- Back Button -->
-        <button (click)="navigateBack()" class="back-button">
-            <span class="material-symbols-outlined">arrow_forward</span>
-            العودة للمستخدمين
-        </button>
+<div class="page-container user-detail-page">
+    <div class="page-content">
 
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="flex-col items-center justify-center p-4xl">
+        <div *ngIf="isLoading" class="loading-state">
             <div class="loading-spinner"></div>
-            <p class="text-muted mt-lg">جاري تحميل بيانات المستخدم...</p>
+            <p>جاري تحميل بيانات المستخدم...</p>
         </div>
 
         <!-- Error/Not Found State -->
-        <div *ngIf="!isLoading && !user" class="flex-col items-center justify-center p-4xl text-center">
-            <span class="material-symbols-outlined text-4xl text-muted mb-md">person_off</span>
-            <h2 class="text-xl font-bold mb-md">لم يتم العثور على المستخدم</h2>
-            <p class="text-muted mb-xl">قد يكون المستخدم غير موجود أو تم حذفه</p>
+        <app-empty-state *ngIf="!isLoading && !user" icon="person_off" title="لم يتم العثور على المستخدم"
+            description="قد يكون المستخدم غير موجود أو تم حذفه">
             <app-button (click)="navigateBack()">العودة لقائمة المستخدمين</app-button>
-        </div>
+        </app-empty-state>
 
         <!-- User Data Content -->
         <ng-container *ngIf="!isLoading && user">
-            <!-- Standard Page Header -->
-            <app-page-header [title]="user.name" [subtitle]="'@' + (user.username || user.email) + ' • ' + user.email">
-                <app-button (click)="toggleUserStatus()" [variant]="user.status === 'Active' ? 'danger' : 'primary'"
-                    [icon]="user.status === 'Active' ? 'block' : 'check_circle'">
-                    {{ user.status === 'Active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
-                </app-button>
-            </app-page-header>
+            <!-- Hero Section with User Profile -->
+            <div class="user-hero animate-fade-in">
+                <div class="hero-backdrop"></div>
+                <div class="hero-content">
+                    <!-- Back Button -->
+                    <button class="back-btn" (click)="navigateBack()">
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                        <span>العودة</span>
+                    </button>
 
-            <!-- User Details & Activity -->
-            <div class="grid-3-cols gap-2xl">
-                <div class="flex-col gap-xl">
-                    <!-- Identity Card -->
-                    <div class="card p-xl flex-col items-center text-center animate-fade-in-up">
-                        <div class="mb-lg relative" style="width: 120px; height: 120px;">
+                    <!-- Profile Card -->
+                    <div class="profile-card">
+                        <div class="profile-avatar">
                             <app-smart-image [src]="user.avatar" [type]="user.role === 'Referee' ? 'referee' : 'avatar'"
-                                size="lg" [initials]="user.name.charAt(0)">
+                                size="xl" [initials]="user.name.charAt(0)">
                             </app-smart-image>
-                            <div class="absolute bottom-1 right-1 p-1 bg-surface rounded-full shadow-sm">
+                            <div class="status-indicator" [class.active]="user.status === 'Active'"
+                                [class.inactive]="user.status !== 'Active'">
+                                <span class="material-symbols-outlined">
+                                    {{ user.status === 'Active' ? 'check_circle' : 'cancel' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="profile-info">
+                            <h1 class="profile-name">{{ user.name }}</h1>
+                            <p class="profile-email">{{ user.email }}</p>
+                            <div class="profile-meta">
+                                <app-badge type="gold">
+                                    <span class="material-symbols-outlined">military_tech</span>
+                                    {{ getRoleLabel(user.role) }}
+                                </app-badge>
                                 <app-badge [type]="getBadgeType(user.status)">
                                     {{ getStatusLabel(user.status) }}
                                 </app-badge>
                             </div>
                         </div>
 
-                        <h2 class="text-xl font-bold text-primary mb-1">{{ user.name }}</h2>
-                        <div class="flex items-center gap-2 text-secondary mb-xl">
-                            <span class="material-symbols-outlined text-gold">military_tech</span>
-                            <span class="font-semibold">{{ getRoleLabel(user.role) }}</span>
-                        </div>
-
-                        <div class="w-full border-t pt-md flex justify-between text-sm">
-                            <span class="text-muted">المعرف</span>
-                            <span class="font-mono text-primary font-bold">#{{ user.id }}</span>
+                        <div class="profile-actions">
+                            <app-button (click)="toggleUserStatus()"
+                                [variant]="user.status === 'Active' ? 'danger' : 'primary'"
+                                [icon]="user.status === 'Active' ? 'block' : 'check_circle'" size="lg">
+                                {{ user.status === 'Active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
+                            </app-button>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Personal Info Card -->
-                    <div class="card animate-fade-in-up" style="animation-delay: 0.1s">
-                        <h3 class="card-title flex items-center gap-2 mb-xl">
-                            <span class="material-symbols-outlined text-primary">info</span>
-                            المعلومات الشخصية
-                        </h3>
-                        <div class="flex-col gap-lg">
-                            <div class="grid-2-cols gap-md">
-                                <div class="flex-col gap-1">
-                                    <span class="text-xs text-muted">رقم الهوية</span>
-                                    <span class="text-sm font-bold text-secondary">{{ user.nationalId || '—' }}</span>
-                                </div>
-                                <div class="flex-col gap-1">
-                                    <span class="text-xs text-muted">العمر</span>
-                                    <span class="text-sm font-bold text-secondary">{{ user.age || '—' }} سنة</span>
-                                </div>
-                            </div>
-                            <div class="flex-col gap-1">
-                                <span class="text-xs text-muted">العنوان</span>
-                                <span class="text-sm text-secondary">
-                                    {{ user.governorate || '—' }} - {{ user.city || '—' }} - {{ user.neighborhood || '—'
-                                    }}
-                                </span>
-                            </div>
-                            <div class="flex-col gap-1">
-                                <span class="text-xs text-muted">رقم الهاتف</span>
-                                <span class="text-sm text-secondary font-mono">{{ user.phone || 'غير مسجل' }}</span>
-                            </div>
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Quick Stats Row -->
+                <div class="stats-row animate-fade-in-up">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">fingerprint</span>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">المعرف</span>
+                            <span class="stat-value">{{ user.id }}</span>
                         </div>
                     </div>
-
-                    <!-- Identity Documents Card -->
-                    <div class="card animate-fade-in-up" style="animation-delay: 0.2s">
-                        <h3 class="card-title flex items-center gap-2 mb-xl">
-                            <span class="material-symbols-outlined text-primary">domain_verification</span>
-                            وثائق الهوية
-                        </h3>
-                        <div class="flex-col gap-lg">
-                            <div class="id-card-view">
-                                <span class="text-xs text-muted mb-xs block">وجه البطاقة</span>
-                                <div class="id-card-img-wrapper" style="height: 160px;">
-                                    <app-smart-image [src]="user.idFrontUrl" type="id" size="custom"></app-smart-image>
-                                </div>
-                            </div>
-                            <div class="id-card-view">
-                                <span class="text-xs text-muted mb-xs block">ظهر البطاقة</span>
-                                <div class="id-card-img-wrapper" style="height: 160px;">
-                                    <app-smart-image [src]="user.idBackUrl" type="id" size="custom"></app-smart-image>
-                                </div>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">badge</span>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">رقم الهوية</span>
+                            <span class="stat-value">{{ user.nationalId || '—' }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">cake</span>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">العمر</span>
+                            <span class="stat-value">{{ user.age || '—' }} سنة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <span class="material-symbols-outlined">call</span>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">الهاتف</span>
+                            <span class="stat-value font-mono">{{ user.phone || '—' }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-span-2">
-                    <div class="card h-full animate-fade-in-up" style="animation-delay: 0.2s">
-                        <h3 class="card-title flex items-center gap-2 mb-xl">
-                            <span class="material-symbols-outlined text-primary">history</span>
-                            النشاط الأخير
-                        </h3>
-                        <div class="flex-col gap-lg">
-                            <div *ngFor="let activity of user.activities" class="card card-hover flex gap-lg p-md">
-                                <div class="avatar avatar-md flex-shrink-0"
-                                    [ngClass]="getActivityBadgeClass(activity.type)">
-                                    <span class="material-symbols-outlined">{{ getActivityIcon(activity.type) }}</span>
+                <!-- Main Content Columns -->
+                <div class="main-columns">
+                    <!-- Left Column: Activity & Location -->
+                    <div class="column-left">
+                        <!-- Activity Timeline -->
+                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.1s">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <span class="material-symbols-outlined">history</span>
                                 </div>
-                                <div class="flex-col gap-1">
-                                    <p class="text-sm text-secondary mb-0">{{ activity.message }}</p>
-                                    <span class="text-xs text-muted">{{ activity.createdAt | date:'yyyy/MM/dd HH:mm'
-                                        }}</span>
+                                <h2 class="card-title">سجل النشاط</h2>
+                                <span class="activity-count" *ngIf="user.activities?.length">
+                                    {{ user.activities.length }}
+                                </span>
+                            </div>
+
+                            <div class="timeline" *ngIf="user.activities?.length > 0">
+                                <div *ngFor="let activity of user.activities; let i = index; let last = last"
+                                    class="timeline-item" [style.animation-delay]="(i * 0.05) + 's'">
+                                    <div class="timeline-dot" [ngClass]="getActivityBadgeClass(activity.type)">
+                                        <span class="material-symbols-outlined">
+                                            {{ getActivityIcon(activity.type) }}
+                                        </span>
+                                    </div>
+                                    <div class="timeline-connector" *ngIf="!last"></div>
+                                    <div class="timeline-content">
+                                        <p class="timeline-message">{{ activity.message }}</p>
+                                        <span class="timeline-time">
+                                            <span class="material-symbols-outlined">schedule</span>
+                                            {{ activity.createdAt | date:'yyyy/MM/dd - HH:mm' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <div *ngIf="!user.activities || user.activities.length === 0" class="empty-state">
-                                لا يوجد نشاط مسجل حالياً
+
+                            <div class="empty-timeline" *ngIf="!user.activities || user.activities.length === 0">
+                                <span class="material-symbols-outlined">history_toggle_off</span>
+                                <p>لا يوجد نشاط مسجل حالياً</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Info & Documents -->
+                    <div class="column-right">
+                        <!-- Location Card -->
+                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.15s">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                </div>
+                                <h2 class="card-title">العنوان</h2>
+                            </div>
+                            <div class="location-grid">
+                                <div class="location-item">
+                                    <span class="location-label">المحافظة</span>
+                                    <span class="location-value">{{ user.governorate || '—' }}</span>
+                                </div>
+                                <div class="location-item">
+                                    <span class="location-label">المدينة</span>
+                                    <span class="location-value">{{ user.city || '—' }}</span>
+                                </div>
+                                <div class="location-item full">
+                                    <span class="location-label">الحي</span>
+                                    <span class="location-value">{{ user.neighborhood || '—' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Identity Documents -->
+                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.2s">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <span class="material-symbols-outlined">verified_user</span>
+                                </div>
+                                <h2 class="card-title">وثائق الهوية</h2>
+                            </div>
+                            <div class="documents-gallery">
+                                <div class="doc-card">
+                                    <div class="doc-label">
+                                        <span class="material-symbols-outlined">credit_card</span>
+                                        <span>وجه البطاقة</span>
+                                    </div>
+                                    <div class="doc-image">
+                                        <app-smart-image [src]="user.idFrontUrl" type="id"
+                                            size="custom"></app-smart-image>
+                                        <div class="doc-overlay">
+                                            <span class="material-symbols-outlined">zoom_in</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="doc-card">
+                                    <div class="doc-label">
+                                        <span class="material-symbols-outlined">credit_card</span>
+                                        <span>ظهر البطاقة</span>
+                                    </div>
+                                    <div class="doc-image">
+                                        <app-smart-image [src]="user.idBackUrl" type="id"
+                                            size="custom"></app-smart-image>
+                                        <div class="doc-overlay">
+                                            <span class="material-symbols-outlined">zoom_in</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
