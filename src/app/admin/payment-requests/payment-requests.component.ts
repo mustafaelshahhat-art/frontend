@@ -74,7 +74,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
 
     loadRequests(): void {
         this.isLoading = true;
-        this.tournamentService.getPendingPaymentApprovals().subscribe({
+        this.tournamentService.getAllPaymentRequests().subscribe({
             next: (data) => {
                 setTimeout(() => {
                     this.requests = data;

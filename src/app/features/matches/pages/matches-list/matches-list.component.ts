@@ -85,11 +85,20 @@ export class MatchesListComponent implements OnInit {
 
         switch (filter) {
             case 'upcoming':
-                return currentMatches.filter(m => m.status === MatchStatus.SCHEDULED);
+                // Include Scheduled, Postponed, and Rescheduled matches
+                return currentMatches.filter(m => 
+                    m.status === MatchStatus.SCHEDULED || 
+                    m.status === MatchStatus.POSTPONED || 
+                    m.status === MatchStatus.RESCHEDULED
+                );
             case 'live':
                 return currentMatches.filter(m => m.status === MatchStatus.LIVE);
             case 'finished':
-                return currentMatches.filter(m => m.status === MatchStatus.FINISHED);
+                // Include Finished and Cancelled matches
+                return currentMatches.filter(m => 
+                    m.status === MatchStatus.FINISHED || 
+                    m.status === MatchStatus.CANCELLED
+                );
             default:
                 return currentMatches;
         }

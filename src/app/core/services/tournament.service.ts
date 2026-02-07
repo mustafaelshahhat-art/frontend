@@ -72,6 +72,18 @@ export class TournamentService {
         );
     }
 
+    getAllPaymentRequests(): Observable<{ tournament: Tournament, registration: TeamRegistration }[]> {
+        // Controller: GET payments/all - returns pending, approved, and rejected
+        return this.http.get<any[]>(`${this.apiUrl}/payments/all`).pipe(
+            map(response => (response || [])
+                .map(item => ({
+                    tournament: item.tournament ?? item.Tournament,
+                    registration: item.registration ?? item.Registration
+                }))
+                .filter(item => !!item.tournament && !!item.registration))
+        );
+    }
+
     getRegistrations(tournamentId: string): Observable<TeamRegistration[]> {
         return this.http.get<TeamRegistration[]>(`${this.apiUrl}/${tournamentId}/registrations`);
     }
