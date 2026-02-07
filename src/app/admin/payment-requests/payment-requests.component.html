@@ -20,53 +20,51 @@
         <div *ngIf="!isLoading && filteredRequests.length > 0" class="card p-0 overflow-hidden">
             <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading">
             </app-table>
-
-            <!-- Team Template -->
-            <ng-template #teamInfo let-row="row">
-                <div class="flex-col">
-                    <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
-                    <span class="text-xs text-muted">{{ row.tournament?.name }}</span>
-                </div>
-            </ng-template>
-
-            <!-- Amount Template -->
-            <ng-template #amountInfo let-row="row">
-                <span class="text-gold font-bold">{{ row.tournament?.entryFee }} ريال</span>
-            </ng-template>
-
-            <!-- Date Template -->
-            <ng-template #dateInfo let-row="row">
-                <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
-            </ng-template>
-
-            <!-- Status Template -->
-            <ng-template #statusInfo let-row="row">
-                <app-badge [type]="getBadgeType(row.registration.status)">
-                    {{ getStatusLabel(row.registration.status) }}
-                </app-badge>
-            </ng-template>
-
-            <!-- Receipt Template -->
-            <ng-template #receiptInfo let-row="row">
-                <app-button (click)="viewReceipt(row)" variant="ghost" size="sm" class="text-info">
-                    عرض الإيصال
-                </app-button>
-            </ng-template>
-
-            <!-- Action Template -->
-            <ng-template #actionInfo let-row="row">
-                <div class="action-buttons"
-                    *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
-                    <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle"
-                        class="text-primary">
-                    </app-button>
-                    <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
-                    </app-button>
-                </div>
-                <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
-                    class="text-muted text-xs">—</span>
-            </ng-template>
         </div>
+
+        <!-- Team Template -->
+        <ng-template #teamInfo let-row="row">
+            <div class="flex-col">
+                <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
+                <span class="text-xs text-muted">{{ row.tournament?.name }}</span>
+            </div>
+        </ng-template>
+
+        <!-- Amount Template -->
+        <ng-template #amountInfo let-row="row">
+            <span class="text-gold font-bold">{{ row.tournament?.entryFee }} ريال</span>
+        </ng-template>
+
+        <!-- Date Template -->
+        <ng-template #dateInfo let-row="row">
+            <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
+        </ng-template>
+
+        <!-- Status Template -->
+        <ng-template #statusInfo let-row="row">
+            <app-badge [type]="getBadgeType(row.registration.status)">
+                {{ getStatusLabel(row.registration.status) }}
+            </app-badge>
+        </ng-template>
+
+        <!-- Receipt Template -->
+        <ng-template #receiptInfo let-row="row">
+            <app-button (click)="viewReceipt(row)" variant="ghost" size="sm" class="text-info">
+                عرض الإيصال
+            </app-button>
+        </ng-template>
+
+        <!-- Action Template -->
+        <ng-template #actionInfo let-row="row">
+            <div class="action-buttons" *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
+                <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary">
+                </app-button>
+                <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
+                </app-button>
+            </div>
+            <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
+                class="text-muted text-xs">-</span>
+        </ng-template>
 
         <!-- Receipt Modal -->
         <div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">

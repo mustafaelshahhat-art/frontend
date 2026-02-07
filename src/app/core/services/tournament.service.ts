@@ -8,9 +8,6 @@ import { environment } from '../../../environments/environment';
 @Injectable({
     providedIn: 'root'
 })
-@Injectable({
-    providedIn: 'root'
-})
 export class TournamentService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/tournaments`;
@@ -63,10 +60,12 @@ export class TournamentService {
     getPendingPaymentApprovals(): Observable<{ tournament: Tournament, registration: TeamRegistration }[]> {
         // Controller: GET payments/pending
         return this.http.get<any[]>(`${this.apiUrl}/payments/pending`).pipe(
-            map(response => response.map(item => ({
-                tournament: item.tournament,
-                registration: item.registration
-            })))
+            map(response => (response || [])
+                .map(item => ({
+                    tournament: item.tournament ?? item.Tournament,
+                    registration: item.registration ?? item.Registration
+                }))
+                .filter(item => !!item.tournament && !!item.registration))
         );
     }
 
