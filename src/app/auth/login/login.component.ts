@@ -97,33 +97,4 @@ export class LoginComponent {
     get password() {
         return this.loginForm.get('password');
     }
-
-    // Temporary quick login for testing
-    quickLogin(role: 'admin' | 'captain' | 'referee' | 'player' | 'playerClub'): void {
-        this.isLoading = true;
-        this.errorMessage = null;
-
-        const credentials: Record<string, { email: string, password: string }> = {
-            admin: { email: 'admin@test.com', password: 'password' },
-            captain: { email: 'player@test.com', password: 'password' }, // Logic handles that if this user has teamId/isOwner they see the captain view
-            referee: { email: 'referee@test.com', password: 'password' },
-            player: { email: 'user@test.com', password: 'password' },
-            playerClub: { email: 'clubplayer@test.com', password: 'password' }
-        };
-
-        const { email, password } = credentials[role];
-
-        this.authService.login({ email, password })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (response) => {
-                    this.isLoading = false;
-                    this.handleNavigation(response.user);
-                },
-                error: (error) => {
-                    this.isLoading = false;
-                    setTimeout(() => this.errorMessage = error.message || 'حدث خطأ أثناء تسجيل الدخول');
-                }
-            });
-    }
 }

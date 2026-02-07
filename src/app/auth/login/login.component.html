@@ -56,48 +56,7 @@
 
     </form>
 
-    <!-- Visual Divider -->
-    <div class="relative mt-8 mb-8 py-2">
-      <div class="absolute inset-0 flex items-center" aria-hidden="true">
-        <div class="w-full border-t border-subtle"></div>
-      </div>
-      <div class="relative flex justify-center text-xs uppercase">
-        <span class="bg-card px-3 text-muted bg-opacity-90">أو تسجيل دخول سريع</span>
-      </div>
-    </div>
-
-    <!-- Quick Login Buttons -->
-    <div class="quick-login-grid mb-2" role="group" aria-label="خيارات تسجيل الدخول السريع">
-      <button type="button" (click)="quickLogin('admin')" [disabled]="isLoading" class="quick-login-btn group">
-        <span
-          class="material-symbols-outlined text-2xl text-secondary group-hover:text-primary transition-colors">admin_panel_settings</span>
-        <span class="text-xs font-medium text-secondary group-hover:text-primary transition-colors">أدمن</span>
-      </button>
-
-      <button type="button" (click)="quickLogin('captain')" [disabled]="isLoading" class="quick-login-btn group">
-        <span
-          class="material-symbols-outlined text-2xl text-secondary group-hover:text-primary transition-colors">groups</span>
-        <span class="text-xs font-medium text-secondary group-hover:text-primary transition-colors">قائد</span>
-      </button>
-
-      <button type="button" (click)="quickLogin('referee')" [disabled]="isLoading" class="quick-login-btn group">
-        <span
-          class="material-symbols-outlined text-2xl text-secondary group-hover:text-primary transition-colors">sports</span>
-        <span class="text-xs font-medium text-secondary group-hover:text-primary transition-colors">حكم</span>
-      </button>
-
-      <button type="button" (click)="quickLogin('player')" [disabled]="isLoading" class="quick-login-btn group">
-        <span
-          class="material-symbols-outlined text-2xl text-secondary group-hover:text-primary transition-colors">person</span>
-        <span class="text-xs font-medium text-secondary group-hover:text-primary transition-colors">لاعب</span>
-      </button>
-
-      <button type="button" (click)="quickLogin('playerClub')" [disabled]="isLoading" class="quick-login-btn group">
-        <span
-          class="material-symbols-outlined text-2xl text-secondary group-hover:text-primary transition-colors">badge</span>
-        <span class="text-xs font-medium text-secondary group-hover:text-primary transition-colors">عضو</span>
-      </button>
-    </div>
+    </form>
 
     <!-- Register Link -->
     <div class="text-center pt-6 pb-2">
