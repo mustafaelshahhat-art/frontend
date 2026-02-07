@@ -61,9 +61,33 @@ export class RefereeDashboardComponent implements OnInit {
         this.matchService.getMyMatches().subscribe({
             next: (matches) => {
                 this.allMatches = matches;
-                this.todayMatches = matches.filter(m =>
-                    m.status === MatchStatus.SCHEDULED || m.status === MatchStatus.LIVE
-                );
+                
+                // Get today's date (normalized to start of day for comparison)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                this.todayMatches = matches.filter(m => {
+                    // Include matches that are actionable: Scheduled, Live, or Postponed
+                    const isActionableStatus = m.status === MatchStatus.SCHEDULED || 
+                                               m.status === MatchStatus.LIVE || 
+                                               m.status === MatchStatus.POSTPONED;
+                    
+                    if (!isActionableStatus) return false;
+                    
+                    // For Live matches, always show (they're ongoing)
+                    if (m.status === MatchStatus.LIVE) return true;
+                    
+                    // For Scheduled/Postponed, check if match date is today
+                    const matchDate = m.scheduledDate ? new Date(m.scheduledDate) : (m.date ? new Date(m.date) : null);
+                    if (matchDate) {
+                        matchDate.setHours(0, 0, 0, 0);
+                        return matchDate.getTime() === today.getTime();
+                    }
+                    
+                    // If no date, include it (fallback for matches without date)
+                    return true;
+                });
+                
                 this.loadStats();
                 this.cdr.detectChanges();
             },

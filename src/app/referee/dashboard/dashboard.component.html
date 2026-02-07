@@ -12,7 +12,7 @@
                 [subtitle]="match.status === MatchStatus.LIVE ? 'المباراة جارية' : 'أنت الحكم المسؤول'">
 
                 <div class="match-card-actions w-full flex-wrap flex gap-sm mt-auto" actions>
-                    <button *ngIf="match.status === MatchStatus.SCHEDULED" (click)="startMatch(match.id)"
+                    <button *ngIf="match.status === MatchStatus.SCHEDULED || match.status === MatchStatus.POSTPONED" (click)="startMatch(match.id)"
                         class="match-card-action">
                         <span class="material-symbols-outlined">play_arrow</span>
                         بدء المباراة
