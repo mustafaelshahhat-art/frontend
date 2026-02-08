@@ -8,6 +8,7 @@ import { AnalyticsService, Activity } from '../../core/services/analytics.servic
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 
 import { FilterComponent } from '../../shared/components/filter/filter.component';
+import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 
 @Component({
     selector: 'app-activity-log',
@@ -19,7 +20,8 @@ import { FilterComponent } from '../../shared/components/filter/filter.component
         EmptyStateComponent,
         InlineLoadingComponent,
         TableComponent,
-        FilterComponent
+        FilterComponent,
+        TimeAgoPipe
     ],
     templateUrl: './activity-log.component.html',
     styleUrls: ['./activity-log.component.scss']

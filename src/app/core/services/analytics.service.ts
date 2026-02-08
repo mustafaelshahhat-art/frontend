@@ -56,7 +56,7 @@ export class AnalyticsService {
             map(data => (data || []).map(item => ({
                 type: item.type || item.Type || '',
                 message: this.cleanMessage(item.message || item.Message || ''),
-                time: this.formatRelativeTime(new Date(item.timestamp || item.Timestamp)),
+                time: '', // Deprecated, will use pipe on timestamp
                 userName: item.userName || item.UserName,
                 action: item.action || item.Action,
                 timestamp: new Date(item.timestamp || item.Timestamp),
@@ -91,16 +91,5 @@ export class AnalyticsService {
         }
 
         return clean;
-    }
-
-    private formatRelativeTime(date: Date): string {
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        const minutes = Math.floor(diff / 60000);
-        if (minutes < 1) return 'الآن';
-        if (minutes < 60) return `منذ ${minutes} دقيقة`;
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `منذ ${hours} ساعة`;
-        return date.toLocaleDateString('ar-EG');
     }
 }

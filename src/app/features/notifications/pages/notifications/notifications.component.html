@@ -31,7 +31,7 @@
                     <div class="notif-details">
                         <div class="notif-header">
                             <h3>{{ notif.title }}</h3>
-                            <span class="notif-time">{{ notif.time }}</span>
+                            <span class="notif-time">{{ notif.createdAt | timeAgo }}</span>
                         </div>
                         <p>{{ notif.message }}</p>
                     </div>

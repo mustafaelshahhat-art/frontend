@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
 
 @Component({
     selector: 'app-notifications-dropdown',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, TimeAgoPipe],
     templateUrl: './notifications-dropdown.component.html',
     styleUrls: ['./notifications-dropdown.component.scss']
 })
@@ -30,28 +31,18 @@ export class NotificationsDropdownComponent {
 
     getTypeIcon(type: string): string {
         switch (type) {
+            case 'match': return 'sports_soccer';
+            case 'tournament': return 'emoji_events';
+            case 'objection': return 'gavel';
+            case 'payment': return 'payments';
+            case 'team': return 'groups';
+            case 'message': return 'mail';
+            case 'system': return 'settings';
             case 'info': return 'info';
             case 'warning': return 'warning';
             case 'error': return 'error';
             case 'success': return 'check_circle';
             default: return 'notifications';
         }
-    }
-
-    formatTimeAgo(dateInput: Date | string): string {
-        if (!dateInput) return 'غير متاح';
-
-        const date = new Date(dateInput);
-        if (isNaN(date.getTime())) return 'غير متاح';
-
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-        if (diffInSeconds < 60) return 'الآن';
-        if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
-        if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
-        if (diffInSeconds < 2592000) return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
-
-        return date.toLocaleDateString('ar-EG');
     }
 }

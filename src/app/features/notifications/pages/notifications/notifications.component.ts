@@ -8,13 +8,14 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { NotificationStore } from '../../../../core/stores/notification.store';
+import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { Notification as AppNotification } from '../../../../core/models/tournament.model';
 
 interface Notification {
     id: string;
     title: string;
     message: string;
-    time: string;
+    createdAt: Date;
     type: string;
     isRead: boolean;
     icon?: string;
@@ -37,7 +38,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         CardComponent,
         ButtonComponent,
         BadgeComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        TimeAgoPipe
     ],
     templateUrl: './notifications.component.html',
     styleUrls: ['./notifications.component.scss'],
@@ -59,7 +61,7 @@ export class NotificationsComponent implements OnInit {
             id: n.id,
             title: n.title,
             message: n.message,
-            time: this.formatTime(new Date(n.createdAt)),
+            createdAt: new Date(n.createdAt),
             type: n.type,
             isRead: n.isRead,
             icon: this.getIcon(n.type)
@@ -72,16 +74,6 @@ export class NotificationsComponent implements OnInit {
 
     ngOnInit(): void {
         this.notificationService.loadNotifications();
-    }
-
-    private formatTime(date: Date): string {
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-        if (diffInSeconds < 60) return 'الآن';
-        if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
-        if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
-        return date.toLocaleDateString('ar-EG');
     }
 
     get pageTitle(): string {
