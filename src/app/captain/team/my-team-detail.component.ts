@@ -351,6 +351,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    private subscriptions = new Subscription();
+
     ngOnInit(): void {
         this.currentUser = this.authService.getCurrentUser();
         if (!this.currentUser) {
@@ -369,55 +371,47 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         // Listen for real-time updates
         // RULE: Do NOT mutate loading/teamData signals directly here.
         // Trigger async operations that handle state mutations in their callbacks.
-        this.notificationService.joinRequestUpdate.subscribe(() => {
-            if (!this.currentUser) return;
+        this.subscriptions.add(
+            this.notificationService.joinRequestUpdate.subscribe(() => {
+                if (!this.currentUser) return;
 
-            const currentData = this.teamData();
-            if (currentData && this.isCaptain()) {
-                // Captain side: Update requests list via HTTP re-fetch
-                this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                    const latestData = this.teamData();
-                    if (latestData) {
-                        this.teamData.set({ ...latestData, invitations: requests });
-                    }
-                });
-            } else if (!currentData) {
-                // Player side (no team): Could be new invite OR acceptance
-                // First refresh profile to check if we now have a team
-                this.authService.refreshUserProfile().subscribe({
-                    next: (updatedUser) => {
-                        if (updatedUser?.teamId) {
-                            // Player now has a team (invite was accepted) - load team data
-                            this.loadTeamData();
-                        } else {
-                            // Player still has no team - refresh invitations list
+                const currentData = this.teamData();
+                if (currentData && this.isCaptain()) {
+                    // Captain side: Update requests list via HTTP re-fetch
+                    this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                        const latestData = this.teamData();
+                        if (latestData) {
+                            this.teamData.set({ ...latestData, invitations: requests });
+                        }
+                    });
+                } else if (!currentData) {
+                    // Player side (no team): Could be new invite OR acceptance
+                    // First refresh profile to check if we now have a team
+                    this.authService.refreshUserProfile().subscribe({
+                        next: (updatedUser) => {
+                            if (updatedUser?.teamId) {
+                                // Player now has a team (invite was accepted) - load team data
+                                this.loadTeamData();
+                            } else {
+                                // Player still has no team - refresh invitations list
+                                this.loadInvitations();
+                            }
+                        },
+                        error: () => {
+                            // On error, just refresh invitations
                             this.loadInvitations();
                         }
-                    },
-                    error: () => {
-                        // On error, just refresh invitations
-                        this.loadInvitations();
-                    }
-                });
-            } else {
-                // Player with team receiving update - reload invitations
-                this.loadInvitations();
-            }
-        });
-
-        // Listen for expulsion events
-        // Listen for expulsion events
-        this.notificationService.removedFromTeamAndRefresh.subscribe(() => {
-            if (!this.currentUser) return;
-            console.log('Processed RemovedFromTeam event in component -> triggering reload');
-
-            // Just force reload team data to re-verify membership and update UI
-            this.authService.refreshUserProfile().subscribe();
-            this.loadTeamData();
-        });
+                    });
+                } else {
+                    // Player with team receiving update - reload invitations
+                    this.loadInvitations();
+                }
+            })
+        );
     }
 
     ngOnDestroy(): void {
+        this.subscriptions.unsubscribe();
         // effects clean up themselves
     }
 
@@ -442,11 +436,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             next: (response) => {
                 this.uiFeedback.success('تمت الإضافة', 'أهلاً بك في فريقك الجديد!');
 
-                // The response might be the object or just the ID or key-value pair
-                // Backend usually limits returns.
-                // Check all possible casing
-                const anyResp = response as any;
-                const teamId = response?.teamId || anyResp?.TeamId || anyResp?.team_id || (typeof response === 'string' ? response : null);
+                // Use robust property access consistent with backend camelCase contract
+                const teamId = (response as any).teamId;
 
                 if (teamId && typeof teamId === 'string') {
                     // Update currentUser with the new teamId immediately
@@ -606,7 +597,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     // Retry logic from original finalize
                     const user = this.authStore.currentUser();
                     if (user?.teamId && !this.teamData()) {
-                        console.log('Retry loading team data');
+
                         setTimeout(() => this.loadTeamData(), 100);
                     }
                 });

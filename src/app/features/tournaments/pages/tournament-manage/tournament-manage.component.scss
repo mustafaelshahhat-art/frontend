@@ -1,4 +1,4 @@
-@import 'tokens';
+@use 'tokens' as *;
 
 .manage-tournament-page {
     padding: var(--space-xl) var(--space-lg);

@@ -1,4 +1,4 @@
-@import 'tokens';
+@use 'tokens' as *;
 
 :host {
     display: block;

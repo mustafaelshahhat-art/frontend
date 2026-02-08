@@ -16,27 +16,16 @@ export class TeamService {
     constructor() { }
 
     getTeamByCaptainId(captainId: string): Observable<Team | undefined> {
-        // Backend doesn't have direct /captain/{id} endpoint, but we can search or filter if implemented.
-        // For now, assume GetAll + client filter or implement endpoint?
-        // Audit said "Fully aligned", but does backend support this?
-        // TeamsController: GetAll().
-        // I'll implementation GetAll and filter for now as MVP, or add endpoint if easy.
-        // Better: GET /teams?captainId=... or just CLIENT SIDE filter because lazy.
-        // But better: Use /teams and find.
-        return this.http.get<Team[]>(this.apiUrl).pipe(
-            map(teams => Array.isArray(teams) ? teams.find(t => t.captainId === captainId) : undefined),
+        return this.http.get<Team[]>(this.apiUrl, { params: { captainId } }).pipe(
+            map(teams => teams && teams.length > 0 ? teams[0] : undefined),
             catchError(() => of(undefined))
         );
     }
 
     getTeamByPlayerId(playerId: string): Observable<Team | undefined> {
-        // Similar to above.
-        // TeamsController doesn't have search by player.
-        // Real logic should use backend filtering.
-        // I will implement "Get All" and filter for robustness if list is small.
-        // Ideally backend needs query params.
-        return this.http.get<Team[]>(this.apiUrl).pipe(
-            map(teams => teams.find(t => t.players.some(p => p.userId === playerId)))
+        return this.http.get<Team[]>(this.apiUrl, { params: { playerId } }).pipe(
+            map(teams => teams && teams.length > 0 ? teams[0] : undefined),
+            catchError(() => of(undefined))
         );
     }
 

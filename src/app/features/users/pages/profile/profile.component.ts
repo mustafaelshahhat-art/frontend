@@ -31,7 +31,6 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
         BadgeComponent,
         FilterComponent,
         SmartImageComponent,
-        FileUploadComponent,
         FormControlComponent,
         SelectComponent,
         PendingStatusCardComponent
@@ -88,12 +87,7 @@ export class ProfileComponent implements OnInit {
         // Load location data (governorates now; cities/districts based on selected values)
         this.loadLocations();
 
-        // Log for debugging
-        console.log('Profile component initialized with forms:', {
-            profileForm: !!this.profileForm,
-            passwordForm: !!this.passwordForm,
-            user: this.user
-        });
+
     }
 
     loadUserProfile(): void {
@@ -251,7 +245,7 @@ export class ProfileComponent implements OnInit {
 
     private populateForm(): void {
         if (this.user && this.profileForm) {
-            console.log('Populating form with user data:', this.user);
+
             this.profileForm.patchValue({
                 name: this.user.name || '',
                 username: this.user.username || this.user.email?.split('@')[0] || '',
@@ -267,7 +261,7 @@ export class ProfileComponent implements OnInit {
             // Set the profile picture from user avatar
             this.profilePicture = this.user.avatar || null;
             this.originalAvatar = this.user.avatar || null;
-            console.log('Form populated, profile picture:', this.profilePicture);
+
         }
     }
 
@@ -365,14 +359,11 @@ export class ProfileComponent implements OnInit {
     }
 
     saveProfile(): void {
-        console.log('Save profile called');
-        console.log('Form valid:', this.profileForm.valid);
-        console.log('User:', this.user);
-        console.log('Form value:', this.profileForm.getRawValue());
+
 
         if (this.profileForm.valid && this.user) {
             this.isLoading = true;
-            console.log('Starting save process...');
+
 
             // Prepare update data
             const updateData: any = {};
@@ -385,7 +376,7 @@ export class ProfileComponent implements OnInit {
                 }
             });
 
-            console.log('Update data:', updateData);
+
 
             // Handle avatar changes
             if (this.avatarToDelete) {
@@ -394,12 +385,11 @@ export class ProfileComponent implements OnInit {
                 updateData.avatar = this.pendingAvatar;
             }
 
-            console.log('avatarToDelete:', this.avatarToDelete);
-            console.log('Final update data with avatar:', updateData);
+
 
             this.userService.updateUser(this.user.id, updateData).subscribe({
                 next: (updated) => {
-                    console.log('User updated successfully:', updated);
+
                     this.isLoading = false;
                     this.user = updated;
                     this.authService.updateCurrentUser(updated);
@@ -421,13 +411,8 @@ export class ProfileComponent implements OnInit {
                 }
             });
         } else {
-            console.log('Form is invalid or user is null');
-            console.log('Form errors:', this.profileForm.errors);
             Object.keys(this.profileForm.controls).forEach(key => {
                 const control = this.profileForm.get(key);
-                if (control && control.invalid) {
-                    console.log(`${key} errors:`, control.errors);
-                }
             });
         }
     }

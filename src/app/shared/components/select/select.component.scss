@@ -1,4 +1,4 @@
-@import 'tokens';
+@use 'tokens' as *;
 
 .select-wrapper {
     position: relative;

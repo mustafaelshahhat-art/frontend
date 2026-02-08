@@ -1,0 +1,365 @@
+
+> frontend@0.0.0 build
+> ng build --configuration production --configuration development
+
+[1m[33mOption 'configuration' has been specified multiple times. The value 'development' will be used.[39m[22m
+[33m❯[39m Building...
+[32m✔[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                      [2m | [22m [1mRaw size[22m
+[32mchunk-SVVRR4RF.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m1.10 MB[39m[2m | [22m
+[32mchunk-U7PAZFBH.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m249.64 kB[39m[2m | [22m
+[32mchunk-KP3X5LV5.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m122.10 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                     [2m | [22m [36m66.20 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                       [2m | [22m [36m53.01 kB[39m[2m | [22m
+[32mchunk-U4CYHSP2.js[39m  [2m | [22m[2m-[22m                          [2m | [22m [36m17.59 kB[39m[2m | [22m
+[32mchunk-ZH555B27.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m7.29 kB[39m[2m | [22m
+[32mchunk-KDN46KJH.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m4.69 kB[39m[2m | [22m
+[32mchunk-4FJNOFLP.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m4.35 kB[39m[2m | [22m
+[32mchunk-6Z5UVVXY.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m3.78 kB[39m[2m | [22m
+[32mchunk-YY6TSKZZ.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m3.78 kB[39m[2m | [22m
+[32mchunk-ANIU3XTL.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m2.87 kB[39m[2m | [22m
+[32mchunk-OQBGDP25.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m2.47 kB[39m[2m | [22m
+[32mchunk-LB2CEIIA.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m1.84 kB[39m[2m | [22m
+[32mchunk-UW57FT4B.js[39m  [2m | [22m[2m-[22m                          [2m | [22m  [36m1.65 kB[39m[2m | [22m
+[32mchunk-4A7LYC6G.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m626 bytes[39m[2m | [22m
+[32mchunk-VUZCXWFE.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m560 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m              [2m | [22m  [1m1.64 MB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                      [2m | [22m [1mRaw size[22m
+[32mchunk-7VRHHEKL.js[39m  [2m | [22m[2mtournament-detail-component[22m[2m | [22m[36m195.32 kB[39m[2m | [22m
+[32mchunk-HKTWAJVV.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m153.37 kB[39m[2m | [22m
+[32mchunk-YGJZQHI3.js[39m  [2m | [22m[2mmatch-detail-component[22m     [2m | [22m[36m141.75 kB[39m[2m | [22m
+[32mchunk-WBXBTII6.js[39m  [2m | [22m[2m-[22m                          [2m | [22m[36m101.76 kB[39m[2m | [22m
+[32mchunk-OWYUHUDM.js[39m  [2m | [22m[2mtournaments-list-component[22m [2m | [22m [36m85.74 kB[39m[2m | [22m
+[32mchunk-LW57X327.js[39m  [2m | [22m[2m-[22m                          [2m | [22m [36m83.09 kB[39m[2m | [22m
+[32mchunk-MTBZBZLB.js[39m  [2m | [22m[2mdashboard-component[22m        [2m | [22m [36m79.90 kB[39m[2m | [22m
+[32mchunk-OXG5LGXC.js[39m  [2m | [22m[2m-[22m                          [2m | [22m [36m76.46 kB[39m[2m | [22m
+[32mchunk-O45D3LTH.js[39m  [2m | [22m[2muser-detail-component[22m      [2m | [22m [36m72.31 kB[39m[2m | [22m
+[32mchunk-T5XTNVX2.js[39m  [2m | [22m[2mregister-component[22m         [2m | [22m [36m64.74 kB[39m[2m | [22m
+[32mchunk-2DCV5Q3Q.js[39m  [2m | [22m[2mmatch-chat-component[22m       [2m | [22m [36m61.51 kB[39m[2m | [22m
+[32mchunk-LLUDC6XL.js[39m  [2m | [22m[2mprofile-component[22m          [2m | [22m [36m59.77 kB[39m[2m | [22m
+[32mchunk-KLCVFERJ.js[39m  [2m | [22m[2mtournament-manage-component[22m[2m | [22m [36m55.30 kB[39m[2m | [22m
+[32mchunk-ZHQHHIFE.js[39m  [2m | [22m[2m-[22m                          [2m | [22m [36m53.68 kB[39m[2m | [22m
+[32mchunk-6Z5OVFLS.js[39m  [2m | [22m[2m-[22m                          [2m | [22m [36m50.41 kB[39m[2m | [22m
+[2m...and 51 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [4.456 seconds] - 2026-02-08T15:04:20.246Z
+
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: PageHeaderComponent is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/users/user-detail/user-detail.component.ts:20:8:
+[37m      20 │         [32mPageHeaderComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: RouterLink is not used within the template of UsersListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/users/users-list.component.ts:25:8:
+[37m      25 │         [32mRouterLink[37m,
+         ╵         [32m~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: EmptyStateComponent is not used within the template of UsersListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/users/users-list.component.ts:31:8:
+[37m      31 │         [32mEmptyStateComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: InlineLoadingComponent is not used within the template of UsersListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/admin/users/users-list.component.ts:32:8:
+[37m      32 │         [32mInlineLoadingComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: ButtonComponent is not used within the template of ChatBoxComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/chat/components/chat-box/chat-box.component.ts:28:41:
+[37m      28 │ ...monModule, FormsModule, [32mButtonComponent[37m, IconButtonComponent, F...
+         ╵                            [32m~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: FileUploadComponent is not used within the template of MatchDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/matches/pages/match-detail/match-detail.component.ts:52:8:
+[37m      52 │         [32mFileUploadComponent[37m
+         ╵         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: SelectComponent is not used within the template of ObjectionsListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/objections/pages/objections-list/objections-list.component.ts:37:8:
+[37m      37 │         [32mSelectComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: FormControlComponent is not used within the template of ObjectionsListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/objections/pages/objections-list/objections-list.component.ts:38:8:
+[37m      38 │         [32mFormControlComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: CardComponent is not used within the template of TournamentCardComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/tournaments/components/tournament-card/tournament-card.component.ts:20:8:
+[37m      20 │         [32mCardComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: SearchComponent is not used within the template of TournamentsListComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/tournaments/pages/tournaments-list/tournaments-list.component.ts:41:8:
+[37m      41 │         [32mSearchComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:73:60:
+[37m      73 │ ...      [control]="profileForm?.[32mget[37m('name')" [disabled]="isFormDi...
+         ╵                                  [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:79:60:
+[37m      79 │ ...      [control]="profileForm?.[32mget[37m('email')" [disabled]="isFormD...
+         ╵                                  [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:85:71:
+[37m      85 │ ..."tel" [control]="profileForm?.[32mget[37m('phone')" [disabled]="isFormD...
+         ╵                                  [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:91:60:
+[37m      91 │ ...                         [control]="profileForm?.[32mget[37m('username')">
+         ╵                                                     [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:97:78:
+[37m      97 │ ...     [disabled]="true" [control]="profileForm?.[32mget[37m('nationalId')">
+         ╵                                                   [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:149:61:
+[37m      149 │ ...                [control]="passwordForm?.[32mget[37m('currentPassword')">
+          ╵                                             [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:156:61:
+[37m      156 │ ...                    [control]="passwordForm?.[32mget[37m('newPassword')">
+          ╵                                                 [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.html:163:61:
+[37m      163 │ ...                [control]="passwordForm?.[32mget[37m('confirmPassword')">
+          ╵                                             [32m~~~[0m
+
+  Warning occurs in the template of component ProfileComponent.
+
+    src/app/features/users/pages/profile/profile.component.ts:39:17:
+[37m      39 │     templateUrl: [32m'./profile.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: FileUploadComponent is not used within the template of ProfileComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/profile/profile.component.ts:34:8:
+[37m      34 │         [32mFileUploadComponent[37m,
+         ╵         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/shared/components/match-card/match-card.component.html:33:56:
+[37m      33 │ ...               [initials]="match.homeTeamName?.[32mcharAt[37m(0) || '؟'">
+         ╵                                                   [32m~~~~~~[0m
+
+  Warning occurs in the template of component MatchCardComponent.
+
+    src/app/shared/components/match-card/match-card.component.ts:14:17:
+[37m      14 │     templateUrl: [32m'./match-card.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/shared/components/match-card/match-card.component.html:51:56:
+[37m      51 │ ...               [initials]="match.awayTeamName?.[32mcharAt[37m(0) || '؟'">
+         ╵                                                   [32m~~~~~~[0m
+
+  Warning occurs in the template of component MatchCardComponent.
+
+    src/app/shared/components/match-card/match-card.component.ts:14:17:
+[37m      14 │     templateUrl: [32m'./match-card.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/features/tournaments/pages/tournament-detail/tournament-detail.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/features/tournaments/pages/tournament-manage/tournament-manage.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/action-card/action-card.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/filter/filter.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/form-control/form-control.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/page-header/page-header.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/select/select.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/stat-card/stat-card.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/shared/components/welcome-card/welcome-card.component.scss:1:8:
+[37m      1 │ @import [32m[37m'tokens';
+        ╵         [32m^[0m
+
+
+  Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+  
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+[39m[22m
+Output location: D:\ramadan\frontend\dist\frontend
+

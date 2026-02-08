@@ -47,7 +47,6 @@ export class SignalRService {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
             try {
                 await connection.start();
-                console.log(`SignalR: Connected to ${hubPath}`);
                 this.connectionStatus$.next(true);
             } catch (err) {
                 console.error(`SignalR: Error connecting to ${hubPath}:`, err);

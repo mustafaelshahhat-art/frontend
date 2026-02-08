@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { TeamDetailComponent, TeamData } from '../shared/components/team-detail';
-import { TeamService } from '../core/services/team.service';
-import { TeamStore } from '../core/stores/team.store';
-import { UIFeedbackService } from '../shared/services/ui-feedback.service';
+import { TeamDetailComponent, TeamData } from '../../../shared/components/team-detail';
+import { TeamService } from '../../../core/services/team.service';
+import { TeamStore } from '../../../core/stores/team.store';
+import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 
 @Component({
     selector: 'app-referee-team-detail',

@@ -34,8 +34,6 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
         CardComponent,
         BadgeComponent,
         ButtonComponent,
-        SelectComponent,
-        FormControlComponent,
         TableComponent,
         PendingStatusCardComponent
     ],

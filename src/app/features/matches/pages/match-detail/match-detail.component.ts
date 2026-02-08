@@ -48,8 +48,7 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
         SmartImageComponent,
         ModalComponent,
         FormControlComponent,
-        SelectComponent,
-        FileUploadComponent
+        SelectComponent
     ],
     templateUrl: './match-detail.component.html',
     styleUrls: ['./match-detail.component.scss']

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -17,7 +18,7 @@ import { ChangeDetectorRef } from '@angular/core';
     standalone: true,
     imports: [
         CommonModule,
-        PageHeaderComponent,
+        ReactiveFormsModule,
         ButtonComponent,
         BadgeComponent,
         SmartImageComponent,

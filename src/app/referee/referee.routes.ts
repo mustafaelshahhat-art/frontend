@@ -31,7 +31,7 @@ export const refereeRoutes: Routes = [
             },
             {
                 path: 'teams/:id',
-                loadComponent: () => import('./team-detail.component').then(m => m.RefereeTeamDetailComponent),
+                loadComponent: () => import('./pages/team-detail/team-detail.component').then(m => m.RefereeTeamDetailComponent),
                 data: { breadcrumb: 'تفاصيل الفريق' }
             },
             {

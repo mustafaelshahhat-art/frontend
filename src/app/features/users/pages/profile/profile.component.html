@@ -70,31 +70,31 @@
                         <div class="form-grid">
                             <div class="form-group full-width">
                                 <app-form-control formControlName="name" label="الاسم الكامل"
-                                    [control]="profileForm?.get('name')" [disabled]="isFormDisabled">
+                                    [control]="profileForm.get('name')" [disabled]="isFormDisabled">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
-                                    [control]="profileForm?.get('email')" [disabled]="isFormDisabled">
+                                    [control]="profileForm.get('email')" [disabled]="isFormDisabled">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
-                                    type="tel" [control]="profileForm?.get('phone')" [disabled]="isFormDisabled">
+                                    type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
-                                    [control]="profileForm?.get('username')">
+                                    [control]="profileForm.get('username')">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)"
-                                    [disabled]="true" [control]="profileForm?.get('nationalId')">
+                                    [disabled]="true" [control]="profileForm.get('nationalId')">
                                 </app-form-control>
                             </div>
 
@@ -146,21 +146,21 @@
                             <div class="form-group">
                                 <app-form-control formControlName="currentPassword" label="كلمة المرور الحالية"
                                     type="password" placeholder="أدخل كلمة المرور الحالية"
-                                    [control]="passwordForm?.get('currentPassword')">
+                                    [control]="passwordForm.get('currentPassword')">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="newPassword" label="كلمة المرور الجديدة"
                                     type="password" placeholder="6 أحرف على الأقل"
-                                    [control]="passwordForm?.get('newPassword')">
+                                    [control]="passwordForm.get('newPassword')">
                                 </app-form-control>
                             </div>
 
                             <div class="form-group">
                                 <app-form-control formControlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
                                     type="password" placeholder="أعد إدخال كلمة المرور"
-                                    [control]="passwordForm?.get('confirmPassword')">
+                                    [control]="passwordForm.get('confirmPassword')">
                                 </app-form-control>
                             </div>
                         </div>

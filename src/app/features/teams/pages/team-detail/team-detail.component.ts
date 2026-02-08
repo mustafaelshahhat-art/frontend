@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap, tap, finalize } from 'rxjs/operators';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/components/team-detail';
 import { TeamService } from '../../../../core/services/team.service';
@@ -45,7 +46,8 @@ import { Match } from '../../../../core/models/tournament.model';
             <p>لم يتم العثور على الفريق</p>
             <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
         </div>
-    `
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TeamDetailPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
@@ -64,7 +66,7 @@ export class TeamDetailPageComponent implements OnInit {
     teamMatches = computed(() => {
         const id = this.teamId();
         if (!id) return [];
-        return (this.matchStore as any).matches().filter((m: Match) => m.homeTeamId === id || m.awayTeamId === id).map((m: Match) => ({
+        return this.matchStore.matches().filter((m: Match) => m.homeTeamId === id || m.awayTeamId === id).map((m: Match) => ({
             id: m.id,
             opponent: m.homeTeamId === id ? m.awayTeamName : m.homeTeamName,
             opponentLogo: m.homeTeamId === id ? m.awayTeamLogoUrl : m.homeTeamLogoUrl,
@@ -146,26 +148,22 @@ export class TeamDetailPageComponent implements OnInit {
     loadInitialData(id: string): void {
         this.isLoading.set(true);
 
-        // 1. Load Team
-        this.teamService.getTeamById(id).subscribe({
-            next: (data) => {
+        this.teamService.getTeamById(id).pipe(
+            tap(data => {
                 if (data) {
-                    this.teamStore.upsertTeam(data); // Ensures store has it
+                    this.teamStore.upsertTeam(data);
                     this.checkPermissions(data);
                 }
-
-                // 2. Load Matches (Populate Store)
-                this.matchService.getMatchesByTeam(id).subscribe({
-                    next: (matches) => {
-                        matches.forEach(m => {
-                            if (!this.matchStore.getMatchById(m.id)) this.matchStore.addMatch(m);
-                            else this.matchStore.updateMatch(m);
-                        });
-                        this.isLoading.set(false);
-                    },
-                    error: () => this.isLoading.set(false)
+            }),
+            switchMap(() => this.matchService.getMatchesByTeam(id)),
+            tap(matches => {
+                matches.forEach(m => {
+                    if (!this.matchStore.getMatchById(m.id)) this.matchStore.addMatch(m);
+                    else this.matchStore.updateMatch(m);
                 });
-            },
+            }),
+            finalize(() => this.isLoading.set(false))
+        ).subscribe({
             error: () => this.isLoading.set(false)
         });
     }

@@ -8,8 +8,6 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
-import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
 import { SmartImageComponent } from '../../shared/components/smart-image/smart-image.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
@@ -22,14 +20,11 @@ import { UserStore } from '../../core/stores/user.store';
     standalone: true,
     imports: [
         CommonModule,
-        RouterLink,
         ReactiveFormsModule,
         FilterComponent,
         PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
-        EmptyStateComponent,
-        InlineLoadingComponent,
         SmartImageComponent,
         TableComponent,
         ModalComponent,

@@ -236,34 +236,7 @@ export class TeamDetailComponent implements OnChanges {
             return;
         }
 
-        // If parent component is listening, emit the event
-        if (this.playerAction.observers.length > 0) {
-            this.playerAction.emit({ player, action });
-            return;
-        }
-
-        // Otherwise, handle locally with confirmation dialog
-        const config = {
-            activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟ سيتمكن من المشاركة في المباريات القادمة.`, btn: 'تفعيل الآن', type: 'info' as const },
-            deactivate: { title: 'تعطيل اللاعب', message: `هل أنت متأكد من تعطيل اللاعب "${player.name}"؟ لن يتمكن من المشاركة في المباريات حتى يتم إعادة تفعيله.`, btn: 'تعطيل اللاعب', type: 'danger' as const },
-            ban: { title: 'حظر اللاعب نهائياً', message: `هل أنت متأكد من حظر اللاعب "${player.name}"؟ هذا الإجراء سيمنع اللاعب من المشاركة في البطولة نهائياً.`, btn: 'حظر نهائي', type: 'danger' as const },
-            remove: { title: 'حذف اللاعب من الفريق', message: `هل أنت متأكد من حذف اللاعب "${player.name}" من الفريق؟`, btn: 'حذف من الفريق', type: 'danger' as const }
-        };
-
-        const { title, message, btn, type } = config[action];
-
-        this.uiFeedback.confirm(title, message, btn, type).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                if (action === 'activate') player.status = 'active';
-                else if (action === 'deactivate') player.status = 'suspended';
-                else if (action === 'ban') player.status = 'banned';
-                else if (action === 'remove') {
-                    this.team.players = this.team.players.filter(p => p.id !== player.id);
-                }
-
-                this.uiFeedback.success('تم التحديث', 'تم تنفيذ العملية بنجاح');
-            }
-        });
+        this.playerAction.emit({ player, action });
     }
 
     onDeleteTeamClick(): void {

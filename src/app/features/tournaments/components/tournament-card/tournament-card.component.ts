@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Tournament, TournamentStatus, RegistrationStatus } from '../../../../core/models/tournament.model';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -17,7 +18,7 @@ import { AuthService } from '../../../../core/services/auth.service';
     standalone: true,
     imports: [
         CommonModule,
-        CardComponent,
+        RouterModule,
         BadgeComponent,
         ButtonComponent,
         StatusLabelPipe,

@@ -70,27 +70,6 @@ export class NotificationService {
                 }
             });
 
-            connection.on('AccountStatusChanged', (data: any) => {
-                const status = data?.status ?? data?.Status;
-                if (status) {
-                    this.authService.updateUserStatus(status);
-                }
-            });
-
-            connection.on('RemovedFromTeam', (data: any) => {
-                const playerId = data?.playerId || data?.PlayerId || data;
-                console.log('Received RemovedFromTeam SignalR event', playerId);
-
-                // Allow components to decide if they are affected
-                this.removedFromTeam$.next(playerId);
-
-                // Try to clear association if we can match it, but don't block emission
-                const currentUser = this.authService.getCurrentUser();
-                if (currentUser && (playerId === currentUser.id || playerId === currentUser.displayId)) {
-                    this.authService.clearTeamAssociation();
-                }
-            });
-
             this.listenersBound = true;
         }
 

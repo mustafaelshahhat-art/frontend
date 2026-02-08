@@ -38,7 +38,6 @@ interface TournamentFilter {
         FilterComponent,
         PageHeaderComponent,
         ButtonComponent,
-        SearchComponent,
         InlineLoadingComponent,
         TournamentCardComponent,
         TeamRegistrationModalComponent
