@@ -2,8 +2,8 @@
     <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
     </app-page-header>
 
-    <!-- Pending Status - Replace content when pending -->
-    <ng-container *ngIf="isPending; else mainContent">
+    <!-- Pending Status - Replace content when pending (only for non-admin) -->
+    <ng-container *ngIf="isPending() && !isAdmin() && !isReferee(); else mainContent">
         <app-pending-status-card title="حسابك قيد المراجعة"
             message="عذراً، لا يمكنك المشاركة في المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
         </app-pending-status-card>

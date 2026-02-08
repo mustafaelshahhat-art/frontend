@@ -57,7 +57,7 @@ import { AuthStore } from '../../core/stores/auth.store';
 
         <div *ngIf="!loading() && !teamData()" class="no-team-container">
             <!-- Case 1: Account Pending -->
-            <div *ngIf="isUserPending" class="create-team-card pending-card animate-fade-in-up">
+            <div *ngIf="isUserPending()" class="create-team-card pending-card animate-fade-in-up">
                 <div class="icon-circle warning">
                     <span class="material-symbols-outlined">pending_actions</span>
                 </div>
@@ -70,7 +70,7 @@ import { AuthStore } from '../../core/stores/auth.store';
             </div>
 
             <!-- Case 2: Account Active, No Team, Has Invitation -->
-            <div *ngIf="!isUserPending && pendingInvitations().length > 0" class="create-team-card invite-card animate-fade-in-up">
+            <div *ngIf="!isUserPending() && pendingInvitations().length > 0" class="create-team-card invite-card animate-fade-in-up">
                 <div class="icon-circle primary">
                     <span class="material-symbols-outlined">mail</span>
                 </div>
@@ -85,7 +85,7 @@ import { AuthStore } from '../../core/stores/auth.store';
             </div>
 
             <!-- Case 3: Account Active, No Team, No Invitation -->
-            <div *ngIf="!isUserPending && pendingInvitations().length === 0" class="create-team-card animate-fade-in-up">
+            <div *ngIf="!isUserPending() && pendingInvitations().length === 0" class="create-team-card animate-fade-in-up">
                 <div class="icon-circle">
                     <span class="material-symbols-outlined">groups</span>
                 </div>
@@ -275,9 +275,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     creatingTeam = false;
     pendingInvitations = signal<TeamJoinRequest[]>([]);
 
-    get isUserPending(): boolean {
-        return this.currentUser?.status === UserStatus.PENDING;
-    }
+    isUserPending = computed(() => this.authStore.currentUser()?.status === UserStatus.PENDING);
 
     constructor() {
         // Sync isCaptain/isAdmin asynchronously
@@ -629,7 +627,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     createNewTeam(): void {
         if (!this.currentUser) return;
 
-        if (this.isUserPending) {
+        if (this.isUserPending()) {
             this.uiFeedback.error('تنبيه', 'لا يمكنك إنشاء فريق قبل تفعيل حسابك من قبل الإدارة');
             return;
         }

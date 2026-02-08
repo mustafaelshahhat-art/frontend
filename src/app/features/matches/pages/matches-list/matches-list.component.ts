@@ -7,6 +7,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { MatchStore } from '../../../../core/stores/match.store';
+import { AuthStore } from '../../../../core/stores/auth.store';
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -55,6 +56,7 @@ export class MatchesListComponent implements OnInit {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly matchStore = inject(MatchStore);
+    private readonly authStore = inject(AuthStore);
 
     // Signals State derived from Store
     matches = this.matchStore.matches;
@@ -62,9 +64,9 @@ export class MatchesListComponent implements OnInit {
 
     selectedFilter = signal<MatchFilterValue>('all');
 
-    currentUser = this.authService.getCurrentUser();
-    userRole = this.currentUser?.role || UserRole.PLAYER;
-    isPending = this.currentUser?.status?.toLowerCase() === 'pending';
+    currentUser = this.authStore.currentUser;
+    userRole = this.authStore.userRole;
+    isPending = computed(() => this.currentUser()?.status?.toLowerCase() === 'pending');
 
     // Expose enums to template
     MatchStatus = MatchStatus;
@@ -125,12 +127,12 @@ export class MatchesListComponent implements OnInit {
             this.matchStore.setError('Failed to load matches');
         };
 
-        if (this.userRole === UserRole.ADMIN) {
+        if (this.userRole() === UserRole.ADMIN) {
             this.matchService.getMatches().subscribe({ next: handleSuccess, error: handleError });
-        } else if (this.userRole === UserRole.REFEREE) {
+        } else if (this.userRole() === UserRole.REFEREE) {
             this.matchService.getMyMatches().subscribe({ next: handleSuccess, error: handleError });
         } else {
-            const teamId = this.currentUser?.teamId;
+            const teamId = this.currentUser()?.teamId;
             if (teamId) {
                 this.matchService.getMatchesByTeam(teamId).subscribe({ next: handleSuccess, error: handleError });
             } else {
@@ -140,21 +142,27 @@ export class MatchesListComponent implements OnInit {
     }
 
     get pageTitle(): string {
+        const role = this.userRole();
+        if (!role) return 'المباريات';
+
         const titles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'إدارة المباريات',
             [UserRole.REFEREE]: 'أجندة المباريات',
             [UserRole.PLAYER]: 'مباريات الفريق'
         };
-        return titles[this.userRole] || 'المباريات';
+        return titles[role] || 'المباريات';
     }
 
     get pageSubtitle(): string {
+        const role = this.userRole();
+        if (!role) return '';
+
         const subtitles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'إدارة جدول المباريات وتحديث النتائج المباشرة',
             [UserRole.REFEREE]: 'استعرض مباريات اليوم وقم بإدارتها باحترافية',
             [UserRole.PLAYER]: 'عرض نتائج المباريات السابقة والمواجهات القادمة في البطولة'
         };
-        return subtitles[this.userRole] || '';
+        return subtitles[role] || '';
     }
 
     get emptyStateDescription(): string {
@@ -164,18 +172,21 @@ export class MatchesListComponent implements OnInit {
     }
 
     getRoutePrefix(): string {
+        const role = this.userRole();
+        if (!role) return '/captain';
+
         const prefixes: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: '/admin',
             [UserRole.REFEREE]: '/referee',
             [UserRole.PLAYER]: '/captain'
         };
-        return prefixes[this.userRole] || '/captain';
+        return prefixes[role] || '/captain';
     }
 
     // Role checks
-    isAdmin(): boolean { return this.userRole === UserRole.ADMIN; }
-    isReferee(): boolean { return this.userRole === UserRole.REFEREE; }
-    isCaptain(): boolean { return !!this.currentUser?.isTeamOwner; }
+    isAdmin(): boolean { return this.userRole() === UserRole.ADMIN; }
+    isReferee(): boolean { return this.userRole() === UserRole.REFEREE; }
+    isCaptain(): boolean { return !!this.currentUser()?.isTeamOwner; }
 
     setFilter(filter: string): void {
         this.selectedFilter.set(filter as MatchFilterValue);

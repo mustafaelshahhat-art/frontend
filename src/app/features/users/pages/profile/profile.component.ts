@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AuthStore } from '../../../../core/stores/auth.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { User, UserRole } from '../../../../core/models/user.model';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -41,6 +42,7 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
 export class ProfileComponent implements OnInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
+    private authStore = inject(AuthStore);
     private userService = inject(UserService);
     private locationService = inject(LocationService);
     private uiFeedback = inject(UIFeedbackService);
@@ -52,7 +54,9 @@ export class ProfileComponent implements OnInit {
     passwordForm!: FormGroup;
     isLoading = false;
     isPasswordLoading = false;
-    isPending = false;
+
+    // Reactive signal for UI status
+    isPending = computed(() => this.authStore.currentUser()?.status?.toLowerCase() === 'pending');
 
     // Active section for navigation
     activeSection: 'info' | 'password' = 'info';
@@ -76,7 +80,6 @@ export class ProfileComponent implements OnInit {
     ngOnInit(): void {
         this.user = this.authService.getCurrentUser();
         this.userRole = this.user?.role || UserRole.PLAYER;
-        this.isPending = this.user?.status?.toLowerCase() === 'pending';
         // Initialize forms immediately to avoid formGroup binding errors
         this.initForm();
         this.initPasswordForm();

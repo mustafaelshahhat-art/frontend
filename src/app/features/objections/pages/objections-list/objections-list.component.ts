@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { Objection, ObjectionType, ObjectionStatus } from '../../../../core/models/objection.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AuthStore } from '../../../../core/stores/auth.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -42,14 +43,14 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
 })
 export class ObjectionsListComponent implements OnInit {
     private objectionsService = inject(ObjectionsService);
-    private authService = inject(AuthService);
+    private authStore = inject(AuthStore);
     private uiFeedback = inject(UIFeedbackService);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
 
-    currentUser = this.authService.getCurrentUser();
-    userRole = this.currentUser?.role || UserRole.PLAYER;
-    isPending = this.currentUser?.status?.toLowerCase() === 'pending';
+    currentUser = this.authStore.currentUser;
+    userRole = this.authStore.userRole;
+    isPending = computed(() => this.currentUser()?.status?.toLowerCase() === 'pending');
 
     objections: Objection[] = [];
     filteredObjections: Objection[] = [];
@@ -114,7 +115,7 @@ export class ObjectionsListComponent implements OnInit {
                 error: () => this.handleLoadError()
             });
         } else {
-            const teamId = this.currentUser?.teamId;
+            const teamId = this.currentUser()?.teamId;
             if (teamId) {
                 this.objectionsService.getObjectionsByTeam(teamId).subscribe({
                     next: (data) => this.handleObjectionsLoaded(data),
@@ -248,11 +249,11 @@ export class ObjectionsListComponent implements OnInit {
     }
 
     isAdmin(): boolean {
-        return this.userRole === UserRole.ADMIN;
+        return this.userRole() === UserRole.ADMIN;
     }
 
     isCaptain(): boolean {
-        return !!this.currentUser?.isTeamOwner;
+        return !!this.currentUser()?.isTeamOwner;
     }
 
     toggleForm(): void {
