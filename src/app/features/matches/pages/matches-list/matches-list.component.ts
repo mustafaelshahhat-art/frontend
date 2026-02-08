@@ -213,7 +213,7 @@ export class MatchesListComponent implements OnInit {
     startMatch(match: Match): void {
         this.matchService.startMatch(match.id).subscribe({
             next: (updatedMatch) => {
-                // Store updated automatically via RT
+                if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
                 this.uiFeedback.success('تم البدء', 'تم بدء المباراة');
             },
             error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
@@ -226,7 +226,7 @@ export class MatchesListComponent implements OnInit {
     }
 
     onMatchEnded(updatedMatch: Match): void {
-        // Store updated via RT
+        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
         this.activeMatchId = null;
     }
 
@@ -237,7 +237,7 @@ export class MatchesListComponent implements OnInit {
     }
 
     onEventAdded(updatedMatch: Match): void {
-        // Store updated via RT
+        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
         this.activeMatch = null;
         this.activeMatchId = null;
     }

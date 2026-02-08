@@ -75,8 +75,7 @@ export class MatchDetailComponent implements OnInit {
         return id ? this.matchStore.getMatchById(id) || null : null;
     });
 
-    // Use local loading or store loading? Store loading is global list loading. 
-    // We can use a local loading state for the initial fetch.
+    // Use local loading state for the initial fetch.
     isLoading = signal(true);
 
     // Computed visibility for referee-only live match controls
@@ -167,9 +166,6 @@ export class MatchDetailComponent implements OnInit {
     showCancelModal = signal(false);
     cancelReason = '';
 
-    // Admin: Delete Event Confirm
-    pendingDeleteEventId: string | null = null;
-
     // Referee Regions
     refereeOptions: SelectOption[] = [];
     selectedRefereeId: string = '';
@@ -197,29 +193,19 @@ export class MatchDetailComponent implements OnInit {
                     }, 500);
                 }
             });
-
-            // Note: RealTime updates are now handled globally by RealTimeUpdateService -> MatchStore
-            // The 'match' computed signal will automatically update when the store updates.
         } else {
             this.navigateBack();
         }
     }
 
-    // Role checks removed - use permissions
     Permission = Permission;
 
     loadMatch(id: string): void {
         this.isLoading.set(true);
-        // Check if store already has it? No, always fetch fresh on page load to be safe, 
-        // then let RT take over.
         this.matchService.getMatchById(id).subscribe({
             next: (match) => {
                 if (match) {
                     this.matchStore.updateMatch(match);
-                    // If it wasn't in list, add it (updateMatch in store usually handles id matching, 
-                    // but if it's new/not in list, we might need add. 
-                    // Our Store implementation map checks id. If not found, it does nothing.
-                    // So we should check and add or update.)
                     const exists = this.matchStore.getMatchById(id);
                     if (!exists) {
                         this.matchStore.addMatch(match);
@@ -235,8 +221,6 @@ export class MatchDetailComponent implements OnInit {
             }
         });
     }
-
-
 
     navigateBack(): void {
         if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) {
@@ -274,7 +258,8 @@ export class MatchDetailComponent implements OnInit {
         const currentMatch = this.match();
         if (!currentMatch) return;
         this.matchService.startMatch(currentMatch.id).subscribe({
-            next: () => {
+            next: (updated) => {
+                if (updated) this.matchStore.upsertMatch(updated);
                 this.uiFeedback.success('تم البدء', 'انطلقت المباراة الآن! - الوضع المباشر');
                 this.cdr.detectChanges();
             },
@@ -286,7 +271,8 @@ export class MatchDetailComponent implements OnInit {
         this.showEndMatchConfirm.set(true);
     }
 
-    onMatchEnded(_updatedMatch: Match): void {
+    onMatchEnded(updatedMatch: Match): void {
+        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
         this.cdr.detectChanges();
     }
 
@@ -294,7 +280,8 @@ export class MatchDetailComponent implements OnInit {
         this.showEventModal.set(true);
     }
 
-    onEventAdded(_updatedMatch: Match): void {
+    onEventAdded(updatedMatch: Match): void {
+        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
         this.cdr.detectChanges();
     }
 
@@ -318,7 +305,8 @@ export class MatchDetailComponent implements OnInit {
             currentMatch.refereeId,
             currentMatch.refereeName
         ).subscribe({
-            next: () => {
+            next: (updated) => {
+                if (updated) this.matchStore.upsertMatch(updated);
                 this.uiFeedback.success('تم بنجاح', 'تم تقديم تقرير المباراة بنجاح');
                 this.isSubmittingReport.set(false);
                 this.closeReportModal();
@@ -340,7 +328,7 @@ export class MatchDetailComponent implements OnInit {
     }
 
     openRescheduleModal(): void {
-        this.scheduleType = 'reset'; // Using 'reset' locally as a flag for Reschedule
+        this.scheduleType = 'reset';
         this.showScheduleModal.set(true);
     }
 
@@ -365,6 +353,7 @@ export class MatchDetailComponent implements OnInit {
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
+                        this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم التأجيل', 'تم تأجيل المباراة للموعد الجديد');
                     }
                     this.closeScheduleModal();
@@ -380,6 +369,7 @@ export class MatchDetailComponent implements OnInit {
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
+                        this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تمت الإعادة', 'تم إعادة المباراة وجدولتها في الموعد الجديد');
                     }
                     this.closeScheduleModal();
@@ -387,12 +377,12 @@ export class MatchDetailComponent implements OnInit {
                 }
             });
         } else {
-            // New Type: 'schedule'
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
+                        this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد اللقاء');
                     }
                     this.closeScheduleModal();
@@ -421,6 +411,8 @@ export class MatchDetailComponent implements OnInit {
         this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).subscribe({
             next: (success) => {
                 if (success) {
+                    const updated = { ...currentMatch, status: MatchStatus.CANCELLED };
+                    this.matchStore.updateMatch(updated);
                     this.uiFeedback.success('تم الإلغاء', 'تم إلغاء المباراة وإرسال إشعارات لجميع الأطراف');
                 }
                 this.closeCancelModal();
@@ -439,8 +431,9 @@ export class MatchDetailComponent implements OnInit {
             const currentMatch = this.match();
             if (confirmed && currentMatch) {
                 this.matchService.deleteMatchEvent(currentMatch.id, eventId).subscribe({
-                    next: () => {
-                this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
+                    next: (updated) => {
+                        if (updated) this.matchStore.upsertMatch(updated);
+                        this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
                         this.cdr.detectChanges();
                     },
                     error: () => this.uiFeedback.error('خطأ', 'فشل في حذف الحدث')
@@ -448,9 +441,6 @@ export class MatchDetailComponent implements OnInit {
             }
         });
     }
-
-    // Referee Modal
-    showRefereeModal = signal(false);
 
     openRefereeModal(): void {
         this.selectedGovernorate.set('');
@@ -538,6 +528,8 @@ export class MatchDetailComponent implements OnInit {
         }
     }
 
+    showRefereeModal = signal(false);
+
     closeRefereeModal(): void {
         this.showRefereeModal.set(false);
     }
@@ -549,6 +541,7 @@ export class MatchDetailComponent implements OnInit {
         this.matchService.assignReferee(currentMatch.id, this.selectedRefereeId).subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
+                    this.matchStore.upsertMatch(updatedMatch);
                     this.uiFeedback.success('تم التعيين', `تم تعيين الحكم بنجاح`);
                 }
                 this.closeRefereeModal();
@@ -578,6 +571,8 @@ export class MatchDetailComponent implements OnInit {
             .subscribe({
                 next: (success: boolean) => {
                     if (success) {
+                        const updated = { ...currentMatch, homeScore: this.scoreForm.homeScore, awayScore: this.scoreForm.awayScore };
+                        this.matchStore.updateMatch(updated);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديث النتيجة');
                     }
                     this.closeScoreModal();
@@ -587,47 +582,10 @@ export class MatchDetailComponent implements OnInit {
             });
     }
 
-    // ==================== HELPERS ====================
-
-    getEventIcon(type: MatchEventType | string | undefined): string {
-        return resolveStatus('match-event', type as string).icon || 'info';
-    }
-
-    getEventColor(type: MatchEventType | string | undefined): string {
-        const variant = resolveStatus('match-event', type as string).variant;
-        // Map badge variants to CSS variables directly
-        const colorMap: Record<string, string> = {
-            success: 'var(--color-success)',
-            warning: 'var(--color-warning)',
-            danger: 'var(--color-danger)',
-            info: 'var(--color-info)',
-            primary: 'var(--color-primary)',
-            gold: 'var(--color-gold)',
-            muted: 'var(--text-muted)'
-        };
-        return colorMap[variant as string] || 'var(--text-muted)';
-    }
-
-    getEventLabel(type: MatchEventType | string | undefined): string {
-        return resolveStatus('match-event', type as string).label;
-    }
-
-    getStatusLabel(status: MatchStatus): string {
-        return resolveStatus('match', status).label;
-    }
-
-    getStatusConfig(status: MatchStatus): StatusConfig {
-        return resolveStatus('match', status);
-    }
-
     // ==================== OBJECTION ====================
 
     openObjectionModal(): void {
-        this.objectionForm = {
-            type: '',
-            description: '',
-            files: []
-        };
+        this.objectionForm = { type: '', description: '', files: [] };
         this.showObjectionModal.set(true);
     }
 
@@ -663,6 +621,32 @@ export class MatchDetailComponent implements OnInit {
             }
         });
     }
+
+    // ==================== HELPERS ====================
+
+    getEventColor(type: MatchEventType | string | undefined): string {
+        const variant = resolveStatus('match-event', type as string).variant;
+        const colorMap: Record<string, string> = {
+            success: 'var(--color-success)',
+            warning: 'var(--color-warning)',
+            danger: 'var(--color-danger)',
+            info: 'var(--color-info)',
+            primary: 'var(--color-primary)',
+            gold: 'var(--color-gold)',
+            muted: 'var(--text-muted)'
+        };
+        return colorMap[variant as string] || 'var(--text-muted)';
+    }
+
+    getEventLabel(type: MatchEventType | string | undefined): string {
+        return resolveStatus('match-event', type as string).label;
+    }
+
+    getStatusLabel(status: MatchStatus): string {
+        return resolveStatus('match', status).label;
+    }
+
+    getStatusConfig(status: MatchStatus): StatusConfig {
+        return resolveStatus('match', status);
+    }
 }
-
-

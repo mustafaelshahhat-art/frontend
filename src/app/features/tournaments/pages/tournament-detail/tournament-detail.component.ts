@@ -268,7 +268,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         this.tournamentService.generateMatches(t.id).subscribe({
             next: (response) => {
                 this.isGeneratingMatches = false;
-                // Matches will flow in via Real-Time "MatchesGenerated" event -> MatchStore -> Derived 'matches'
+                // Since generateMatches returns a message and potentially match data in some versions,
+                // but usually RT event "MatchesGenerated" handles it.
+                // However, the response might contain updated Tournament status.
+                // Reload data to be safe and provide immediate feedback
+                this.loadInitialData(t.id);
                 this.uiFeedback.success('تم بنجاح', response.message || 'تم توليد جدول المباريات');
             },
             error: (err) => {
@@ -507,9 +511,14 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
             if (confirmed) {
                 this.isLoading.set(true);
                 this.tournamentService.eliminateTeam(t.id, teamId).subscribe({
-                    next: () => {
+                    next: (updatedTournament) => {
+                        if (updatedTournament) {
+                            this.tournamentStore.upsertTournament(updatedTournament);
+                        } else {
+                            // Fallback if no data returned
+                            this.loadInitialData(t.id);
+                        }
                         this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${teamName} بنجاح`);
-                        // Tournament updated via RealTime event which will update the store
                         this.isLoading.set(false);
                         this.cdr.detectChanges();
                     },
