@@ -173,10 +173,15 @@ export class ObjectionDetailComponent implements OnInit {
 
     constructor() {
         effect(() => {
+            const obs = this.objectionStore.objections();
             const id = this.route.snapshot.paramMap.get('id');
-            if (id && this.objection) {
-                const updated = this.objectionStore.objections().find(o => o.id === id);
-                if (updated && (updated.status !== this.objection.status || updated.adminNotes !== this.objection.adminNotes)) {
+            if (id) {
+                const updated = obs.find(o => o.id === id);
+                if (updated && (!this.objection ||
+                    updated.status !== this.objection.status ||
+                    updated.adminNotes !== this.objection.adminNotes ||
+                    updated.reviewedBy !== this.objection.reviewedBy ||
+                    updated.reviewedDate !== this.objection.reviewedDate)) {
                     this.objection = updated;
                     this.cdr.detectChanges();
                 }
@@ -195,6 +200,8 @@ export class ObjectionDetailComponent implements OnInit {
             this.objectionsService.getObjectionById(id).subscribe({
                 next: (data) => {
                     this.objection = data;
+                    // Add to store for real-time tracking if missing
+                    this.objectionStore.upsertObjection(data);
                     this.isLoading = false;
                     this.cdr.detectChanges();
                 },

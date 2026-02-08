@@ -106,7 +106,21 @@
     </ng-template>
 
     <ng-template #actionInfo let-row="row">
-        <app-button variant="icon" size="sm" icon="chevron_left" [routerLink]="['/admin/objections', row.id]">
-        </app-button>
+        <div class="flex items-center gap-1">
+            <!-- Details -->
+            <app-button variant="icon" size="sm" icon="visibility" [routerLink]="['/admin/objections', row.id]"
+                title="عرض التفاصيل">
+            </app-button>
+
+            <!-- Quick Actions (Only for pending) -->
+            <ng-container *ngIf="canPerformQuickAction(row.status)">
+                <app-button variant="icon" size="sm" icon="check_circle" class="text-success"
+                    (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.APPROVED)" title="قبول سريع">
+                </app-button>
+                <app-button variant="icon" size="sm" icon="cancel" class="text-danger"
+                    (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.REJECTED)" title="رفض سريع">
+                </app-button>
+            </ng-container>
+        </div>
     </ng-template>
 </div>

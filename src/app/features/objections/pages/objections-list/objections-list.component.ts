@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -42,7 +42,7 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss']
 })
-export class ObjectionsListComponent implements OnInit {
+export class ObjectionsListComponent implements OnInit, AfterViewInit {
     private objectionsService = inject(ObjectionsService);
     private authStore = inject(AuthStore);
     private objectionStore = inject(ObjectionStore);
@@ -113,7 +113,7 @@ export class ObjectionsListComponent implements OnInit {
             { key: 'captain', label: 'الكابتن', template: this.captainInfo },
             { key: 'date', label: 'التاريخ', template: this.dateInfo },
             { key: 'status', label: 'الحالة', template: this.statusInfo, align: 'center' },
-            { key: 'action', label: '', width: '50px', template: this.actionInfo }
+            { key: 'action', label: 'الإجراءات', width: '110px', template: this.actionInfo }
         ];
         this.cdr.detectChanges();
     }
@@ -244,5 +244,39 @@ export class ObjectionsListComponent implements OnInit {
 
     toggleForm(): void {
         this.showForm = true;
+    }
+
+    canPerformQuickAction(status: any): boolean {
+        return status === ObjectionStatus.PENDING ||
+            status === ObjectionStatus.UNDER_REVIEW ||
+            status === 'NEW' ||
+            status === 'UNDER_REVIEW';
+    }
+
+    quickDecision(objection: Objection, status: ObjectionStatus): void {
+        const actionText = status === ObjectionStatus.APPROVED ? 'قبول' : 'رفض';
+        this.uiFeedback.confirm(
+            `${actionText} الاعتراض`,
+            `هل أنت متأكد من ${actionText} هذا الاعتراض؟`,
+            actionText,
+            status === ObjectionStatus.APPROVED ? 'info' : 'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.objectionStore.setLoading(true);
+                this.objectionsService.updateObjectionStatus(objection.id, status, '').subscribe({
+                    next: (updated) => {
+                        this.objectionStore.upsertObjection(updated);
+                        this.objectionStore.setLoading(false);
+                        this.uiFeedback.success('تم بنجاح', `تم ${actionText} الاعتراض بنجاح.`);
+                        this.cdr.detectChanges();
+                    },
+                    error: () => {
+                        this.objectionStore.setLoading(false);
+                        this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الاعتراض');
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
+        });
     }
 }
