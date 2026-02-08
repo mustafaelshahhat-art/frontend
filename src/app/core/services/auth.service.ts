@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
-import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus } from '../models/user.model';
+import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterRequest } from '../models/user.model';
+import { Team } from '../models/team.model';
 import { environment } from '../../../environments/environment';
 import { AuthStore } from '../stores/auth.store';
 
@@ -28,7 +29,7 @@ export class AuthService {
         this.authStore.setCurrentUser(currentUser);
     }
 
-    register(userData: any): Observable<AuthResponse> {
+    register(userData: RegisterRequest): Observable<AuthResponse> {
         const formData = new FormData();
         formData.append('email', userData.email);
         formData.append('password', userData.password);
@@ -115,7 +116,7 @@ export class AuthService {
      * Determines if the current user is the owner (Captain) of the given team.
      * CAPTAIN = a PLAYER who OWNS a team (user.Id == team.CaptainId)
      */
-    isTeamOwner(team: any): boolean {
+    isTeamOwner(team: Team | null | undefined): boolean {
         const user = this.getCurrentUser();
         if (!user || !team) return false;
         return team.captainId === user.id;
@@ -125,7 +126,7 @@ export class AuthService {
      * Determines if the current user can register a team in a tournament.
      * ONLY the team owner (PLAYER) can register the team.
      */
-    canRegisterTournament(team: any): boolean {
+    canRegisterTournament(team: Team | null | undefined): boolean {
         return this.isTeamOwner(team);
     }
 

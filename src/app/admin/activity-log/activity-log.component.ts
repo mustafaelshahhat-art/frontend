@@ -80,14 +80,14 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
         this.isLoading = true;
         this.analyticsService.getRecentActivities().subscribe({
             next: (data) => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.logs = data;
                     this.isLoading = false;
                     this.cdr.detectChanges();
                 });
             },
             error: () => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.logs = [];
                     this.isLoading = false;
                     this.cdr.detectChanges();

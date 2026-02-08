@@ -177,9 +177,7 @@ export class MatchDetailComponent implements OnInit {
             // Handle auto-actions from query params
             this.route.queryParams.subscribe(params => {
                 if (params['action'] === 'objection') {
-                    setTimeout(() => {
-                        this.openObjectionModal();
-                    }, 500);
+                    queueMicrotask(() => this.openObjectionModal());
                 }
             });
         } else {

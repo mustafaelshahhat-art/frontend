@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Tournament, TeamRegistration } from '../models/tournament.model';
+import { Tournament, TeamRegistration, Match, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -60,40 +60,26 @@ export class TournamentService {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/reject`, { reason });
     }
 
-    getPendingPaymentApprovals(): Observable<{ tournament: Tournament, registration: TeamRegistration }[]> {
+    getPendingPaymentApprovals(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/pending
-        return this.http.get<any[]>(`${this.apiUrl}/payments/pending`).pipe(
-            map(response => (response || [])
-                .map(item => ({
-                    tournament: item.tournament ?? item.Tournament,
-                    registration: item.registration ?? item.Registration
-                }))
-                .filter(item => !!item.tournament && !!item.registration))
-        );
+        return this.http.get<PendingPaymentResponse[]>(`${this.apiUrl}/payments/pending`);
     }
 
-    getAllPaymentRequests(): Observable<{ tournament: Tournament, registration: TeamRegistration }[]> {
+    getAllPaymentRequests(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/all - returns pending, approved, and rejected
-        return this.http.get<any[]>(`${this.apiUrl}/payments/all`).pipe(
-            map(response => (response || [])
-                .map(item => ({
-                    tournament: item.tournament ?? item.Tournament,
-                    registration: item.registration ?? item.Registration
-                }))
-                .filter(item => !!item.tournament && !!item.registration))
-        );
+        return this.http.get<PendingPaymentResponse[]>(`${this.apiUrl}/payments/all`);
     }
 
     getRegistrations(tournamentId: string): Observable<TeamRegistration[]> {
         return this.http.get<TeamRegistration[]>(`${this.apiUrl}/${tournamentId}/registrations`);
     }
 
-    generateMatches(tournamentId: string): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
+    generateMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
     }
 
-    getStandings(tournamentId: string): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/${tournamentId}/standings`);
+    getStandings(tournamentId: string): Observable<TournamentStanding[]> {
+        return this.http.get<TournamentStanding[]>(`${this.apiUrl}/${tournamentId}/standings`);
     }
 
     // Helper methods (mock replacement)

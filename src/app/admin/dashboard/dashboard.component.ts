@@ -73,13 +73,13 @@ export class AdminDashboardComponent implements OnInit {
                 // Update stores with fresh data
                 this.userStore.setUsers(Array(data.totalUsers).fill({} as any)); // Simplified
                 // Tournament store would be updated by tournament service
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.updateStatsFromStores();
                     this.cdr.detectChanges();
                 });
             },
             error: () => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.stats = [
                         { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info' },
                         { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary' },
@@ -98,7 +98,7 @@ export class AdminDashboardComponent implements OnInit {
         const tournaments = this.tournamentStore.activeTournaments();
         const matches = this.matchStore.matches();
         const liveMatches = this.matchStore.ongoingMatches();
-        
+
         this.stats = [
             { label: 'إجمالي المستخدمين', value: users.length.toString(), icon: 'groups', colorClass: 'info' },
             { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary' },
@@ -123,13 +123,13 @@ export class AdminDashboardComponent implements OnInit {
                     timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(activity.time)
                 }));
                 this.activityStore.setActivities(storeActivities);
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.recentActivities = data;
                     this.cdr.detectChanges();
                 });
             },
             error: () => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.recentActivities = [];
                     this.cdr.detectChanges();
                 });
@@ -142,13 +142,13 @@ export class AdminDashboardComponent implements OnInit {
             next: (data) => {
                 // Update match store with live matches
                 this.matchStore.setMatches(data);
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.updateLiveMatchesFromStore();
                     this.cdr.detectChanges();
                 });
             },
             error: () => {
-                setTimeout(() => {
+                queueMicrotask(() => {
                     this.liveMatches = [];
                     this.cdr.detectChanges();
                 });

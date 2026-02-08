@@ -8,9 +8,6 @@ import { environment } from '../../../environments/environment';
 @Injectable({
     providedIn: 'root'
 })
-@Injectable({
-    providedIn: 'root'
-})
 export class MatchService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/matches`;
@@ -73,7 +70,7 @@ export class MatchService {
     }
 
     updateMatchScore(id: string, homeScore: number, awayScore: number): Observable<boolean> {
-        return this.updateMatch(id, { homeScore, awayScore } as any).pipe(map(() => true));
+        return this.updateMatch(id, { homeScore, awayScore }).pipe(map(() => true));
     }
 
     updateMatchStatus(id: string, status: MatchStatus): Observable<boolean> {
@@ -121,7 +118,22 @@ export class MatchService {
     getMatchReport(matchId: string): Observable<MatchReport | null> {
         // Should be part of Match object via 'refereeNotes' or similar
         return this.getMatchById(matchId).pipe(
-            map(match => match ? { matchId: match.id, notes: match.refereeNotes, refereeId: match.refereeId || '', submittedAt: match.updatedAt || '' } as any : null)
+            map(match => {
+                if (!match) return null;
+                return {
+                    submittedAt: match.updatedAt || new Date(),
+                    refereeId: match.refereeId || '',
+                    refereeName: match.refereeName || '',
+                    notes: match.refereeNotes || '',
+                    homeTeamYellowCards: match.yellowCards?.filter(c => c.teamId === match.homeTeamId).length || 0,
+                    homeTeamRedCards: match.redCards?.filter(c => c.teamId === match.homeTeamId).length || 0,
+                    homeTeamGoals: match.homeScore || 0,
+                    awayTeamYellowCards: match.yellowCards?.filter(c => c.teamId === match.awayTeamId).length || 0,
+                    awayTeamRedCards: match.redCards?.filter(c => c.teamId === match.awayTeamId).length || 0,
+                    awayTeamGoals: match.awayScore || 0,
+                    isSubmitted: !!match.report?.isSubmitted
+                };
+            })
         );
     }
 

@@ -46,7 +46,7 @@ export class RegisterComponent implements OnInit {
   currentStep: 1 | 2 = 1;
 
   form = {
-    fullName: '',
+    name: '',
     email: '',
     phone: '',
     age: null as number | null,

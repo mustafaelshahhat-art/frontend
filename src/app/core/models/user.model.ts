@@ -55,6 +55,22 @@ export interface LoginRequest {
     password: string;
 }
 
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    name: string;
+    phone?: string | null;
+    age?: number | null;
+    nationalId?: string | null;
+    governorate?: string | null;
+    city?: string | null;
+    neighborhood?: string | null;
+    role: string | number;
+    idFront?: File | null;
+    idBack?: File | null;
+    fullName?: string | null; // Legacy field support
+}
+
 /**
  * JWT Token Payload interface for type-safe token decoding
  */

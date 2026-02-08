@@ -188,3 +188,28 @@ export interface MatchMessage {
     content: string;
     timestamp: Date;
 }
+
+export interface TournamentStanding {
+    teamId: string;
+    teamName: string;
+    teamLogoUrl?: string;
+    played: number;
+    won: number;
+    drawn: number;
+    lost: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDifference: number;
+    points: number;
+    form: string[];
+}
+
+export interface GenerateMatchesResponse {
+    message: string;
+    matches: Match[];
+}
+
+export interface PendingPaymentResponse {
+    tournament: Tournament;
+    registration: TeamRegistration;
+}

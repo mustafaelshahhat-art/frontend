@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ViewChild, effect, signal, untrac
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subscription, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../shared/components/team-detail';
 import { TeamService } from '../../core/services/team.service';
 import { Player, Team } from '../../core/models/team.model';
@@ -265,9 +265,14 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     loading = signal<boolean>(true);
     private isLoadingTeam = false;
 
-    // Writable signals updated asynchronously to prevent NG0100
-    isCaptain = signal<boolean>(false);
-    isAdmin = signal<boolean>(false);
+    // Computed signals replace manual effect updates + setTimeout
+    isCaptain = computed(() => {
+        const team = this.teamData();
+        const user = this.authStore.currentUser();
+        return !!(team && user && team.captainId === user.id);
+    });
+
+    isAdmin = computed(() => this.authStore.currentUser()?.role === 'Admin');
 
     // UI state properties
     isAddingPlayer = false;
@@ -278,20 +283,6 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     isUserPending = computed(() => this.authStore.currentUser()?.status === UserStatus.PENDING);
 
     constructor() {
-        // Sync isCaptain/isAdmin asynchronously
-        effect(() => {
-            const team = this.teamData();
-            const user = this.authStore.currentUser();
-            const isCap = !!(team && user && team.captainId === user.id);
-            const isAdm = user?.role === 'Admin';
-
-            // Force update in next tick to avoid ExpressionChangedAfterItHasBeenCheckedError
-            setTimeout(() => {
-                this.isCaptain.set(isCap);
-                this.isAdmin.set(isAdm);
-            }, 0);
-        });
-
         // Reactive effect: Watch TeamStore and Auth state for real-time updates
         effect(() => {
             const teams = this.teamStore.teams(); // Track store changes
@@ -315,8 +306,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     if (currentData) {
                         this.loadTeamData();
                     } else if (this.loading()) {
-                        // Defer to avoid NG0100
-                        setTimeout(() => this.loading.set(false), 0);
+                        queueMicrotask(() => this.loading.set(false));
                     }
                     return;
                 }
@@ -344,8 +334,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     // Team data changed - reload
                     this.loadTeamData();
                 } else if (this.loading()) {
-                    // Data is consistent, ensure loading is off (deferred)
-                    setTimeout(() => this.loading.set(false), 0);
+                    // Data is consistent, ensure loading is off
+                    queueMicrotask(() => this.loading.set(false));
                 }
             });
         });
@@ -360,24 +350,15 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // isAdmin is computed automatically from authStore
-
-        // Initial load is handled by the effect in constructor
-        // BUT we must refresh profile to ensure teamId is up to date (e.g. if accepted elsewhere)
         this.authService.refreshUserProfile().subscribe();
-
         this.loadInvitations();
 
-        // Listen for real-time updates
-        // RULE: Do NOT mutate loading/teamData signals directly here.
-        // Trigger async operations that handle state mutations in their callbacks.
         this.subscriptions.add(
             this.notificationService.joinRequestUpdate.subscribe(() => {
                 if (!this.currentUser) return;
 
                 const currentData = this.teamData();
                 if (currentData && this.isCaptain()) {
-                    // Captain side: Update requests list via HTTP re-fetch
                     this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
                         const latestData = this.teamData();
                         if (latestData) {
@@ -385,25 +366,17 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                         }
                     });
                 } else if (!currentData) {
-                    // Player side (no team): Could be new invite OR acceptance
-                    // First refresh profile to check if we now have a team
                     this.authService.refreshUserProfile().subscribe({
                         next: (updatedUser) => {
                             if (updatedUser?.teamId) {
-                                // Player now has a team (invite was accepted) - load team data
                                 this.loadTeamData();
                             } else {
-                                // Player still has no team - refresh invitations list
                                 this.loadInvitations();
                             }
                         },
-                        error: () => {
-                            // On error, just refresh invitations
-                            this.loadInvitations();
-                        }
+                        error: () => this.loadInvitations()
                     });
                 } else {
-                    // Player with team receiving update - reload invitations
                     this.loadInvitations();
                 }
             })
@@ -412,49 +385,36 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.subscriptions.unsubscribe();
-        // effects clean up themselves
     }
 
     loadInvitations(): void {
         this.teamRequestService.getMyInvitations().subscribe({
             next: (invites) => {
                 this.pendingInvitations.set(invites);
-                // REMOVED: cdr.detectChanges() - Angular Signals drive rendering naturally
             }
         });
     }
 
     acceptInvite(requestId: string): void {
-        // RULE: Set loading = true ONCE at the start
-        // loadTeamData() will set loading = false at the end
         this.loading.set(true);
-
-        // Clear invitations immediately to prevent UI flicker (Invite → Loading, not Invite → No Team)
         this.pendingInvitations.set([]);
 
         this.teamRequestService.acceptRequest(requestId).subscribe({
             next: (response) => {
                 this.uiFeedback.success('تمت الإضافة', 'أهلاً بك في فريقك الجديد!');
 
-                // Use robust property access consistent with backend camelCase contract
+                // Typed response handling
                 const teamId = (response as any).teamId;
 
                 if (teamId && typeof teamId === 'string') {
-                    // Update currentUser with the new teamId immediately
                     if (this.currentUser) {
                         const updatedUser = { ...this.currentUser, teamId };
                         this.currentUser = updatedUser;
-                        // Tell auth service to update global store (critical)
                         this.authService.updateCurrentUser(updatedUser);
                     }
-
-                    // Load team immediately - do NOT wait for profile refresh
                     this.loadTeamData();
-
-                    // Refresh profile in background to sync any other fields
                     this.authService.refreshUserProfile().subscribe();
                 } else {
-                    // Fallback: teamId not found in response
                     console.warn('Backend did not return teamId. Falling back to refresh.');
                     this.authService.refreshUserProfile().subscribe({
                         next: (updatedUser) => {
@@ -462,7 +422,6 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                                 this.currentUser = updatedUser;
                                 this.loadTeamData();
                             } else {
-                                // Still no team ID? Then show invitations again
                                 this.loading.set(false);
                                 this.loadInvitations();
                             }
@@ -475,9 +434,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 }
             },
             error: (err) => {
-                // Error accepting invite - exit loading state
                 this.loading.set(false);
-                this.loadInvitations(); // Restore invitations list
+                this.loadInvitations();
                 this.uiFeedback.error('فشل القبول', err.message);
             }
         });
@@ -488,36 +446,26 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             next: () => {
                 this.pendingInvitations.update(invites => invites.filter(i => i.id !== requestId));
                 this.uiFeedback.success('تم الرفض', 'تم رفض الدعوة بنجاح');
-                // REMOVED: cdr.detectChanges() - Angular Signals drive rendering naturally
             }
         });
     }
 
     loadTeamData(): void {
-        // Guard against concurrent loads
         if (this.isLoadingTeam) return;
 
-        // Handle no user case - immediate exit
         if (!this.currentUser) {
             this.teamData.set(null);
-            // isCaptain is computed automatically
             this.loading.set(false);
             return;
         }
 
-        // If user has a teamId, load that team first.
-        // If not, we check if they might be a captain whose team is not linked.
-        let loadTeam$: Observable<any> | null = null;
+        let loadTeam$: Observable<Team | null> | null = null;
 
         if (this.currentUser.teamId) {
-            // Use getTeamByIdSilent to handle 404 gracefully (deleted teams)
             loadTeam$ = this.teamService.getTeamByIdSilent(this.currentUser.teamId);
         } else {
-            // Fallback: check if this user is a captain of any team
-            // But we can optimize: if we already ran this once and know he's not...
-            // For now, loadTeam$ handles it.
             loadTeam$ = this.teamService.getTeamByCaptainId(this.currentUser.id).pipe(
-                // Ensure this observable never errors out to the main subscriber
+                map((team: Team | undefined) => team || null),
                 catchError(err => {
                     console.error('Error checking captain status', err);
                     return of(null);
@@ -526,23 +474,20 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         }
 
         if (!loadTeam$) {
-            // No team to load - set final state
             this.teamData.set(null);
-            // isCaptain computed automatically
             this.loadInvitations();
-            setTimeout(() => this.loading.set(false), 0);
+            queueMicrotask(() => this.loading.set(false));
             return;
         }
 
-        // Mark as loading and set loading signal
         this.isLoadingTeam = true;
-        // Only set loading=true if not already loading (e.g., from acceptInvite)
         if (!this.loading()) {
-            setTimeout(() => this.loading.set(true), 0);
+            queueMicrotask(() => this.loading.set(true));
         }
 
-        // Set a safety timeout to force loading off after 8 seconds
-        setTimeout(() => {
+        // Safety timeout using unref/ref pattern or just robust logic
+        // We defer to queueMicrotask for cleanup if needed
+        const safetyTimer = setTimeout(() => {
             if (this.loading() && this.isLoadingTeam) {
                 console.warn('Force clearing loading state after timeout');
                 this.isLoadingTeam = false;
@@ -551,13 +496,14 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         }, 8000);
 
         loadTeam$.subscribe({
-            next: (team: any) => {
-                setTimeout(() => {
+            next: (team: Team | null) => {
+                clearTimeout(safetyTimer);
+
+                queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
 
                     if (team) {
-                        // ... existing member check logic ...
                         const isMember = team.captainId === this.currentUser?.id ||
                             (this.currentUser?.teamId === team.id) ||
                             (team.players && team.players.some((p: any) => p.userId === this.currentUser?.id || p.id === this.currentUser?.id));
@@ -570,7 +516,6 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                             return;
                         }
 
-                        // ... existing store update logic ...
                         const existingTeam = this.teamStore.getTeamById(team.id);
                         if (existingTeam) {
                             this.teamStore.updateTeam(team);
@@ -594,16 +539,16 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                         this.loadInvitations();
                     }
 
-                    // Retry logic from original finalize
                     const user = this.authStore.currentUser();
                     if (user?.teamId && !this.teamData()) {
-
-                        setTimeout(() => this.loadTeamData(), 100);
+                        // Retry logic
+                        queueMicrotask(() => this.loadTeamData());
                     }
                 });
             },
             error: (err) => {
-                setTimeout(() => {
+                clearTimeout(safetyTimer);
+                queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
                     if (err.status === 404) {
