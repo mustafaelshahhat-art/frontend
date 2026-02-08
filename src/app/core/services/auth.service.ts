@@ -33,6 +33,7 @@ export class AuthService {
 
     register(userData: RegisterRequest): Observable<AuthResponse> {
         const formData = new FormData();
+        // ... (preserving existing mapping logic)
         formData.append('email', userData.email);
         formData.append('password', userData.password);
         formData.append('name', userData.fullName || userData.name);
@@ -47,7 +48,9 @@ export class AuthService {
         if (userData.idFront) formData.append('idFront', userData.idFront);
         if (userData.idBack) formData.append('idBack', userData.idBack);
 
-        return this.http.post<AuthResponse>(`${this.apiUrl}/register`, formData).pipe(
+        return this.http.post<AuthResponse>(`${this.apiUrl}/register`, formData, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        }).pipe(
             tap(response => this.handleAuthResponse(response))
         );
     }
@@ -63,7 +66,9 @@ export class AuthService {
     }
 
     login(request: LoginRequest): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
+        return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        }).pipe(
             tap(response => this.handleAuthResponse(response))
         );
     }
@@ -246,7 +251,9 @@ export class AuthService {
     }
 
     verifyEmail(email: string, otp: string): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/verify-email`, { email, otp });
+        return this.http.post<void>(`${this.apiUrl}/verify-email`, { email, otp }, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        });
     }
 
     forgotPassword(email: string): Observable<void> {
@@ -256,10 +263,14 @@ export class AuthService {
     }
 
     resetPassword(email: string, otp: string, newPassword: string): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/reset-password`, { email, otp, newPassword });
+        return this.http.post<void>(`${this.apiUrl}/reset-password`, { email, otp, newPassword }, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        });
     }
 
     resendOtp(email: string, type: 'EMAIL_VERIFY' | 'PASSWORD_RESET'): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/resend-otp`, { email, type });
+        return this.http.post<void>(`${this.apiUrl}/resend-otp`, { email, type }, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        });
     }
 }

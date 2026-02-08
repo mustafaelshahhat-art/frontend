@@ -27,7 +27,6 @@ export class ForgotPasswordComponent {
 
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
-    successMessage = signal<string | null>(null);
 
     get email() {
         return this.forgotForm.get('email');
@@ -41,7 +40,6 @@ export class ForgotPasswordComponent {
 
         this.isLoading.set(true);
         this.errorMessage.set(null);
-        this.successMessage.set(null);
 
         const email = this.forgotForm.value.email;
 
@@ -50,10 +48,13 @@ export class ForgotPasswordComponent {
             .subscribe({
                 next: () => {
                     this.isLoading.set(false);
-                    this.successMessage.set('تم إرسال تعليمات استعادة كلمة المرور إلى بريدك الإلكتروني.');
-                    setTimeout(() => {
-                        this.router.navigate(['/auth/reset-password'], { queryParams: { email: email } });
-                    }, 2000);
+                    const encodedEmail = btoa(email);
+                    this.router.navigate(['/auth/reset-password'], {
+                        queryParams: {
+                            email: encodedEmail,
+                            sent: 'true'
+                        }
+                    });
                 },
                 error: (err) => {
                     this.isLoading.set(false);

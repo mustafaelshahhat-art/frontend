@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,14 +8,23 @@ import { CommonModule } from '@angular/common';
     templateUrl: './alert.component.html',
     styleUrls: ['./alert.component.scss']
 })
-export class AlertComponent {
+export class AlertComponent implements OnInit {
     @Input() type: 'success' | 'danger' | 'warning' | 'info' = 'info';
     @Input() title?: string;
     @Input() icon?: string;
     @Input() dismissible = false;
+    @Input() autoDismiss = 0; // Duration in ms, 0 means no auto-dismiss
 
     visible = true;
     @Output() onClose = new EventEmitter<void>();
+
+    ngOnInit() {
+        if (this.autoDismiss > 0) {
+            setTimeout(() => {
+                this.dismiss();
+            }, this.autoDismiss);
+        }
+    }
 
     dismiss() {
         this.visible = false;

@@ -18,13 +18,13 @@
 
         <div class="auth-card-body">
             <!-- Global Alerts -->
-            <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" (onClose)="errorMessage.set(null)"
-                class="mb-lg">
+            <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" [autoDismiss]="5000"
+                (onClose)="errorMessage.set(null)" class="mb-lg">
                 {{ errorMessage() }}
             </app-alert>
 
-            <app-alert *ngIf="successMessage()" type="success" [dismissible]="true" (onClose)="successMessage.set(null)"
-                class="mb-lg">
+            <app-alert *ngIf="successMessage()" type="success" [dismissible]="true" [autoDismiss]="5000"
+                (onClose)="successMessage.set(null)" class="mb-lg">
                 {{ successMessage() }}
             </app-alert>
 

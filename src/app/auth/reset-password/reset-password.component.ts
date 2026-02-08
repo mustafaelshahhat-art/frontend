@@ -29,17 +29,77 @@ export class ResetPasswordComponent implements OnInit {
     }, { validators: this.passwordMatchValidator });
 
     isLoading = signal(false);
+    isResending = signal(false);
     errorMessage = signal<string | null>(null);
     successMessage = signal<string | null>(null);
     email: string | null = null;
 
+    resendCountdown = signal(60);
+    canResend = signal(false);
+    timerInterval: any;
+
+    private decodeEmail(value: string): string {
+        try {
+            if (!value) return '';
+            if (value.includes('@')) return value;
+            return atob(value);
+        } catch {
+            return value;
+        }
+    }
+
     ngOnInit() {
         this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-            this.email = params['email'];
+            const rawEmail = params['email'];
+            this.email = rawEmail ? this.decodeEmail(rawEmail) : null;
+
             if (!this.email) {
                 this.router.navigate(['/auth/forgot-password']);
             }
+
+            if (params['sent'] === 'true') {
+                this.successMessage.set('تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.');
+            }
         });
+
+        this.startResendTimer();
+    }
+
+    startResendTimer(): void {
+        this.canResend.set(false);
+        this.resendCountdown.set(60);
+
+        if (this.timerInterval) clearInterval(this.timerInterval);
+
+        this.timerInterval = setInterval(() => {
+            this.resendCountdown.update(val => val - 1);
+            if (this.resendCountdown() <= 0) {
+                this.canResend.set(true);
+                clearInterval(this.timerInterval);
+            }
+        }, 1000);
+    }
+
+    resendOtp(): void {
+        if (!this.email || !this.canResend()) return;
+
+        this.isResending.set(true);
+        this.errorMessage.set(null);
+        this.successMessage.set(null);
+
+        this.authService.resendOtp(this.email, 'PASSWORD_RESET')
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.isResending.set(false);
+                    this.successMessage.set('تم إعادة إرسال كود التحقق بنجاح.');
+                    this.startResendTimer();
+                },
+                error: (error) => {
+                    this.isResending.set(false);
+                    this.errorMessage.set(error.error?.message || 'فشل إعادة إرسال الكود. حاول مرة أخرى لاحقاً.');
+                }
+            });
     }
 
     get otp() { return this.resetForm.get('otp'); }

@@ -82,15 +82,17 @@ export class LoginComponent implements OnInit {
                     this.isLoading.set(false);
 
                     if (error.code === 'EMAIL_NOT_VERIFIED') {
-                        // Redirect to verify-email with the email
+                        // Redirect to verify-email with the obfuscated email
+                        const email = this.loginForm.value.email?.trim();
+                        const encodedEmail = btoa(email);
                         this.router.navigate(['/auth/verify-email'], {
-                            queryParams: { email: this.loginForm.value.email?.trim() },
+                            queryParams: { email: encodedEmail },
                             state: { message: 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني' }
                         });
                         return;
                     }
 
-                    this.errorMessage.set(error.message || 'حدث خطأ أثناء تسجيل الدخول');
+                    this.errorMessage.set(error.error?.message || 'حدث خطأ أثناء تسجيل الدخول');
                 }
             });
     }

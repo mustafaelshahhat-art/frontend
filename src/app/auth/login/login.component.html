@@ -22,8 +22,8 @@
       </app-alert>
 
       <!-- Error Alert -->
-      <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" (onClose)="errorMessage.set(null)"
-        class="mb-lg">
+      <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" [autoDismiss]="5000"
+        (onClose)="errorMessage.set(null)" class="mb-lg">
         {{ errorMessage() }}
       </app-alert>
     </div>

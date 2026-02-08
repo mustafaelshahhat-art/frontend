@@ -52,18 +52,33 @@ export class VerifyEmailComponent implements OnInit {
         });
     }
 
+    private decodeEmail(value: string): string {
+        try {
+            // If it's already an email, return it
+            if (value.includes('@')) return value;
+            // Otherwise try to decode Base64
+            return atob(value);
+        } catch {
+            return value;
+        }
+    }
+
     ngOnInit(): void {
         const currentUser = this.authService.getCurrentUser();
 
         this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             if (params['email']) {
-                this.email = params['email'];
+                this.email = this.decodeEmail(params['email']);
             } else if (currentUser?.email) {
                 this.email = currentUser.email;
             }
 
             if (!this.email) {
                 this.router.navigate(['/auth/login']);
+            }
+
+            if (params['registered'] === 'true') {
+                this.successMessage.set('تم إرسال رمز التحقق إلى بريدك الإلكتروني بنجاح.');
             }
         });
 

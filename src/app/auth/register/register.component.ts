@@ -162,15 +162,21 @@ export class RegisterComponent implements OnInit {
     this.cdr.detectChanges(); // Sync state before async call
 
     this.authService.register(this.form).subscribe({
-      next: (user) => {
+      next: () => {
         this.isLoading = false;
-        this.uiFeedback.success('تم بنجاح', 'تم تسجيل الحساب بنجاح. يرجى تفعيل بريدك الإلكتروني.');
-        this.router.navigate(['/auth/verify-email'], { queryParams: { email: this.form.email } });
-        this.cdr.detectChanges();
+        // Navigate immediately to the verification page for an "instant" feel
+        // Encrypt (Base64) the email for URL privacy
+        const encodedEmail = btoa(this.form.email);
+        this.router.navigate(['/auth/verify-email'], {
+          queryParams: {
+            email: encodedEmail,
+            registered: 'true'
+          }
+        });
       },
       error: (err) => {
         this.isLoading = false;
-        this.uiFeedback.error('خطأ', 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
+        this.uiFeedback.error('فشل التسجيل', err.error?.message || 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
         this.cdr.detectChanges();
       }
     });
