@@ -267,28 +267,10 @@ export class TeamDetailComponent implements OnChanges {
     }
 
     onDeleteTeamClick(): void {
-        this.uiFeedback.confirm(
-            'حذف الفريق',
-            'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق ولكن ستبقى نتائج المباريات محفوظة.',
-            'حذف نهائي',
-            'danger'
-        ).subscribe(confirmed => {
-            if (confirmed) {
-                this.deleteTeam.emit();
-            }
-        });
+        this.deleteTeam.emit();
     }
 
     onDisableTeamClick(): void {
-        this.uiFeedback.confirm(
-            'تعطيل الفريق',
-            'هل أنت متأكد من تعطيل هذا الفريق؟ سيؤدي ذلك إلى انسحابه من أي بطولة جارية واعتبار مبارياته القادمة خاسرة (0-3). لا يمكن التراجع عن هذا الإجراء بسهولة.',
-            'تأكيد التعطيل',
-            'danger'
-        ).subscribe(confirmed => {
-            if (confirmed) {
-                this.disableTeam.emit();
-            }
-        });
+        this.disableTeam.emit();
     }
 }

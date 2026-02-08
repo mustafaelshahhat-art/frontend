@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
@@ -10,7 +10,7 @@ import { InlineLoadingComponent } from '../../shared/components/inline-loading/i
 import { TournamentService } from '../../core/services/tournament.service';
 import { Tournament, TeamRegistration, RegistrationStatus } from '../../core/models/tournament.model';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
-import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
+import { TournamentStore } from '../../core/stores/tournament.store';
 
 @Component({
     selector: 'app-payment-requests',
@@ -33,20 +33,39 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
     private readonly cdr = inject(ChangeDetectorRef);
-    private readonly realTimeUpdate = inject(RealTimeUpdateService);
+    private readonly tournamentStore = inject(TournamentStore);
 
     currentFilter = 'all';
-    isLoading = true;
     showReceiptModal = false;
     selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
 
+    // ✅ FIXED: Compute requests from TournamentStore instead of local state
+    requests = computed(() => {
+        const tournaments = this.tournamentStore.tournaments();
+        const result: { tournament: Tournament, registration: TeamRegistration }[] = [];
+
+        tournaments.forEach(tournament => {
+            if (tournament.registrations) {
+                tournament.registrations.forEach(reg => {
+                    if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW ||
+                        reg.status === RegistrationStatus.APPROVED ||
+                        reg.status === RegistrationStatus.REJECTED) {
+                        result.push({ tournament, registration: reg });
+                    }
+                });
+            }
+        });
+
+        return result;
+    });
+
+    isLoading = this.tournamentStore.isLoading;
     filters = [
         { value: 'all', label: 'الكل' },
         { value: RegistrationStatus.PENDING_PAYMENT_REVIEW, label: 'معلق' },
         { value: RegistrationStatus.APPROVED, label: 'مقبول' }
     ];
 
-    requests: { tournament: Tournament, registration: TeamRegistration }[] = [];
     columns: TableColumn[] = [];
 
     @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
@@ -58,14 +77,8 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
-        this.loadRequests();
-        this.setupRealTimeUpdates();
-    }
-
-    private setupRealTimeUpdates(): void {
-        this.realTimeUpdate.on(['PAYMENT_APPROVED', 'PAYMENT_REJECTED']).subscribe(() => {
-            this.loadRequests();
-        });
+        this.loadInitialData();
+        // ✅ FIXED: No real-time setup needed - TournamentStore auto-updates via SignalR
     }
 
     ngAfterViewInit(): void {
@@ -81,35 +94,28 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
     }
 
-    loadRequests(): void {
-        this.isLoading = true;
-        this.tournamentService.getAllPaymentRequests().subscribe({
+    // ✅ FIXED: Load tournaments ONCE on init to populate store
+    private loadInitialData(): void {
+        this.tournamentStore.setLoading(true);
+        this.tournamentService.getTournaments().subscribe({
             next: (data) => {
-                setTimeout(() => {
-                    this.requests = data;
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+                this.tournamentStore.setTournaments(data);
             },
             error: () => {
-                setTimeout(() => {
-                    this.requests = [];
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+                this.tournamentStore.setLoading(false);
             }
         });
     }
 
     get filteredRequests(): { tournament: Tournament, registration: TeamRegistration }[] {
-        if (this.currentFilter === 'all') return this.requests;
-        return this.requests.filter(r => r.registration.status === this.currentFilter);
+        const allRequests = this.requests();
+        if (this.currentFilter === 'all') return allRequests;
+        return allRequests.filter(r => r.registration.status === this.currentFilter);
     }
 
     approve(request: { tournament: Tournament, registration: TeamRegistration }): void {
         this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId, 'admin').subscribe({
             next: () => {
-                request.registration.status = RegistrationStatus.APPROVED;
                 this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
             }
         });
@@ -120,7 +126,6 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
             if (confirmed) {
                 this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'admin', 'Rejected by admin').subscribe({
                     next: () => {
-                        request.registration.status = RegistrationStatus.REJECTED;
                         this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
                     }
                 });

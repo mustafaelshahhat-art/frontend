@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatchService } from '../../core/services/match.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Match, MatchStatus, MatchEventType } from '../../core/models/tournament.model';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
-import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
+import { MatchStore } from '../../core/stores/match.store';
 import { EndMatchConfirmComponent } from '../../features/matches/components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../features/matches/components/match-event-modal/match-event-modal.component';
 import { MatchCardComponent } from '../../shared/components/match-card/match-card.component';
@@ -26,13 +26,14 @@ export class RefereeDashboardComponent implements OnInit {
     private authService = inject(AuthService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
-    private realTimeUpdate = inject(RealTimeUpdateService);
+    private matchStore = inject(MatchStore);
 
     currentUser = this.authService.getCurrentUser();
     isPending = this.currentUser?.status?.toLowerCase() === 'pending';
 
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
 
+    // Use signals to react to store changes
     todayMatches: Match[] = [];
     allMatches: Match[] = [];
     MatchStatus = MatchStatus;
@@ -44,68 +45,20 @@ export class RefereeDashboardComponent implements OnInit {
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
 
-    ngOnInit(): void {
-        this.loadDashboardData();
-        this.setupRealTimeUpdates();
-    }
-
-    private setupRealTimeUpdates(): void {
-        // Subscribe to relevant events
-        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe(() => {
-            if (!this.showEndMatchConfirm && !this.showEventModal) {
-                this.loadDashboardData();
-            }
-        });
-
-        // Handle user approval / blocking (if referee account status changes)
-        this.realTimeUpdate.on(['USER_APPROVED', 'USER_BLOCKED']).subscribe(() => {
-            this.refreshStatus();
-        });
-    }
-
-    private updateEditingState(): void {
-        this.realTimeUpdate.setEditingState(this.showEndMatchConfirm || this.showEventModal);
-    }
-
-    refreshStatus(): void {
-        this.authService.refreshUserProfile().subscribe({
-            next: (user) => {
-                if (user) {
-                    this.currentUser = user;
-                    this.isPending = user.status?.toLowerCase() === 'pending';
-                    this.cdr.detectChanges();
-                }
-            }
-        });
-    }
-
-    loadDashboardData(): void {
-        this.loadStats();
-        this.loadMatches();
-    }
-
-    loadStats(): void {
-        const finishedMatches = this.allMatches.filter(m => m.status === MatchStatus.FINISHED);
-        const pendingReports = finishedMatches.filter(m => !m.refereeNotes || m.refereeNotes.trim() === '').length;
-
-        this.stats = [
-            { label: 'مباريات اليوم', value: this.todayMatches.length.toString(), icon: 'today', colorClass: 'primary' },
-            { label: 'إجمالي المباريات', value: this.allMatches.length.toString(), icon: 'history', colorClass: 'info' },
-            { label: 'تقارير معلقة', value: pendingReports.toString(), icon: 'description', colorClass: 'gold' },
-            { label: 'التقييم', value: '5.0', icon: 'star', colorClass: 'info' }
-        ];
-    }
-
-    loadMatches(): void {
-        this.matchService.getMyMatches().subscribe({
-            next: (matches) => {
-                this.allMatches = matches;
-
+    constructor() {
+        // React to store changes
+        effect(() => {
+            const matches = this.matchStore.matches();
+            const myUserId = this.currentUser?.id;
+            
+            if (myUserId) {
+                this.allMatches = this.matchStore.getMyMatches(myUserId);
+                
                 // Get today's date (normalized to start of day for comparison)
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                this.todayMatches = matches.filter(m => {
+                this.todayMatches = this.allMatches.filter(m => {
                     // For Live matches, always show (they're ongoing)
                     if (m.status === MatchStatus.LIVE) return true;
 
@@ -124,23 +77,55 @@ export class RefereeDashboardComponent implements OnInit {
 
                 this.loadStats();
                 this.cdr.detectChanges();
-            },
-            error: () => {
-                this.todayMatches = [];
             }
         });
     }
 
+    ngOnInit(): void {
+        this.loadInitialData();
+    }
+
+    private loadInitialData(): void {
+        // Load initial data into store
+        this.matchService.getMyMatches().subscribe({
+            next: (matches) => {
+                this.matchStore.setMatches(matches);
+            },
+            error: (error) => {
+                console.error('Failed to load matches:', error);
+            }
+        });
+    }
+
+    refreshStatus(): void {
+        this.authService.refreshUserProfile().subscribe({
+            next: (user) => {
+                if (user) {
+                    this.currentUser = user;
+                    this.isPending = user.status?.toLowerCase() === 'pending';
+                    this.cdr.detectChanges();
+                }
+            }
+        });
+    }
+
+    loadStats(): void {
+        const finishedMatches = this.allMatches.filter(m => m.status === MatchStatus.FINISHED);
+        const pendingReports = finishedMatches.filter(m => !m.refereeNotes || m.refereeNotes.trim() === '').length;
+
+        this.stats = [
+            { label: 'مباريات اليوم', value: this.todayMatches.length.toString(), icon: 'today', colorClass: 'primary' },
+            { label: 'إجمالي المباريات', value: this.allMatches.length.toString(), icon: 'history', colorClass: 'info' },
+            { label: 'تقارير معلقة', value: pendingReports.toString(), icon: 'description', colorClass: 'gold' },
+            { label: 'التقييم', value: '5.0', icon: 'star', colorClass: 'info' }
+        ];
+    }
 
     startMatch(matchId: string): void {
         this.matchService.startMatch(matchId).subscribe({
             next: (updatedMatch) => {
                 this.uiFeedback.success('تم بنجاح', 'تم بدء المباراة بنجاح');
-                // Update local list to reflect status change immediately
-                const index = this.todayMatches.findIndex(m => m.id === matchId);
-                if (index !== -1 && updatedMatch) {
-                    this.todayMatches[index] = { ...updatedMatch };
-                }
+                // Store will be updated automatically via SignalR
             },
             error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
         });
@@ -150,18 +135,12 @@ export class RefereeDashboardComponent implements OnInit {
     onEndMatchClick(matchId: string): void {
         this.activeMatchId = matchId;
         this.showEndMatchConfirm = true;
-        this.updateEditingState();
     }
 
     onMatchEnded(updatedMatch: Match): void {
-        const index = this.todayMatches.findIndex(m => m.id === this.activeMatchId);
-        if (index !== -1 && updatedMatch) {
-            this.todayMatches[index] = { ...updatedMatch };
-        }
-        this.loadMatches();
+        // Store will be updated automatically via SignalR
         this.activeMatchId = null;
         this.showEndMatchConfirm = false;
-        this.updateEditingState();
     }
 
     // Add Event Flow
@@ -169,18 +148,13 @@ export class RefereeDashboardComponent implements OnInit {
         this.activeMatch = match;
         this.activeMatchId = match.id;
         this.showEventModal = true;
-        this.updateEditingState();
     }
 
     onEventAdded(updatedMatch: Match): void {
-        const index = this.todayMatches.findIndex(m => m.id === this.activeMatchId);
-        if (index !== -1 && updatedMatch) {
-            this.todayMatches[index] = { ...updatedMatch };
-        }
+        // Store will be updated automatically via SignalR
         this.activeMatch = null;
         this.activeMatchId = null;
         this.showEventModal = false;
-        this.updateEditingState();
     }
 
     goToMatchDetail(matchId: string): void {

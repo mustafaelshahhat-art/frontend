@@ -4,7 +4,7 @@
 <div class="app-layout bg-gradient-page">
 
     <!-- Sidebar -->
-    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser"
+    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
         brandSubtitle="لوحة الإدارة" userRoleLabel="مدير النظام" (close)="closeSidebar()" (logout)="handleLogout()">
     </app-sidebar>
 

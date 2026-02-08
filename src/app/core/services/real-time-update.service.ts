@@ -1,9 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { Subject, BehaviorSubject, Observable } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from './auth.service';
+import { SignalRService } from './signalr.service';
+import { TournamentStore } from '../stores/tournament.store';
+import { MatchStore } from '../stores/match.store';
+import { TeamStore } from '../stores/team.store';
+import { UserStore } from '../stores/user.store';
+import * as signalR from '@microsoft/signalr';
 
 export interface SystemEvent {
     type: string;
@@ -15,108 +20,348 @@ export interface SystemEvent {
     providedIn: 'root'
 })
 export class RealTimeUpdateService {
-    private readonly router = inject(Router);
-    private readonly uiFeedback = inject(UIFeedbackService);
     private readonly authService = inject(AuthService);
+    private readonly signalRService = inject(SignalRService);
+    private readonly uiFeedback = inject(UIFeedbackService);
+
+    private readonly tournamentStore = inject(TournamentStore);
+    private readonly matchStore = inject(MatchStore);
+    private readonly teamStore = inject(TeamStore);
+    private readonly userStore = inject(UserStore);
+
+    private hubConnection: signalR.HubConnection | null = null;
+    private listenersBound = false;
 
     private events$ = new Subject<SystemEvent>();
     public systemEvents$ = this.events$.asObservable();
 
-    // Registry for components to report their editing state
-    private editingState = new BehaviorSubject<boolean>(false);
-    public isEditing$ = this.editingState.asObservable();
-
-    private pendingUpdates: SystemEvent[] = [];
-
-    /**
-     * Set the editing state of the current view.
-     * When isEditing is true, real-time updates are queued instead of applied.
-     */
-    setEditingState(isEditing: boolean): void {
-        const wasEditing = this.editingState.value;
-        this.editingState.next(isEditing);
-
-        // Auto-apply updates as soon as the user stops editing
-        if (wasEditing && !isEditing && this.pendingUpdates.length > 0) {
-            this.applyPendingUpdates();
-        }
+    constructor() {
+        this.initializeSignalR();
     }
 
-    /**
-     * Dispatch a system event received from SignalR.
-     */
+    ensureInitialized(): void {
+        this.initializeSignalR();
+    }
+
     dispatch(event: any): void {
         const systemEvent: SystemEvent = {
-            type: event.type || event.Type,
-            metadata: event.metadata || event.Metadata,
-            timestamp: new Date(event.timestamp || event.Timestamp || Date.now())
+            type: event?.type || event?.Type || '',
+            metadata: event?.metadata || event?.Metadata || {},
+            timestamp: new Date(event?.timestamp || event?.Timestamp || Date.now())
         };
 
-        console.log('RealTimeUpdate: Received event', systemEvent);
-
-        // 1. Check for force actions (Logout / Critical Reloads)
         if (this.handleCriticalActions(systemEvent)) {
             return;
         }
 
-        // 2. Check editing state
-        if (this.editingState.value) {
-            // Queue updates to prevent UI jumping while user is typing/editing
-            this.pendingUpdates.push(systemEvent);
-        } else {
-            // 3. Dispatch to subscribers immediately if not editing
-            this.events$.next(systemEvent);
+        this.events$.next(systemEvent);
+    }
+
+    on(type: string | string[]): Observable<SystemEvent> {
+        const types = Array.isArray(type) ? type : [type];
+        return this.systemEvents$.pipe(filter(event => types.includes(event.type)));
+    }
+
+    setEditingState(_isEditing: boolean): void {
+        // Deprecated compatibility no-op.
+    }
+
+    private initializeSignalR(): void {
+        const connection = this.signalRService.createConnection('notifications');
+        if (this.hubConnection !== connection) {
+            this.hubConnection = connection;
+            this.listenersBound = false;
         }
+
+        if (!this.listenersBound) {
+            this.bindHubListeners();
+            this.listenersBound = true;
+        }
+
+        this.signalRService.startConnection('notifications');
+    }
+
+    private bindHubListeners(): void {
+        if (!this.hubConnection) {
+            return;
+        }
+
+        this.hubConnection.on('TournamentCreated', (dto: any) => {
+            if (dto?.id) {
+                this.tournamentStore.upsertTournament(dto);
+            }
+        });
+
+        this.hubConnection.on('TournamentUpdated', (dto: any) => {
+            if (dto?.id) {
+                this.tournamentStore.upsertTournament(dto);
+            }
+        });
+
+        this.hubConnection.on('TournamentDeleted', (payload: any) => {
+            const tournamentId = this.extractId(payload, 'tournamentId');
+            if (!tournamentId) {
+                return;
+            }
+
+            this.tournamentStore.removeTournament(tournamentId);
+            this.matchStore.removeMatchesByTournament(tournamentId);
+        });
+
+        this.hubConnection.on('RegistrationApproved', (tournamentDto: any) => {
+            if (tournamentDto?.id) {
+                this.tournamentStore.upsertTournament(tournamentDto);
+            }
+        });
+
+        this.hubConnection.on('RegistrationRejected', (tournamentDto: any) => {
+            if (tournamentDto?.id) {
+                this.tournamentStore.upsertTournament(tournamentDto);
+            }
+        });
+
+        this.hubConnection.on('RegistrationUpdated', (registrationDto: any) => {
+            const tournamentId = this.readValue<string>(registrationDto, 'tournamentId');
+            if (!tournamentId || !registrationDto) {
+                return;
+            }
+
+            this.tournamentStore.updateRegistration(tournamentId, registrationDto);
+        });
+
+        this.hubConnection.on('MatchCreated', (dto: any) => {
+            if (dto?.id) {
+                this.matchStore.upsertMatch(dto);
+            }
+        });
+
+        this.hubConnection.on('MatchUpdated', (dto: any) => {
+            if (dto?.id) {
+                this.matchStore.upsertMatch(dto);
+            }
+        });
+
+        this.hubConnection.on('MatchesGenerated', (dtos: any[]) => {
+            (dtos || []).forEach(match => {
+                if (match?.id) {
+                    this.matchStore.upsertMatch(match);
+                }
+            });
+        });
+
+        this.hubConnection.on('MatchDeleted', (payload: any) => {
+            const matchId = this.extractId(payload, 'matchId');
+            if (matchId) {
+                this.matchStore.removeMatch(matchId);
+            }
+        });
+
+        this.hubConnection.on('TeamCreated', (dto: any) => {
+            if (dto?.id) {
+                this.teamStore.upsertTeam(dto);
+            }
+        });
+
+        this.hubConnection.on('TeamUpdated', (dto: any) => {
+            if (!dto?.id) {
+                return;
+            }
+
+            this.teamStore.upsertTeam(dto);
+            this.cascadeTeamUpdateToTournaments(dto);
+        });
+
+        this.hubConnection.on('TeamDeleted', (payload: any) => {
+            const teamId = this.extractId(payload, 'teamId');
+            if (!teamId) {
+                return;
+            }
+
+            this.teamStore.removeTeam(teamId);
+            this.tournamentStore.removeTeamFromRegistrations(teamId);
+            this.matchStore.removeMatchesByTeam(teamId);
+            this.userStore.clearTeamMembership(teamId);
+
+            const currentUser = this.authService.getCurrentUser();
+            if (currentUser?.teamId === teamId) {
+                this.authService.clearTeamAssociation();
+            }
+        });
+
+        this.hubConnection.on('RemovedFromTeam', (data: any) => {
+            const teamId = this.readValue<string>(data, 'teamId');
+            const playerId = this.readValue<string>(data, 'playerId');
+            if (!teamId || !playerId) {
+                return;
+            }
+
+            this.removePlayerFromTeamStore(teamId, playerId);
+
+            const affectedUser = this.userStore.getUserById(playerId);
+            if (affectedUser) {
+                this.userStore.upsertUser({
+                    ...affectedUser,
+                    teamId: undefined,
+                    teamName: undefined,
+                    isTeamOwner: false
+                });
+            }
+
+            const currentUser = this.authService.getCurrentUser();
+            if (currentUser?.id === playerId) {
+                this.authService.clearTeamAssociation();
+            }
+        });
+
+        this.hubConnection.on('UserCreated', (dto: any) => {
+            if (dto?.id) {
+                this.userStore.upsertUser(dto);
+            }
+        });
+
+        this.hubConnection.on('UserUpdated', (dto: any) => {
+            if (dto?.id) {
+                this.userStore.upsertUser(dto);
+            }
+        });
+
+        this.hubConnection.on('UserDeleted', (payload: any) => {
+            const userId = this.extractId(payload, 'userId');
+            if (userId) {
+                this.userStore.removeUser(userId);
+
+                const currentUser = this.authService.getCurrentUser();
+                if (currentUser?.id === userId) {
+                    this.authService.logout();
+                }
+            }
+        });
+
+        this.hubConnection.on('AccountStatusChanged', (data: any) => {
+            const userId = this.readValue<string>(data, 'userId');
+            const status = this.readValue<string>(data, 'status');
+            if (!userId || !status) {
+                return;
+            }
+
+            const user = this.userStore.getUserById(userId);
+            if (user) {
+                this.userStore.upsertUser({ ...user, status: status as any });
+            }
+
+            const currentUser = this.authService.getCurrentUser();
+            if (currentUser?.id === userId) {
+                this.authService.updateUserStatus(status);
+            }
+        });
+
+        this.hubConnection.on('SystemEvent', (event: any) => {
+            this.dispatch(event);
+        });
     }
 
     private handleCriticalActions(event: SystemEvent): boolean {
-        // Force Logout if User Bloacked
-        if (event.type === 'USER_BLOCKED') {
-            const currentUser = this.authService.getCurrentUser();
-            if (currentUser && event.metadata.UserId === currentUser.id) {
-                this.uiFeedback.error('تم حظر الحساب', 'تم حظر حسابك من قبل الإدارة، سيتم تسجيل الخروج الآن');
-                setTimeout(() => {
-                    this.authService.logout();
-                }, 3000);
-                return true;
-            }
+        const userId = this.readValue<string>(event.metadata, 'userId');
+        const currentUser = this.authService.getCurrentUser();
+
+        if (event.type === 'USER_BLOCKED' && currentUser && userId === currentUser.id) {
+            this.uiFeedback.error('Account blocked', 'Your account was blocked by an administrator.');
+            setTimeout(() => {
+                this.authService.logout();
+            }, 1500);
+            return true;
         }
 
-        // Force Auth Refresh if User Approved
-        if (event.type === 'USER_APPROVED') {
-            const currentUser = this.authService.getCurrentUser();
-            if (currentUser && event.metadata.UserId === currentUser.id) {
-                this.uiFeedback.success('تم تفعيل حسابك!', 'مبروك، تم تفعيل حسابك بنجاح. سنقوم بتحديث الصفحة الآن');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-                return true;
-            }
+        if (event.type === 'USER_APPROVED' && currentUser && userId === currentUser.id) {
+            this.uiFeedback.success('Account approved', 'Your account is now active.');
+            this.authService.refreshUserProfile().subscribe();
+            return true;
         }
 
         return false;
     }
 
-    applyPendingUpdates(): void {
-        const updates = [...this.pendingUpdates];
-        this.pendingUpdates = [];
+    private cascadeTeamUpdateToTournaments(team: any): void {
+        const tournaments = this.tournamentStore.tournaments();
 
-        if (updates.length > 0) {
-            console.log(`RealTimeUpdate: Automatically applying ${updates.length} pending updates.`);
-            updates.forEach(ev => this.events$.next(ev));
+        tournaments.forEach(tournament => {
+            const registrations = tournament.registrations || [];
+            if (!registrations.some(r => r.teamId === team.id)) {
+                return;
+            }
 
-            // Subtle feedback that data was updated if helpful, or keep it silent
-            // this.uiFeedback.toast('تم تحديث البيانات تلقائياً');
-        }
+            const updatedRegistrations = registrations.map(registration => {
+                if (registration.teamId !== team.id) {
+                    return registration;
+                }
+
+                return {
+                    ...registration,
+                    teamName: team.name,
+                    teamLogoUrl: team.logoUrl || team.logo,
+                    captainId: team.captainId,
+                    captainName: team.captainName
+                };
+            });
+
+            this.tournamentStore.upsertTournament({
+                ...tournament,
+                registrations: updatedRegistrations
+            });
+        });
     }
 
-    /**
-     * Helper to subscribe to specific event types
-     */
-    on(type: string | string[]): Observable<SystemEvent> {
-        const types = Array.isArray(type) ? type : [type];
-        return this.systemEvents$.pipe(
-            filter(event => types.includes(event.type))
-        );
+    private removePlayerFromTeamStore(teamId: string, playerId: string): void {
+        const team = this.teamStore.getTeamById(teamId);
+        if (!team) {
+            return;
+        }
+
+        const players = (team.players || []).filter((player: any) => {
+            const id = String(player?.id || '');
+            const userId = String(player?.userId || '');
+            return id !== playerId && userId !== playerId;
+        });
+
+        this.teamStore.upsertTeam({
+            ...team,
+            players,
+            playerCount: players.length
+        } as any);
+    }
+
+    private extractId(payload: any, preferredKey: string): string | null {
+        if (!payload) {
+            return null;
+        }
+
+        if (typeof payload === 'string') {
+            return payload;
+        }
+
+        if (typeof payload === 'object') {
+            const preferred = this.readValue<string>(payload, preferredKey);
+            if (preferred) {
+                return preferred;
+            }
+
+            const generic = this.readValue<string>(payload, 'id');
+            if (generic) {
+                return generic;
+            }
+        }
+
+        return null;
+    }
+
+    private readValue<T = any>(source: any, key: string): T | null {
+        if (!source || typeof source !== 'object') {
+            return null;
+        }
+
+        const camel = key;
+        const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+
+        return (source[camel] ?? source[pascal] ?? null) as T | null;
     }
 }

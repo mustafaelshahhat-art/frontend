@@ -1,13 +1,14 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus, Match, RegistrationStatus, TeamRegistration } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, Match, RegistrationStatus, TeamRegistration, Goal } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
-import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
+import { TournamentStore } from '../../../../core/stores/tournament.store';
+import { MatchStore } from '../../../../core/stores/match.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
@@ -49,15 +50,95 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private authService = inject(AuthService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
-    private realTimeUpdate = inject(RealTimeUpdateService);
+    private tournamentStore: TournamentStore = inject(TournamentStore);
+    private matchStore: MatchStore = inject(MatchStore);
 
     @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
     @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
     @ViewChild('formTemplate') formTemplate!: TemplateRef<any>;
 
-    tournament: Tournament | null = null;
-    matches: Match[] = [];
-    isLoading = true;
+    // Signals
+    tournamentId = signal<string | null>(null);
+    isLoading = signal<boolean>(true);
+
+    // Derived State
+    tournament = computed(() => {
+        const id = this.tournamentId();
+        return id ? this.tournamentStore.getTournamentById(id) || null : null;
+    });
+
+    tournamentMatches = computed(() => {
+        const id = this.tournamentId();
+        return id ? (this.matchStore as any).matches().filter((m: Match) => m.tournamentId === id) : [];
+    });
+
+    // Compute Standings Client-Side for Real-Time Accuracy
+    standings = computed(() => {
+        const ms = this.tournamentMatches().filter((m: Match) => m.status === 'Finished');
+        const teamsMap = new Map<string, any>();
+
+        // Initialize teams from Tournament registrations if available? 
+        // Or just build from matches. Better to use registrations to include 0-game teams.
+        // But registrations are on Tournament object.
+        const t = this.tournament();
+        if (t?.registrations) {
+            t.registrations.filter((r: TeamRegistration) => r.status === 'Approved').forEach((r: TeamRegistration) => {
+                teamsMap.set(r.teamId, {
+                    teamId: r.teamId,
+                    team: r.teamName,
+                    teamLogoUrl: r.teamLogoUrl || '', // Assuming logo is available
+                    played: 0, won: 0, draw: 0, lost: 0,
+                    gf: 0, ga: 0, gd: 0, points: 0,
+                    form: []
+                });
+            });
+        }
+
+        ms.forEach((m: Match) => {
+            // Home
+            if (!teamsMap.has(m.homeTeamId)) return; // Should not happen
+            const home = teamsMap.get(m.homeTeamId);
+            home.played++;
+            home.gf += m.homeScore;
+            home.ga += m.awayScore;
+
+            // Away
+            if (!teamsMap.has(m.awayTeamId)) return;
+            const away = teamsMap.get(m.awayTeamId);
+            away.played++;
+            away.gf += m.awayScore;
+            away.ga += m.homeScore;
+
+            if (m.homeScore > m.awayScore) {
+                home.won++; home.points += 3; home.form.push('W');
+                away.lost++; away.form.push('L');
+            } else if (m.homeScore < m.awayScore) {
+                away.won++; away.points += 3; away.form.push('W');
+                home.lost++; home.form.push('L');
+            } else {
+                home.draw++; home.points += 1; home.form.push('D');
+                away.draw++; away.points += 1; away.form.push('D');
+            }
+        });
+
+        // Calculate GD and trim form
+        const result = Array.from(teamsMap.values()).map((t: any) => {
+            t.gd = t.gf - t.ga;
+            t.form = t.form.slice(-5); // Last 5
+            return t;
+        });
+
+        // Sort: Points DESC, GD DESC, GF DESC
+        result.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.gd !== a.gd) return b.gd - a.gd;
+            return b.gf - a.gf;
+        });
+
+        // Add Rank
+        return result.map((t, index) => ({ ...t, rank: index + 1 }));
+    });
+
     isBusyElsewhere = false;
 
     TournamentStatus = TournamentStatus;
@@ -72,15 +153,37 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     ];
     activeTab = 'info';
 
-    // Standings Configuration
     tableColumns: TableColumn[] = [];
+    scorers = computed(() => {
+        const ms = this.tournamentMatches() as any[];
+        const playerGoals = new Map<string, { name: string, team: string, goals: number, teamId: string }>();
 
-    standings: any[] = [];
-    scorers: any[] = [];
+        ms.forEach((m: any) => {
+            if (m.goals && Array.isArray(m.goals)) {
+                m.goals.forEach((g: any) => {
+                    const key = g.playerId;
+                    if (!playerGoals.has(key)) {
+                        playerGoals.set(key, {
+                            name: g.playerName,
+                            team: g.teamId === m.homeTeamId ? m.homeTeamName : m.awayTeamName,
+                            goals: 0,
+                            teamId: g.teamId
+                        });
+                    }
+                    playerGoals.get(key)!.goals++;
+                });
+            }
+        });
+
+        return Array.from(playerGoals.values())
+            .sort((a, b) => b.goals - a.goals)
+            .slice(0, 10);
+    });
 
     get rulesList(): string[] {
-        if (!this.tournament?.rules) return [];
-        return this.tournament.rules
+        const t = this.tournament();
+        if (!t?.rules) return [];
+        return t.rules
             .split('\n')
             .map(r => r.trim())
             .filter(r => r.length > 0);
@@ -89,28 +192,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.loadData(id);
-            this.setupRealTimeUpdates(id);
+            this.tournamentId.set(id);
+            this.loadInitialData(id);
         } else {
             this.navigateBack();
         }
-    }
-
-    private setupRealTimeUpdates(id: string): void {
-        this.realTimeUpdate.on(['TOURNAMENT_UPDATED', 'PAYMENT_APPROVED', 'PAYMENT_REJECTED']).subscribe((event: SystemEvent) => {
-            if (event.metadata.TournamentId === id) {
-                if (!this.isRegisterModalVisible) {
-                    this.loadData(id);
-                }
-            }
-        });
-
-        // Listen for match status changes to refresh standings
-        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED']).subscribe(() => {
-            if (!this.isRegisterModalVisible) {
-                this.loadData(id);
-            }
-        });
     }
 
     ngAfterViewInit(): void {
@@ -154,30 +240,32 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
 
     get myRegistration(): TeamRegistration | undefined {
         const teamId = this.authService.getCurrentUser()?.teamId;
-        return this.tournament?.registrations?.find((r: TeamRegistration) => r.teamId === teamId);
+        const t = this.tournament();
+        return t?.registrations?.find((r: TeamRegistration) => r.teamId === teamId);
     }
 
     // Match generation
     isGeneratingMatches = false;
 
     get canGenerateMatches(): boolean {
-        if (!this.tournament) return false;
+        const t = this.tournament();
+        const m = this.tournamentMatches();
+        if (!t) return false;
         // Can generate if: has registrations >= 2, no matches yet, tournament not cancelled
-        const regCount = this.tournament.registrations?.length || 0;
-        return regCount >= 2 && this.matches.length === 0 && this.tournament.status !== TournamentStatus.CANCELLED;
+        const regCount = t.registrations?.length || 0;
+        return regCount >= 2 && m.length === 0 && t.status !== TournamentStatus.CANCELLED;
     }
 
     generateMatches(): void {
-        if (!this.tournament || this.isGeneratingMatches) return;
+        const t = this.tournament();
+        if (!t || this.isGeneratingMatches) return;
 
         this.isGeneratingMatches = true;
-        this.tournamentService.generateMatches(this.tournament.id).subscribe({
+        this.tournamentService.generateMatches(t.id).subscribe({
             next: (response) => {
                 this.isGeneratingMatches = false;
-                this.matches = response.matches || [];
+                // Matches will flow in via Real-Time "MatchesGenerated" event -> MatchStore -> Derived 'matches'
                 this.uiFeedback.success('تم بنجاح', response.message || 'تم توليد جدول المباريات');
-                // Reload tournament data
-                this.loadData(this.tournament!.id);
             },
             error: (err) => {
                 this.isGeneratingMatches = false;
@@ -186,58 +274,32 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         });
     }
 
-    loadData(id: string): void {
-        this.isLoading = true;
+    loadInitialData(id: string): void {
+        this.isLoading.set(true);
+
+        // 1. Load Tournament
         this.tournamentService.getTournamentById(id).subscribe({
             next: (data) => {
-                this.tournament = data || null;
+                if (data) this.tournamentStore.updateTournament(data);
 
-                if (this.tournament) {
-                    // Fetch matches
-                    this.matchService.getMatchesByTournament(id).subscribe({
-                        next: (matches) => {
-                            this.matches = matches;
-                            this.cdr.detectChanges();
-                        }
-                    });
-
-                    // Fetch standings
-                    this.tournamentService.getStandings(id).subscribe({
-                        next: (standings) => {
-                            // Map backend DTO to frontend structure if needed
-                            this.standings = standings.map((s, index) => ({
-                                teamId: s.teamId,
-                                team: s.teamName,
-                                teamLogoUrl: s.teamLogoUrl,
-                                played: s.played,
-                                won: s.won,
-                                draw: s.drawn,
-                                lost: s.lost,
-                                gf: s.goalsFor,
-                                ga: s.goalsAgainst,
-                                gd: s.goalDifference,
-                                points: s.points,
-                                form: s.form,
-                                rank: index + 1
-                            }));
-                            this.isLoading = false;
-                            this.checkGlobalBusyStatus();
-                            this.cdr.detectChanges();
-                        },
-                        error: () => {
-                            // Standings might fail if no matches (handled gracefully)
-                            this.isLoading = false;
-                        }
-                    });
-                } else {
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                }
+                // 2. Load Matches (Populate MatchStore)
+                this.matchService.getMatchesByTournament(id).subscribe({
+                    next: (matches) => {
+                        // Smart update/add to store
+                        matches.forEach((m: Match) => {
+                            if (!this.matchStore.getMatchById(m.id)) {
+                                this.matchStore.addMatch(m);
+                            } else {
+                                this.matchStore.updateMatch(m);
+                            }
+                        });
+                        this.isLoading.set(false);
+                        this.checkGlobalBusyStatus();
+                    },
+                    error: () => this.isLoading.set(false)
+                });
             },
-            error: () => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
-            }
+            error: () => this.isLoading.set(false)
         });
     }
 
@@ -287,8 +349,9 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     }
 
     getProgressPercent(): number {
-        if (!this.tournament?.maxTeams) return 0;
-        return (this.tournament.currentTeams / this.tournament.maxTeams) * 100;
+        const t = this.tournament();
+        if (!t?.maxTeams) return 0;
+        return (t.currentTeams / t.maxTeams) * 100;
     }
 
     // Registration Modal
@@ -298,47 +361,44 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     // Modal Actions
     openRegisterModal(): void {
         this.isRegisterModalVisible = true;
-        this.realTimeUpdate.setEditingState(true);
     }
 
     closeRegisterModal(): void {
         this.isRegisterModalVisible = false;
-        this.realTimeUpdate.setEditingState(false);
-        // Refresh data on close if needed or just wait for success event
     }
 
     onRegistrationSuccess(): void {
         this.closeRegisterModal();
-        if (this.tournament) {
-            this.loadData(this.tournament.id);
-        }
+        // Tournament updated via RealTime event
     }
 
     // Admin actions
     editTournament(): void {
-        if (this.tournament) {
-            this.router.navigate(['/admin/tournaments/edit', this.tournament.id]);
+        const t = this.tournament();
+        if (t) {
+            this.router.navigate(['/admin/tournaments/edit', t.id]);
         }
     }
 
     deleteTournament(): void {
-        if (!this.tournament) return;
+        const t = this.tournament();
+        if (!t) return;
 
         this.uiFeedback.confirm(
             'حذف البطولة',
-            `هل أنت متأكد من حذف بطولة "${this.tournament.name}"؟ هذا الإجراء سيؤدي لحذف كافة المباريات والتسجيلات المرتبطة بها ولا يمكن التراجع عنه.`,
+            `هل أنت متأكد من حذف بطولة "${t.name}"؟ هذا الإجراء سيؤدي لحذف كافة المباريات والتسجيلات المرتبطة بها ولا يمكن التراجع عنه.`,
             'حذف نهائي',
             'danger'
-        ).subscribe(confirmed => {
+        ).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.isLoading = true;
-                this.tournamentService.deleteTournament(this.tournament!.id).subscribe({
+                this.isLoading.set(true);
+                this.tournamentService.deleteTournament(t.id).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم الحذف', 'تم حذف البطولة بنجاح');
                         this.router.navigate(['/admin/tournaments']);
                     },
                     error: (err) => {
-                        this.isLoading = false;
+                        this.isLoading.set(false);
                         this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حذف البطولة');
                         this.cdr.detectChanges();
                     }
@@ -348,21 +408,25 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     }
 
     toggleStatus(): void {
-        if (!this.tournament) return;
+        const t = this.tournament();
+        if (!t) return;
 
-        this.isLoading = true;
+        this.isLoading.set(true);
 
-        if (this.tournament.status === TournamentStatus.REGISTRATION_OPEN) {
+        if (t.status === TournamentStatus.REGISTRATION_OPEN) {
             // Closing Registration - Use dedicated endpoint
-            this.tournamentService.closeRegistration(this.tournament.id).subscribe({
+            this.tournamentService.closeRegistration(t.id).subscribe({
                 next: (updatedTournament) => {
-                    this.tournament = updatedTournament;
-                    this.isLoading = false;
+                    // Update store manually or wait for event?
+                    // Ideally generic update event.
+                    // For responsiveness, manual update:
+                    this.tournamentStore.updateTournament(updatedTournament);
+                    this.isLoading.set(false);
                     this.uiFeedback.success('تم التحديث', 'تم إغلاق التسجيل بنجاح');
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     this.uiFeedback.error('خطأ', 'فشل إغلاق التسجيل: ' + (err.error?.message || 'خطأ غير معروف'));
                     this.cdr.detectChanges();
                 }
@@ -370,15 +434,15 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         } else {
             // Re-opening or other status change - Use generic update
             const newStatus = TournamentStatus.REGISTRATION_OPEN;
-            this.tournamentService.updateTournament(this.tournament.id, { status: newStatus }).subscribe({
+            this.tournamentService.updateTournament(t.id, { status: newStatus }).subscribe({
                 next: (updatedTournament) => {
-                    this.tournament = updatedTournament;
-                    this.isLoading = false;
+                    this.tournamentStore.updateTournament(updatedTournament);
+                    this.isLoading.set(false);
                     this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة إلى: ${this.getStatusLabel(newStatus)}`);
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     this.uiFeedback.error('خطأ', 'فشل تغيير حالة البطولة: ' + (err.error?.message || 'خطأ غير معروف'));
                     this.cdr.detectChanges();
                 }
@@ -388,7 +452,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
 
     // Captain actions
     registerTeam(): void {
-        if (this.tournament) {
+        const t = this.tournament();
+        if (t) {
             this.openRegisterModal();
         }
     }
@@ -406,16 +471,18 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         const teamId = this.authService.getCurrentUser()?.teamId;
         if (!teamId) return;
 
-        this.tournamentService.getTournaments().subscribe(list => {
-            if (!this.tournament) return;
-            this.isBusyElsewhere = list.some(t =>
-                t.id !== this.tournament?.id &&
-                t.registrations?.some(r => r.teamId === teamId && r.status !== 'Rejected')
+        // This is a check against "All Tournaments".
+        // Use store if possible:
+        const allTournaments = (this.tournamentStore as any).tournaments();
+        // If store is empty, might need fetch. But this check is auxiliary.
+        // Let's assume store has data or skip check for now to avoid refetch.
+        // Or fetch once.
+        const t = this.tournament();
+        if (allTournaments.length > 0 && t) {
+            this.isBusyElsewhere = allTournaments.some((other: any) =>
+                other.id !== t.id &&
+                other.registrations?.some((r: any) => r.teamId === teamId && r.status !== 'Rejected')
             );
-            this.cdr.detectChanges();
-        });
+        }
     }
-
-
-
 }

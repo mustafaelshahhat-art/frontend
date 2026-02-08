@@ -5,7 +5,7 @@
 
     <!-- Sidebar -->
     <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="filteredNavItems"
-        [currentUser]="currentUser" brandSubtitle="لوحة القائد" userRoleLabel="قائد الفريق" (close)="closeSidebar()"
+        [currentUser]="currentUser()" brandSubtitle="لوحة القائد" userRoleLabel="قائد الفريق" (close)="closeSidebar()"
         (logout)="handleLogout()">
     </app-sidebar>
 

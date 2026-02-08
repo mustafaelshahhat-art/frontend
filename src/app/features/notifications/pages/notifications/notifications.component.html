@@ -12,15 +12,15 @@
         </app-page-header>
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل التنبيهات..."></app-inline-loading>
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل التنبيهات..."></app-inline-loading>
 
         <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading && notifications.length === 0" icon="notifications_off"
+        <app-empty-state *ngIf="!isLoading() && notifications.length === 0" icon="notifications_off"
             title="لا توجد تنبيهات" description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
         </app-empty-state>
 
         <!-- Notifications List -->
-        <div *ngIf="!isLoading && notifications.length > 0" class="notifications-list">
+        <div *ngIf="!isLoading() && notifications.length > 0" class="notifications-list">
             <app-card *ngFor="let notif of notifications; trackBy: trackByNotification" class="notification-item"
                 [class.unread]="!notif.isRead" (click)="markAsRead(notif)" [isClickable]="true">
 

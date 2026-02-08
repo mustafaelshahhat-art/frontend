@@ -2,14 +2,13 @@ import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MatchStore } from '../../../../core/stores/match.store';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { UserService } from '../../../../core/services/user.service';
 import { LocationService } from '../../../../core/services/location.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
-import { UserRole } from '../../../../core/models/user.model';
-import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
@@ -59,15 +58,25 @@ export class MatchDetailComponent implements OnInit {
     private router = inject(Router);
     private matchService = inject(MatchService);
     private authService = inject(AuthService);
-    private realTimeUpdate = inject(RealTimeUpdateService);
     private permissionsService = inject(PermissionsService);
     private locationService = inject(LocationService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
     private userService = inject(UserService);
     private objectionsService = inject(ObjectionsService);
+    private matchStore = inject(MatchStore);
 
-    match = signal<Match | null>(null);
+    // Reactivity
+    matchId = signal<string | null>(null);
+
+    // Derived from Store (Single Source of Truth)
+    match = computed(() => {
+        const id = this.matchId();
+        return id ? this.matchStore.getMatchById(id) || null : null;
+    });
+
+    // Use local loading or store loading? Store loading is global list loading. 
+    // We can use a local loading state for the initial fetch.
     isLoading = signal(true);
 
     // Computed visibility for referee-only live match controls
@@ -113,9 +122,13 @@ export class MatchDetailComponent implements OnInit {
     );
 
     constructor() {
-        // Automatically sync editing state with realTimeUpdate service
+        // Sync local forms when match updates from Store
         effect(() => {
-            this.realTimeUpdate.setEditingState(this.isAnyModalOpen());
+            const m = this.match();
+            if (m) {
+                this.scoreForm.homeScore = m.homeScore;
+                this.scoreForm.awayScore = m.awayScore;
+            }
         });
     }
 
@@ -173,35 +186,20 @@ export class MatchDetailComponent implements OnInit {
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
+            this.matchId.set(id);
             this.loadMatch(id);
 
             // Handle auto-actions from query params
             this.route.queryParams.subscribe(params => {
                 if (params['action'] === 'objection') {
-                    // Slight delay to ensure data is loaded or modal instance is ready if needed
                     setTimeout(() => {
                         this.openObjectionModal();
                     }, 500);
                 }
             });
 
-            // Intelligent Real-Time Updates
-            this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe((event: SystemEvent) => {
-                if (event.metadata.MatchId === id) {
-                    this.loadMatch(id);
-                }
-            });
-
-            // Legacy full-data updates
-            this.matchService.matchUpdated$.subscribe(updatedMatch => {
-                if (updatedMatch && updatedMatch.id === id) {
-                    // Only apply if not editing, or if it's a live score update which is acceptable
-                    if (!this.isAnyModalOpen()) {
-                        this.match.set(updatedMatch);
-                        this.cdr.detectChanges();
-                    }
-                }
-            });
+            // Note: RealTime updates are now handled globally by RealTimeUpdateService -> MatchStore
+            // The 'match' computed signal will automatically update when the store updates.
         } else {
             this.navigateBack();
         }
@@ -212,17 +210,21 @@ export class MatchDetailComponent implements OnInit {
 
     loadMatch(id: string): void {
         this.isLoading.set(true);
+        // Check if store already has it? No, always fetch fresh on page load to be safe, 
+        // then let RT take over.
         this.matchService.getMatchById(id).subscribe({
             next: (match) => {
-                const finalMatch = match ?? null;
-                if (finalMatch) {
-                    this.scoreForm.homeScore = finalMatch.homeScore;
-                    this.scoreForm.awayScore = finalMatch.awayScore;
-                    if (!finalMatch.events) {
-                        finalMatch.events = [];
+                if (match) {
+                    this.matchStore.updateMatch(match);
+                    // If it wasn't in list, add it (updateMatch in store usually handles id matching, 
+                    // but if it's new/not in list, we might need add. 
+                    // Our Store implementation map checks id. If not found, it does nothing.
+                    // So we should check and add or update.)
+                    const exists = this.matchStore.getMatchById(id);
+                    if (!exists) {
+                        this.matchStore.addMatch(match);
                     }
                 }
-                this.match.set(finalMatch);
                 this.isLoading.set(false);
                 this.cdr.detectChanges();
             },
@@ -233,6 +235,8 @@ export class MatchDetailComponent implements OnInit {
             }
         });
     }
+
+
 
     navigateBack(): void {
         if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) {
@@ -270,10 +274,7 @@ export class MatchDetailComponent implements OnInit {
         const currentMatch = this.match();
         if (!currentMatch) return;
         this.matchService.startMatch(currentMatch.id).subscribe({
-            next: (updatedMatch) => {
-                if (updatedMatch) {
-                    this.match.set({ ...updatedMatch }); // Force reference change
-                }
+            next: () => {
                 this.uiFeedback.success('تم البدء', 'انطلقت المباراة الآن! - الوضع المباشر');
                 this.cdr.detectChanges();
             },
@@ -285,10 +286,7 @@ export class MatchDetailComponent implements OnInit {
         this.showEndMatchConfirm.set(true);
     }
 
-    onMatchEnded(updatedMatch: Match): void {
-        if (updatedMatch) {
-            this.match.set(updatedMatch);
-        }
+    onMatchEnded(_updatedMatch: Match): void {
         this.cdr.detectChanges();
     }
 
@@ -296,10 +294,7 @@ export class MatchDetailComponent implements OnInit {
         this.showEventModal.set(true);
     }
 
-    onEventAdded(updatedMatch: Match): void {
-        if (updatedMatch) {
-            this.match.set(updatedMatch);
-        }
+    onEventAdded(_updatedMatch: Match): void {
         this.cdr.detectChanges();
     }
 
@@ -323,8 +318,7 @@ export class MatchDetailComponent implements OnInit {
             currentMatch.refereeId,
             currentMatch.refereeName
         ).subscribe({
-            next: (updatedMatch) => {
-                if (updatedMatch) this.match.set(updatedMatch);
+            next: () => {
                 this.uiFeedback.success('تم بنجاح', 'تم تقديم تقرير المباراة بنجاح');
                 this.isSubmittingReport.set(false);
                 this.closeReportModal();
@@ -371,7 +365,6 @@ export class MatchDetailComponent implements OnInit {
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
-                        this.match.set(updated);
                         this.uiFeedback.success('تم التأجيل', 'تم تأجيل المباراة للموعد الجديد');
                     }
                     this.closeScheduleModal();
@@ -387,7 +380,6 @@ export class MatchDetailComponent implements OnInit {
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
-                        this.match.set(updated);
                         this.uiFeedback.success('تمت الإعادة', 'تم إعادة المباراة وجدولتها في الموعد الجديد');
                     }
                     this.closeScheduleModal();
@@ -401,7 +393,6 @@ export class MatchDetailComponent implements OnInit {
             } as any).subscribe({
                 next: (updated) => {
                     if (updated) {
-                        this.match.set(updated);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد اللقاء');
                     }
                     this.closeScheduleModal();
@@ -430,7 +421,6 @@ export class MatchDetailComponent implements OnInit {
         this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).subscribe({
             next: (success) => {
                 if (success) {
-                    this.match.update((m: Match | null) => m ? { ...m, status: MatchStatus.CANCELLED } : m);
                     this.uiFeedback.success('تم الإلغاء', 'تم إلغاء المباراة وإرسال إشعارات لجميع الأطراف');
                 }
                 this.closeCancelModal();
@@ -449,9 +439,8 @@ export class MatchDetailComponent implements OnInit {
             const currentMatch = this.match();
             if (confirmed && currentMatch) {
                 this.matchService.deleteMatchEvent(currentMatch.id, eventId).subscribe({
-                    next: (updatedMatch) => {
-                        this.match.set(updatedMatch);
-                        this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
+                    next: () => {
+                this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
                         this.cdr.detectChanges();
                     },
                     error: () => this.uiFeedback.error('خطأ', 'فشل في حذف الحدث')
@@ -556,12 +545,10 @@ export class MatchDetailComponent implements OnInit {
     assignReferee(): void {
         const currentMatch = this.match();
         if (!currentMatch || !this.selectedRefereeId) return;
-        const selectedRef = this.refereeOptions.find(ref => ref.value === this.selectedRefereeId);
 
         this.matchService.assignReferee(currentMatch.id, this.selectedRefereeId).subscribe({
             next: (updatedMatch) => {
                 if (updatedMatch) {
-                    this.match.set(updatedMatch);
                     this.uiFeedback.success('تم التعيين', `تم تعيين الحكم بنجاح`);
                 }
                 this.closeRefereeModal();
@@ -591,7 +578,6 @@ export class MatchDetailComponent implements OnInit {
             .subscribe({
                 next: (success: boolean) => {
                     if (success) {
-                        this.match.update((m: Match | null) => m ? { ...m, homeScore: this.scoreForm.homeScore, awayScore: this.scoreForm.awayScore } : m);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديث النتيجة');
                     }
                     this.closeScoreModal();
@@ -678,3 +664,5 @@ export class MatchDetailComponent implements OnInit {
         });
     }
 }
+
+

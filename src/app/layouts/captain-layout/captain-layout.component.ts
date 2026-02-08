@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthStore } from '../../core/stores/auth.store';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
@@ -21,6 +22,7 @@ import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcru
 })
 export class CaptainLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
+    private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private permissionsService = inject(PermissionsService);
@@ -33,8 +35,9 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
     unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
-    currentUser$ = this.authService.user$;
-    currentUser: User | null = null;
+    // Reactive bindings to AuthStore
+    currentUser = this.authStore.currentUser;
+    isAuthenticated = this.authStore.isAuthenticated;
     isPending = false;
 
     get filteredNavItems(): NavItem[] {
@@ -55,14 +58,19 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     ];
 
 
+    constructor() {
+        // Effect to react to auth state changes
+        effect(() => {
+            if (!this.isAuthenticated()) {
+                this.router.navigate(['/auth/login']);
+            }
+            // Update pending status reactively
+            this.isPending = this.currentUser()?.status === UserStatus.PENDING;
+        });
+    }
+
     ngOnInit(): void {
         this.checkScreenSize();
-
-        // Listen to current user changes
-        this.authService.user$.subscribe(user => {
-            this.currentUser = user;
-            this.isPending = user?.status === UserStatus.PENDING;
-        });
 
         // Force closed on mobile initially
         if (this.isMobile) {
@@ -113,8 +121,8 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     }
 
     handleLogout(): void {
-        this.authService.logout();
-        this.router.navigate(['/auth/login']);
+        this.authService.logout(); // This now updates AuthStore
+        // No need to navigate - effect handles it
     }
 
     viewNotification(notification: any): void {

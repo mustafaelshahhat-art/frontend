@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -7,6 +7,9 @@ import { TeamService } from '../../../../core/services/team.service';
 import { Team } from '../../../../core/models/team.model';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { TeamStore } from '../../../../core/stores/team.store';
+import { MatchStore } from '../../../../core/stores/match.store';
+import { Match } from '../../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -34,11 +37,11 @@ import { AuthService } from '../../../../core/services/auth.service';
         </app-team-detail>
 
         <!-- Only show centering spinner if we have NO data yet -->
-        <div *ngIf="isLoading && !team" class="flex-center p-xl" style="min-height: 400px;">
+        <div *ngIf="isLoading() && !team" class="flex-center p-xl" style="min-height: 400px;">
             <div class="spinner-lg"></div>
         </div>
 
-        <div *ngIf="!isLoading && !team" class="flex-center p-xl">
+        <div *ngIf="!isLoading() && !team" class="flex-center p-xl">
             <p>لم يتم العثور على الفريق</p>
             <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
         </div>
@@ -51,164 +54,66 @@ export class TeamDetailPageComponent implements OnInit {
     private readonly matchService = inject(MatchService);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly authService = inject(AuthService);
-    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly teamStore: TeamStore = inject(TeamStore);
+    private readonly matchStore: MatchStore = inject(MatchStore);
 
-    team: TeamData | null = null;
-    isLoading = true;
-    isCaptainOrAdmin = false;
+    teamId = signal<string | null>(null);
+    isLoading = signal<boolean>(true);
 
-    ngOnInit(): void {
-        this.checkNavigationState();
-        this.loadTeam();
-    }
+    // Computed Matches for this team (Real-Time Source of Truth)
+    teamMatches = computed(() => {
+        const id = this.teamId();
+        if (!id) return [];
+        return (this.matchStore as any).matches().filter((m: Match) => m.homeTeamId === id || m.awayTeamId === id).map((m: Match) => ({
+            id: m.id,
+            opponent: m.homeTeamId === id ? m.awayTeamName : m.homeTeamName,
+            opponentLogo: m.homeTeamId === id ? m.awayTeamLogoUrl : m.homeTeamLogoUrl,
+            date: m.date ? new Date(m.date) : new Date(),
+            score: `${m.homeScore}-${m.awayScore}`,
+            teamScore: m.homeTeamId === id ? m.homeScore : m.awayScore,
+            opponentScore: m.homeTeamId === id ? m.awayScore : m.homeScore,
+            status: m.status,
+            type: 'مباراة دوري'
+        }));
+    });
 
-    private checkNavigationState(): void {
-        const stateTeam = history.state?.['team'];
+    // Computed Stats from Matches
+    teamStats = computed(() => {
+        const matches = this.teamMatches();
+        let stats = { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, rank: 0 };
 
-        if (stateTeam) {
-            console.log('TeamDetailPage: Found team in navigation state');
-            try {
-                this.team = this.mapDtoToTeamData(stateTeam);
-                this.isLoading = false;
-                this.checkPermissions();
-                this.cdr.detectChanges();
-            } catch (err) {
-                console.warn('Could not map state team:', err);
-            }
-        }
-    }
-
-    loadTeam(): void {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (!id) {
-            this.isLoading = false;
-            return;
-        }
-
-        if (!this.team) {
-            this.isLoading = true;
-        }
-
-        this.teamService.getTeamById(id).subscribe({
-            next: (teamDto: Team | undefined) => {
-                if (teamDto) {
-                    console.log('Team DTO received from API:', teamDto);
-                    this.team = this.mapDtoToTeamData(teamDto);
-                    this.checkPermissions();
-                    this.loadMatches(id);
-                    this.cdr.detectChanges();
-                }
-                this.isLoading = false;
-                this.cdr.detectChanges();
-            },
-            error: () => {
-                if (!this.team) {
-                    this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات الفريق');
-                }
-                this.isLoading = false;
-                this.cdr.detectChanges();
-            }
+        matches.filter((m: any) => m.status === 'Finished').forEach((m: any) => {
+            stats.matches++;
+            stats.goalsFor += m.teamScore;
+            stats.goalsAgainst += m.opponentScore;
+            if (m.teamScore > m.opponentScore) stats.wins++;
+            else if (m.teamScore < m.opponentScore) stats.losses++;
+            else stats.draws++;
         });
-    }
+        return stats;
+    });
 
-    checkPermissions(): void {
-        const user = this.authService.getCurrentUser();
-        if (user && this.team) {
-            this.isCaptainOrAdmin = user.role === 'Admin' || (user.id === this.team.captainId);
-        }
-    }
+    // Combined Team Data View Model
+    teamData = computed((): TeamData | null => {
+        const id = this.teamId();
+        const t = id ? this.teamStore.getTeamById(id) : null;
+        if (!t) return null;
 
-    handleDeleteTeam(): void {
-        if (!this.team) return;
+        const stats = this.teamStats();
 
-        this.teamService.deleteTeam(this.team.id).subscribe({
-            next: () => {
-                // Refresh user profile and navigate
-                this.authService.refreshUserProfile().subscribe();
-                this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
-                this.router.navigate(['/admin/teams']);
-            },
-            error: (err) => {
-                console.error('Delete failed', err);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
-            }
-        });
-    }
-
-    handleDisableTeam(): void {
-        if (!this.team) return;
-
-        this.teamService.disableTeam(this.team.id).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
-                this.loadTeam(); // Reload data to reflect changes
-            },
-            error: (err) => {
-                console.error('Disable failed', err);
-                this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
-            }
-        });
-    }
-
-    loadMatches(teamId: string): void {
-        this.matchService.getMatchesByTeam(teamId).subscribe({
-            next: (matches) => {
-                if (this.team) {
-                    this.team = {
-                        ...this.team,
-                        matches: matches.map(m => ({
-                            id: m.id,
-                            opponent: m.homeTeamId === teamId ? m.awayTeamName : m.homeTeamName,
-                            opponentLogo: m.homeTeamId === teamId ? m.awayTeamLogoUrl : m.homeTeamLogoUrl,
-                            date: m.date ? new Date(m.date) : new Date(),
-                            score: `${m.homeScore}-${m.awayScore}`,
-                            teamScore: m.homeTeamId === teamId ? m.homeScore : m.awayScore,
-                            opponentScore: m.homeTeamId === teamId ? m.awayScore : m.homeScore,
-                            status: m.status,
-                            type: 'مباراة دوري'
-                        }))
-                    };
-                    this.cdr.detectChanges();
-                }
-            },
-            error: () => {
-                console.error('Failed to load team matches');
-            }
-        });
-    }
-
-    private getMatchResultStatus(match: any, teamId: string): 'win' | 'draw' | 'loss' {
-        if (match.status !== 'Finished') return 'draw';
-        const isHome = match.homeTeamId === teamId;
-        const teamScore = isHome ? match.homeScore : match.awayScore;
-        const opponentScore = isHome ? match.awayScore : match.homeScore;
-
-        if (teamScore > opponentScore) return 'win';
-        if (teamScore < opponentScore) return 'loss';
-        return 'draw';
-    }
-
-    private mapDtoToTeamData(dto: any): TeamData {
+        // Map Team Store Entity + Computed Stats + Computed Matches -> View Model
         return {
-            id: dto.id,
-            name: dto.name,
-            captainId: dto.captainId,
-            city: dto.city || 'غير محدد',
-            captainName: dto.captainName || 'غير معروف',
-            logo: dto.logo || 'assets/images/team-placeholder.png',
+            id: t.id,
+            name: t.name,
+            captainId: t.captainId,
+            city: t.city || 'غير محدد',
+            captainName: t.captainName || 'غير معروف',
+            logo: t.logo || 'assets/images/team-placeholder.png',
             status: 'READY',
-            isActive: dto.isActive,
-            createdAt: dto.founded ? new Date(dto.founded) : new Date(),
-            stats: {
-                matches: dto.stats?.matches || dto.stats?.Matches || 0,
-                wins: dto.stats?.wins || dto.stats?.Wins || 0,
-                draws: dto.stats?.draws || dto.stats?.Draws || 0,
-                losses: dto.stats?.losses || dto.stats?.Losses || 0,
-                goalsFor: dto.stats?.goalsFor || dto.stats?.GoalsFor || 0,
-                goalsAgainst: dto.stats?.goalsAgainst || dto.stats?.GoalsAgainst || 0,
-                rank: dto.stats?.rank || dto.stats?.Rank || 0
-            },
-            players: (dto.players || []).map((p: any) => ({
+            isActive: t.isActive ?? false,
+            createdAt: t.founded ? new Date(t.founded) : new Date(),
+            stats: stats,
+            players: (t.players || []).map((p: any) => ({
                 id: p.id,
                 name: p.name,
                 number: p.number || 0,
@@ -218,12 +123,92 @@ export class TeamDetailPageComponent implements OnInit {
                 redCards: p.redCards || 0,
                 status: p.status || 'active'
             })),
-            matches: [],
+            matches: this.teamMatches(),
             finances: []
         };
+    });
+
+    // Helper for template compatibility (if needed, or update template to use teamData())
+    get team(): TeamData | null { return this.teamData(); }
+
+    isCaptainOrAdmin = false;
+
+    ngOnInit(): void {
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id) {
+            this.teamId.set(id);
+            this.loadInitialData(id);
+        } else {
+            this.router.navigate(['/admin/teams']);
+        }
     }
 
-    handlePlayerAction(event: { player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }): void {
+    loadInitialData(id: string): void {
+        this.isLoading.set(true);
+
+        // 1. Load Team
+        this.teamService.getTeamById(id).subscribe({
+            next: (data) => {
+                if (data) {
+                    this.teamStore.upsertTeam(data); // Ensures store has it
+                    this.checkPermissions(data);
+                }
+
+                // 2. Load Matches (Populate Store)
+                this.matchService.getMatchesByTeam(id).subscribe({
+                    next: (matches) => {
+                        matches.forEach(m => {
+                            if (!this.matchStore.getMatchById(m.id)) this.matchStore.addMatch(m);
+                            else this.matchStore.updateMatch(m);
+                        });
+                        this.isLoading.set(false);
+                    },
+                    error: () => this.isLoading.set(false)
+                });
+            },
+            error: () => this.isLoading.set(false)
+        });
+    }
+
+    checkPermissions(team: Team): void {
+        const user = this.authService.getCurrentUser();
+        if (user && team) {
+            this.isCaptainOrAdmin = user.role === 'Admin' || (user.id === team.captainId);
+        }
+    }
+
+    handleDeleteTeam(): void {
+        const t = this.teamData();
+        if (!t) return;
+
+        this.teamService.deleteTeam(t.id).subscribe({
+            next: () => {
+                this.authService.refreshUserProfile().subscribe();
+                this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                this.router.navigate(['/admin/teams']);
+            },
+            error: (err) => {
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
+            }
+        });
+    }
+
+    handleDisableTeam(): void {
+        const t = this.teamData();
+        if (!t) return;
+
+        this.teamService.disableTeam(t.id).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
+                // Store updates via RealTime event
+            },
+            error: (err) => {
+                this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
+            }
+        });
+    }
+
+    handlePlayerAction(event: { player: TeamPlayer, action: any }): void {
         const { player, action } = event;
         const config = {
             activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟`, btn: 'تفعيل الآن', type: 'info' as const },
@@ -232,24 +217,31 @@ export class TeamDetailPageComponent implements OnInit {
             remove: { title: 'إزالة اللاعب', message: `هل أنت متأكد من إزالة اللاعب "${player.name}" من الفريق؟`, btn: 'إزالة الآن', type: 'danger' as const }
         };
 
-        const { title, message, btn, type } = config[action];
+        const { title, message, btn, type } = config[action as keyof typeof config];
         this.uiFeedback.confirm(title, message, btn, type).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                // TODO: Call API to update player status
-                if (action === 'activate') player.status = 'active';
-                else if (action === 'deactivate') player.status = 'suspended';
-                else if (action === 'ban') player.status = 'banned';
-                else if (action === 'remove' && this.team) {
-                    this.team.players = this.team.players.filter(p => p.id !== player.id);
-                }
+                const t = this.teamData();
+                if (!t) return;
 
-                this.uiFeedback.success('تم التحديث', 'تمت العملية بنجاح');
+                if (action === 'remove') {
+                    this.teamService.removePlayer(t.id, player.id).subscribe({
+                        next: () => {
+                            this.uiFeedback.success('تم الحذف', 'تم إزالة اللاعب من الفريق');
+                        },
+                        error: (err) => {
+                            this.uiFeedback.error('خطأ', 'فشل في إزالة اللاعب');
+                        }
+                    });
+                } else {
+                    this.uiFeedback.info('قريباً', 'هذه الميزة غير مفعلة حالياً');
+                }
             }
         });
     }
 
     handleTabChange(tab: string): void {
-        console.log('Tab changed to:', tab);
-        // يمكنك إضافة أي logic إضافي هنا
+        // no-op
     }
 }
+
+

@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthStore } from '../../core/stores/auth.store';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
@@ -18,6 +19,7 @@ import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcru
 })
 export class AdminLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
+    private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
 
@@ -29,7 +31,9 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
     unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
-    currentUser = this.authService.getCurrentUser();
+    // Reactive bindings to AuthStore
+    currentUser = this.authStore.currentUser;
+    isAuthenticated = this.authStore.isAuthenticated;
 
     navItems: NavItem[] = [
         { label: 'لوحة التحكم', icon: 'dashboard', route: '/admin/dashboard' },
@@ -43,6 +47,15 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
         { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log' }
     ];
 
+
+    constructor() {
+        // Effect to react to auth state changes
+        effect(() => {
+            if (!this.isAuthenticated()) {
+                this.router.navigate(['/auth/login']);
+            }
+        });
+    }
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -95,8 +108,8 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     }
 
     handleLogout(): void {
-        this.authService.logout();
-        this.router.navigate(['/auth/login']);
+        this.authService.logout(); // This now updates AuthStore
+        // No need to navigate - effect handles it
     }
 
     viewNotification(notification: any): void {

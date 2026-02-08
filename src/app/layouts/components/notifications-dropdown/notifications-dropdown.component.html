@@ -23,7 +23,7 @@
                 <div class="flex-between mb-1">
                     <p class="notification-title">{{ n.title }}</p>
                     <div class="flex items-center gap-2">
-                        <span class="notification-time">{{ formatTimeAgo(n.date) }}</span>
+                        <span class="notification-time">{{ formatTimeAgo(n.createdAt) }}</span>
                         <div *ngIf="!n.isRead" class="notification-unread-dot"></div>
                     </div>
                 </div>

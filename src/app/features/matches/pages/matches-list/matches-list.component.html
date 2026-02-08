@@ -5,8 +5,7 @@
     <!-- Pending Status - Replace content when pending -->
     <ng-container *ngIf="isPending; else mainContent">
         <app-pending-status-card title="حسابك قيد المراجعة"
-            message="عذراً، لا يمكنك المشاركة في المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-            [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="loadMatches()">
+            message="عذراً، لا يمكنك المشاركة في المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
         </app-pending-status-card>
     </ng-container>
 

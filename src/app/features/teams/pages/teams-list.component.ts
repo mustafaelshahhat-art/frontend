@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -12,6 +12,7 @@ import { SmartImageComponent } from '../../../shared/components/smart-image/smar
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
+import { TeamStore } from '../../../core/stores/team.store';
 
 import { TeamStatus, TEAM_STATUS_LABELS, StatusConfig } from '../../../shared/utils/status-labels';
 
@@ -34,14 +35,17 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
     templateUrl: './teams-list.component.html',
     styleUrls: ['./teams-list.component.scss']
 })
-export class TeamsListComponent implements OnInit {
+export class TeamsListComponent implements OnInit, AfterViewInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly teamService = inject(TeamService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly teamStore: TeamStore = inject(TeamStore);
 
-    currentFilter: TeamFilterValue = 'all';
-    isLoading = true;
+    currentFilter = signal<TeamFilterValue>('all');
+
+    // Store handles loading state mostly, but for initial load we can track it
+    isLoading = computed(() => this.teamStore.isLoading());
 
     filters = [
         { value: 'all', label: 'الكل' },
@@ -49,7 +53,19 @@ export class TeamsListComponent implements OnInit {
         { value: 'inactive', label: 'غير نشط' }
     ];
 
-    teams: Team[] = [];
+    // Derived State
+    filteredTeams = computed(() => {
+        const allTeams = this.teamStore.teams();
+        const filter = this.currentFilter();
+
+        if (filter === 'active') {
+            return allTeams.filter((t: any) => t.isActive);
+        } else if (filter === 'inactive') {
+            return allTeams.filter((t: any) => !t.isActive);
+        }
+        return allTeams;
+    });
+
     columns: TableColumn[] = [];
 
     @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
@@ -74,38 +90,21 @@ export class TeamsListComponent implements OnInit {
     }
 
     loadTeams(): void {
-        this.isLoading = true;
+        this.teamStore.setLoading(true);
         this.teamService.getAllTeams().subscribe({
             next: (data) => {
-                setTimeout(() => {
-                    this.teams = data;
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+                this.teamStore.setTeams(data);
+                // cdr handled by signal updates
             },
-            error: () => {
-                setTimeout(() => {
-                    this.teams = [];
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+            error: (err) => {
+                this.teamStore.setError(err.message);
+                this.teamStore.setLoading(false);
             }
         });
     }
 
-    get filteredTeams(): Team[] {
-        // TODO: Update property checks based on actual backend Team model
-        let result = this.teams;
-        if (this.currentFilter === 'active') {
-            result = result.filter(t => (t as any).isActive);
-        } else if (this.currentFilter === 'inactive') {
-            result = result.filter(t => !(t as any).isActive);
-        }
-        return result;
-    }
-
     setFilter(filter: string): void {
-        this.currentFilter = filter as TeamFilterValue;
+        this.currentFilter.set(filter as TeamFilterValue);
     }
 
     requestToggleStatus(team: Team): void {
@@ -119,10 +118,9 @@ export class TeamsListComponent implements OnInit {
         this.uiFeedback.confirm(title, message, confirmText, !newStatus ? 'danger' : 'info').subscribe((confirmed: boolean) => {
             if (confirmed) {
                 this.teamService.updateTeam({ id: team.id, isActive: newStatus }).subscribe({
-                    next: (updatedTeam) => {
-                        team.isActive = updatedTeam.isActive;
-                        this.uiFeedback.success('تم التحديث', `تم ${team.isActive ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
-                        this.cdr.detectChanges();
+                    next: () => {
+                        this.uiFeedback.success('تم التحديث', `تم ${newStatus ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
+                        // Store update happens via RealTime 'TeamUpdated' event automatically
                     },
                     error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الفريق')
                 });
@@ -140,9 +138,8 @@ export class TeamsListComponent implements OnInit {
             if (confirmed) {
                 this.teamService.deleteTeam(team.id).subscribe({
                     next: () => {
-                        this.teams = this.teams.filter(t => t.id !== team.id);
                         this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
-                        this.cdr.detectChanges();
+                        // Store update happens via RealTime 'TeamDeleted' event automatically
                     },
                     error: (err) => {
                         const msg = err.error?.detail || err.error?.message || 'فشل في حذف الفريق';

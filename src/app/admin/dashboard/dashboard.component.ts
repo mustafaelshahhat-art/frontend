@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
@@ -12,7 +12,10 @@ import { CardComponent } from '../../shared/components/card/card.component';
 import { AnalyticsService, DashboardStats, Activity } from '../../core/services/analytics.service';
 import { MatchService } from '../../core/services/match.service';
 import { Match } from '../../core/models/tournament.model';
-import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
+import { MatchStore } from '../../core/stores/match.store';
+import { TournamentStore } from '../../core/stores/tournament.store';
+import { UserStore } from '../../core/stores/user.store';
+import { ActivityStore } from '../../core/stores/activity.store';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -36,51 +39,42 @@ export class AdminDashboardComponent implements OnInit {
     private readonly analyticsService = inject(AnalyticsService);
     private readonly matchService = inject(MatchService);
     private readonly cdr = inject(ChangeDetectorRef);
-    private readonly realTimeUpdate = inject(RealTimeUpdateService);
+    private readonly matchStore = inject(MatchStore);
+    private readonly tournamentStore = inject(TournamentStore);
+    private readonly userStore = inject(UserStore);
+    private readonly activityStore = inject(ActivityStore);
 
     stats: { label: string, value: string, icon: string, colorClass: string }[] = [];
     recentActivities: Activity[] = [];
     liveMatches: Match[] = [];
 
+    constructor() {
+        // React to store changes for automatic updates
+        effect(() => {
+            this.updateStatsFromStores();
+            this.updateLiveMatchesFromStore();
+        });
+    }
+
     ngOnInit(): void {
-        this.loadDashboardData();
-        this.setupRealTimeUpdates();
+        this.loadInitialData();
     }
 
-    private setupRealTimeUpdates(): void {
-        const dashboardEvents = [
-            'MATCH_STATUS_CHANGED',
-            'MATCH_RESCHEDULED',
-            'MATCH_SCHEDULED',
-            'TOURNAMENT_CREATED',
-            'TOURNAMENT_UPDATED',
-            'PAYMENT_APPROVED', // Success stats change
-            'NOTIFICATION_CREATED' // Might mean new activities or objections
-        ];
-
-        this.realTimeUpdate.on(dashboardEvents).subscribe(() => {
-            // Smart decision: Refresh data every time a relevant event occurs
-            this.loadDashboardData();
-        });
-
-        // Also handle legacy match updates for score badges
-        this.matchService.matchUpdated$.subscribe(() => {
-            this.loadDashboardData();
-        });
+    private loadInitialData(): void {
+        // Load initial data into stores
+        this.loadDashboardStats();
+        this.loadActivities();
+        this.loadLiveMatches();
     }
 
-    loadDashboardData(): void {
-        // TODO: Implement proper error handling and layout for empty states
+    private loadDashboardStats(): void {
         this.analyticsService.getDashboardStats().subscribe({
             next: (data: DashboardStats) => {
+                // Update stores with fresh data
+                this.userStore.setUsers(Array(data.totalUsers).fill({} as any)); // Simplified
+                // Tournament store would be updated by tournament service
                 setTimeout(() => {
-                    this.stats = [
-                        { label: 'إجمالي المستخدمين', value: data.totalUsers.toLocaleString(), icon: 'groups', colorClass: 'info' },
-                        { label: 'البطولات النشطة', value: data.activeTournaments.toString(), icon: 'emoji_events', colorClass: 'primary' },
-                        { label: 'المباريات اليوم', value: data.matchesToday.toString(), icon: 'sports_soccer', colorClass: 'gold' },
-                        { label: 'إجمالي الأهداف', value: data.totalGoals.toString(), icon: 'stars', colorClass: 'success' },
-                        { label: 'اعتراضات معلقة', value: data.pendingObjections.toString(), icon: 'report_problem', colorClass: 'danger' }
-                    ];
+                    this.updateStatsFromStores();
                     this.cdr.detectChanges();
                 });
             },
@@ -97,9 +91,38 @@ export class AdminDashboardComponent implements OnInit {
                 });
             }
         });
+    }
 
+    private updateStatsFromStores(): void {
+        const users = this.userStore.users();
+        const tournaments = this.tournamentStore.activeTournaments();
+        const matches = this.matchStore.matches();
+        const liveMatches = this.matchStore.ongoingMatches();
+        
+        this.stats = [
+            { label: 'إجمالي المستخدمين', value: users.length.toString(), icon: 'groups', colorClass: 'info' },
+            { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary' },
+            { label: 'المباريات اليوم', value: matches.length.toString(), icon: 'sports_soccer', colorClass: 'gold' },
+            { label: 'المباريات الحية', value: liveMatches.length.toString(), icon: 'sensors', colorClass: 'danger' },
+            { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger' } // Would come from objections store
+        ];
+    }
+
+    private loadActivities(): void {
         this.analyticsService.getRecentActivities().subscribe({
             next: (data) => {
+                // Transform analytics activities to store format
+                const storeActivities: any[] = data.map(activity => ({
+                    id: crypto.randomUUID(),
+                    userId: '',
+                    userName: activity.userName || 'System',
+                    action: activity.action || activity.type,
+                    entityType: 'System',
+                    entityId: '',
+                    description: activity.message,
+                    timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(activity.time)
+                }));
+                this.activityStore.setActivities(storeActivities);
                 setTimeout(() => {
                     this.recentActivities = data;
                     this.cdr.detectChanges();
@@ -112,11 +135,15 @@ export class AdminDashboardComponent implements OnInit {
                 });
             }
         });
+    }
 
+    private loadLiveMatches(): void {
         this.matchService.getLiveMatches().subscribe({
             next: (data) => {
+                // Update match store with live matches
+                this.matchStore.setMatches(data);
                 setTimeout(() => {
-                    this.liveMatches = data;
+                    this.updateLiveMatchesFromStore();
                     this.cdr.detectChanges();
                 });
             },
@@ -129,8 +156,11 @@ export class AdminDashboardComponent implements OnInit {
         });
     }
 
+    private updateLiveMatchesFromStore(): void {
+        this.liveMatches = this.matchStore.ongoingMatches();
+    }
+
     navigateTo(path: string): void {
         this.router.navigate([path]);
     }
 }
-

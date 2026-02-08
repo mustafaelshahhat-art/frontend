@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthStore } from '../../core/stores/auth.store';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
@@ -18,6 +19,7 @@ import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcru
 })
 export class RefereeLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
+    private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
 
@@ -29,8 +31,10 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
     notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
     unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
 
-    currentUser = this.authService.getCurrentUser();
-    isPending = this.currentUser?.status === 'Pending';
+    // Reactive bindings to AuthStore
+    currentUser = this.authStore.currentUser;
+    isAuthenticated = this.authStore.isAuthenticated;
+    isPending = false;
 
     navItems: NavItem[] = [
         { label: 'لوحة التحكم', icon: 'dashboard', route: '/referee/dashboard' },
@@ -38,6 +42,17 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
         { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' }
     ];
 
+
+    constructor() {
+        // Effect to react to auth state changes
+        effect(() => {
+            if (!this.isAuthenticated()) {
+                this.router.navigate(['/auth/login']);
+            }
+            // Update pending status reactively
+            this.isPending = this.currentUser()?.status === 'Pending';
+        });
+    }
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -90,8 +105,8 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
     }
 
     handleLogout(): void {
-        this.authService.logout();
-        this.router.navigate(['/auth/login']);
+        this.authService.logout(); // This now updates AuthStore
+        // No need to navigate - effect handles it
     }
 
     viewNotification(notification: any): void {

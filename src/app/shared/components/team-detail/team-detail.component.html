@@ -22,8 +22,8 @@
                             </h1>
                             <app-button *ngIf="canEditName" (click)="startEditName()" variant="ghost" size="sm"
                                 icon="edit" class="text-primary-light"></app-button>
-                            <app-button *ngIf="canDeleteTeam" (click)="onDeleteTeamClick()" variant="ghost" size="sm"
-                                icon="delete" class="text-danger" title="حذف الفريق"></app-button>
+                            <app-button *ngIf="canDeleteTeam" (click)="onDeleteTeamClick()" variant="danger-ghost"
+                                size="sm" icon="delete" title="حذف الفريق"></app-button>
                         </ng-container>
 
                         <div *ngIf="isEditingName" class="flex items-center gap-2">

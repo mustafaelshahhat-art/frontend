@@ -14,6 +14,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
     return next(req).pipe(
         catchError((error: HttpErrorResponse) => {
+            // Check if we should skip global error handling for this request
+            if (req.headers.has('X-Skip-Error-Handler')) {
+                return throwError(() => error);
+            }
+
             // Handle the error
             const appError = errorHandler.handleHttpError(error);
 

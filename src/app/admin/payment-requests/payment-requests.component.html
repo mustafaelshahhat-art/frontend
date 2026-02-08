@@ -10,16 +10,16 @@
         </div>
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل الطلبات..."></app-inline-loading>
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الطلبات..."></app-inline-loading>
 
         <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
+        <app-empty-state *ngIf="!isLoading() && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
             description="لا توجد طلبات دفع في هذا التصنيف حالياً">
         </app-empty-state>
 
         <!-- Table -->
-        <div *ngIf="!isLoading && filteredRequests.length > 0" class="card p-0 overflow-hidden">
-            <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading">
+        <div *ngIf="!isLoading() && filteredRequests.length > 0" class="card p-0 overflow-hidden">
+            <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()">
             </app-table>
         </div>
 

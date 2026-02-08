@@ -40,8 +40,10 @@
                         </div>
 
                         <div class="profile-info">
-                            <h1 class="profile-name">{{ user.name }}</h1>
-                            <p class="profile-email">{{ user.email }}</p>
+                            <div class="profile-name-group">
+                                <h1 class="profile-name">{{ user.name }}</h1>
+                                <p class="profile-email">{{ user.email }}</p>
+                            </div>
                             <div class="profile-meta">
                                 <app-badge type="gold">
                                     <span class="material-symbols-outlined">military_tech</span>
@@ -53,7 +55,7 @@
                             </div>
                         </div>
 
-                        <div class="profile-actions">
+                        <div class="profile-actions" *ngIf="!isLastAdmin() || user.status !== 'Active'">
                             <app-button (click)="toggleUserStatus()"
                                 [variant]="user.status === 'Active' ? 'danger' : 'primary'"
                                 [icon]="user.status === 'Active' ? 'block' : 'check_circle'" size="lg">
@@ -118,11 +120,11 @@
                                 </div>
                                 <h2 class="card-title">سجل النشاط</h2>
                                 <span class="activity-count" *ngIf="user.activities?.length">
-                                    {{ user.activities.length }}
+                                    {{ user.activities?.length }}
                                 </span>
                             </div>
 
-                            <div class="timeline" *ngIf="user.activities?.length > 0">
+                            <div class="timeline" *ngIf="user.activities && user.activities.length > 0">
                                 <div *ngFor="let activity of user.activities; let i = index; let last = last"
                                     class="timeline-item" [style.animation-delay]="(i * 0.05) + 's'">
                                     <div class="timeline-dot" [ngClass]="getActivityBadgeClass(activity.type)">
@@ -141,7 +143,7 @@
                                 </div>
                             </div>
 
-                            <div class="empty-timeline" *ngIf="!user.activities || user.activities.length === 0">
+                            <div class="empty-timeline" *ngIf="!user.activities?.length">
                                 <span class="material-symbols-outlined">history_toggle_off</span>
                                 <p>لا يوجد نشاط مسجل حالياً</p>
                             </div>

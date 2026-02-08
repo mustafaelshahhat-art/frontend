@@ -39,11 +39,19 @@ export class NotificationsDropdownComponent {
     }
 
     formatTimeAgo(dateInput: Date | string): string {
+        if (!dateInput) return 'غير متاح';
+
         const date = new Date(dateInput);
-        const diff = Date.now() - date.getTime();
-        const minutes = Math.floor(diff / 60000);
-        if (minutes < 60) return `منذ ${minutes} دقيقة`;
-        const hours = Math.floor(minutes / 60);
-        return `منذ ${hours} ساعة`;
+        if (isNaN(date.getTime())) return 'غير متاح';
+
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) return 'الآن';
+        if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+        if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+        if (diffInSeconds < 2592000) return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
+
+        return date.toLocaleDateString('ar-EG');
     }
 }

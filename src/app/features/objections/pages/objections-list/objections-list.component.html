@@ -5,8 +5,7 @@
     <!-- Pending Status - Replace content when pending (only for non-admin) -->
     <ng-container *ngIf="isPending && !isAdmin(); else mainContent">
         <app-pending-status-card title="حسابك قيد المراجعة"
-            message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-            [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="loadObjections()">
+            message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
         </app-pending-status-card>
     </ng-container>
 

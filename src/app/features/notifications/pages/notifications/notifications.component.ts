@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { NotificationStore } from '../../../../core/stores/notification.store';
 import { Notification as AppNotification } from '../../../../core/models/tournament.model';
 
 interface Notification {
@@ -45,36 +46,31 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 export class NotificationsComponent implements OnInit {
     private authService = inject(AuthService);
     private notificationService = inject(NotificationService);
-    private cdr = inject(ChangeDetectorRef);
+    private notificationStore = inject(NotificationStore);
     private router = inject(Router);
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.PLAYER;
 
-    isLoading = true;
-    notifications: Notification[] = []; // Component interface matches enough if I'm careful
+    isLoading = this.notificationStore.isLoading;
 
-    ngOnInit(): void {
-        this.loadNotifications();
+    notificationsView = computed(() => {
+        return this.notificationStore.notifications().map((n: AppNotification) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            time: this.formatTime(new Date(n.createdAt)),
+            type: n.type,
+            isRead: n.isRead,
+            icon: this.getIcon(n.type)
+        }));
+    });
+
+    get notifications(): Notification[] {
+        return this.notificationsView();
     }
 
-    loadNotifications(): void {
-        this.isLoading = true;
-        this.notificationService.notifications.subscribe((notifications: AppNotification[]) => {
-            this.notifications = notifications.map((n: AppNotification) => ({
-                id: n.id,
-                title: n.title,
-                message: n.message,
-                time: this.formatTime(new Date(n.createdAt)),
-                type: n.type,
-                isRead: n.isRead,
-                icon: this.getIcon(n.type)
-            }));
-            this.isLoading = false;
-            this.cdr.detectChanges();
-        });
-
-        // Ensure they are loaded from API
+    ngOnInit(): void {
         this.notificationService.loadNotifications();
     }
 
@@ -89,14 +85,14 @@ export class NotificationsComponent implements OnInit {
     }
 
     get pageTitle(): string {
-        return this.isAdmin() ? 'الإشعارات' : 'مركز التنبيهات';
+        return this.isAdmin() ? 'التنبيهات' : 'مركز التنبيهات';
     }
 
     get pageSubtitle(): string {
         const subtitles: Partial<Record<UserRole, string>> = {
-            [UserRole.ADMIN]: 'إدارة تنبيهات النظام والمستخدمين',
-            [UserRole.REFEREE]: 'تابع آخر التعديلات والتعيينات الخاصة بمبارياتك',
-            [UserRole.PLAYER]: 'ابقَ على اطلاع بأحدث مجريات البطولة وقرارات اللجنة'
+            [UserRole.ADMIN]: 'إدارة جميع تنبيهات النظام والمستجدات',
+            [UserRole.REFEREE]: 'ابق على اطلاع بآخر التحديثات والمواعيد الخاصة بك',
+            [UserRole.PLAYER]: 'تابع آخر أخبار فريقك ونتائج البطولة لحظة بلحظة'
         };
         return subtitles[this.userRole] || '';
     }
@@ -108,7 +104,6 @@ export class NotificationsComponent implements OnInit {
     markAsRead(notification: Notification): void {
         this.notificationService.markAsRead(notification.id).subscribe();
 
-        // Navigate if link exists
         if (notification.link) {
             this.router.navigateByUrl(notification.link);
         }
@@ -139,7 +134,6 @@ export class NotificationsComponent implements OnInit {
         };
         return colors[type] || '#64748b';
     }
-
 
     isAdmin(): boolean {
         return this.userRole === UserRole.ADMIN;

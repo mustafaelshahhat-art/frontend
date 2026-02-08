@@ -4,9 +4,9 @@ import { Router, RouterModule } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { AuthService } from '../../../../core/services/auth.service';
-import { RealTimeUpdateService } from '../../../../core/services/real-time-update.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { MatchStore } from '../../../../core/stores/match.store';
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -52,13 +52,14 @@ export class MatchesListComponent implements OnInit {
     private readonly matchService = inject(MatchService);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
-    private readonly cdr = inject(ChangeDetectorRef); // Still useful for manual triggers if needed, but Signals handle most
+    private readonly cdr = inject(ChangeDetectorRef);
     private readonly uiFeedback = inject(UIFeedbackService);
-    private readonly realTimeUpdate = inject(RealTimeUpdateService);
+    private readonly matchStore = inject(MatchStore);
 
-    // Signals State
-    matches = signal<Match[]>([]);
-    isLoading = signal<boolean>(true);
+    // Signals State derived from Store
+    matches = this.matchStore.matches;
+    isLoading = this.matchStore.isLoading;
+
     selectedFilter = signal<MatchFilterValue>('all');
 
     currentUser = this.authService.getCurrentUser();
@@ -110,41 +111,18 @@ export class MatchesListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadMatches();
-
-        // Intelligent Real-Time Updates
-        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe(() => {
-            // Re-fetch list safely without full reload
-            this.loadMatches();
-        });
-
-        // Still listen to legacy full-data updates for live score badges
-        this.matchService.matchUpdated$.subscribe(updatedMatch => {
-            if (updatedMatch) {
-                this.matches.update(current => {
-                    const index = current.findIndex(m => m.id === updatedMatch.id);
-                    if (index !== -1) {
-                        const newMatches = [...current];
-                        newMatches[index] = { ...updatedMatch };
-                        return newMatches;
-                    }
-                    return current;
-                });
-            }
-        });
     }
 
     loadMatches(): void {
-        this.isLoading.set(true);
+        this.matchStore.setLoading(true);
 
         const handleSuccess = (data: Match[]) => {
-            this.matches.set(data);
-            this.isLoading.set(false);
-            this.cdr.detectChanges();
+            this.matchStore.setMatches(data);
         };
 
         const handleError = () => {
-            this.isLoading.set(false);
-            this.cdr.detectChanges();
+            this.matchStore.setLoading(false);
+            this.matchStore.setError('Failed to load matches');
         };
 
         if (this.userRole === UserRole.ADMIN) {
@@ -156,8 +134,7 @@ export class MatchesListComponent implements OnInit {
             if (teamId) {
                 this.matchService.getMatchesByTeam(teamId).subscribe({ next: handleSuccess, error: handleError });
             } else {
-                this.isLoading.set(false);
-                this.cdr.detectChanges();
+                this.matchStore.setLoading(false);
             }
         }
     }
@@ -225,17 +202,7 @@ export class MatchesListComponent implements OnInit {
     startMatch(match: Match): void {
         this.matchService.startMatch(match.id).subscribe({
             next: (updatedMatch) => {
-                if (updatedMatch) {
-                    this.matches.update(current => {
-                        const index = current.findIndex(m => m.id === match.id);
-                        if (index !== -1) {
-                            const newMatches = [...current];
-                            newMatches[index] = { ...updatedMatch };
-                            return newMatches;
-                        }
-                        return current;
-                    });
-                }
+                // Store updated automatically via RT
                 this.uiFeedback.success('تم البدء', 'تم بدء المباراة');
             },
             error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
@@ -248,17 +215,7 @@ export class MatchesListComponent implements OnInit {
     }
 
     onMatchEnded(updatedMatch: Match): void {
-        if (updatedMatch) {
-            this.matches.update(current => {
-                const index = current.findIndex(m => m.id === updatedMatch.id);
-                if (index !== -1) {
-                    const newMatches = [...current];
-                    newMatches[index] = { ...updatedMatch };
-                    return newMatches;
-                }
-                return current;
-            });
-        }
+        // Store updated via RT
         this.activeMatchId = null;
     }
 
@@ -269,17 +226,7 @@ export class MatchesListComponent implements OnInit {
     }
 
     onEventAdded(updatedMatch: Match): void {
-        if (updatedMatch) {
-            this.matches.update(current => {
-                const index = current.findIndex(m => m.id === updatedMatch.id);
-                if (index !== -1) {
-                    const newMatches = [...current];
-                    newMatches[index] = { ...updatedMatch };
-                    return newMatches;
-                }
-                return current;
-            });
-        }
+        // Store updated via RT
         this.activeMatch = null;
         this.activeMatchId = null;
     }
@@ -296,3 +243,5 @@ export class MatchesListComponent implements OnInit {
         this.router.navigate([this.getRoutePrefix(), 'matches', matchId], { queryParams: { action: 'objection' } });
     }
 }
+
+

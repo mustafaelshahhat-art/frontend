@@ -5,15 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
 import { User, UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/chat-box.component';
 import { ChatService } from '../../../../core/services/chat.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { RealTimeUpdateService, SystemEvent } from '../../../../core/services/real-time-update.service';
-import { Match, MatchMessage, MatchStatus } from '../../../../core/models/tournament.model';
+import { Match, MatchStatus } from '../../../../core/models/tournament.model';
 
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
@@ -63,7 +61,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private chatService = inject(ChatService);
     private matchService = inject(MatchService);
     private notificationService = inject(NotificationService);
-    private realTimeUpdate = inject(RealTimeUpdateService);
     private cdr = inject(ChangeDetectorRef);
 
     ChatParticipantRole = ChatParticipantRole;
@@ -94,17 +91,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         // Subscription to this specific match updates
         this.notificationService.subscribeToMatch(this.matchId);
-        this.setupRealTimeUpdates();
-    }
-
-    private setupRealTimeUpdates(): void {
-        this.realTimeUpdate.on(['MATCH_STATUS_CHANGED', 'MATCH_RESCHEDULED', 'MATCH_SCHEDULED']).subscribe((event: SystemEvent) => {
-            if (event.metadata.MatchId === this.matchId) {
-                if (!this.showScheduleModal) {
-                    this.loadMatchData();
-                }
-            }
-        });
     }
 
     ngOnDestroy(): void {
@@ -368,13 +354,11 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         }
 
         this.showScheduleModal = true;
-        this.realTimeUpdate.setEditingState(true);
     }
 
     // Close schedule modal
     closeScheduleModal(): void {
         this.showScheduleModal = false;
-        this.realTimeUpdate.setEditingState(false);
         this.scheduleDate = '';
         this.scheduleTime = '';
     }
@@ -432,3 +416,4 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         return !!(this.match?.scheduledDate && this.match?.scheduledTime);
     }
 }
+

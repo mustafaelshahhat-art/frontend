@@ -1,11 +1,12 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, map } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
-import { Notification, Match } from '../models/tournament.model';
+import { Notification } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
-import { MatchService } from './match.service';
+import { NotificationStore } from '../stores/notification.store';
 import { RealTimeUpdateService } from './real-time-update.service';
 
 @Injectable({
@@ -15,20 +16,20 @@ export class NotificationService {
     private readonly http = inject(HttpClient);
     private readonly signalRService = inject(SignalRService);
     private readonly authService = inject(AuthService);
-    private readonly matchService = inject(MatchService);
+    private readonly notificationStore = inject(NotificationStore);
     private readonly realTimeUpdate = inject(RealTimeUpdateService);
     private readonly apiUrl = `${environment.apiUrl}/notifications`;
 
-    private notifications$ = new BehaviorSubject<Notification[]>([]);
-    private unreadCount$ = new BehaviorSubject<number>(0);
     private joinRequestUpdate$ = new BehaviorSubject<void>(undefined);
+    private listenersBound = false;
 
+    // Expose store signals as observables for backward compatibility
     get notifications(): Observable<Notification[]> {
-        return this.notifications$.asObservable();
+        return toObservable(this.notificationStore.notifications);
     }
 
     get unreadCount(): Observable<number> {
-        return this.unreadCount$.asObservable();
+        return toObservable(this.notificationStore.unreadCount);
     }
 
     get joinRequestUpdate(): Observable<void> {
@@ -51,51 +52,36 @@ export class NotificationService {
     }
 
     private async connectHub(): Promise<void> {
-        // Prevent duplicate connections and listeners
-        if (this.signalRService.isConnected('notifications')) {
-            return;
-        }
-
+        this.realTimeUpdate.ensureInitialized();
         const connection = this.signalRService.createConnection('notifications');
+        if (!this.listenersBound) {
+            connection.on('ReceiveNotification', (notification: Notification) => {
+                this.notificationStore.addNotification(notification);
 
-        // Ensure clean state for listeners
-        connection.off('ReceiveNotification');
-        connection.off('AccountStatusChanged');
-        connection.off('RemovedFromTeam');
-        connection.off('TeamDeleted');
-        connection.off('SystemEvent');
+                if (notification.type === 'invite' || notification.type === 'join_request' ||
+                    notification.type === 'invite_accepted' || notification.type === 'invite_rejected' ||
+                    notification.type === 'join_accepted' || notification.type === 'join_rejected') {
+                    this.joinRequestUpdate$.next();
+                }
+            });
 
-        connection.on('ReceiveNotification', (notification: Notification) => {
-            const current = this.notifications$.value;
-            this.notifications$.next([notification, ...current]);
-            this.unreadCount$.next(this.unreadCount$.value + 1);
+            connection.on('AccountStatusChanged', (data: any) => {
+                const status = data?.status ?? data?.Status;
+                if (status) {
+                    this.authService.updateUserStatus(status);
+                }
+            });
 
-            if (notification.type === 'invite' || notification.type === 'join_request' ||
-                notification.type === 'invite_accepted' || notification.type === 'invite_rejected' ||
-                notification.type === 'join_accepted' || notification.type === 'join_rejected') {
-                this.joinRequestUpdate$.next();
-            }
-        });
+            connection.on('RemovedFromTeam', (data: any) => {
+                const playerId = data?.playerId ?? data?.PlayerId;
+                const currentUser = this.authService.getCurrentUser();
+                if (!currentUser || !playerId || currentUser.id === playerId) {
+                    this.authService.clearTeamAssociation();
+                }
+            });
 
-        connection.on('AccountStatusChanged', (data: { userId: string, status: string }) => {
-            this.authService.updateUserStatus(data.status);
-        });
-
-        // Handle real-time team removal notification
-        connection.on('RemovedFromTeam', (data: { playerId: string, teamId: string }) => {
-            // Clear team association immediately
-            this.authService.clearTeamAssociation();
-        });
-
-        // Handle real-time match updates (legacy/full-data)
-        connection.on('MatchUpdated', (match: Match) => {
-            this.matchService.emitMatchUpdate(match);
-        });
-
-        // Handle Lightweight System Events
-        connection.on('SystemEvent', (event: any) => {
-            this.realTimeUpdate.dispatch(event);
-        });
+            this.listenersBound = true;
+        }
 
         await this.signalRService.startConnection('notifications');
 
@@ -107,38 +93,55 @@ export class NotificationService {
     }
 
     private disconnect(): void {
-        this.signalRService.stopConnection('notifications');
-        this.notifications$.next([]);
-        this.unreadCount$.next(0);
+        this.notificationStore.setNotifications([]);
     }
 
     loadNotifications(): void {
-        this.http.get<Notification[]>(this.apiUrl).subscribe(notifications => {
-            this.notifications$.next(notifications);
-            this.unreadCount$.next(notifications.filter(n => !n.isRead).length);
+        this.notificationStore.setLoading(true);
+        this.http.get<Notification[]>(this.apiUrl).subscribe({
+            next: (notifications) => {
+                this.notificationStore.setNotifications(notifications);
+            },
+            error: (error) => {
+                this.notificationStore.setError('Failed to load notifications');
+                this.notificationStore.setLoading(false);
+                console.error('Error loading notifications:', error);
+            }
         });
     }
 
     markAsRead(id: string): Observable<void> {
+        // Optimistic update - update store immediately
+        this.notificationStore.markAsRead(id);
+        
+        // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
-            map(() => {
-                const current = this.notifications$.value;
-                const index = current.findIndex(n => n.id === id);
-                if (index !== -1 && !current[index].isRead) {
-                    current[index].isRead = true;
-                    this.notifications$.next([...current]);
-                    this.unreadCount$.next(Math.max(0, this.unreadCount$.value - 1));
+            catchError((error: any) => {
+                console.error('Error marking notification as read:', error);
+                // Revert optimistic update on error
+                const notification = this.notificationStore.getNotificationById(id);
+                if (notification) {
+                    this.notificationStore.addNotification({ ...notification, isRead: false });
                 }
+                return throwError(() => error);
             })
         );
     }
 
     markAllAsRead(): Observable<void> {
+        // Optimistic update - update store immediately
+        const unreadNotifications = this.notificationStore.getUnreadNotifications();
+        this.notificationStore.markAllAsRead();
+        
+        // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/read-all`, {}).pipe(
-            map(() => {
-                const current = this.notifications$.value.map(n => ({ ...n, isRead: true }));
-                this.notifications$.next(current);
-                this.unreadCount$.next(0);
+            catchError((error: any) => {
+                console.error('Error marking all notifications as read:', error);
+                // Revert optimistic update on error
+                unreadNotifications.forEach(n => {
+                    this.notificationStore.addNotification({ ...n, isRead: false });
+                });
+                return throwError(() => error);
             })
         );
     }

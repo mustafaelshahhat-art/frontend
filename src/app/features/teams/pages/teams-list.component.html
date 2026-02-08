@@ -4,27 +4,27 @@
 
         <!-- Filter Section -->
         <div class="filter-section animate-fade-in-up">
-            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+            <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
         </div>
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل الفرق..."></app-inline-loading>
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الفرق..."></app-inline-loading>
 
         <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading && filteredTeams.length === 0" icon="groups" title="لا توجد فرق"
+        <app-empty-state *ngIf="!isLoading() && filteredTeams().length === 0" icon="groups" title="لا توجد فرق"
             description="لا توجد فرق في هذا التصنيف حالياً">
         </app-empty-state>
 
         <!-- Desktop Table View -->
-        <div *ngIf="!isLoading && filteredTeams.length > 0" class="table-wrapper hide-on-mobile">
-            <app-table [data]="filteredTeams" [columns]="columns" [loading]="isLoading"
+        <div *ngIf="!isLoading() && filteredTeams().length > 0" class="table-wrapper hide-on-mobile">
+            <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
                 emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
             </app-table>
         </div>
 
         <!-- Mobile Cards View -->
-        <div *ngIf="!isLoading && filteredTeams.length > 0" class="mobile-teams-list show-only-mobile">
-            <div *ngFor="let team of filteredTeams" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
+        <div *ngIf="!isLoading() && filteredTeams().length > 0" class="mobile-teams-list show-only-mobile">
+            <div *ngFor="let team of filteredTeams()" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
                 <div class="card-header-flex">
                     <div class="flex items-center gap-3">
                         <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">

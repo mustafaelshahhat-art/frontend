@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -8,6 +8,7 @@ import { SmartImageComponent } from '../../../shared/components/smart-image/smar
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
+import { UserStore } from '../../../core/stores/user.store';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { ChangeDetectorRef } from '@angular/core';
 
@@ -29,33 +30,55 @@ export class UserDetailComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly userService = inject(UserService);
+    private readonly userStore = inject(UserStore);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly cdr = inject(ChangeDetectorRef);
 
-    user: any = null;
+    private readonly userId = signal<string | null>(null);
+    private readonly userSignal = computed(() => {
+        const id = this.userId();
+        return id ? this.userStore.getUserById(id) || null : null;
+    });
+
+    isLastAdmin = computed(() => {
+        const u = this.user;
+        if (!u || u.role !== UserRole.ADMIN || u.status === UserStatus.SUSPENDED || u.status === UserStatus.DISABLED) return false;
+
+        const activeAdmins = this.userStore.users().filter(user =>
+            user.role === UserRole.ADMIN && user.status !== UserStatus.SUSPENDED && user.status !== UserStatus.DISABLED
+        );
+
+        return activeAdmins.length === 1 && activeAdmins[0].id === u.id;
+    });
+
     isLoading = true;
 
-    ngOnInit(): void {
-        this.loadUser();
+    get user(): User | null {
+        return this.userSignal();
     }
 
-    loadUser(): void {
+    ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.isLoading = true;
-            this.userService.getUserById(id).subscribe({
-                next: (data) => {
-                    this.user = data;
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                },
-                error: (err) => {
-                    this.isLoading = false;
-                    this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المستخدم');
-                    this.cdr.detectChanges();
-                }
-            });
+            this.userId.set(id);
+            this.loadUser(id);
         }
+    }
+
+    loadUser(id: string): void {
+        this.isLoading = true;
+        this.userService.getUserById(id).subscribe({
+            next: (data) => {
+                this.userStore.upsertUser(data);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.isLoading = false;
+                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المستخدم');
+                this.cdr.detectChanges();
+            }
+        });
     }
 
     navigateBack(): void {
@@ -76,7 +99,7 @@ export class UserDetailComponent implements OnInit {
 
     getRoleLabel(role: string): string {
         if (role === UserRole.PLAYER && this.user?.isTeamOwner) {
-            return 'كابتن (صاحب فريق)';
+            return 'لاعب (قائد فريق)';
         }
 
         switch (role) {
@@ -109,6 +132,13 @@ export class UserDetailComponent implements OnInit {
     }
 
     toggleUserStatus(): void {
+        if (!this.user || (this.user.status === UserStatus.ACTIVE && this.isLastAdmin())) {
+            if (this.isLastAdmin()) {
+                this.uiFeedback.error('غير مسموح', 'لا يمكن إيقاف آخر مشرف نشط في النظام');
+            }
+            return;
+        }
+
         const isActive = this.user.status === UserStatus.ACTIVE;
         const action = isActive ? 'إيقاف' : 'تفعيل';
 
@@ -120,12 +150,11 @@ export class UserDetailComponent implements OnInit {
         ).subscribe((confirmed: boolean) => {
             if (confirmed) {
                 const request = isActive
-                    ? this.userService.suspendUser(this.user.id)
-                    : this.userService.activateUser(this.user.id);
+                    ? this.userService.suspendUser(this.user!.id)
+                    : this.userService.activateUser(this.user!.id);
 
                 request.subscribe({
                     next: () => {
-                        this.user.status = isActive ? UserStatus.SUSPENDED : UserStatus.ACTIVE;
                         this.uiFeedback.success('تم التحديث', `تم ${action} حساب المستخدم بنجاح`);
                         this.cdr.detectChanges();
                     },

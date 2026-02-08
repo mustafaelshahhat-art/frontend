@@ -14,8 +14,8 @@ import { SmartImageComponent } from '../../shared/components/smart-image/smart-i
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
-import { UserService, AdminCountDto } from '../../core/services/user.service';
-import { RealTimeUpdateService } from '../../core/services/real-time-update.service';
+import { UserService } from '../../core/services/user.service';
+import { UserStore } from '../../core/stores/user.store';
 
 @Component({
     selector: 'app-users-list',
@@ -42,17 +42,25 @@ export class UsersListComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly userService = inject(UserService);
+    private readonly userStore = inject(UserStore);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly fb = inject(FormBuilder);
-    private readonly realTimeUpdate = inject(RealTimeUpdateService);
 
-    users = signal<User[]>([]);
-    isLoading = signal<boolean>(true);
+    // map store signals
+    users = this.userStore.users;
+    isLoading = this.userStore.isLoading;
+
     currentFilter = signal<string>('all');
     searchQuery = signal<string>('');
 
     // Admin count for safety checks
-    adminCount = signal<AdminCountDto | null>(null);
+    adminCount = computed(() => {
+        const totalAdmins = this.users().filter(user =>
+            user.role === UserRole.ADMIN && user.status !== UserStatus.SUSPENDED
+        ).length;
+
+        return { totalAdmins, isLastAdmin: totalAdmins === 1 };
+    });
 
     // User Type Tabs
     userType = signal<'admins' | 'referees' | 'players'>('admins');
@@ -92,18 +100,8 @@ export class UsersListComponent implements OnInit {
     @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
+        // Initial load only
         this.loadUsers();
-        this.loadAdminCount();
-        this.setupRealTimeUpdates();
-    }
-
-    private setupRealTimeUpdates(): void {
-        this.realTimeUpdate.on(['USER_APPROVED', 'USER_BLOCKED']).subscribe(() => {
-            if (!this.showAddAdminModal()) {
-                this.loadUsers();
-                this.loadAdminCount();
-            }
-        });
     }
 
     ngAfterViewInit(): void {
@@ -119,25 +117,14 @@ export class UsersListComponent implements OnInit {
     }
 
     loadUsers(): void {
-        this.isLoading.set(true);
+        this.userStore.setLoading(true);
         this.userService.getUsers().subscribe({
             next: (data) => {
-                this.users.set(data);
-                this.isLoading.set(false);
+                this.userStore.setUsers(data);
             },
-            error: () => {
-                this.isLoading.set(false);
-            }
-        });
-    }
-
-    loadAdminCount(): void {
-        this.userService.getAdminCount().subscribe({
-            next: (data) => {
-                this.adminCount.set(data);
-            },
-            error: () => {
-                // Silent fail
+            error: (err) => {
+                this.userStore.setError(err.message);
+                this.userStore.setLoading(false);
             }
         });
     }
@@ -206,15 +193,13 @@ export class UsersListComponent implements OnInit {
         this.router.navigate(['/admin/users', userId]);
     }
 
-
-
     /**
      * Checks if the user is the last admin (cannot be suspended/deleted)
      */
     isLastAdmin(user: User): boolean {
         if (user.role !== UserRole.ADMIN) return false;
         const count = this.adminCount();
-        return count !== null && count.totalAdmins === 1;
+        return count.totalAdmins === 1;
     }
 
     suspendUser(user: User): void {
@@ -233,9 +218,11 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.suspendUser(user.id).subscribe({
                     next: () => {
-                        this.users.update(prev => prev.map(u => u.id === user.id ? { ...u, status: UserStatus.SUSPENDED } : u));
+                        // Optimistic update handled by Store if backend emits event
+                        // But we can also set it locally to be snappy if event is slow
+                        // However, Rule #3 says Store is single source of truth.
+                        // We rely on backend event which we added: SendUserUpdatedAsync
                         this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
-                        this.loadAdminCount(); // Refresh count
                     },
                     error: (err) => {
                         this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إيقاف المستخدم');
@@ -262,9 +249,7 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.activateUser(user.id).subscribe({
                     next: () => {
-                        this.users.update(prev => prev.map(u => u.id === user.id ? { ...u, status: UserStatus.ACTIVE } : u));
                         this.uiFeedback.success('تم التفعيل', 'تم تفعيل حساب المستخدم بنجاح');
-                        this.loadAdminCount(); // Refresh count
                     },
                     error: (err) => {
                         this.uiFeedback.error('خطأ', err.error?.message || 'فشل في تفعيل المستخدم');
@@ -290,9 +275,7 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.deleteUser(user.id).subscribe({
                     next: () => {
-                        this.users.update(prev => prev.filter(u => u.id !== user.id));
                         this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
-                        this.loadAdminCount(); // Refresh count
                     },
                     error: (err) => {
                         this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حذف المستخدم');
@@ -309,12 +292,10 @@ export class UsersListComponent implements OnInit {
     openAddAdminModal(): void {
         this.adminForm.reset({ status: 'Active' });
         this.showAddAdminModal.set(true);
-        this.realTimeUpdate.setEditingState(true);
     }
 
     closeAddAdminModal(): void {
         this.showAddAdminModal.set(false);
-        this.realTimeUpdate.setEditingState(false);
         this.adminForm.reset({ status: 'Active' });
     }
 
@@ -336,8 +317,7 @@ export class UsersListComponent implements OnInit {
             next: (newAdmin) => {
                 this.isCreatingAdmin.set(false);
                 this.closeAddAdminModal();
-                this.users.update(prev => [newAdmin, ...prev]);
-                this.loadAdminCount(); // Refresh count
+                // Store update happens via SignalR 'UserCreated' event automatically
                 this.uiFeedback.success('تم الإنشاء', `تم إنشاء المشرف "${newAdmin.name}" بنجاح`);
             },
             error: (err) => {
@@ -347,3 +327,5 @@ export class UsersListComponent implements OnInit {
         });
     }
 }
+
+

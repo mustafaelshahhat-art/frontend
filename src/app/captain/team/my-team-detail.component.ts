@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild, effect, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../shared/components/team-detail';
 import { TeamService } from '../../core/services/team.service';
-import { Player } from '../../core/models/team.model';
+import { Player, Team } from '../../core/models/team.model';
 import { AuthService } from '../../core/services/auth.service';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
@@ -14,6 +14,8 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { TeamRequestService } from '../../core/services/team-request.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TeamJoinRequest } from '../../core/models/team-request.model';
+import { TeamStore } from '../../core/stores/team.store';
+import { AuthStore } from '../../core/stores/auth.store';
 
 @Component({
     selector: 'app-my-team-detail',
@@ -25,16 +27,16 @@ import { TeamJoinRequest } from '../../core/models/team-request.model';
         ButtonComponent
     ],
     template: `
-        <div *ngIf="!loading && teamData" class="my-team-page">
+        <div *ngIf="!loading() && teamData()" class="my-team-page">
             <app-team-detail 
-                [team]="teamData"
+                [team]="teamData()!"
                 [showBackButton]="false"
-                [canEditName]="isCaptain && teamData.isActive"
-                [canAddPlayers]="isCaptain && teamData.isActive"
-                [canRemovePlayers]="isCaptain && teamData.isActive"
+                [canEditName]="isCaptain && teamData()!.isActive"
+                [canAddPlayers]="isCaptain && teamData()!.isActive"
+                [canRemovePlayers]="isCaptain && teamData()!.isActive"
                 [canManageStatus]="false"
-                [canManageInvitations]="isCaptain && teamData.isActive"
-                [canDeleteTeam]="isCaptain && teamData.isActive"
+                [canManageInvitations]="isCaptain && teamData()!.isActive"
+                [canDeleteTeam]="isCaptain"
                 [canSeeRequests]="isCaptain"
                 [canSeeFinances]="isCaptain || isAdmin"
                 [isInviteLoading]="isAddingPlayer"
@@ -48,11 +50,11 @@ import { TeamJoinRequest } from '../../core/models/team-request.model';
             </app-team-detail>
         </div>
 
-        <div *ngIf="loading" class="loading-container">
+        <div *ngIf="loading()" class="loading-container">
             <p>جاري التحميل...</p>
         </div>
 
-        <div *ngIf="!loading && !teamData" class="no-team-container">
+        <div *ngIf="!loading() && !teamData()" class="no-team-container">
             <!-- Case 1: Account Pending -->
             <div *ngIf="isUserPending" class="create-team-card pending-card animate-fade-in-up">
                 <div class="icon-circle warning">
@@ -251,20 +253,77 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     private readonly teamRequestService = inject(TeamRequestService);
     private readonly notificationService = inject(NotificationService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly authStore = inject(AuthStore);
+    private readonly teamStore = inject(TeamStore);
 
     @ViewChild(TeamDetailComponent) teamDetail!: TeamDetailComponent;
 
     private userSubscription: Subscription | null = null;
 
     currentUser: User | null = null;
-    teamData: TeamData | null = null;
-    loading = true;
+    teamData = signal<TeamData | null>(null);
+    loading = signal<boolean>(true);
+    private isLoadingTeam = false;
     isCaptain = false;
     isAdmin = false;
     isAddingPlayer = false;
     newTeamName = '';
     creatingTeam = false;
     pendingInvitations: TeamJoinRequest[] = [];
+
+    constructor() {
+        // Reactive effect: Watch TeamStore and Auth state for real-time updates
+        effect(() => {
+            const teams = this.teamStore.teams(); // Track store changes
+            const user = this.authStore.currentUser(); // Track user changes (REACTIVE SIGNAL)
+
+            // Collect current state without tracking it
+            const currentData = untracked(() => this.teamData());
+            const isLoading = untracked(() => this.isLoadingTeam);
+
+            // Update local reference
+            untracked(() => { this.currentUser = user; });
+
+            if (!user) {
+                this.teamData.set(null);
+                this.isCaptain = false;
+                return;
+            }
+
+            // Case 1: User has no team id - reset UI if it was showing a team
+            if (!user.teamId) {
+                if (currentData) {
+                    this.teamData.set(null);
+                    this.isCaptain = false;
+                    this.loadInvitations();
+                }
+                this.loading.set(false);
+                return;
+            }
+
+            // Case 2: User has a team id - check store
+            const storeTeam = this.teamStore.getTeamById(user.teamId);
+
+            if (storeTeam) {
+                // Team is in store - update UI
+                const converted = this.convertToTeamData(storeTeam);
+
+                // Mix in invitations from current state (they aren't in the store model)
+                converted.invitations = currentData?.invitations || [];
+
+                // Simple check to prevent redundant sets (and potential cycles)
+                if (!currentData || currentData.id !== converted.id || currentData.players?.length !== converted.players?.length) {
+                    this.teamData.set(converted);
+                    this.isCaptain = this.authService.isTeamOwner(storeTeam);
+                }
+                this.loading.set(false);
+            } else if (!isLoading) {
+                // User has a team ID but it's not in the store - fetch it
+                // We use setTimeout to defer to next tick to avoid NG0100
+                setTimeout(() => this.loadTeamData(), 0);
+            }
+        });
+    }
 
     get isUserPending(): boolean {
         return this.currentUser?.status === UserStatus.PENDING;
@@ -278,35 +337,20 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         }
 
         this.isAdmin = (this.currentUser.role as string) === 'Admin';
-        this.loadTeamData();
 
-        // Subscribe to user state changes for reactive UI updates
-        this.userSubscription = this.authService.user$.subscribe(user => {
-            if (!user) return;
-
-            // If user.teamId changed to null/undefined, clear team data immediately
-            if (!user.teamId && this.teamData) {
-                this.teamData = null;
-                this.isCaptain = false;
-                this.currentUser = user;
-                this.loadInvitations();
-                this.cdr.detectChanges();
-            } else if (user.teamId && !this.teamData) {
-                // User got a team, reload
-                this.currentUser = user;
-                this.loadTeamData();
-            }
-        });
+        // Initial load is handled by the effect in constructor
+        this.loadInvitations();
 
         // Listen for real-time updates
         this.notificationService.joinRequestUpdate.subscribe(() => {
             if (this.currentUser) {
                 // Refresh list
-                if (this.teamData) {
+                const currentData = this.teamData();
+                if (currentData) {
                     if (this.isCaptain) {
                         this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                            if (this.teamData) this.teamData.invitations = requests;
-                            this.cdr.detectChanges();
+                            const updatedData = { ...currentData, invitations: requests };
+                            this.teamData.set(updatedData);
                         });
                     }
                 } else {
@@ -317,9 +361,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        if (this.userSubscription) {
-            this.userSubscription.unsubscribe();
-        }
+        // effects clean up themselves
     }
 
     loadInvitations(): void {
@@ -332,20 +374,32 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     acceptInvite(requestId: string): void {
-        this.loading = true;
+        this.loading.set(true);
         this.teamRequestService.acceptRequest(requestId).subscribe({
             next: () => {
                 this.uiFeedback.success('تمت الإضافة', 'أهلاً بك في فريقك الجديد!');
-                // Update local status so UI refreshes
-                setTimeout(() => {
-                    this.authService.refreshUserProfile().subscribe(() => {
-                        this.currentUser = this.authService.getCurrentUser();
-                        this.loadTeamData();
-                    });
-                }, 500);
+
+                // Immediately refresh profile to get new teamId
+                this.authService.refreshUserProfile().subscribe({
+                    next: (updatedUser) => {
+                        if (updatedUser?.teamId) {
+                            // The effect will now trigger because authStore.currentUser() changed
+                            // but we also call loadTeamData for immediate response
+                            this.loadTeamData();
+                        } else {
+                            // Fallback if refresh didn't show teamId yet
+                            this.loading.set(false);
+                            this.loadInvitations();
+                        }
+                    },
+                    error: () => {
+                        this.loading.set(false);
+                        this.loadInvitations();
+                    }
+                });
             },
             error: (err) => {
-                this.loading = false;
+                this.loading.set(false);
                 this.uiFeedback.error('فشل القبول', err.message);
             }
         });
@@ -369,45 +423,89 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         let loadTeam$: Observable<any> | null = null;
 
         if (this.currentUser.teamId) {
-            loadTeam$ = this.teamService.getTeamById(this.currentUser.teamId);
+            // Use getTeamByIdSilent to handle 404 gracefully (deleted teams)
+            loadTeam$ = this.teamService.getTeamByIdSilent(this.currentUser.teamId);
         } else {
             // Fallback: check if this user is a captain of any team
             // (Useful if the User.TeamId wasn't updated for some reason)
             loadTeam$ = this.teamService.getTeamByCaptainId(this.currentUser.id);
         }
 
+        if (this.isLoadingTeam) return;
+
         if (!loadTeam$) {
-            this.loading = false;
-            this.teamData = null;
+            this.loading.set(false);
+            this.teamData.set(null);
             this.isCaptain = false;
             this.loadInvitations();
             return;
         }
 
-        this.loading = true;
+        this.isLoadingTeam = true;
+        // Use timeout to avoid NG0100 if called synchronously
+        setTimeout(() => this.loading.set(true), 0);
+
         loadTeam$.subscribe({
             next: (team: any) => {
                 if (team) {
-                    this.teamData = this.convertToTeamData(team);
+                    // Verify that the user is still a member or captain of this team
+                    const isMember = team.captainId === this.currentUser?.id ||
+                        (team.players && team.players.some((p: any) => p.userId === this.currentUser?.id || p.id === this.currentUser?.id));
+
+                    if (!isMember) {
+                        console.warn('Membership lost - clearing team association');
+                        this.authService.clearTeamAssociation();
+                        this.teamData.set(null);
+                        this.isCaptain = false;
+                        this.loadInvitations();
+                        this.loading.set(false);
+                        return;
+                    }
+
+                    // Add/Update team in store for reactive updates
+                    const existingTeam = this.teamStore.getTeamById(team.id);
+                    if (existingTeam) {
+                        this.teamStore.updateTeam(team);
+                    } else {
+                        this.teamStore.addTeam(team);
+                    }
+
+                    const converted = this.convertToTeamData(team);
+                    this.teamData.set(converted);
                     this.isCaptain = this.authService.isTeamOwner(team);
 
                     if (this.isCaptain) {
                         this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                            if (this.teamData) this.teamData.invitations = requests;
-                            this.cdr.detectChanges();
+                            const current = this.teamData();
+                            if (current) {
+                                this.teamData.set({ ...current, invitations: requests });
+                            }
                         });
                     }
                 } else {
-                    this.teamData = null;
+                    // Team was deleted (404 returned null from getTeamByIdSilent)
+                    console.warn('Team not found (null) - cleaning up');
+                    this.authService.clearTeamAssociation();
+                    this.teamData.set(null);
                     this.isCaptain = false;
+                    this.loadInvitations();
+                    // Force a profile refresh to sync with server
+                    this.authService.refreshUserProfile().subscribe();
                 }
-                this.loading = false;
-                this.cdr.detectChanges();
+                this.loading.set(false);
+                this.isLoadingTeam = false;
             },
             error: (err) => {
-                this.uiFeedback.error('خطأ', 'حدث خطأ أثناء تحميل بيانات الفريق');
-                this.loading = false;
-                this.cdr.detectChanges();
+                this.loading.set(false);
+                this.isLoadingTeam = false;
+
+                // If we get a 404 here, it's definitely gone
+                if (err.status === 404) {
+                    console.warn('Team 404 detected in error block - cleaning up');
+                    this.authService.clearTeamAssociation();
+                    this.teamData.set(null);
+                    this.authService.refreshUserProfile().subscribe();
+                }
             }
         });
     }
@@ -428,18 +526,24 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         this.creatingTeam = true;
         this.teamService.createTeam(this.currentUser, this.newTeamName).subscribe({
             next: (response) => {
+                // 1. Set team data first so that the userSubscription sees it and doesn't trigger loadTeamData
+                const converted = this.convertToTeamData(response.team);
+                this.teamData.set(converted);
+                this.isCaptain = this.authService.isTeamOwner(response.team);
+
+                // 2. Update current user and notify other components
                 this.authService.updateCurrentUser(response.updatedUser);
                 this.currentUser = response.updatedUser;
-                this.teamData = this.convertToTeamData(response.team);
-                this.isCaptain = this.authService.isTeamOwner(response.team);
+
+                // 3. Cleanup local UI state
                 this.creatingTeam = false;
+                this.loading.set(false); // Ensure loading is off if it were on
                 this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
-                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.uiFeedback.error('فشل الإنشاء', err.message);
                 this.creatingTeam = false;
-                this.cdr.detectChanges();
+                this.loading.set(false);
             }
         });
     }
@@ -450,11 +554,15 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         // Wrap updates in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
         // if the service returns data synchronously (e.g. from cache)
         setTimeout(() => {
+            const current = this.teamData();
+            if (!current) return;
+
             switch (tab) {
                 case 'players':
-                    this.teamService.getTeamPlayers(this.teamData!.id).subscribe(players => {
-                        if (this.teamData) {
-                            this.teamData.players = players.map(p => ({
+                    this.teamService.getTeamPlayers(current.id).subscribe(players => {
+                        const updated = {
+                            ...current,
+                            players: players.map(p => ({
                                 id: p.id,
                                 name: p.name,
                                 number: p.number || 0,
@@ -463,31 +571,33 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                                 yellowCards: p.yellowCards || 0,
                                 redCards: p.redCards || 0,
                                 status: p.status || 'active'
-                            }));
-                            this.cdr.detectChanges();
-                        }
+                            }))
+                        };
+                        this.teamData.set(updated);
                     });
                     break;
                 case 'matches':
-                    this.teamService.getTeamMatches(this.teamData!.id).subscribe(matches => {
-                        if (this.teamData) {
-                            this.teamData.matches = matches.map(m => ({
+                    this.teamService.getTeamMatches(current.id).subscribe(matches => {
+                        const updated = {
+                            ...current,
+                            matches: matches.map(m => ({
                                 id: m.id,
-                                opponent: m.homeTeamId === this.teamData?.id ? m.awayTeamName : m.homeTeamName,
+                                opponent: m.homeTeamId === current.id ? m.awayTeamName : m.homeTeamName,
                                 date: new Date(m.date),
-                                teamScore: m.homeTeamId === this.teamData?.id ? m.homeScore : m.awayScore,
-                                opponentScore: m.homeTeamId === this.teamData?.id ? m.awayScore : m.homeScore,
+                                teamScore: m.homeTeamId === current.id ? m.homeScore : m.awayScore,
+                                opponentScore: m.homeTeamId === current.id ? m.awayScore : m.homeScore,
                                 status: m.status,
                                 type: 'مباراة بطولة'
-                            }));
-                            this.cdr.detectChanges();
-                        }
+                            }))
+                        };
+                        this.teamData.set(updated);
                     });
                     break;
                 case 'finances':
-                    this.teamService.getTeamFinancials(this.teamData!.id).subscribe(finances => {
-                        if (this.teamData) {
-                            this.teamData.finances = finances.map(f => ({
+                    this.teamService.getTeamFinancials(current.id).subscribe(finances => {
+                        const updated = {
+                            ...current,
+                            finances: finances.map(f => ({
                                 id: f.tournamentId,
                                 title: f.tournamentName || 'تسجيل بطولة',
                                 category: 'Tournament Registration',
@@ -495,16 +605,15 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                                 date: new Date(f.registeredAt),
                                 status: f.status,
                                 type: 'expense'
-                            }));
-                            this.cdr.detectChanges();
-                        }
+                            }))
+                        };
+                        this.teamData.set(updated);
                     });
                     break;
                 case 'requests':
                     if (this.isCaptain) {
                         this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                            if (this.teamData) this.teamData.invitations = requests;
-                            this.cdr.detectChanges();
+                            this.teamData.set({ ...current, invitations: requests });
                         });
                     }
                     break;
@@ -552,19 +661,22 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
     handleRespondRequest(event: { request: any, approve: boolean }): void {
         const { request, approve } = event;
-        if (!this.teamData) return;
+        const currentData = this.teamData();
+        if (!currentData) return;
 
-        this.teamRequestService.respondToRequest(this.teamData.id, request.id, approve).subscribe({
+        this.teamRequestService.respondToRequest(currentData.id, request.id, approve).subscribe({
             next: () => {
                 this.uiFeedback.success(approve ? 'تم القبول' : 'تم الرفض', 'تم تحديث حالة الطلب بنجاح');
                 // Refresh invitations list for captain
                 this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
-                    if (this.teamData) this.teamData.invitations = requests;
+                    const latest = this.teamData();
+                    if (latest) {
+                        this.teamData.set({ ...latest, invitations: requests });
+                    }
                     // If approved, also refresh players list
                     if (approve) {
                         this.loadTeamData();
                     }
-                    this.cdr.detectChanges();
                 });
             },
             error: (err) => {
@@ -574,11 +686,12 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     handleEditName(newName: string): void {
-        if (!this.teamData || !newName.trim()) return;
+        const current = this.teamData();
+        if (!current || !newName.trim()) return;
 
-        this.teamService.updateTeam({ id: this.teamData.id, name: newName } as any).subscribe({
+        this.teamService.updateTeam({ id: current.id, name: newName } as any).subscribe({
             next: (updated) => {
-                if (this.teamData) this.teamData.name = updated.name;
+                this.teamData.set({ ...current, name: updated.name });
                 this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
             },
             error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث اسم الفريق')
@@ -586,10 +699,11 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     onAddPlayerClick(playerId: string): void {
-        if (!this.teamData || !this.currentUser) return;
+        const current = this.teamData();
+        if (!current || !this.currentUser) return;
 
         this.isAddingPlayer = true;
-        this.teamService.invitePlayerByDisplayId(this.teamData.id, playerId).subscribe({
+        this.teamService.invitePlayerByDisplayId(current.id, playerId).subscribe({
             next: (response: any) => {
                 this.isAddingPlayer = false;
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
@@ -603,7 +717,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     handlePlayerAction(event: { player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }): void {
-        if (!this.isCaptain || !this.teamData) return;
+        const current = this.teamData();
+        if (!this.isCaptain || !current) return;
 
         const { player, action } = event;
         const config = {
@@ -617,8 +732,11 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         this.uiFeedback.confirm(title, message, btn, type).subscribe((confirmed: boolean) => {
             if (confirmed) {
                 if (action === 'remove') {
-                    this.teamService.removePlayer(this.teamData!.id, player.id.toString()).subscribe(() => {
-                        this.teamData!.players = this.teamData!.players.filter(p => p.id !== player.id);
+                    this.teamService.removePlayer(current.id, player.id.toString()).subscribe(() => {
+                        this.teamData.set({
+                            ...current,
+                            players: current.players.filter((p: any) => p.id !== player.id)
+                        });
                         this.uiFeedback.success('تم الاستبعاد', 'تم إزالة اللاعب من الفريق');
                     });
                 } else {
@@ -629,7 +747,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     }
 
     handleDeleteTeam(): void {
-        if (!this.isCaptain || !this.teamData) return;
+        const current = this.teamData();
+        if (!this.isCaptain || !current) return;
 
         this.uiFeedback.confirm(
             'حذف الفريق',
@@ -637,17 +756,16 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             'حذف نهائي',
             'danger'
         ).subscribe((confirmed: boolean) => {
-            if (confirmed && this.teamData) {
-                this.teamService.deleteTeam(this.teamData.id).subscribe({
+            if (confirmed) {
+                this.teamService.deleteTeam(current.id).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
                         // Update user state and clear team data
                         this.authService.refreshUserProfile().subscribe(() => {
                             this.currentUser = this.authService.getCurrentUser();
-                            this.teamData = null;
+                            this.teamData.set(null);
                             this.isCaptain = false;
                             this.loadInvitations();
-                            this.cdr.detectChanges();
                         });
                     },
                     error: (err) => {

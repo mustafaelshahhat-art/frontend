@@ -127,20 +127,18 @@
 
     <form [formGroup]="adminForm" class="flex-col gap-lg">
         <!-- Full Name -->
-        <app-form-control label="الاسم الكامل" placeholder="أدخل اسم المشرف" iconLeft="person"
+        <app-form-control label="الاسم الكامل" placeholder="أدخل اسم المشرف" iconLeft="person" formControlName="name"
             [control]="adminForm.get('name')">
-            <input type="text" formControlName="name" class="form-input" placeholder="أدخل اسم المشرف">
         </app-form-control>
 
         <!-- Email -->
         <app-form-control label="البريد الإلكتروني" placeholder="example@domain.com" iconLeft="email"
-            [control]="adminForm.get('email')">
-            <input type="email" formControlName="email" class="form-input" placeholder="example@domain.com" dir="ltr">
+            formControlName="email" [control]="adminForm.get('email')" dir="ltr">
         </app-form-control>
 
         <!-- Password -->
-        <app-form-control label="كلمة المرور" type="password" formControlName="password"
-            placeholder="6 أحرف على الأقل" iconLeft="lock" [control]="adminForm.get('password')">
+        <app-form-control label="كلمة المرور" type="password" placeholder="6 أحرف على الأقل" formControlName="password"
+            iconLeft="lock" [control]="adminForm.get('password')">
         </app-form-control>
 
         <!-- Status -->

@@ -9,8 +9,7 @@
         <!-- Pending Status - Replace content when pending -->
         <ng-container *ngIf="isPending; else mainContent">
             <app-pending-status-card title="حسابك قيد المراجعة"
-                message="عذراً، لا يمكنك إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-                [showRefreshButton]="true" refreshButtonText="تحديث الحالة" (onRefresh)="refreshStatus()">
+                message="عذراً، لا يمكنك إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
             </app-pending-status-card>
         </ng-container>
 

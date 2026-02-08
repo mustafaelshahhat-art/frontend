@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TeamDetailComponent, TeamData } from '../shared/components/team-detail';
 import { TeamService } from '../core/services/team.service';
+import { TeamStore } from '../core/stores/team.store';
 import { UIFeedbackService } from '../shared/services/ui-feedback.service';
 
 @Component({
@@ -33,23 +34,36 @@ import { UIFeedbackService } from '../shared/services/ui-feedback.service';
 export class RefereeTeamDetailComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly teamService = inject(TeamService);
+    private readonly teamStore = inject(TeamStore);
     private readonly uiFeedback = inject(UIFeedbackService);
 
-    teamData: TeamData | null = null;
+    private readonly teamId = signal<string | null>(null);
+    private readonly teamDataSignal = computed(() => {
+        const id = this.teamId();
+        const team = id ? this.teamStore.getTeamById(id) : null;
+        return team ? this.convertToTeamData(team) : null;
+    });
+
     loading = true;
+
+    get teamData(): TeamData | null {
+        return this.teamDataSignal();
+    }
 
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
+            this.teamId.set(id);
             this.loadTeam(id);
         }
     }
 
     loadTeam(id: string): void {
+        this.loading = true;
         this.teamService.getTeamById(id).subscribe({
             next: (team) => {
                 if (team) {
-                    this.teamData = this.convertToTeamData(team);
+                    this.teamStore.upsertTeam(team);
                 }
                 this.loading = false;
             },
@@ -84,7 +98,7 @@ export class RefereeTeamDetailComponent implements OnInit {
                 id: p.id,
                 name: p.name,
                 number: p.number || 0,
-                position: p.position || 'لاعب',
+                position: p.position || 'غير محدد',
                 goals: p.goals || 0,
                 yellowCards: p.yellowCards || 0,
                 redCards: p.redCards || 0,
@@ -92,13 +106,13 @@ export class RefereeTeamDetailComponent implements OnInit {
             })),
             matches: (team.matches || []).map((m: any) => ({
                 id: m.id,
-                opponent: m.opponent || 'فريق منافس',
+                opponent: m.opponent || 'خصم غير معروف',
                 date: new Date(m.date),
                 score: m.score || '0-0',
                 status: m.status || 'draw',
-                type: m.type || 'مباراة'
+                type: m.type || 'غير محدد'
             })),
-            finances: [] // المحكم لا يرى المالية
+            finances: []
         };
     }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../core/services/tournament.service';
@@ -6,7 +6,8 @@ import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
-import { RealTimeUpdateService } from '../../../../core/services/real-time-update.service';
+import { TournamentStore } from '../../../../core/stores/tournament.store';
+import { TeamStore } from '../../../../core/stores/team.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 
 // Shared Components
@@ -50,15 +51,16 @@ export class TournamentsListComponent implements OnInit {
     private readonly tournamentService = inject(TournamentService);
     private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
-    private readonly uiFeedback = inject(UIFeedbackService);
     private readonly router = inject(Router);
-    private readonly cdr = inject(ChangeDetectorRef);
-    private readonly realTimeUpdate = inject(RealTimeUpdateService);
+    private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly tournamentStore = inject(TournamentStore);
+    private readonly teamStore = inject(TeamStore);
 
     // Signals State
-    tournaments = signal<Tournament[]>([]);
-    registeredTournaments = signal<string[]>([]);
-    isLoading = signal<boolean>(false);
+    // ✅ FIXED: Bind directly to TournamentStore instead of local state
+    tournaments = this.tournamentStore.tournaments;
+    isLoading = this.tournamentStore.isLoading;
+    registeredTournaments = signal<string[]>([]); // This will need to be re-evaluated if registration status is managed differently
     searchQuery = signal<string>('');
     currentFilter = signal<TournamentFilterValue>('all');
 
@@ -114,16 +116,7 @@ export class TournamentsListComponent implements OnInit {
     });
 
     ngOnInit(): void {
-        this.loadTournaments();
-        this.setupRealTimeUpdates();
-    }
-
-    private setupRealTimeUpdates(): void {
-        this.realTimeUpdate.on(['TOURNAMENT_CREATED', 'TOURNAMENT_UPDATED']).subscribe(() => {
-            if (!this.isRegistrationModalVisible) {
-                this.loadTournaments();
-            }
-        });
+        this.loadInitialData();
     }
 
     // Registration Modal State
@@ -135,8 +128,15 @@ export class TournamentsListComponent implements OnInit {
         return this.authService.hasRole(UserRole.ADMIN);
     }
 
-    // Team State
-    myTeam = signal<any | null>(null);
+    // Team State from Store
+    myTeam = computed(() => {
+        const teamId = this.authService.getCurrentUser()?.teamId;
+        if (!teamId) {
+            return null;
+        }
+
+        return this.teamStore.getTeamById(teamId) || null;
+    });
 
     // Derived State
     isCaptain = computed(() => {
@@ -156,25 +156,32 @@ export class TournamentsListComponent implements OnInit {
         return team ? team.isActive === false : false;
     });
 
-    loadTournaments(): void {
-        this.isLoading.set(true);
+    // ✅ FIXED: Load data ONCE on init, populate TournamentStore
+    private loadInitialData(): void {
+        this.tournamentStore.setLoading(true);
 
         // Load team details if user belongs to one
         const user = this.authService.getCurrentUser();
         if (user?.teamId) {
             this.teamService.getTeamById(user.teamId).subscribe({
-                next: (team) => this.myTeam.set(team || null),
-                error: () => this.myTeam.set(null)
+                next: (team) => {
+                    if (team) {
+                        this.teamStore.upsertTeam(team);
+                    }
+                },
+                error: () => {
+                    // Keep empty store state on failure.
+                }
             });
         }
 
+        // Load tournaments into STORE (not local state)
         this.tournamentService.getTournaments().subscribe({
             next: (data) => {
-                this.tournaments.set(data);
-                this.isLoading.set(false);
+                this.tournamentStore.setTournaments(data);
             },
             error: () => {
-                this.isLoading.set(false);
+                this.tournamentStore.setLoading(false);
             }
         });
     }
@@ -245,18 +252,17 @@ export class TournamentsListComponent implements OnInit {
 
         this.selectedTournamentForRegistration = tournament;
         this.isRegistrationModalVisible = true;
-        this.realTimeUpdate.setEditingState(true);
     }
 
     closeRegistrationModal(): void {
         this.isRegistrationModalVisible = false;
         this.selectedTournamentForRegistration = null;
-        this.realTimeUpdate.setEditingState(false);
     }
 
     onRegistrationSuccess(): void {
+        this.closeRegistrationModal();
         this.uiFeedback.success('تم التسجيل', 'تم إرسال طلبك بنجاح');
-        this.loadTournaments(); // Refresh list to update status/buttons
+        // ✅ FIXED: NO manual reload - tournament will update via SignalR → TournamentStore
     }
 
     // Check if user is a player but has no team (neither owner nor member)
@@ -280,3 +286,4 @@ export class TournamentsListComponent implements OnInit {
         }
     }
 }
+

@@ -5,6 +5,7 @@ import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus } from '../models/user.model';
 import { environment } from '../../../environments/environment';
+import { AuthStore } from '../stores/auth.store';
 
 @Injectable({
     providedIn: 'root'
@@ -12,6 +13,7 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly router = inject(Router);
+    private readonly authStore = inject(AuthStore);
     private readonly TOKEN_KEY = 'auth_token';
     private readonly REFRESH_TOKEN_KEY = 'refresh_token';
     private readonly USER_KEY = 'current_user';
@@ -20,7 +22,11 @@ export class AuthService {
 
     private readonly apiUrl = `${environment.apiUrl}/auth`;
 
-    constructor() { }
+    constructor() {
+        // Initialize auth store with current user
+        const currentUser = this.getCurrentUser();
+        this.authStore.setCurrentUser(currentUser);
+    }
 
     register(userData: any): Observable<AuthResponse> {
         const formData = new FormData();
@@ -73,6 +79,7 @@ export class AuthService {
         localStorage.removeItem(this.REFRESH_TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
         this.userSubject.next(null);
+        this.authStore.clearAuth();
     }
 
     isAuthenticated(): boolean {
@@ -138,11 +145,13 @@ export class AuthService {
         }
         localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
         this.userSubject.next(response.user);
+        this.authStore.setCurrentUser(response.user);
     }
 
     updateCurrentUser(updatedUser: User): void {
         localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser));
         this.userSubject.next(updatedUser);
+        this.authStore.updateUser(updatedUser);
     }
 
     /**
@@ -171,9 +180,7 @@ export class AuthService {
         if (disabledStatuses.includes(newStatus)) {
             console.warn(`Account status changed to ${newStatus}. Logging out...`);
             this.logout();
-            this.router.navigate(['/auth/login'], {
-                queryParams: { message: 'account_disabled' }
-            });
+            // Navigation handled by layout effects
         }
     }
 
@@ -221,4 +228,3 @@ export class AuthService {
         return this.http.post<void>(url, body);
     }
 }
-

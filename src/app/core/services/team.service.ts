@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Team, Player, JoinRequest } from '../models/team.model';
 import { User, UserRole } from '../models/user.model';
 import { environment } from '../../../environments/environment';
@@ -41,6 +41,24 @@ export class TeamService {
 
     getTeamById(teamId: string): Observable<Team | undefined> {
         return this.http.get<Team>(`${this.apiUrl}/${teamId}`);
+    }
+
+    /**
+     * Get team by ID, but return null if not found (404) instead of throwing.
+     * Useful for pages where a deleted team should gracefully show "no team" state.
+     */
+    getTeamByIdSilent(teamId: string): Observable<Team | null> {
+        // We use a custom header to tell our ErrorInterceptor to skip this request
+        return this.http.get<Team>(`${this.apiUrl}/${teamId}`, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        }).pipe(
+            catchError((err) => {
+                if (err?.status === 404) {
+                    return of(null);
+                }
+                return throwError(() => err);
+            })
+        );
     }
 
     getAllTeams(): Observable<Team[]> {

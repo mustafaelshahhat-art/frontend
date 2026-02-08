@@ -1,16 +1,16 @@
 <div class="tournament-detail-page">
-    <app-page-header [title]="tournament?.name || 'تفاصيل البطولة'" [subtitle]="tournament?.description || ''"
+    <app-page-header [title]="tournament()?.name || 'تفاصيل البطولة'" [subtitle]="tournament()?.description || ''"
         [showBack]="true">
     </app-page-header>
 
     <div class="tournament-detail-container">
         <!-- Loading -->
-        <div *ngIf="isLoading" class="loading-state">
+        <div *ngIf="isLoading()" class="loading-state">
             <div class="spinner"></div>
             <p>جاري تحميل البيانات...</p>
         </div>
 
-        <ng-container *ngIf="!isLoading && tournament">
+        <ng-container *ngIf="!isLoading() && tournament() as t">
             <!-- Banner Card -->
             <app-card class="tournament-banner-card">
                 <div class="banner-overlay"></div>
@@ -18,46 +18,46 @@
                     <div class="tournament-main-info">
                         <div class="top-meta">
                             <app-badge
-                                [type]="tournament.status === TournamentStatus.COMPLETED ? 'gold' : (tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
+                                [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
                                 class="status-badge">
                                 <span class="dot"></span>
-                                {{ getStatusLabel(tournament.status) }}
+                                {{ getStatusLabel(t.status) }}
                             </app-badge>
-                            <span class="created-at">أنشئت في {{ tournament.createdAt | date:'shortDate' }}</span>
+                            <span class="created-at">أنشئت في {{ t.createdAt | date:'shortDate' }}</span>
                         </div>
 
                         <!-- Winner Announcement -->
-                        <div *ngIf="tournament.status === TournamentStatus.COMPLETED && tournament.winnerTeamName"
+                        <div *ngIf="t.status === TournamentStatus.COMPLETED && t.winnerTeamName"
                             class="winner-announcement animate-bounce-subtle">
                             <span class="material-symbols-outlined trophy">emoji_events</span>
                             <div class="winner-info">
                                 <label>البطل المتوج</label>
-                                <h3>{{ tournament.winnerTeamName }}</h3>
+                                <h3>{{ t.winnerTeamName }}</h3>
                             </div>
                         </div>
 
-                        <h2>{{ tournament.name }}</h2>
+                        <h2>{{ t.name }}</h2>
 
                         <div class="tournament-meta">
                             <div class="meta-item">
                                 <span class="material-symbols-outlined">calendar_today</span>
                                 <div>
                                     <label>البداية</label>
-                                    <span>{{ tournament.startDate | date:'yyyy/MM/dd' }}</span>
+                                    <span>{{ t.startDate | date:'yyyy/MM/dd' }}</span>
                                 </div>
                             </div>
                             <div class="meta-item">
                                 <span class="material-symbols-outlined">location_on</span>
                                 <div>
                                     <label>الموقع</label>
-                                    <span>{{ tournament.location || 'غير محدد' }}</span>
+                                    <span>{{ t.location || 'غير محدد' }}</span>
                                 </div>
                             </div>
                             <div class="meta-item">
                                 <span class="material-symbols-outlined">payments</span>
                                 <div>
                                     <label>الاشتراك</label>
-                                    <span>{{ tournament.entryFee }} ريال</span>
+                                    <span>{{ t.entryFee }} ريال</span>
                                 </div>
                             </div>
                         </div>
@@ -66,9 +66,10 @@
                             <!-- Admin Actions -->
                             <ng-container *ngIf="isAdmin()">
                                 <app-button variant="primary" size="md" shadow="glow"
-                                    [icon]="tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
+                                    [icon]="t.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
                                     (click)="toggleStatus()">
-                                    {{ tournament.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح
+                                    {{ t.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' :
+                                    'فتح
                                     التسجيل' }}
                                 </app-button>
 
@@ -87,7 +88,7 @@
 
                             <!-- Captain Actions -->
                             <div class="captain-actions-container"
-                                *ngIf="isCaptain() && tournament.status === TournamentStatus.REGISTRATION_OPEN">
+                                *ngIf="isCaptain() && t.status === TournamentStatus.REGISTRATION_OPEN">
                                 <ng-container *ngIf="!isRegistered">
                                     <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
                                         (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
@@ -124,10 +125,10 @@
                     </div>
 
                     <div class="tournament-quick-stats">
-                        <div class="stat-circle"
-                            [style.--progress]="(tournament.currentTeams / tournament.maxTeams) * 100">
+                        <div class="stat-circle" [style.--progress]="(t.currentTeams / t.maxTeams) * 100">
                             <div class="stat-content">
-                                <span class="stat-value">{{ tournament.currentTeams }}/{{ tournament.maxTeams }}</span>
+                                <span class="stat-value">{{ t.currentTeams }}/{{ t.maxTeams
+                                    }}</span>
                                 <span class="stat-label">فريق</span>
                             </div>
                             <svg viewBox="0 0 100 100">
@@ -137,7 +138,7 @@
                         </div>
                         <div class="stat-pill">
                             <span class="material-symbols-outlined">sports_soccer</span>
-                            <span class="value">{{ matches.length }}</span>
+                            <span class="value">{{ tournamentMatches().length }}</span>
                             <span class="label">مباراة</span>
                         </div>
                     </div>
@@ -152,6 +153,29 @@
             <div class="tab-content" [ngSwitch]="activeTab">
                 <!-- Info Tab -->
                 <div *ngSwitchCase="'info'" class="info-grid">
+                    <app-card class="scorers-card">
+                        <div class="card-header-premium">
+                            <span class="material-symbols-outlined">star</span>
+                            <h3>هدافو البطولة</h3>
+                        </div>
+                        <div class="scorers-list">
+                            <div *ngFor="let s of scorers(); let i = index" class="scorer-item">
+                                <span class="rank">{{ i + 1 }}</span>
+                                <div class="info">
+                                    <span class="name">{{ s.name }}</span>
+                                    <span class="team">{{ s.team }}</span>
+                                </div>
+                                <div class="goals-badge">
+                                    <span class="value">{{ s.goals }}</span>
+                                    <span class="label">أهداف</span>
+                                </div>
+                            </div>
+                            <app-empty-state *ngIf="scorers().length === 0" icon="sports_soccer" title="لا يوجد هدافين"
+                                description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن.">
+                            </app-empty-state>
+                        </div>
+                    </app-card>
+
                     <app-card class="rules-card">
                         <div class="card-header-premium">
                             <span class="material-symbols-outlined">gavel</span>
@@ -174,11 +198,11 @@
                             <h3>جوائز البطولة</h3>
                         </div>
                         <div class="prizes-content">
-                            <p *ngIf="tournament.prizes"
+                            <p *ngIf="t.prizes"
                                 style="white-space: pre-line; line-height: 1.6; color: var(--text-primary);">
-                                {{ tournament.prizes }}
+                                {{ t.prizes }}
                             </p>
-                            <app-empty-state *ngIf="!tournament.prizes" icon="military_tech" title="لا يوجد جوائز"
+                            <app-empty-state *ngIf="!t.prizes" icon="military_tech" title="لا يوجد جوائز"
                                 description="لم يتم تحديد الجوائز لهذه البطولة بعد.">
                             </app-empty-state>
                         </div>
@@ -191,7 +215,7 @@
                     <div class="desktop-only">
                         <ng-template #rankTemplate let-row>
                             <div class="rank-cell">
-                                <span *ngIf="tournament?.winnerTeamId === row.teamId"
+                                <span *ngIf="t.winnerTeamId === row.teamId"
                                     class="material-symbols-outlined winner-icon">military_tech</span>
                                 {{ row.rank }}
                             </div>
@@ -211,18 +235,18 @@
                             </div>
                         </ng-template>
 
-                        <app-table [columns]="tableColumns" [data]="standings" [loading]="isLoading">
+                        <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()">
                         </app-table>
                     </div>
 
                     <!-- Mobile Shared Grid Design -->
                     <div class="mobile-data-grid">
-                        <div *ngFor="let s of standings; let i = index" class="mobile-data-card"
-                            [class.is-winner]="tournament.winnerTeamId === s.teamId">
+                        <div *ngFor="let s of standings(); let i = index" class="mobile-data-card"
+                            [class.is-winner]="t.winnerTeamId === s.teamId">
                             <div class="card-mobile-header">
                                 <div class="title-group">
                                     <div class="rank-badge">
-                                        <span *ngIf="tournament.winnerTeamId === s.teamId"
+                                        <span *ngIf="t.winnerTeamId === s.teamId"
                                             class="material-symbols-outlined">military_tech</span>
                                         {{ i + 1 }}
                                     </div>
@@ -231,7 +255,7 @@
                                     </app-smart-image>
                                     <h4>{{ s.team }}</h4>
                                 </div>
-                                <app-badge [type]="tournament.winnerTeamId === s.teamId ? 'gold' : 'success'">{{
+                                <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">{{
                                     s.points }} نقطة</app-badge>
                             </div>
 
@@ -266,18 +290,18 @@
 
                 <!-- Matches Tab -->
                 <div *ngSwitchCase="'matches'">
-                    <div *ngIf="matches.length > 0" class="matches-grid">
-                        <app-match-card *ngFor="let match of matches" [match]="match" (click)="viewMatch(match.id)"
-                            style="cursor: pointer;"></app-match-card>
+                    <div *ngIf="tournamentMatches().length > 0" class="matches-grid">
+                        <app-match-card *ngFor="let match of tournamentMatches()" (click)="viewMatch(match.id)"
+                            style="cursor: pointer;" [match]="match"></app-match-card>
                     </div>
-                    <app-empty-state *ngIf="matches.length === 0" icon="event_busy" title="لا توجد مباريات"
+                    <app-empty-state *ngIf="tournamentMatches().length === 0" icon="event_busy" title="لا توجد مباريات"
                         description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
                     </app-empty-state>
                 </div>
 
                 <!-- Teams Tab -->
                 <div *ngSwitchCase="'teams'" class="teams-grid">
-                    <div *ngFor="let reg of tournament.registrations" class="team-card">
+                    <div *ngFor="let reg of t.registrations" class="team-card">
                         <div class="team-logo">
                             <app-smart-image [src]="$any(reg).teamLogoUrl" type="team" size="sm"
                                 [initials]="reg.teamName.charAt(0)">
@@ -297,8 +321,8 @@
                             </app-badge>
                         </div>
                     </div>
-                    <app-empty-state *ngIf="!tournament.registrations || tournament.registrations.length === 0"
-                        icon="groups" title="لا يوجد فرق" description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
+                    <app-empty-state *ngIf="!t.registrations || t.registrations.length === 0" icon="groups"
+                        title="لا يوجد فرق" description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
                     </app-empty-state>
                 </div>
             </div>
@@ -307,6 +331,6 @@
 </div>
 
 <!-- Registration Modal (Shared) -->
-<app-team-registration-modal [tournament]="tournament" [isVisible]="isRegisterModalVisible"
+<app-team-registration-modal [tournament]="tournament()" [isVisible]="isRegisterModalVisible"
     (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()">
 </app-team-registration-modal>
