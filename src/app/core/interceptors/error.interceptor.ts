@@ -22,8 +22,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             // Handle the error
             const appError = errorHandler.handleHttpError(error);
 
-            // Redirect on auth errors
-            if (error.status === 401) {
+            // Redirect on auth errors (Skip for EMAIL_NOT_VERIFIED as it's handled by LoginComponent)
+            const backendCode = error.error?.code;
+            if (error.status === 401 && backendCode !== 'EMAIL_NOT_VERIFIED') {
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('current_user');
                 router.navigate(['/auth/login']);

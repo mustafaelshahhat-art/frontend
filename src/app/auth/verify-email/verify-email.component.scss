@@ -1,51 +1,128 @@
+.auth-container {
+    background: var(--bg-dark);
+
+    .ramadan-pattern {
+        opacity: 0.1;
+        background-image: radial-gradient(var(--color-primary-20) 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+    }
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-2xl);
+    max-width: 480px;
+
+    @media (max-width: 480px) {
+        margin: var(--space-md);
+        padding: var(--space-xl);
+    }
+}
+
+.auth-logo {
+    width: 72px;
+    height: 72px;
+    background: var(--color-primary-10);
+    border: 1px solid var(--color-primary-20);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-xl);
+
+    span {
+        color: var(--color-primary);
+        font-size: 32px;
+    }
+}
+
 .otp-input-container {
-    margin: var(--space-4) 0;
+    margin: var(--space-2xl) 0;
+    display: grid !important;
+    grid-template-columns: repeat(6, 44px) !important; // Total width is ~264px + gaps
+    justify-content: center !important;
+    gap: var(--space-xs) !important;
+    direction: ltr;
+    width: 100%;
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(6, 56px) !important;
+        gap: var(--space-md) !important;
+    }
 
     .otp-field {
-        width: 44px;
-        height: 52px;
+        width: 100% !important;
+        height: 60px !important;
         background: var(--bg-input);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        color: var(--text-primary);
-        font-family: var(--font-display);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        color: var(--color-primary);
+        font-family: var(--font-mono);
+        font-size: var(--text-xl);
+        font-weight: 700;
         transition: all var(--transition-base);
         outline: none;
+        text-align: center;
+        padding: 0;
 
         @media (min-width: 640px) {
-            width: 52px;
-            height: 64px;
-            font-size: var(--text-2xl);
+            height: 72px !important;
+            font-size: var(--text-3xl);
         }
 
         &:focus {
             border-color: var(--color-primary);
-            box-shadow: var(--shadow-input-focus);
             background: var(--bg-input-focus);
+            box-shadow: 0 0 0 4px var(--color-primary-10);
             transform: translateY(-2px);
         }
 
-        &.ng-invalid.ng-touched {
-            border-color: var(--color-danger);
-
-            &:focus {
-                box-shadow: 0 0 0 3px var(--color-danger-10);
-            }
+        &::placeholder {
+            color: var(--text-muted);
+            opacity: 0.3;
         }
     }
 }
 
 .resend-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+
     &:hover:not(:disabled) {
-        text-shadow: 0 0 8px var(--color-primary-20);
-        transform: translateY(-1px);
+        color: var(--color-primary);
+        background: var(--color-primary-5);
     }
 
-    &:active:not(:disabled) {
-        transform: translateY(0);
+    &:disabled {
+        color: var(--text-muted);
+        opacity: 0.5;
+        cursor: not-allowed;
     }
+}
 
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-    }
+.divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: var(--space-xl) 0;
+    opacity: 0.5;
+}
+
+.auth-title {
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.dir-ltr {
+    direction: ltr;
+    unicode-bidi: plaintext;
 }

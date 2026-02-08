@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
-import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { AlertComponent } from '../../shared/components/alert/alert.component';
 
@@ -15,11 +14,11 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
         CommonModule,
         ReactiveFormsModule,
         RouterLink,
-        FormControlComponent,
         ButtonComponent,
         AlertComponent
     ],
-    templateUrl: './verify-email.component.html'
+    templateUrl: './verify-email.component.html',
+    styleUrls: ['./verify-email.component.scss']
 })
 export class VerifyEmailComponent implements OnInit {
     private fb = inject(FormBuilder);
@@ -56,12 +55,6 @@ export class VerifyEmailComponent implements OnInit {
     ngOnInit(): void {
         const currentUser = this.authService.getCurrentUser();
 
-        // Check for success message from redirect
-        const navigation = this.router.getCurrentNavigation();
-        if (navigation?.extras.state?.['message']) {
-            this.successMessage.set(navigation.extras.state['message']);
-        }
-
         this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             if (params['email']) {
                 this.email = params['email'];
@@ -75,6 +68,12 @@ export class VerifyEmailComponent implements OnInit {
         });
 
         this.startResendTimer();
+
+        // Auto-focus first digit
+        setTimeout(() => {
+            const firstInput = document.getElementById('digit-0');
+            firstInput?.focus();
+        }, 500);
     }
 
     startResendTimer(): void {
@@ -93,18 +92,18 @@ export class VerifyEmailComponent implements OnInit {
     }
 
     onInput(event: any, index: number): void {
-        const input = event.target;
+        const input = event.target as HTMLInputElement;
         const value = input.value;
 
-        // Ensure only numbers
-        if (value && !/^[0-9]$/.test(value)) {
-            input.value = '';
-            return;
-        }
+        // Ensure only numbers and take ONLY the first char (handles double typing)
+        if (value) {
+            const numValue = value.replace(/[^0-9]/g, '').charAt(0);
+            input.value = numValue;
 
-        if (value && index < 5) {
-            const nextInput = document.getElementById(`digit-${index + 1}`);
-            nextInput?.focus();
+            if (numValue && index < 5) {
+                const nextInput = document.getElementById(`digit-${index + 1}`);
+                nextInput?.focus();
+            }
         }
 
         this.checkAndSubmit();

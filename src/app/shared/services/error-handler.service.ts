@@ -70,12 +70,12 @@ export class ErrorHandlerService {
                 message = error.error?.message || 'طلب غير صالح';
                 break;
             case 401:
-                code = 'UNAUTHORIZED';
-                message = 'غير مصرح. يرجى تسجيل الدخول مرة أخرى.';
+                code = error.error?.code || 'UNAUTHORIZED';
+                message = error.error?.message || 'غير مصرح. يرجى تسجيل الدخول مرة أخرى.';
                 break;
             case 403:
-                code = 'FORBIDDEN';
-                message = 'ليس لديك صلاحية للوصول إلى هذا المورد.';
+                code = error.error?.code || 'FORBIDDEN';
+                message = error.error?.message || 'ليس لديك صلاحية للوصول إلى هذا المورد.';
                 break;
             case 404:
                 code = 'NOT_FOUND';
@@ -104,8 +104,8 @@ export class ErrorHandlerService {
                 message = 'الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً.';
                 break;
             default:
-                code = 'UNKNOWN_ERROR';
-                message = 'حدث خطأ غير متوقع';
+                code = error.error?.code || 'UNKNOWN_ERROR';
+                message = error.error?.message || 'حدث خطأ غير متوقع';
         }
 
         return {

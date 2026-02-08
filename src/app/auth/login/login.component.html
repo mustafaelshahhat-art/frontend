@@ -39,22 +39,23 @@
       </app-form-control>
 
       <!-- Password Field -->
-      <app-form-control formControlName="password" label="كلمة المرور" type="password"
-        placeholder="********" iconLeft="lock"
+      <app-form-control formControlName="password" label="كلمة المرور" type="password" placeholder="********"
+        iconLeft="lock"
         [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined">
       </app-form-control>
 
       <!-- Submit Button -->
       <div class="flex justify-center">
-        <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading()"
-          [disabled]="isLoading()" icon="arrow_back" iconPos="left">
+        <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading()" [disabled]="isLoading()"
+          icon="arrow_back" iconPos="left">
           تسجيل الدخول
         </app-button>
       </div>
 
       <!-- Forgot Password (Secondary Action - Moved Below) -->
       <div class="text-center">
-        <a href="#" class="text-muted text-sm hover:text-primary transition-colors inline-block py-1" tabindex="0">
+        <a routerLink="/auth/forgot-password"
+          class="text-muted text-sm hover:text-primary transition-colors inline-block py-1" tabindex="0">
           نسيت كلمة المرور؟
         </a>
       </div>
