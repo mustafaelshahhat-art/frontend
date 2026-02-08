@@ -164,8 +164,8 @@ export class RegisterComponent implements OnInit {
     this.authService.register(this.form).subscribe({
       next: (user) => {
         this.isLoading = false;
-        this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل بنجاح!');
-        this.router.navigate(['/auth/pending-approval']);
+        this.uiFeedback.success('تم بنجاح', 'تم تسجيل الحساب بنجاح. يرجى تفعيل بريدك الإلكتروني.');
+        this.router.navigate(['/auth/verify-email'], { queryParams: { email: this.form.email } });
         this.cdr.detectChanges();
       },
       error: (err) => {

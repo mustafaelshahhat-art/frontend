@@ -1,0 +1,64 @@
+import { Component, inject, DestroyRef, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService } from '../../core/services/auth.service';
+import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { AlertComponent } from '../../shared/components/alert/alert.component';
+
+@Component({
+    selector: 'app-forgot-password',
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, FormControlComponent, ButtonComponent, AlertComponent],
+    templateUrl: './forgot-password.component.html',
+    styleUrls: ['./forgot-password.component.scss']
+})
+export class ForgotPasswordComponent {
+    private fb = inject(FormBuilder);
+    private authService = inject(AuthService);
+    private destroyRef = inject(DestroyRef);
+    private router = inject(Router);
+
+    forgotForm: FormGroup = this.fb.group({
+        email: ['', [Validators.required, Validators.email]]
+    });
+
+    isLoading = signal(false);
+    errorMessage = signal<string | null>(null);
+    successMessage = signal<string | null>(null);
+
+    get email() {
+        return this.forgotForm.get('email');
+    }
+
+    onSubmit() {
+        if (this.forgotForm.invalid) {
+            this.forgotForm.markAllAsTouched();
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
+        this.successMessage.set(null);
+
+        const email = this.forgotForm.value.email;
+
+        this.authService.forgotPassword(email)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.isLoading.set(false);
+                    this.successMessage.set('تم إرسال تعليمات استعادة كلمة المرور إلى بريدك الإلكتروني.');
+                    setTimeout(() => {
+                        this.router.navigate(['/auth/reset-password'], { queryParams: { email: email } });
+                    }, 2000);
+                },
+                error: (err) => {
+                    this.isLoading.set(false);
+                    this.errorMessage.set('فشل الطلب. يرجى المحاولة لاحقاً.');
+                }
+            });
+    }
+}

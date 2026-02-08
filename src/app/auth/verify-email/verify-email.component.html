@@ -1,0 +1,60 @@
+<div class="auth-container bg-gradient-login min-h-screen flex flex-center relative overflow-hidden p-2xl">
+    <div class="ramadan-pattern absolute inset-0"></div>
+
+    <div class="auth-card relative z-10 w-full animate-fade-in-up">
+        <header class="text-center mb-2xl">
+            <div class="auth-logo gradient-primary shadow-glow mb-6 mx-auto">
+                <span class="material-symbols-outlined text-4xl text-primary">verified_user</span>
+            </div>
+            <h1 class="auth-title mb-2">تفعيل الحساب</h1>
+            <p class="text-secondary text-base">تم إرسال كود التفعيل إلى بريدك الإلكتروني {{ email }}</p>
+        </header>
+
+        <div class="auth-card-body">
+            <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" (onClose)="errorMessage.set(null)"
+                class="mb-lg">
+                {{ errorMessage() }}
+            </app-alert>
+
+            <app-alert *ngIf="successMessage()" type="success" [dismissible]="true" (onClose)="successMessage.set(null)"
+                class="mb-lg">
+                {{ successMessage() }}
+            </app-alert>
+
+            <form [formGroup]="verifyForm" (ngSubmit)="onSubmit()" class="auth-form flex flex-col gap-8">
+                <!-- Split OTP Inputs -->
+                <div class="otp-input-container flex flex-row-reverse justify-center gap-3 lg:gap-4"
+                    (paste)="onPaste($event)">
+                    <input *ngFor="let key of otpDigits; let i = index" [id]="'digit-' + i" [formControlName]="key"
+                        type="text" inputmode="numeric" maxlength="1" class="otp-field text-center text-2xl font-bold"
+                        (input)="onInput($event, i)" (keydown)="onKeyDown($event, i)" autocomplete="one-time-code">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-center flex-col gap-4">
+                    <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading()"
+                        [disabled]="verifyForm.invalid || isLoading() || isResending()">
+                        تفعيل الحساب
+                    </app-button>
+
+                    <button type="button" (click)="resendOtp()"
+                        class="resend-btn text-primary hover:text-primary-active text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                        [disabled]="isLoading() || isResending() || !canResend()">
+                        <span class="material-symbols-outlined text-base">restart_alt</span>
+                        إعادة إرسال الكود
+                        <span *ngIf="!canResend()" class="text-xs font-mono opacity-80">( {{ resendCountdown() }}ث
+                            )</span>
+                    </button>
+                </div>
+
+                <div class="text-center mt-2">
+                    <a routerLink="/auth/login"
+                        class="text-muted text-sm hover:text-primary transition-colors flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                        العودة لتسجيل الدخول
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

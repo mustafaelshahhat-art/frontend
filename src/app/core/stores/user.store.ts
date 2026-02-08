@@ -18,24 +18,23 @@ export class UserStore {
     isLoading: false,
     error: null
   });
-
   // Selectors
   users = computed(() => this.state().users);
   currentUser = computed(() => this.state().currentUser);
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
-  
-  // Computed selectors for specific views
-  referees = computed(() => 
-    this.users().filter(u => u.role === UserRole.REFEREE && u.status === UserStatus.ACTIVE)
+
+  // Computed selectors for specific views (Filtered by verification)
+  referees = computed(() =>
+    this.users().filter(u => u.role === UserRole.REFEREE && u.status === UserStatus.ACTIVE && u.isEmailVerified)
   );
-  
-  players = computed(() => 
-    this.users().filter(u => u.role === UserRole.PLAYER && u.status === UserStatus.ACTIVE)
+
+  players = computed(() =>
+    this.users().filter(u => u.role === UserRole.PLAYER && u.status === UserStatus.ACTIVE && u.isEmailVerified)
   );
-  
-  admins = computed(() => 
-    this.users().filter(u => u.role === UserRole.ADMIN)
+
+  admins = computed(() =>
+    this.users().filter(u => u.role === UserRole.ADMIN && u.isEmailVerified)
   );
 
   // Mutations
@@ -66,11 +65,11 @@ export class UserStore {
     // Update in users list
     this.state.update(state => ({
       ...state,
-      users: state.users.map(user => 
+      users: state.users.map(user =>
         user.id === updatedUser.id ? updatedUser : user
       )
     }));
-    
+
     // Also update current user if it's the same
     if (this.currentUser()?.id === updatedUser.id) {
       this.setCurrentUser(updatedUser);
@@ -92,7 +91,7 @@ export class UserStore {
       ...state,
       users: state.users.filter(user => user.id !== userId)
     }));
-    
+
     // Clear current user if it's the removed user
     if (this.currentUser()?.id === userId) {
       this.setCurrentUser(null);
@@ -132,19 +131,19 @@ export class UserStore {
 
   getRefereesByLocation(governorate?: string, city?: string, district?: string): User[] {
     let referees = this.referees();
-    
+
     if (governorate) {
       referees = referees.filter(r => r.governorate === governorate);
     }
-    
+
     if (city) {
       referees = referees.filter(r => r.city === city);
     }
-    
+
     if (district) {
       referees = referees.filter(r => r.neighborhood === district);
     }
-    
+
     return referees;
   }
 }

@@ -32,6 +32,7 @@ export interface User {
     teamId?: string; // ID of the team the user belongs to (as player or captain)
     teamName?: string;
     isTeamOwner: boolean;
+    isEmailVerified: boolean;
     createdAt: Date;
     activities?: Activity[];
 }

@@ -244,4 +244,20 @@ export class AuthService {
         const body = { currentPassword, newPassword };
         return this.http.post<void>(url, body);
     }
+
+    verifyEmail(email: string, otp: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/verify-email`, { email, otp });
+    }
+
+    forgotPassword(email: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/forgot-password`, { email });
+    }
+
+    resetPassword(email: string, otp: string, newPassword: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/reset-password`, { email, otp, newPassword });
+    }
+
+    resendOtp(email: string, type: 'EMAIL_VERIFY' | 'PASSWORD_RESET'): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/resend-otp`, { email, type });
+    }
 }

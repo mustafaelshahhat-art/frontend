@@ -1,0 +1,51 @@
+.otp-input-container {
+    margin: var(--space-4) 0;
+
+    .otp-field {
+        width: 44px;
+        height: 52px;
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-family: var(--font-display);
+        transition: all var(--transition-base);
+        outline: none;
+
+        @media (min-width: 640px) {
+            width: 52px;
+            height: 64px;
+            font-size: var(--text-2xl);
+        }
+
+        &:focus {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-input-focus);
+            background: var(--bg-input-focus);
+            transform: translateY(-2px);
+        }
+
+        &.ng-invalid.ng-touched {
+            border-color: var(--color-danger);
+
+            &:focus {
+                box-shadow: 0 0 0 3px var(--color-danger-10);
+            }
+        }
+    }
+}
+
+.resend-btn {
+    &:hover:not(:disabled) {
+        text-shadow: 0 0 8px var(--color-primary-20);
+        transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+}
