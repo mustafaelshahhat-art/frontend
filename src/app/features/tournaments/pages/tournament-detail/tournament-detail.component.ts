@@ -481,14 +481,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     }
 
     // Navigation
-    viewMatch(matchId: string): void {
-        if (this.isAdmin()) {
-            this.router.navigate(['/admin/matches', matchId]);
-        } else if (this.hasTeam()) {
-            this.router.navigate(['/captain/matches', matchId]);
-        }
-    }
-
     checkGlobalBusyStatus(): void {
         const teamId = this.authService.getCurrentUser()?.teamId;
         if (!teamId) return;
@@ -543,9 +535,18 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     }
 
     // New action methods for match cards
+    viewMatch(matchId: string): void {
+        const prefix = this.isAdmin() ? '/admin' : '/captain';
+        this.router.navigate([prefix, 'matches', matchId]);
+    }
+
     openChat(matchId: string): void {
         const prefix = this.isAdmin() ? '/admin' : '/captain';
         this.router.navigate([prefix, 'matches', matchId, 'chat']);
+    }
+
+    updateScore(match: Match): void {
+        this.router.navigate(['/admin/matches', match.id]);
     }
 
     submitObjection(matchId: string): void {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -6,6 +6,7 @@ import { ObjectionsService } from '../../../../core/services/objections.service'
 import { Objection, ObjectionType, ObjectionStatus } from '../../../../core/models/objection.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
+import { ObjectionStore } from '../../../../core/stores/objection.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -44,6 +45,7 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
 export class ObjectionsListComponent implements OnInit {
     private objectionsService = inject(ObjectionsService);
     private authStore = inject(AuthStore);
+    private objectionStore = inject(ObjectionStore);
     private uiFeedback = inject(UIFeedbackService);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
@@ -52,14 +54,11 @@ export class ObjectionsListComponent implements OnInit {
     userRole = this.authStore.userRole;
     isPending = computed(() => this.currentUser()?.status?.toLowerCase() === 'pending');
 
-    objections: Objection[] = [];
-    filteredObjections: Objection[] = [];
-    selectedObjection: Objection | null = null;
-    isLoading = true;
-    showForm = false;
-    totalCount = 0;
+    objections = this.objectionStore.objections;
+    isLoading = this.objectionStore.isLoading;
 
-    currentFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
+    showForm = false;
+    currentFilter = signal<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
     filters = [
         { value: 'all', label: 'الكل' },
@@ -90,6 +89,19 @@ export class ObjectionsListComponent implements OnInit {
     @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
     @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
+    filteredObjections = computed(() => {
+        const obs = this.objections();
+        const filter = this.currentFilter();
+
+        if (filter === 'all') return obs;
+        if (filter === 'pending') return obs.filter(o => o.status === ObjectionStatus.PENDING || o.status === ObjectionStatus.UNDER_REVIEW || (o.status as any) === 'NEW');
+        if (filter === 'approved') return obs.filter(o => o.status === ObjectionStatus.APPROVED);
+        if (filter === 'rejected') return obs.filter(o => o.status === ObjectionStatus.REJECTED);
+        return obs;
+    });
+
+    totalCount = computed(() => this.objections().length);
+    pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as any) === 'NEW').length);
 
     ngOnInit(): void {
         this.loadObjections();
@@ -107,62 +119,41 @@ export class ObjectionsListComponent implements OnInit {
     }
 
     loadObjections(): void {
-        this.isLoading = true;
+        this.objectionStore.setLoading(true);
+
+        const handleSuccess = (data: Objection[]) => {
+            this.objectionStore.setObjections(data);
+            this.objectionStore.setLoading(false);
+            this.cdr.detectChanges();
+        };
+
+        const handleError = () => {
+            this.objectionStore.setLoading(false);
+            this.uiFeedback.error('خطأ', 'فشل في تحميل الاعتراضات');
+            this.cdr.detectChanges();
+        };
 
         if (this.isAdmin()) {
             this.objectionsService.getObjections().subscribe({
-                next: (data) => this.handleObjectionsLoaded(data),
-                error: () => this.handleLoadError()
+                next: handleSuccess,
+                error: handleError
             });
         } else {
             const teamId = this.currentUser()?.teamId;
             if (teamId) {
                 this.objectionsService.getObjectionsByTeam(teamId).subscribe({
-                    next: (data) => this.handleObjectionsLoaded(data),
-                    error: () => this.handleLoadError()
+                    next: handleSuccess,
+                    error: handleError
                 });
             } else {
-                this.isLoading = false;
+                this.objectionStore.setLoading(false);
                 this.cdr.detectChanges();
             }
         }
     }
 
-    private handleObjectionsLoaded(data: Objection[]): void {
-        this.objections = data;
-        this.totalCount = data.length;
-        this.applyFilter();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-    }
-
-    private handleLoadError(): void {
-        this.isLoading = false;
-        this.uiFeedback.error('خطأ', 'فشل في تحميل الاعتراضات');
-        this.cdr.detectChanges();
-    }
-
     setFilter(filter: 'all' | 'pending' | 'approved' | 'rejected'): void {
-        this.currentFilter = filter;
-        this.applyFilter();
-    }
-
-    applyFilter(): void {
-        if (this.currentFilter === 'all') {
-            this.filteredObjections = [...this.objections];
-        } else if (this.currentFilter === 'pending') {
-            this.filteredObjections = this.objections.filter(
-                o => o.status === ObjectionStatus.PENDING || o.status === ObjectionStatus.UNDER_REVIEW
-            );
-        } else if (this.currentFilter === 'approved') {
-            this.filteredObjections = this.objections.filter(
-                o => o.status === ObjectionStatus.APPROVED
-            );
-        } else if (this.currentFilter === 'rejected') {
-            this.filteredObjections = this.objections.filter(
-                o => o.status === ObjectionStatus.REJECTED
-            );
-        }
+        this.currentFilter.set(filter);
     }
 
     get pageTitle(): string {
@@ -175,12 +166,7 @@ export class ObjectionsListComponent implements OnInit {
             : 'تقديم ومتابعة الاعتراضات الرسمية للجنة المنظمة';
     }
 
-    get pendingCount(): number {
-        return this.objections.filter(o => o.status === ObjectionStatus.PENDING).length;
-    }
-
     selectObjection(objection: Objection): void {
-        this.selectedObjection = objection;
         this.router.navigate(['/admin/objections', objection.id]);
     }
 

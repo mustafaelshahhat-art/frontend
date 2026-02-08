@@ -210,6 +210,23 @@
         margin: 0;
     }
 
+    .match-time-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.55);
+        background: rgba(0, 0, 0, 0.05);
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+        margin-top: 4px;
+        white-space: nowrap;
+
+        .material-symbols-outlined {
+            font-size: 12px;
+        }
+    }
+
     p {
         font-size: var(--text-2xs);
         color: rgba(0, 0, 0, 0.7);

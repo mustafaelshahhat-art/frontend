@@ -292,9 +292,15 @@
                 <div *ngSwitchCase="'matches'">
                     <div *ngIf="tournamentMatches().length > 0" class="matches-grid">
                         <app-match-card *ngFor="let match of tournamentMatches()" (click)="viewMatch(match.id)"
-                            style="cursor: pointer;" [match]="match">
+                            class="clickable-match-card" [match]="match">
 
                             <div class="match-card-actions" actions>
+                                <!-- Admin Actions -->
+                                <app-button *ngIf="isAdmin()" (click)="$event.stopPropagation(); updateScore(match)"
+                                    size="sm" variant="outline" icon="scoreboard">
+                                    تحديث النتيجة
+                                </app-button>
+
                                 <!-- Captain/Player Actions -->
                                 <div *ngIf="!isAdmin()" class="player-actions">
                                     <button class="action-btn details-btn"
@@ -317,7 +323,9 @@
                                     </button>
 
                                     <!-- Objection Button (for finished or cancelled matches) -->
-                                    <button *ngIf="canSubmitObjection(match.status)" class="action-btn objection-btn"
+                                    <button
+                                        *ngIf="match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED"
+                                        class="action-btn objection-btn"
                                         (click)="$event.stopPropagation(); submitObjection(match.id)">
                                         <span class="material-symbols-outlined">report</span>
                                         <span>تقديم اعتراض</span>

@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
+import { ObjectionStore } from '../../../../core/stores/objection.store';
 import { Objection, ObjectionStatus, ObjectionType } from '../../../../core/models/objection.model';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -161,6 +162,7 @@ export class ObjectionDetailComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private objectionsService = inject(ObjectionsService);
+    private objectionStore = inject(ObjectionStore);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
 
@@ -168,6 +170,19 @@ export class ObjectionDetailComponent implements OnInit {
     isLoading: boolean = false;
     adminNotes: string = '';
     ObjectionStatus = ObjectionStatus;
+
+    constructor() {
+        effect(() => {
+            const id = this.route.snapshot.paramMap.get('id');
+            if (id && this.objection) {
+                const updated = this.objectionStore.objections().find(o => o.id === id);
+                if (updated && (updated.status !== this.objection.status || updated.adminNotes !== this.objection.adminNotes)) {
+                    this.objection = updated;
+                    this.cdr.detectChanges();
+                }
+            }
+        });
+    }
 
     ngOnInit(): void {
         this.loadObjection();

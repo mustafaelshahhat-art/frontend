@@ -14,11 +14,11 @@
         <div class="objections-container">
             <!-- Filters (Admin) -->
             <div *ngIf="isAdmin()" style="margin-bottom: 1rem;">
-                <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+                <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
             </div>
 
             <!-- Loading -->
-            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+            <div *ngIf="isLoading()" style="text-align: center; padding: 4rem;">
                 <div class="loading-spinner"
                     style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
                 </div>
@@ -27,22 +27,22 @@
 
             <!-- Empty State -->
             <app-empty-state
-                *ngIf="!isLoading && (isAdmin() ? filteredObjections.length === 0 : objections.length === 0) && !showForm"
+                *ngIf="!isLoading() && (isAdmin() ? filteredObjections().length === 0 : objections().length === 0) && !showForm"
                 icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
                 [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
             </app-empty-state>
 
             <!-- Admin: Table View -->
-            <div *ngIf="!isLoading && isAdmin() && filteredObjections.length > 0"
+            <div *ngIf="!isLoading() && isAdmin() && filteredObjections().length > 0"
                 class="card p-0 overflow-hidden objections-table-card">
-                <app-table [data]="filteredObjections" [columns]="columns" [loading]="isLoading">
+                <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()">
                 </app-table>
             </div>
 
             <!-- Captain: Card View -->
-            <div *ngIf="!isLoading && !isAdmin() && objections.length > 0"
+            <div *ngIf="!isLoading() && !isAdmin() && objections().length > 0"
                 style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <app-card *ngFor="let objection of objections" class="objection-item-card">
+                <app-card *ngFor="let objection of objections()" class="objection-item-card">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <div style="display: flex; align-items: center; gap: 1rem;">
