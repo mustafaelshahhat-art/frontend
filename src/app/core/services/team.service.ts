@@ -24,7 +24,8 @@ export class TeamService {
         // Better: GET /teams?captainId=... or just CLIENT SIDE filter because lazy.
         // But better: Use /teams and find.
         return this.http.get<Team[]>(this.apiUrl).pipe(
-            map(teams => teams.find(t => t.captainId === captainId))
+            map(teams => Array.isArray(teams) ? teams.find(t => t.captainId === captainId) : undefined),
+            catchError(() => of(undefined))
         );
     }
 

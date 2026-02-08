@@ -28,14 +28,27 @@ export class ErrorHandlerService {
     /**
      * Handle generic errors
      */
-    handleError(error: Error, context?: string): AppError {
+    handleError(error: any, context?: string): AppError {
+        const message = error?.message || (typeof error === 'string' ? error : 'حدث خطأ غير متوقع');
+
         const appError: AppError = {
             code: 'GENERIC_ERROR',
-            message: error.message || 'حدث خطأ غير متوقع',
-            details: { context, stack: error.stack },
+            message: message,
+            details: { context, stack: error?.stack },
             timestamp: new Date()
         };
-        this.showErrorToast(appError);
+
+        // Suppress NG0100 errors and other technical developer errors from UI
+        const isTechnicalError = message.includes('NG0100') ||
+            message.includes('ExpressionChangedAfterItHasBeenCheckedError') ||
+            message.includes('NG0'); // Catch-all for other Angular internal codes if needed
+
+        if (!isTechnicalError) {
+            this.showErrorToast(appError);
+        } else {
+            console.warn(`[Technical suppressed from UI] ${message}`, error);
+        }
+
         this.logError(appError);
         return appError;
     }

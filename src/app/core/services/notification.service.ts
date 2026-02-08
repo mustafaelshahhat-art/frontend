@@ -36,6 +36,11 @@ export class NotificationService {
         return this.joinRequestUpdate$.asObservable();
     }
 
+    private removedFromTeam$ = new BehaviorSubject<void>(undefined);
+    get removedFromTeamAndRefresh(): Observable<void> {
+        return this.removedFromTeam$.asObservable();
+    }
+
     constructor() {
         this.authService.user$.subscribe(user => {
             if (user) {
@@ -73,9 +78,15 @@ export class NotificationService {
             });
 
             connection.on('RemovedFromTeam', (data: any) => {
-                const playerId = data?.playerId ?? data?.PlayerId;
+                const playerId = data?.playerId || data?.PlayerId || data;
+                console.log('Received RemovedFromTeam SignalR event', playerId);
+
+                // Allow components to decide if they are affected
+                this.removedFromTeam$.next(playerId);
+
+                // Try to clear association if we can match it, but don't block emission
                 const currentUser = this.authService.getCurrentUser();
-                if (!currentUser || !playerId || currentUser.id === playerId) {
+                if (currentUser && (playerId === currentUser.id || playerId === currentUser.displayId)) {
                     this.authService.clearTeamAssociation();
                 }
             });
@@ -113,7 +124,7 @@ export class NotificationService {
     markAsRead(id: string): Observable<void> {
         // Optimistic update - update store immediately
         this.notificationStore.markAsRead(id);
-        
+
         // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
             catchError((error: any) => {
@@ -132,7 +143,7 @@ export class NotificationService {
         // Optimistic update - update store immediately
         const unreadNotifications = this.notificationStore.getUnreadNotifications();
         this.notificationStore.markAllAsRead();
-        
+
         // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/read-all`, {}).pipe(
             catchError((error: any) => {
