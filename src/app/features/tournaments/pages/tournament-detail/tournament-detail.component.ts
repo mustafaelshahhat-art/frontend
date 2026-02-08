@@ -82,7 +82,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         // But registrations are on Tournament object.
         const t = this.tournament();
         if (t?.registrations) {
-            t.registrations.filter((r: TeamRegistration) => r.status === 'Approved').forEach((r: TeamRegistration) => {
+            t.registrations.filter((r: TeamRegistration) =>
+                r.status === RegistrationStatus.APPROVED ||
+                r.status === RegistrationStatus.ELIMINATED ||
+                r.status === RegistrationStatus.WITHDRAWN
+            ).forEach((r: TeamRegistration) => {
                 teamsMap.set(r.teamId, {
                     teamId: r.teamId,
                     team: r.teamName,
@@ -280,7 +284,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         // 1. Load Tournament
         this.tournamentService.getTournamentById(id).subscribe({
             next: (data) => {
-                if (data) this.tournamentStore.updateTournament(data);
+                if (data) this.tournamentStore.upsertTournament(data);
 
                 // 2. Load Matches (Populate MatchStore)
                 this.matchService.getMatchesByTournament(id).subscribe({
@@ -335,6 +339,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
             case 'PendingPaymentReview': return 'قيد المراجعة';
             case 'Approved': return 'مؤكد';
             case 'Rejected': return 'مرفوض';
+            case 'Eliminated': return 'مقصى';
+            case 'Withdrawn': return 'منسحب';
             default: return status;
         }
     }
@@ -344,6 +350,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
             case 'PendingPaymentReview': return 'info';
             case 'Approved': return 'success';
             case 'Rejected': return 'danger';
+            case 'Eliminated': return 'danger';
+            case 'Withdrawn': return 'neutral';
             default: return 'neutral';
         }
     }
@@ -484,5 +492,34 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
                 other.registrations?.some((r: any) => r.teamId === teamId && r.status !== 'Rejected')
             );
         }
+    }
+
+    eliminateTeam(teamId: string, teamName: string): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.uiFeedback.confirm(
+            'إقصاء الفريق',
+            `هل أنت متأكد من إقصاء فريق "${teamName}" من البطولة؟ سيتم إنهاء جميع مبارياته القادمة كخسارة، لكنه سيبقى في جدول الترتيب.`,
+            'إقصاء الفريق',
+            'danger'
+        ).subscribe((confirmed: boolean) => {
+            if (confirmed) {
+                this.isLoading.set(true);
+                this.tournamentService.eliminateTeam(t.id, teamId).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${teamName} بنجاح`);
+                        // Tournament updated via RealTime event which will update the store
+                        this.isLoading.set(false);
+                        this.cdr.detectChanges();
+                    },
+                    error: (err) => {
+                        this.isLoading.set(false);
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل إقصاء الفريق');
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
+        });
     }
 }

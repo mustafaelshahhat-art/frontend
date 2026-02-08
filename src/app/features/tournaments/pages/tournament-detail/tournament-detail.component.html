@@ -315,10 +315,21 @@
                             </div>
                         </div>
                         <div class="team-footer">
-                            <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
-                            <app-badge [type]="getRegStatusType(reg.status)" size="sm">
-                                {{ getRegStatusLabel(reg.status) }}
-                            </app-badge>
+                            <div class="flex flex-col gap-1">
+                                <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
+                                <app-badge [type]="getRegStatusType(reg.status)" size="sm">
+                                    {{ getRegStatusLabel(reg.status) }}
+                                </app-badge>
+                            </div>
+
+                            <!-- Admin Actions: Eliminate Team -->
+                            <app-button
+                                *ngIf="isAdmin() && t.status !== TournamentStatus.COMPLETED && reg.status !== RegistrationStatus.ELIMINATED && reg.status === RegistrationStatus.APPROVED"
+                                variant="ghost" size="sm" icon="person_remove" class="text-danger"
+                                (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
+                                title="إقصاء الفريق">
+                                إقصاء
+                            </app-button>
                         </div>
                     </div>
                     <app-empty-state *ngIf="!t.registrations || t.registrations.length === 0" icon="groups"

@@ -133,5 +133,9 @@ export class TournamentService {
         // So this aliases requestTournamentRegistration.
         return this.requestTournamentRegistration(tournamentId, teamId, '', '', '');
     }
+
+    eliminateTeam(tournamentId: string, teamId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/eliminate`, {});
+    }
 }
 
