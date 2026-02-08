@@ -222,6 +222,12 @@ export class RealTimeUpdateService {
         this.hubConnection.on('UserUpdated', (dto: any) => {
             if (dto?.id) {
                 this.userStore.upsertUser(dto);
+
+                // Sync with AuthStore if this is the current user
+                const currentUser = this.authService.getCurrentUser();
+                if (currentUser && dto.id === currentUser.id) {
+                    this.authService.updateCurrentUser(dto);
+                }
             }
         });
 

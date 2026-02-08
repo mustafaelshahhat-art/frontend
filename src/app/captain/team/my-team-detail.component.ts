@@ -70,12 +70,12 @@ import { AuthStore } from '../../core/stores/auth.store';
             </div>
 
             <!-- Case 2: Account Active, No Team, Has Invitation -->
-            <div *ngIf="!isUserPending && pendingInvitations.length > 0" class="create-team-card invite-card animate-fade-in-up">
+            <div *ngIf="!isUserPending && pendingInvitations().length > 0" class="create-team-card invite-card animate-fade-in-up">
                 <div class="icon-circle primary">
                     <span class="material-symbols-outlined">mail</span>
                 </div>
                 <h2>لديك دعوة للانضمام إلى فريق</h2>
-                <div *ngFor="let invite of pendingInvitations" class="invite-item">
+                <div *ngFor="let invite of pendingInvitations()" class="invite-item">
                     <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
                     <div class="flex gap-4">
                         <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check" class="flex-1">قبول</app-button>
@@ -85,7 +85,7 @@ import { AuthStore } from '../../core/stores/auth.store';
             </div>
 
             <!-- Case 3: Account Active, No Team, No Invitation -->
-            <div *ngIf="!isUserPending && pendingInvitations.length === 0" class="create-team-card animate-fade-in-up">
+            <div *ngIf="!isUserPending && pendingInvitations().length === 0" class="create-team-card animate-fade-in-up">
                 <div class="icon-circle">
                     <span class="material-symbols-outlined">groups</span>
                 </div>
@@ -273,7 +273,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     isAddingPlayer = false;
     newTeamName = '';
     creatingTeam = false;
-    pendingInvitations: TeamJoinRequest[] = [];
+    pendingInvitations = signal<TeamJoinRequest[]>([]);
 
     get isUserPending(): boolean {
         return this.currentUser?.status === UserStatus.PENDING;
@@ -426,7 +426,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     loadInvitations(): void {
         this.teamRequestService.getMyInvitations().subscribe({
             next: (invites) => {
-                this.pendingInvitations = invites;
+                this.pendingInvitations.set(invites);
                 // REMOVED: cdr.detectChanges() - Angular Signals drive rendering naturally
             }
         });
@@ -438,7 +438,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         this.loading.set(true);
 
         // Clear invitations immediately to prevent UI flicker (Invite → Loading, not Invite → No Team)
-        this.pendingInvitations = [];
+        this.pendingInvitations.set([]);
 
         this.teamRequestService.acceptRequest(requestId).subscribe({
             next: (response) => {
@@ -497,7 +497,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     rejectInvite(requestId: string): void {
         this.teamRequestService.rejectRequest(requestId).subscribe({
             next: () => {
-                this.pendingInvitations = this.pendingInvitations.filter(i => i.id !== requestId);
+                this.pendingInvitations.update(invites => invites.filter(i => i.id !== requestId));
                 this.uiFeedback.success('تم الرفض', 'تم رفض الدعوة بنجاح');
                 // REMOVED: cdr.detectChanges() - Angular Signals drive rendering naturally
             }
