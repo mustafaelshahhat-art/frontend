@@ -5,10 +5,13 @@ import { environment } from '../../../environments/environment';
 
 export interface DashboardStats {
     totalUsers: number;
+    totalTeams: number;
+    totalReferees: number;
     activeTournaments: number;
     matchesToday: number;
     pendingObjections: number;
     totalGoals: number;
+    loginsToday: number;
 }
 
 export interface TeamStats {
@@ -39,10 +42,13 @@ export class AnalyticsService {
         return this.http.get<any>(`${this.apiUrl}/overview`).pipe(
             map(data => ({
                 totalUsers: data.totalUsers,
+                totalTeams: data.totalTeams,
+                totalReferees: data.totalReferees,
                 activeTournaments: data.activeTournaments,
                 matchesToday: data.matchesToday,
                 pendingObjections: data.pendingObjections,
-                totalGoals: data.totalGoals
+                totalGoals: data.totalGoals,
+                loginsToday: data.loginsToday
             }))
         );
     }

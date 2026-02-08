@@ -9,7 +9,7 @@
         <!-- Stats Grid -->
         <div class="grid-stats mb-md">
             <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
-                [colorClass]="stat.colorClass">
+                [colorClass]="stat.colorClass" (click)="stat.route && navigateTo(stat.route)">
             </app-stat-card>
         </div>
 

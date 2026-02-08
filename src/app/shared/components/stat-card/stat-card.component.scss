@@ -16,7 +16,7 @@
     justify-content: space-between;
     transition: var(--transition-premium);
     overflow: hidden;
-    cursor: default;
+    cursor: pointer;
 
     &::before {
         content: '';
