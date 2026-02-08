@@ -250,7 +250,9 @@ export class AuthService {
     }
 
     forgotPassword(email: string): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/forgot-password`, { email });
+        return this.http.post<void>(`${this.apiUrl}/forgot-password`, { email }, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        });
     }
 
     resetPassword(email: string, otp: string, newPassword: string): Observable<void> {

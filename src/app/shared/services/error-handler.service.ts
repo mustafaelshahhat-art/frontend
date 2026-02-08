@@ -79,7 +79,7 @@ export class ErrorHandlerService {
                 break;
             case 404:
                 code = 'NOT_FOUND';
-                message = 'المورد المطلوب غير موجود.';
+                message = error.error?.message || 'المورد المطلوب غير موجود.';
                 break;
             case 409:
                 code = 'CONFLICT';
