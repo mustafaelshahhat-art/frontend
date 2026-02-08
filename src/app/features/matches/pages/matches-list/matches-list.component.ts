@@ -118,6 +118,27 @@ export class MatchesListComponent implements OnInit {
         this.loadMatches();
     }
 
+    refreshStatus(): void {
+        this.matchStore.setLoading(true);
+        this.authService.refreshUserProfile().subscribe({
+            next: (user) => {
+                this.matchStore.setLoading(false);
+                if (user?.status?.toLowerCase() === 'active') {
+                    this.uiFeedback.success('تم التفعيل', 'تم تفعيل حسابك بنجاح!');
+                    this.loadMatches();
+                } else {
+                    this.uiFeedback.info('لا يزال قيد المراجعة', 'حسابك لا يزال قيد المراجعة من قبل الإدارة.');
+                }
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.matchStore.setLoading(false);
+                this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الحساب');
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
     loadMatches(): void {
         this.matchStore.setLoading(true);
 

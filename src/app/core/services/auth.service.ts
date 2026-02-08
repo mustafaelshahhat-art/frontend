@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
@@ -7,6 +7,7 @@ import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterReq
 import { Team } from '../models/team.model';
 import { environment } from '../../../environments/environment';
 import { AuthStore } from '../stores/auth.store';
+import { SignalRService } from './signalr.service';
 
 @Injectable({
     providedIn: 'root'
@@ -15,6 +16,7 @@ export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly router = inject(Router);
     private readonly authStore = inject(AuthStore);
+    private readonly injector = inject(Injector);
     private readonly TOKEN_KEY = 'auth_token';
     private readonly REFRESH_TOKEN_KEY = 'refresh_token';
     private readonly USER_KEY = 'current_user';
@@ -81,6 +83,14 @@ export class AuthService {
         localStorage.removeItem(this.USER_KEY);
         this.userSubject.next(null);
         this.authStore.clearAuth();
+
+        // Ensure SignalR connections are terminated to clear identity
+        try {
+            const signalRService = this.injector.get(SignalRService);
+            signalRService.stopAllConnections().catch(e => console.error('Error stopping SignalR:', e));
+        } catch (err) {
+            console.warn('SignalR service not found during logout:', err);
+        }
     }
 
     isAuthenticated(): boolean {
@@ -140,6 +150,12 @@ export class AuthService {
     }
 
     private handleAuthResponse(response: AuthResponse): void {
+        // Stop existing connections to ensure fresh token usage
+        try {
+            const signalRService = this.injector.get(SignalRService);
+            signalRService.stopAllConnections().catch(() => { });
+        } catch { }
+
         localStorage.setItem(this.TOKEN_KEY, response.token);
         if (response.refreshToken) {
             localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);

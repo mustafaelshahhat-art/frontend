@@ -10,11 +10,6 @@ export const refereeRoutes: Routes = [
         canActivate: [permissionGuard([Permission.START_MATCH])],
         children: [
             {
-                path: 'dashboard',
-                loadComponent: () => import('./dashboard/dashboard.component').then(m => m.RefereeDashboardComponent),
-                data: { breadcrumb: 'لوحة التحكم', icon: 'dashboard' }
-            },
-            {
                 path: 'matches',
                 loadComponent: () => import('../features/matches/pages/matches-list/matches-list.component').then(m => m.MatchesListComponent),
                 data: { breadcrumb: 'مبارياتي', icon: 'sports_soccer' }
@@ -46,7 +41,7 @@ export const refereeRoutes: Routes = [
             },
             {
                 path: '',
-                redirectTo: 'dashboard',
+                redirectTo: 'matches',
                 pathMatch: 'full'
             }
         ]

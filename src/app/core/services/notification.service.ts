@@ -1,11 +1,13 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError, combineLatest, filter, firstValueFrom } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
+import { UserRole } from '../models/user.model';
 import { Notification } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
+import { AuthStore } from '../stores/auth.store';
 import { NotificationStore } from '../stores/notification.store';
 import { RealTimeUpdateService } from './real-time-update.service';
 
@@ -16,12 +18,14 @@ export class NotificationService {
     private readonly http = inject(HttpClient);
     private readonly signalRService = inject(SignalRService);
     private readonly authService = inject(AuthService);
+    private readonly authStore = inject(AuthStore);
     private readonly notificationStore = inject(NotificationStore);
     private readonly realTimeUpdate = inject(RealTimeUpdateService);
     private readonly apiUrl = `${environment.apiUrl}/notifications`;
 
     private joinRequestUpdate$ = new BehaviorSubject<void>(undefined);
     private listenersBound = false;
+    private currentSubscribedRole: string | null = null;
 
     // Expose store signals as observables for backward compatibility
     get notifications(): Observable<Notification[]> {
@@ -42,18 +46,54 @@ export class NotificationService {
     }
 
     constructor() {
-        this.authService.user$.subscribe(user => {
+        // Load notifications initially if user already present
+        if (this.authService.getCurrentUser()) {
+            this.loadNotifications();
+        }
+
+        // Reactive subscription management
+        combineLatest([
+            toObservable(this.authStore.currentUser),
+            this.signalRService.isConnected$
+        ]).subscribe(([user, isConnected]) => {
+            if (user && isConnected) {
+                this.syncRoleSubscription(user.role);
+            } else if (!user) {
+                this.currentSubscribedRole = null;
+                this.disconnect();
+            }
+        });
+
+        // Effect for starting/stopping connection
+        effect(() => {
+            const user = this.authStore.currentUser();
             if (user) {
-                this.init();
+                this.loadNotifications(); // Reload on user change
+                this.connectHub();
             } else {
                 this.disconnect();
             }
         });
     }
 
-    private init(): void {
-        this.loadNotifications();
-        this.connectHub();
+    private async syncRoleSubscription(role: string): Promise<void> {
+        if (this.currentSubscribedRole === role) return;
+
+        // If we were subscribed to another role, we could unsubscribe here
+        // but SignalR clean-up on stopAllConnections usually handles this.
+
+        try {
+            await this.subscribeToRole(role);
+            this.currentSubscribedRole = role;
+            console.log(`Successfully subscribed to role: ${role}`);
+        } catch (err: any) {
+            // Handle expected rejection / timing issue
+            if (err.message && err.message.includes('Unauthorized')) {
+                console.warn(`Transient role subscription failure for ${role}. Will be retried on next auth sync.`);
+            } else {
+                console.error(`Failed to subscribe to role ${role}:`, err);
+            }
+        }
     }
 
     private async connectHub(): Promise<void> {
@@ -74,12 +114,6 @@ export class NotificationService {
         }
 
         await this.signalRService.startConnection('notifications');
-
-        // Join Role Group
-        const user = this.authService.getCurrentUser();
-        if (user && user.role) {
-            this.subscribeToRole(user.role);
-        }
     }
 
     private disconnect(): void {

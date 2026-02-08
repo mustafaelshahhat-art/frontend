@@ -37,7 +37,6 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
     isPending = false;
 
     navItems: NavItem[] = [
-        { label: 'لوحة التحكم', icon: 'dashboard', route: '/referee/dashboard' },
         { label: 'مبارياتي', icon: 'sports_soccer', route: '/referee/matches' },
         { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' }
     ];

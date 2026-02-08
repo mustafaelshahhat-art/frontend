@@ -58,8 +58,20 @@ export class SignalRService {
     async stopConnection(hubPath: string): Promise<void> {
         const connection = this.hubs.get(hubPath);
         if (connection) {
-            await connection.stop();
+            try {
+                await connection.stop();
+            } catch (err) {
+                console.error(`SignalR: Error stopping ${hubPath}:`, err);
+            }
             this.hubs.delete(hubPath);
         }
+    }
+
+    async stopAllConnections(): Promise<void> {
+        const paths = Array.from(this.hubs.keys());
+        for (const path of paths) {
+            await this.stopConnection(path);
+        }
+        this.connectionStatus$.next(false);
     }
 }

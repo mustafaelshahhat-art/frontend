@@ -24,7 +24,7 @@ export class PendingApprovalComponent {
     goToHome(): void {
         const role = this.currentUser?.role?.toLowerCase();
         if (role === 'referee') {
-            this.router.navigate(['/referee/dashboard']);
+            this.router.navigate(['/referee/matches']);
         } else {
             // Player/Captain goes to team page
             this.router.navigate(['/captain/team']);

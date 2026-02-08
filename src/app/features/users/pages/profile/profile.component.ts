@@ -90,6 +90,27 @@ export class ProfileComponent implements OnInit {
 
     }
 
+    refreshStatus(): void {
+        this.isLoading = true;
+        this.authService.refreshUserProfile().subscribe({
+            next: (user) => {
+                this.isLoading = false;
+                if (user?.status?.toLowerCase() === 'active') {
+                    this.uiFeedback.success('تم التفعيل', 'تم تفعيل حسابك بنجاح!');
+                    this.loadUserProfile();
+                } else {
+                    this.uiFeedback.info('لا يزال قيد المراجعة', 'حسابك لا يزال قيد المراجعة من قبل الإدارة.');
+                }
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.isLoading = false;
+                this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الحساب');
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
     loadUserProfile(): void {
         if (this.user?.id) {
             this.userService.getUserById(this.user.id).subscribe({

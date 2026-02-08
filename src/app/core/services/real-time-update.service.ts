@@ -39,7 +39,8 @@ export class RealTimeUpdateService {
     public systemEvents$ = this.events$.asObservable();
 
     constructor() {
-        this.initializeSignalR();
+        // Constructor no longer auto-starts SignalR.
+        // It's manually triggered by NotificationService or ChatService when needed.
     }
 
     ensureInitialized(): void {
@@ -70,6 +71,12 @@ export class RealTimeUpdateService {
     }
 
     private initializeSignalR(): void {
+        const token = this.authService.getToken();
+        if (!token) {
+            console.log('SignalR: No token available, skipping initialization.');
+            return;
+        }
+
         const connection = this.signalRService.createConnection('notifications');
         if (this.hubConnection !== connection) {
             this.hubConnection = connection;
@@ -329,8 +336,16 @@ export class RealTimeUpdateService {
         }
 
         if (event.type === 'USER_APPROVED' && currentUser && userId === currentUser.id) {
-            this.uiFeedback.success('Account approved', 'Your account is now active.');
-            this.authService.refreshUserProfile().subscribe();
+            this.uiFeedback.success('تم تفعيل حسابك', 'حسابك الآن نشط وجاهز للاستخدام.');
+
+            // Critical fix: Automatic token refresh to update JWT status/role claims
+            this.authService.refreshToken().subscribe({
+                next: () => {
+                    console.log('JWT refreshed after account approval');
+                    this.authService.refreshUserProfile().subscribe();
+                },
+                error: () => this.authService.logout()
+            });
             return true;
         }
 
