@@ -67,17 +67,20 @@
                                 <span>التفاصيل</span>
                             </button>
 
-                            <!-- Chat Button (for non-finished matches) -->
-                            <button *ngIf="match.status !== MatchStatus.FINISHED" class="action-btn chat-btn"
-                                [class.chat-live]="match.status === MatchStatus.LIVE"
+                            <!-- Chat Button (for non-finished, non-cancelled matches) -->
+                            <button
+                                *ngIf="match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED"
+                                class="action-btn chat-btn" [class.chat-live]="match.status === MatchStatus.LIVE"
                                 (click)="$event.stopPropagation(); openChat(match.id)">
                                 <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ? 'forum' :
                                     'chat' }}</span>
                                 <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة' }}</span>
                             </button>
 
-                            <!-- Objection Button (for finished matches) -->
-                            <button *ngIf="match.status === MatchStatus.FINISHED" class="action-btn objection-btn"
+                            <!-- Objection Button (for finished or cancelled matches) -->
+                            <button
+                                *ngIf="match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED"
+                                class="action-btn objection-btn"
                                 (click)="$event.stopPropagation(); submitObjection(match.id)">
                                 <span class="material-symbols-outlined">report</span>
                                 <span>تقديم اعتراض</span>
@@ -103,3 +106,6 @@
 
 <app-match-event-modal [match]="activeMatch" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)">
 </app-match-event-modal>
+
+<app-objection-modal [match]="activeMatch" [(visible)]="showObjectionModal">
+</app-objection-modal>

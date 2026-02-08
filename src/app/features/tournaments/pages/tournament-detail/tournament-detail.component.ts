@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus, Match, RegistrationStatus, TeamRegistration, Goal } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Goal } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
@@ -19,7 +19,10 @@ import { MatchCardComponent } from '../../../../shared/components/match-card/mat
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
+import { ObjectionModalComponent } from '../../../matches/components/objection-modal/objection-modal.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { Permission } from '../../../../core/permissions/permissions.model';
 
 @Component({
     selector: 'app-tournament-detail',
@@ -37,6 +40,7 @@ import { TableComponent, TableColumn } from '../../../../shared/components/table
         EmptyStateComponent,
         SmartImageComponent,
         TeamRegistrationModalComponent,
+        ObjectionModalComponent,
         TableComponent
     ],
     templateUrl: './tournament-detail.component.html',
@@ -52,6 +56,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private cdr = inject(ChangeDetectorRef);
     private tournamentStore: TournamentStore = inject(TournamentStore);
     private matchStore: MatchStore = inject(MatchStore);
+    private permissionsService = inject(PermissionsService);
 
     @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
     @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
@@ -143,10 +148,15 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         return result.map((t, index) => ({ ...t, rank: index + 1 }));
     });
 
+    activeMatch = signal<Match | null>(null);
+    showObjectionModal = signal(false);
+
     isBusyElsewhere = false;
 
     TournamentStatus = TournamentStatus;
     RegistrationStatus = RegistrationStatus;
+    MatchStatus = MatchStatus;
+    Permission = Permission;
 
     // Tabs
     tabs = [
@@ -530,5 +540,24 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
                 });
             }
         });
+    }
+
+    // New action methods for match cards
+    openChat(matchId: string): void {
+        const prefix = this.isAdmin() ? '/admin' : '/captain';
+        this.router.navigate([prefix, 'matches', matchId, 'chat']);
+    }
+
+    submitObjection(matchId: string): void {
+        const match = this.tournamentMatches().find((m: Match) => m.id === matchId);
+        if (match) {
+            this.activeMatch.set(match);
+            this.showObjectionModal.set(true);
+            this.cdr.detectChanges();
+        }
+    }
+
+    canSubmitObjection(status: MatchStatus): boolean {
+        return this.permissionsService.canSubmitObjection(status);
     }
 }

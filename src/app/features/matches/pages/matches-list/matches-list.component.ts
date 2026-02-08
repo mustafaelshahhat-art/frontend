@@ -19,6 +19,7 @@ import { MatchCardComponent } from '../../../../shared/components/match-card/mat
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
+import { ObjectionModalComponent } from '../../components/objection-modal/objection-modal.component';
 
 // Type-safe filter definition
 type MatchFilterValue = 'all' | 'upcoming' | 'live' | 'finished' | 'cancelled';
@@ -43,7 +44,8 @@ interface MatchFilter {
         MatchCardComponent,
         ButtonComponent,
         InlineLoadingComponent,
-        PendingStatusCardComponent
+        PendingStatusCardComponent,
+        ObjectionModalComponent
     ],
     templateUrl: './matches-list.component.html',
     styleUrls: ['./matches-list.component.scss'],
@@ -75,6 +77,7 @@ export class MatchesListComponent implements OnInit {
     // Modals State (Referee Specific)
     showEndMatchConfirm = false;
     showEventModal = false;
+    showObjectionModal = false;
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
 
@@ -251,7 +254,12 @@ export class MatchesListComponent implements OnInit {
     }
 
     submitObjection(matchId: string): void {
-        this.router.navigate([this.getRoutePrefix(), 'matches', matchId], { queryParams: { action: 'objection' } });
+        const match = this.matches().find(m => m.id === matchId);
+        if (match) {
+            this.activeMatch = match;
+            this.showObjectionModal = true;
+            this.cdr.markForCheck();
+        }
     }
 }
 

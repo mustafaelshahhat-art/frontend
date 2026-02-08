@@ -292,7 +292,39 @@
                 <div *ngSwitchCase="'matches'">
                     <div *ngIf="tournamentMatches().length > 0" class="matches-grid">
                         <app-match-card *ngFor="let match of tournamentMatches()" (click)="viewMatch(match.id)"
-                            style="cursor: pointer;" [match]="match"></app-match-card>
+                            style="cursor: pointer;" [match]="match">
+
+                            <div class="match-card-actions" actions>
+                                <!-- Captain/Player Actions -->
+                                <div *ngIf="!isAdmin()" class="player-actions">
+                                    <button class="action-btn details-btn"
+                                        (click)="$event.stopPropagation(); viewMatch(match.id)">
+                                        <span class="material-symbols-outlined">info</span>
+                                        <span>التفاصيل</span>
+                                    </button>
+
+                                    <!-- Chat Button (for non-finished, non-cancelled matches) -->
+                                    <button
+                                        *ngIf="match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED"
+                                        class="action-btn chat-btn"
+                                        [class.chat-live]="match.status === MatchStatus.LIVE"
+                                        (click)="$event.stopPropagation(); openChat(match.id)">
+                                        <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ?
+                                            'forum' :
+                                            'chat' }}</span>
+                                        <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
+                                            }}</span>
+                                    </button>
+
+                                    <!-- Objection Button (for finished or cancelled matches) -->
+                                    <button *ngIf="canSubmitObjection(match.status)" class="action-btn objection-btn"
+                                        (click)="$event.stopPropagation(); submitObjection(match.id)">
+                                        <span class="material-symbols-outlined">report</span>
+                                        <span>تقديم اعتراض</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </app-match-card>
                     </div>
                     <app-empty-state *ngIf="tournamentMatches().length === 0" icon="event_busy" title="لا توجد مباريات"
                         description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
@@ -345,3 +377,6 @@
 <app-team-registration-modal [tournament]="tournament()" [isVisible]="isRegisterModalVisible"
     (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()">
 </app-team-registration-modal>
+
+<app-objection-modal [match]="activeMatch()" [(visible)]="showObjectionModal">
+</app-objection-modal>

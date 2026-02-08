@@ -50,7 +50,7 @@ export class PermissionsService {
     canManageLiveMatch(matchStatus: MatchStatus): boolean {
         // Must be Referee (has START_MATCH but NOT MANAGE_MATCHES to exclude Admin)
         const isReferee = this.hasPermission(Permission.START_MATCH) &&
-                          !this.hasPermission(Permission.MANAGE_MATCHES);
+            !this.hasPermission(Permission.MANAGE_MATCHES);
         // Match must be Live
         return isReferee && matchStatus === MatchStatus.LIVE;
     }
@@ -62,8 +62,8 @@ export class PermissionsService {
     canSubmitObjection(matchStatus: MatchStatus): boolean {
         // Must be Player (has CREATE_OBJECTION but NOT START_MATCH to exclude Referee)
         const isPlayer = this.hasPermission(Permission.CREATE_OBJECTION) &&
-                         !this.hasPermission(Permission.START_MATCH);
-        // Match must be Finished
-        return isPlayer && matchStatus === MatchStatus.FINISHED;
+            !this.hasPermission(Permission.START_MATCH);
+        // Match must be Finished or Cancelled
+        return isPlayer && (matchStatus === MatchStatus.FINISHED || matchStatus === MatchStatus.CANCELLED);
     }
 }

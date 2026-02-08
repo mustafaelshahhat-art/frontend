@@ -13,6 +13,7 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchTimelineComponent } from '../../components/match-timeline/match-timeline.component';
+import { ObjectionModalComponent } from '../../components/objection-modal/objection-modal.component';
 
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
@@ -38,6 +39,7 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
         EndMatchConfirmComponent,
         MatchEventModalComponent,
         MatchTimelineComponent,
+        ObjectionModalComponent,
         HasPermissionDirective,
         PageHeaderComponent,
         ButtonComponent,
@@ -109,6 +111,8 @@ export class MatchDetailComponent implements OnInit {
     showScoreModal = signal(false);
     scoreForm = { homeScore: 0, awayScore: 0 };
 
+    showObjectionModal = signal(false);
+
     isAnyModalOpen = computed(() =>
         this.showEventModal() ||
         this.showEndMatchConfirm() ||
@@ -131,20 +135,6 @@ export class MatchDetailComponent implements OnInit {
         });
     }
 
-    // Objection Modal
-    showObjectionModal = signal(false);
-    objectionForm = {
-        type: '',
-        description: '',
-        files: [] as File[]
-    };
-    objectionTypeOptions: SelectOption[] = [
-        { value: 'MatchResult', label: 'نتيجة المباراة', icon: 'scoreboard' },
-        { value: 'RefereeDecision', label: 'قرار تحكيمي', icon: 'sports' },
-        { value: 'PlayerEligibility', label: 'أهلية لاعب', icon: 'person_off' },
-        { value: 'RuleViolation', label: 'مخالفة قوانين', icon: 'gavel' },
-        { value: 'Other', label: 'أخرى', icon: 'more_horiz' }
-    ];
 
     // Admin: Postpone/Reset Schedule Modal
     showScheduleModal = signal(false);
@@ -585,41 +575,11 @@ export class MatchDetailComponent implements OnInit {
     // ==================== OBJECTION ====================
 
     openObjectionModal(): void {
-        this.objectionForm = { type: '', description: '', files: [] };
         this.showObjectionModal.set(true);
     }
 
     closeObjectionModal(): void {
         this.showObjectionModal.set(false);
-    }
-
-    onFilesSelected(files: File[]): void {
-        this.objectionForm.files = files;
-    }
-
-    submitObjection(): void {
-        const currentMatch = this.match();
-        if (!currentMatch || !this.objectionForm.type || !this.objectionForm.description) {
-            this.uiFeedback.warning('تنبيه', 'يرجى ملء جميع الحقول المطلوبة');
-            return;
-        }
-
-        const request = {
-            matchId: currentMatch.id,
-            type: this.objectionForm.type,
-            description: this.objectionForm.description
-        };
-
-        this.objectionsService.submitObjection(request).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم بنجاح', 'تم تقديم الاعتراض بنجاح');
-                this.closeObjectionModal();
-                this.objectionForm = { type: '', description: '', files: [] };
-            },
-            error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في تقديم الاعتراض');
-            }
-        });
     }
 
     // ==================== HELPERS ====================
