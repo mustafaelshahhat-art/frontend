@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { ActionCardComponent } from '../../shared/components/action-card/action-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { WelcomeCardComponent } from '../../shared/components/welcome-card/welcome-card.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -26,7 +25,6 @@ import { ActivityStore } from '../../core/stores/activity.store';
         StatCardComponent,
         ActionCardComponent,
         PageHeaderComponent,
-        WelcomeCardComponent,
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,

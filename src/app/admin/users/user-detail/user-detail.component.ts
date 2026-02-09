@@ -9,6 +9,8 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UserStore } from '../../../core/stores/user.store';
+import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
+import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
 import { AdminLayoutService } from '../../../core/services/admin-layout.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { ChangeDetectorRef } from '@angular/core';
@@ -22,7 +24,9 @@ import { ChangeDetectorRef } from '@angular/core';
         ButtonComponent,
         BadgeComponent,
         SmartImageComponent,
-        EmptyStateComponent
+        EmptyStateComponent,
+        StatCardComponent,
+        InlineLoadingComponent
     ],
     templateUrl: './user-detail.component.html',
     styleUrls: ['./user-detail.component.scss']

@@ -230,13 +230,6 @@
   --space-28: 7rem;
   --space-32: 8rem;
 
-  // Semantic Spacing - More intuitive naming
-  --spacing-xs: var(--space-1);
-  --spacing-sm: var(--space-2);
-  --spacing-md: var(--space-4);
-  --spacing-lg: var(--space-6);
-  --spacing-xl: var(--space-8);
-  --spacing-2xl: var(--space-12);
   --space-xs: var(--space-1);
   --space-sm: var(--space-2);
   --space-md: var(--space-4);
@@ -355,12 +348,9 @@
   --container-max: 1400px;
   --width-content-max: 1400px;
   --width-form-max: 640px;
-  --sidebar-width: 280px;
   --width-sidebar: 280px;
   --width-sidebar-collapsed: 80px;
-  --header-height: 64px;
   --height-header: 64px;
-  --footer-height: 60px;
   --height-footer: 60px;
   --height-input: 44px;
   --height-input-sm: 36px;
@@ -391,7 +381,7 @@
 
   // Navigation
   --gradient-active-nav: linear-gradient(135deg, var(--color-primary-10) 0%, var(--color-primary-5) 100%);
-  
+
   // Logout colors
   --color-logout-5: rgba(239, 68, 68, 0.05);
   --color-logout-10: rgba(239, 68, 68, 0.1);
@@ -400,7 +390,7 @@
   // Header
   --bg-header: var(--bg-surface);
   --bg-header-transparent: rgba(8, 12, 20, 0.92);
-  
+
   // Overlays
   --bg-overlay-shadow: rgba(0, 0, 0, 0.72);
   --bg-overlay-dark: rgba(0, 0, 0, 0.28);
@@ -431,18 +421,18 @@
   --gradient-glass: linear-gradient(145deg, var(--glass-bg) 0%, rgba(15, 23, 42, 0.6) 100%);
   --gradient-card-content: linear-gradient(to top, rgba(8, 12, 20, 0.95) 0%, rgba(8, 12, 20, 0.6) 50%, transparent 100%);
   --gradient-primary-subtle: linear-gradient(145deg, var(--color-primary-10) 0%, var(--color-primary-5) 100%);
-  
+
   // Text
   --text-divider: var(--text-muted);
   --color-brand: var(--color-gold);
-  
+
   // Skeleton
   --skeleton-gradient: linear-gradient(90deg, var(--bg-surface-light) 25%, var(--border-dark) 50%, var(--bg-surface-light) 75%);
 
   // ==========================================================================
   // STATUS COLORS - Semantic status indicators
   // ==========================================================================
-  
+
   // Entity Status Colors
   --color-status-active: var(--color-primary);
   --color-status-inactive: var(--text-muted);
@@ -450,28 +440,28 @@
   --color-status-suspended: var(--color-danger);
   --color-status-ready: var(--color-primary);
   --color-status-not-ready: var(--color-warning);
-  
+
   // Status Backgrounds (10% opacity)
   --bg-status-active: var(--color-primary-10);
   --bg-status-inactive: var(--bg-input);
   --bg-status-pending: var(--color-warning-10);
   --bg-status-suspended: var(--color-danger-10);
-  
+
   // Match Status
   --color-status-live: var(--color-danger);
   --color-status-scheduled: var(--color-info);
   --color-status-finished: var(--text-muted);
   --color-status-cancelled: var(--color-danger);
-  
+
   // ==========================================================================
   // PLAYER POSITION COLORS - Sport-specific theming
   // ==========================================================================
-  
+
   --color-position-goalkeeper: var(--color-warning);
   --color-position-defender: var(--color-info);
   --color-position-midfielder: var(--color-primary);
   --color-position-forward: var(--color-gold);
-  
+
   // Position Backgrounds
   --bg-position-goalkeeper: var(--color-warning-10);
   --bg-position-defender: var(--color-info-10);

@@ -22,6 +22,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
+import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
     selector: 'app-objections-list',
@@ -37,7 +38,8 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
         BadgeComponent,
         ButtonComponent,
         TableComponent,
-        PendingStatusCardComponent
+        PendingStatusCardComponent,
+        InlineLoadingComponent
     ],
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss']

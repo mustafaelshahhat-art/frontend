@@ -14,12 +14,7 @@
 <ng-template #mainContent>
     <div class="flex-col gap-md">
         <!-- Loading -->
-        <div *ngIf="isLoading()" style="text-align: center; padding: 4rem;">
-            <div class="loading-spinner"
-                style="width: 40px; height: 40px; border: 3px solid rgba(16,185,129,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;">
-            </div>
-            <p style="color: #64748b;">جاري تحميل الاعتراضات...</p>
-        </div>
+        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الاعتراضات..."></app-inline-loading>
 
         <!-- Empty State -->
         <app-empty-state

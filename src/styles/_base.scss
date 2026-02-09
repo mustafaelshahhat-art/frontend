@@ -473,29 +473,17 @@ input[type="number"] {
   animation: fadeInUp 0.6s ease-out;
 }
 
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.5s ease-out;
-}
-
-.animate-slide-in-up {
-  animation: slideInUp 0.3s ease-out;
-}
-
-.animate-slide-in-down {
-  animation: slideInDown 0.3s ease-out;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
-}
 
 @keyframes pulseSubtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
 }
 
 .animate-pulse {
@@ -514,9 +502,6 @@ input[type="number"] {
   animation: spin 1s linear infinite;
 }
 
-.animate-shake {
-  animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
-}
 
 .skeleton {
   background: linear-gradient(90deg, var(--bg-surface-light) 25%, var(--border-dark) 50%, var(--bg-surface-light) 75%);
@@ -524,21 +509,6 @@ input[type="number"] {
   animation: shimmer 1.5s infinite;
 }
 
-.toast-enter {
-  animation: toastSlideIn 0.3s ease-out;
-}
-
-.toast-exit {
-  animation: toastSlideOut 0.3s ease-out;
-}
-
-.page-enter {
-  animation: fadeIn 0.2s ease-out, slideInUp 0.3s ease-out;
-}
-
-.backdrop-fade {
-  animation: fadeIn 0.2s ease-out;
-}
 
 // ==========================================================================
 // TRANSITION UTILITIES
@@ -573,13 +543,6 @@ input[type="number"] {
   }
 }
 
-.hover-lift-lg {
-  transition: var(--transition-bounce);
-
-  &:hover {
-    transform: translateY(-10px);
-  }
-}
 
 .hover-scale {
   transition: transform 0.2s ease;
@@ -589,34 +552,16 @@ input[type="number"] {
   }
 }
 
-.hover-glow {
-  transition: var(--transition-base);
-
-  &:hover {
-    box-shadow: var(--shadow-glow);
-  }
-}
 
 // ==========================================================================
 // UTILITIES
 // ==========================================================================
 
-.text-gradient-gold {
-  background: var(--gradient-gold);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-  display: inline-block;
-}
 
 .font-super-black {
   font-weight: var(--font-super-black) !important;
 }
 
-.shadow-glow-gold {
-  box-shadow: var(--shadow-glow-gold);
-}
 
 // ==========================================================================
 // MIGRATED UTILITIES (from _components.scss)
@@ -645,43 +590,8 @@ input[type="number"] {
   transition: var(--transition-fast);
 }
 
-.icon-wrapper-lg {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-full);
-
-  @media (max-width: 480px) {
-    width: 56px;
-    height: 56px;
-  }
-}
-
-.icon-wrapper-sm {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-lg);
-}
 
 // Background Subtle Colors
-.bg-primary-subtle {
-  background: var(--color-primary-10);
-}
-
-.bg-danger-subtle {
-  background: var(--color-danger-10);
-}
-
-.bg-success-subtle {
-  background: var(--color-success-10);
-}
-
-.bg-gold-subtle {
-  background: var(--color-gold-10);
-}
-
-.bg-info-subtle {
-  background: var(--color-info-10);
-}
 
 // Text Utilities Extensions
 .uppercase {

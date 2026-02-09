@@ -36,7 +36,7 @@
                         </app-smart-image>
 
                         <div *ngIf="isUploadingPicture" class="uploading-overlay">
-                            <div class="loading-spinner"></div>
+                            <app-inline-loading></app-inline-loading>
                         </div>
 
                         <div *ngIf="isEditing && !isUploadingPicture" class="edit-overlay"

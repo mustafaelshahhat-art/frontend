@@ -2,10 +2,7 @@
     <div class="page-content">
 
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="loading-state">
-            <div class="loading-spinner"></div>
-            <p>جاري تحميل بيانات المستخدم...</p>
-        </div>
+        <app-inline-loading *ngIf="isLoading" message="جاري تحميل بيانات المستخدم..."></app-inline-loading>
 
         <!-- Error/Not Found State -->
         <app-empty-state *ngIf="!isLoading && !user" icon="person_off" title="لم يتم العثور على المستخدم"
@@ -60,42 +57,10 @@
             <div class="content-grid">
                 <!-- Quick Stats Row -->
                 <div class="stats-row animate-fade-in-up">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <span class="material-symbols-outlined">fingerprint</span>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">معرف العضوية</span>
-                            <span class="stat-value">{{ user.displayId }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <span class="material-symbols-outlined">badge</span>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">رقم الهوية</span>
-                            <span class="stat-value">{{ user.nationalId || '—' }}</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <span class="material-symbols-outlined">cake</span>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">العمر</span>
-                            <span class="stat-value">{{ user.age || '—' }} سنة</span>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <span class="material-symbols-outlined">call</span>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">الهاتف</span>
-                            <span class="stat-value font-mono">{{ user.phone || '—' }}</span>
-                        </div>
-                    </div>
+                    <app-stat-card label="معرف العضوية" [value]="user.displayId" icon="fingerprint"></app-stat-card>
+                    <app-stat-card label="رقم الهوية" [value]="user.nationalId || '—'" icon="badge"></app-stat-card>
+                    <app-stat-card label="العمر" [value]="(user.age || '—') + ' سنة'" icon="cake"></app-stat-card>
+                    <app-stat-card label="الهاتف" [value]="user.phone || '—'" icon="call"></app-stat-card>
                 </div>
 
                 <!-- Main Content Columns -->

@@ -15,24 +15,9 @@ export const captainRoutes: Routes = [
                 data: { breadcrumb: 'فريقي', icon: 'groups' }
             },
             {
-                path: 'team/add-player',
-                loadComponent: () => import('./team/player-form/player-form.component').then(m => m.PlayerFormComponent),
-                data: { breadcrumb: 'إضافة لاعب' }
-            },
-            {
-                path: 'team/edit-player/:id',
-                loadComponent: () => import('./team/player-form/player-form.component').then(m => m.PlayerFormComponent),
-                data: { breadcrumb: 'تعديل لاعب' }
-            },
-            {
                 path: 'championships',
                 loadComponent: () => import('../features/tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent),
                 data: { breadcrumb: 'البطولات', icon: 'emoji_events' }
-            },
-            {
-                path: 'championships/register/:id',
-                loadComponent: () => import('./championships/registration/championship-registration.component').then(m => m.ChampionshipRegistrationComponent),
-                data: { breadcrumb: 'التسجيل في البطولة' }
             },
             {
                 path: 'championships/:id',

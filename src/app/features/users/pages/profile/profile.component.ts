@@ -21,6 +21,7 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
 import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
     selector: 'app-profile',
@@ -37,7 +38,8 @@ import { RefereeLayoutService } from '../../../../core/services/referee-layout.s
         SmartImageComponent,
         FormControlComponent,
         SelectComponent,
-        PendingStatusCardComponent
+        PendingStatusCardComponent,
+        InlineLoadingComponent
     ],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
