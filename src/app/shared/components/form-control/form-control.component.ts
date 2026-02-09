@@ -1,6 +1,8 @@
-import { Component, Input, forwardRef, Output, EventEmitter } from '@angular/core';
+import { Component, Input, forwardRef, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormControl, AbstractControl } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+
+let uniqueId = 0;
 
 @Component({
     selector: 'app-form-control',
@@ -14,9 +16,11 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, FormContr
             useExisting: forwardRef(() => FormControlComponent),
             multi: true
         }
-    ]
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormControlComponent implements ControlValueAccessor {
+    @Input() id = `form-control-${uniqueId++}`;
     @Input() label?: string;
     @Input() error?: string;
     @Input() hint?: string;
@@ -26,20 +30,20 @@ export class FormControlComponent implements ControlValueAccessor {
     @Output() iconRightClick = new EventEmitter<void>();
     @Output() iconLeftClick = new EventEmitter<void>();
 
-    @Input() type: string = 'text';
-    @Input() placeholder: string = '';
-    @Input() rows: number = 3;
+    @Input() type = 'text';
+    @Input() placeholder = '';
+    @Input() rows = 3;
     @Input() controlName?: string;
     @Input() control?: AbstractControl | null;
-    @Input() disabled: boolean = false;
+    @Input() disabled = false;
     @Input() min?: number | string;
 
     // Password visibility toggle state
-    passwordVisible: boolean = false;
+    passwordVisible = false;
 
-    value: any = '';
-    onChange: any = () => { };
-    onTouched: any = () => { };
+    value: unknown = '';
+    onChange: (value: unknown) => void = () => { /* empty */ };
+    onTouched: () => void = () => { /* empty */ };
 
     // Computed input type - handles password visibility toggle
     get inputType(): string {
@@ -75,15 +79,15 @@ export class FormControlComponent implements ControlValueAccessor {
         return null;
     }
 
-    writeValue(value: any): void {
+    writeValue(value: unknown): void {
         this.value = value;
     }
 
-    registerOnChange(fn: any): void {
+    registerOnChange(fn: (value: unknown) => void): void {
         this.onChange = fn;
     }
 
-    registerOnTouched(fn: any): void {
+    registerOnTouched(fn: () => void): void {
         this.onTouched = fn;
     }
 

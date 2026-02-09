@@ -1,5 +1,3 @@
-
-
 :host {
     display: block;
     width: 100%;
@@ -85,5 +83,9 @@
 
     &:hover {
         opacity: 1;
+    }
+
+    .close-icon {
+        font-size: 18px;
     }
 }

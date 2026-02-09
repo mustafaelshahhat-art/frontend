@@ -1,12 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { timer } from 'rxjs';
 
 @Component({
     selector: 'app-alert',
     standalone: true,
     imports: [CommonModule],
     templateUrl: './alert.component.html',
-    styleUrls: ['./alert.component.scss']
+    styleUrls: ['./alert.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AlertComponent implements OnInit {
     @Input() type: 'success' | 'danger' | 'warning' | 'info' = 'info';
@@ -16,19 +18,19 @@ export class AlertComponent implements OnInit {
     @Input() autoDismiss = 0; // Duration in ms, 0 means no auto-dismiss
 
     visible = true;
-    @Output() onClose = new EventEmitter<void>();
+    @Output() dismissed = new EventEmitter<void>();
 
     ngOnInit() {
         if (this.autoDismiss > 0) {
-            setTimeout(() => {
+            timer(this.autoDismiss).subscribe(() => {
                 this.dismiss();
-            }, this.autoDismiss);
+            });
         }
     }
 
     dismiss() {
         this.visible = false;
-        this.onClose.emit();
+        this.dismissed.emit();
     }
 
     getDefaultIcon(): string {

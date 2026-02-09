@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -22,7 +22,6 @@ import { ObjectionModalComponent } from '../../components/objection-modal/object
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -31,7 +30,6 @@ import { SmartImageComponent } from '../../../../shared/components/smart-image/s
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
 
 @Component({
     selector: 'app-match-detail',
@@ -45,7 +43,6 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
         MatchTimelineComponent,
         ObjectionModalComponent,
         HasPermissionDirective,
-        PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
@@ -55,7 +52,8 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
         SelectComponent
     ],
     templateUrl: './match-detail.component.html',
-    styleUrls: ['./match-detail.component.scss']
+    styleUrls: ['./match-detail.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatchDetailComponent implements OnInit, OnDestroy {
     // Services
@@ -74,7 +72,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     private captainLayout = inject(CaptainLayoutService);
     private refereeLayout = inject(RefereeLayoutService);
 
-    @ViewChild('headerActions') headerActions!: TemplateRef<any>;
+    @ViewChild('headerActions') headerActions!: TemplateRef<unknown>;
 
     // Reactivity
     matchId = signal<string | null>(null);
@@ -166,7 +164,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
     // Referee Regions
     refereeOptions: SelectOption[] = [];
-    selectedRefereeId: string = '';
+    selectedRefereeId = '';
 
     // Cascading Locations
     governorateOptions = signal<SelectOption[]>([]);
@@ -207,7 +205,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         }
     }
 
-    private getLayout(): any {
+    private getLayout(): AdminLayoutService | CaptainLayoutService | RefereeLayoutService | null {
         if (this.authService.hasRole(UserRole.ADMIN)) return this.adminLayout;
         if (this.authService.getCurrentUser()?.isTeamOwner) return this.captainLayout;
         if (this.authService.hasRole(UserRole.REFEREE)) return this.refereeLayout;
@@ -261,7 +259,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         return '/captain/matches';
     }
 
-    getChatRoute(): any[] {
+    getChatRoute(): string[] {
         const currentMatch = this.match();
         if (!currentMatch) return [];
         if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/matches', currentMatch.id, 'chat'];
@@ -324,9 +322,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         this.isSubmittingReport.set(true);
         this.matchService.submitMatchReport(
             currentMatch.id,
-            this.reportNotes,
-            currentMatch.refereeId,
-            currentMatch.refereeName
+            this.reportNotes
         ).subscribe({
             next: (updated) => {
                 if (updated) this.matchStore.upsertMatch(updated);
@@ -373,7 +369,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate,
                 status: MatchStatus.POSTPONED
-            } as any).subscribe({
+            } as Partial<Match>).subscribe({
                 next: (updated) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -389,7 +385,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 status: MatchStatus.RESCHEDULED,
                 homeScore: 0,
                 awayScore: 0
-            } as any).subscribe({
+            } as Partial<Match>).subscribe({
                 next: (updated) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -402,7 +398,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         } else {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate
-            } as any).subscribe({
+            } as Partial<Match>).subscribe({
                 next: (updated) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -490,7 +486,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    onGovernorateChange(gov: any): void {
+    onGovernorateChange(gov: string): void {
         this.selectedGovernorate.set(gov);
         this.selectedCity.set('');
         this.selectedDistrict.set('');
@@ -511,7 +507,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         }
     }
 
-    onCityChange(city: any): void {
+    onCityChange(city: string): void {
         this.selectedCity.set(city);
         this.selectedDistrict.set('');
         this.districtOptions.set([]);
@@ -530,7 +526,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         }
     }
 
-    onDistrictChange(district: any): void {
+    onDistrictChange(district: string): void {
         this.selectedDistrict.set(district);
         this.refereeOptions = [];
 

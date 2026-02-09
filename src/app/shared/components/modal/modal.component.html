@@ -1,9 +1,11 @@
-<div class="modal-overlay" *ngIf="visible" (click)="closeOnOverlay && close()">
-    <div class="modal-box" [class]="'modal-' + size" [class.theme-danger]="theme === 'danger'"
-        (click)="$event.stopPropagation()">
+@if (visible) {
+<div class="modal-overlay" (click)="onBackdropClick($event)" (keydown.escape)="closeOnOverlay && close()" tabindex="0">
+    <div class="modal-box" [class]="'modal-' + size" [class.theme-danger]="theme === 'danger'">
         <!-- Header -->
         <div class="modal-header">
-            <span *ngIf="icon" class="material-symbols-outlined">{{ icon }}</span>
+            @if (icon) {
+            <span class="material-symbols-outlined">{{ icon }}</span>
+            }
             <h3>{{ title }}</h3>
             <button (click)="close()" class="close-btn">
                 <span class="material-symbols-outlined">close</span>
@@ -16,8 +18,11 @@
         </div>
 
         <!-- Footer -->
-        <div class="modal-footer" *ngIf="hasFooter">
+        @if (hasFooter) {
+        <div class="modal-footer">
             <ng-content select="[modal-footer]"></ng-content>
         </div>
+        }
     </div>
 </div>
+}

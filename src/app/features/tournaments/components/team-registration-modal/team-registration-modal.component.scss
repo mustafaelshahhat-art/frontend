@@ -1,0 +1,29 @@
+.registration-form-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.transfer-type-group {
+    margin-bottom: 1.5rem;
+}
+
+.registration-form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 0.5rem;
+    text-align: right;
+}
+
+.upload-group {
+    margin-top: var(--space-sm);
+}
+
+.registration-modal-footer {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}

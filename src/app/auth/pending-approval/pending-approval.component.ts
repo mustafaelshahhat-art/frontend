@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, AfterViewInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -8,13 +8,21 @@ import { AuthService } from '../../core/services/auth.service';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './pending-approval.component.html',
-    styleUrls: ['./pending-approval.component.scss']
+    styleUrls: ['./pending-approval.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PendingApprovalComponent {
+export class PendingApprovalComponent implements AfterViewInit {
     private authService = inject(AuthService);
     private router = inject(Router);
 
     currentUser = this.authService.getCurrentUser();
+    isPageReady = signal(false);
+
+    ngAfterViewInit(): void {
+        requestAnimationFrame(() => {
+            this.isPageReady.set(true);
+        });
+    }
 
     onLogout(): void {
         this.authService.logout();

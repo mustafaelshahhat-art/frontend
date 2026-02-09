@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, HostBinding, ElementRef, inject, AfterContentInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostBinding, ElementRef, inject, AfterContentInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './button.component.html',
-    styleUrls: ['./button.component.scss']
+    styleUrls: ['./button.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ButtonComponent implements AfterContentInit {
     private el = inject(ElementRef);
@@ -26,7 +27,7 @@ export class ButtonComponent implements AfterContentInit {
     @HostBinding('class.is-icon-only')
     isIconOnly = false;
 
-    @Output() onClick = new EventEmitter<MouseEvent>();
+    @Output() trigger = new EventEmitter<MouseEvent>();
 
     ngAfterContentInit() {
         this.checkIfIconOnly();

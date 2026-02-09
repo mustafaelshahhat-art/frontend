@@ -3,12 +3,14 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { ErrorHandlerService } from '../../shared/services/error-handler.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 /**
  * HTTP Error Interceptor
  * Catches all HTTP errors and handles them appropriately
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+    const authService = inject(AuthService);
     const errorHandler = inject(ErrorHandlerService);
     const router = inject(Router);
 
@@ -25,8 +27,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             // Redirect on auth errors (Skip for EMAIL_NOT_VERIFIED as it's handled by LoginComponent)
             const backendCode = error.error?.code;
             if (error.status === 401 && backendCode !== 'EMAIL_NOT_VERIFIED') {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('current_user');
+                authService.logout();
                 router.navigate(['/auth/login']);
             }
 

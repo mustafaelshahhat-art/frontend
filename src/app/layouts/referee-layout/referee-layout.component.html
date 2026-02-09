@@ -1,49 +1,56 @@
 <!-- Mobile Overlay -->
-<div *ngIf="isSidebarOpen && isMobile" (click)="closeSidebar()" class="overlay"></div>
+@if (isSidebarOpen && isMobile) {
+<div (click)="closeSidebar()" (keydown.enter)="closeSidebar()" (keydown.space)="$event.preventDefault(); closeSidebar()"
+  class="overlay" tabindex="0" role="button" aria-label="إغلاق القائمة"></div>
+}
 
 <div class="app-layout bg-gradient-page">
 
-    <!-- Sidebar -->
-    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
-        brandSubtitle="لوحة الحكم" userRoleLabel="حكم معتمد" (close)="closeSidebar()" (logout)="handleLogout()">
-    </app-sidebar>
+  <!-- Sidebar -->
+  <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
+    brandSubtitle="لوحة الحكم" userRoleLabel="حكم معتمد" (closeSidebar)="closeSidebar()" (logout)="handleLogout()">
+  </app-sidebar>
 
-    <!-- Main Content Area -->
-    <div class="app-main" [class.mr-sidebar]="!isMobile">
+  <!-- Main Content Area -->
+  <div class="app-main" [class.mr-sidebar]="!isMobile">
 
-        <!-- Header -->
-        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الحكم" [unreadCount]="unreadCount()"
-            [notifications]="notifications()" (toggleSidebar)="toggleSidebar()"
-            (viewNotification)="viewNotification($event)" (viewAllNotifications)="viewAllNotifications()">
+    <!-- Header -->
+    <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="لوحة الحكم" [unreadCount]="unreadCount()"
+      [notifications]="notifications()" (toggleSidebar)="toggleSidebar()" (viewNotification)="viewNotification($event)"
+      (viewAllNotifications)="viewAllNotifications()">
 
-            <div breadcrumbs class="flex items-center gap-2">
-                <span class="text-muted text-lg">/</span>
-                <app-breadcrumb></app-breadcrumb>
-            </div>
-        </app-header>
+      <div breadcrumbs class="flex items-center gap-2">
+        <span class="text-muted text-lg">/</span>
+        <app-breadcrumb></app-breadcrumb>
+      </div>
+    </app-header>
 
-        <!-- Page Content (Scrollable) -->
-        <main class="app-content">
-            <div class="referee-page-container">
-                <!-- Header Section -->
-                <app-page-header *ngIf="layout.title()" [title]="layout.title()" [subtitle]="layout.subtitle()"
-                    [showBack]="layout.showBack()" (back)="layout.onBack()">
-                    <!-- Actions Slot -->
-                    <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
-                </app-page-header>
+    <!-- Page Content (Scrollable) -->
+    <main class="app-content">
+      <div class="referee-page-container">
+        <!-- Header Section -->
+        @if (layout.title()) {
+        <app-page-header [title]="layout.title()" [subtitle]="layout.subtitle()" [showBack]="layout.showBack()"
+          (back)="layout.onBack()">
+          <!-- Actions Slot -->
+          <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
+        </app-page-header>
+        }
 
-                <div class="referee-page-content">
-                    <!-- Filters Section -->
-                    <div class="referee-toolbar" *ngIf="layout.filtersTemplate()">
-                        <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null"></ng-container>
-                    </div>
+        <div class="referee-page-content">
+          <!-- Filters Section -->
+          @if (layout.filtersTemplate()) {
+          <div class="referee-toolbar">
+            <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null"></ng-container>
+          </div>
+          }
 
-                    <!-- Content Section -->
-                    <router-outlet></router-outlet>
-                </div>
-            </div>
-        </main>
+          <!-- Content Section -->
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </main>
 
-    </div>
+  </div>
 
 </div>

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './pending-status-card.component.html',
-    styleUrls: ['./pending-status-card.component.scss']
+    styleUrls: ['./pending-status-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PendingStatusCardComponent {
     @Input() title = 'حسابك قيد المراجعة';
@@ -16,9 +17,9 @@ export class PendingStatusCardComponent {
     @Input() showRefreshButton = true;
     @Input() refreshButtonText = 'تحديث الحالة';
 
-    @Output() onRefresh = new EventEmitter<void>();
+    @Output() refreshRequest = new EventEmitter<void>();
 
     refresh(): void {
-        this.onRefresh.emit();
+        this.refreshRequest.emit();
     }
 }

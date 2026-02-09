@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, timer } from 'rxjs';
 
 // ==========================================================================
 // GLOBAL UI FEEDBACK SERVICE
@@ -42,13 +42,13 @@ export class UIFeedbackService {
     readonly alerts = this._alerts.asReadonly();
     private alertId = 0;
 
-    showAlert(type: FeedbackType, title: string, message?: string, duration: number = 5000): number {
+    showAlert(type: FeedbackType, title: string, message?: string, duration = 5000): number {
         const id = ++this.alertId;
         const alert: Alert = { id, type, title, message, dismissible: true, duration };
         this._alerts.update(a => [...a, alert]);
 
         if (duration > 0) {
-            setTimeout(() => this.dismissAlert(id), duration);
+            timer(duration).subscribe(() => this.dismissAlert(id));
         }
         return id;
     }

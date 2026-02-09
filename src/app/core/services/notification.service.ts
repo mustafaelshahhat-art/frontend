@@ -1,9 +1,10 @@
 import { Injectable, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, throwError, combineLatest, filter, firstValueFrom } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError, combineLatest } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
-import { UserRole } from '../models/user.model';
+
+
 import { Notification } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
@@ -85,10 +86,12 @@ export class NotificationService {
         try {
             await this.subscribeToRole(role);
             this.currentSubscribedRole = role;
-            console.log(`Successfully subscribed to role: ${role}`);
-        } catch (err: any) {
+            console.warn(`Successfully subscribed to role: ${role}`);
+        } catch (err: unknown) {
             // Handle expected rejection / timing issue
-            if (err.message && err.message.includes('Unauthorized')) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
+            const error = err as any;
+            if (error.message && error.message.includes('Unauthorized')) {
                 console.warn(`Transient role subscription failure for ${role}. Will be retried on next auth sync.`);
             } else {
                 console.error(`Failed to subscribe to role ${role}:`, err);
@@ -140,7 +143,7 @@ export class NotificationService {
 
         // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
-            catchError((error: any) => {
+            catchError((error: unknown) => {
                 console.error('Error marking notification as read:', error);
                 // Revert optimistic update on error
                 const notification = this.notificationStore.getNotificationById(id);
@@ -159,7 +162,7 @@ export class NotificationService {
 
         // Send to backend for persistence
         return this.http.post<void>(`${this.apiUrl}/read-all`, {}).pipe(
-            catchError((error: any) => {
+            catchError((error: unknown) => {
                 console.error('Error marking all notifications as read:', error);
                 // Revert optimistic update on error
                 unreadNotifications.forEach(n => {

@@ -11,12 +11,16 @@
     <div class="content">
         <h3 class="title">{{ title }}</h3>
         <p class="message">{{ message }}</p>
-        <p class="sub-message" *ngIf="subMessage">{{ subMessage }}</p>
+        @if (subMessage) {
+        <p class="sub-message">{{ subMessage }}</p>
+        }
     </div>
 
     <!-- Action -->
-    <button *ngIf="showRefreshButton" class="refresh-btn" (click)="refresh()">
+    @if (showRefreshButton) {
+    <button class="refresh-btn" (click)="refresh()">
         <span class="material-symbols-outlined">refresh</span>
         <span>{{ refreshButtonText }}</span>
     </button>
+    }
 </div>

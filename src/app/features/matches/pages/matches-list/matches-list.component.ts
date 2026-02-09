@@ -17,7 +17,6 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
@@ -43,7 +42,6 @@ interface MatchFilter {
         EndMatchConfirmComponent,
         MatchEventModalComponent,
         FilterComponent,
-        PageHeaderComponent,
         MatchCardComponent,
         ButtonComponent,
         InlineLoadingComponent,
@@ -95,7 +93,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
 
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
 
     // Type-safe filters
     readonly filters: MatchFilter[] = [
@@ -138,7 +136,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.layoutService.setFilters(this.filtersTemplate);
         });
         this.cdr.detectChanges();
@@ -242,7 +240,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     isReferee(): boolean { return this.userRole() === UserRole.REFEREE; }
     isCaptain(): boolean { return !!this.currentUser()?.isTeamOwner; }
 
-    setFilter(filter: string): void {
+    setFilter(filter: unknown): void {
         this.selectedFilter.set(filter as MatchFilterValue);
     }
 

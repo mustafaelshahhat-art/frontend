@@ -11,10 +11,11 @@ export class CaptainLayoutService {
     readonly backAction = signal<(() => void) | null>(null);
 
     // Layout Slots
-    readonly actionsTemplate = signal<TemplateRef<any> | null>(null);
-    readonly filtersTemplate = signal<TemplateRef<any> | null>(null);
+    readonly actionsTemplate = signal<TemplateRef<unknown> | null>(null);
+    readonly filtersTemplate = signal<TemplateRef<unknown> | null>(null);
 
-    constructor() { }
+
+
 
     setTitle(title: string): void {
         this.title.set(title);
@@ -40,11 +41,11 @@ export class CaptainLayoutService {
         }
     }
 
-    setActions(template: TemplateRef<any> | null): void {
+    setActions(template: TemplateRef<unknown> | null): void {
         this.actionsTemplate.set(template);
     }
 
-    setFilters(template: TemplateRef<any> | null): void {
+    setFilters(template: TemplateRef<unknown> | null): void {
         this.filtersTemplate.set(template);
     }
 

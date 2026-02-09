@@ -1,11 +1,10 @@
-import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
@@ -18,13 +17,13 @@ import { AdminLayoutService } from '../../../../core/services/admin-layout.servi
         CommonModule,
         RouterModule,
         ReactiveFormsModule,
-        PageHeaderComponent,
         ButtonComponent,
         CardComponent,
         FormControlComponent
     ],
     templateUrl: './tournament-manage.component.html',
-    styleUrls: ['./tournament-manage.component.scss']
+    styleUrls: ['./tournament-manage.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
@@ -103,17 +102,21 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
 
         this.isSubmitting.set(true);
         const formValue = this.tournamentForm.value;
-        const tournamentData: any = {
+        const tournamentData: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'> = {
             name: formValue.name,
             description: formValue.description,
-            startDate: new Date(formValue.startDate).toISOString(),
-            endDate: new Date(formValue.endDate).toISOString(),
-            registrationDeadline: new Date(formValue.registrationDeadline).toISOString(),
+            startDate: new Date(formValue.startDate),
+            endDate: new Date(formValue.endDate),
+            registrationDeadline: new Date(formValue.registrationDeadline),
             maxTeams: formValue.maxTeams,
             location: formValue.location,
             entryFee: formValue.entryFee,
             rules: formValue.rules,
-            prizes: formValue.prizes
+            prizes: formValue.prizes,
+            status: TournamentStatus.DRAFT, // Default for new, will be ignored/overridden by backend if updating
+            currentTeams: 0,
+            registrations: [],
+            adminId: '' // Will be set by backend from auth context
         };
 
         if (this.isEditMode()) {

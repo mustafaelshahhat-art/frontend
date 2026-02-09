@@ -30,7 +30,7 @@ export class BreadcrumbService {
         });
     }
 
-    private buildBreadcrumbs(route: ActivatedRoute, url: string = '', breadcrumbs: Breadcrumb[] = []): Breadcrumb[] {
+    private buildBreadcrumbs(route: ActivatedRoute, url = '', breadcrumbs: Breadcrumb[] = []): Breadcrumb[] {
         const children = route.children;
 
         if (children.length === 0) {

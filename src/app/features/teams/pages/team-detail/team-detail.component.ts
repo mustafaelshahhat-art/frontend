@@ -12,6 +12,7 @@ import { TeamStore } from '../../../../core/stores/team.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { Match } from '../../../../core/models/tournament.model';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { UserRole } from '../../../../core/models/user.model';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -22,33 +23,42 @@ import { AdminLayoutService } from '../../../../core/services/admin-layout.servi
     ],
     template: `
         <!-- Show content if we have team data, even if still loading/refreshing -->
-        <app-team-detail 
-            *ngIf="team"
-            [team]="team"
-            [showBackButton]="true"
-            [backRoute]="'/admin/teams'"
-            [canEditName]="false"
-            [canAddPlayers]="false"
-            [canRemovePlayers]="false"
-            [canManageStatus]="true"
-            [canDeleteTeam]="isCaptainOrAdmin"
-            (playerAction)="handlePlayerAction($event)"
-            (tabChanged)="handleTabChange($event)"
-            (deleteTeam)="handleDeleteTeam()"
-            (disableTeam)="handleDisableTeam()">
-        </app-team-detail>
+        @if (team) {
+            <app-team-detail 
+                [team]="team"
+                [showBackButton]="true"
+                [backRoute]="'/admin/teams'"
+                [canEditName]="false"
+                [canAddPlayers]="false"
+                [canRemovePlayers]="false"
+                [canManageStatus]="true"
+                [canDeleteTeam]="isCaptainOrAdmin"
+                (playerAction)="handlePlayerAction($event)"
+                (deleteTeam)="handleDeleteTeam()"
+                (disableTeam)="handleDisableTeam()">
+            </app-team-detail>
+        }
 
         <!-- Only show centering spinner if we have NO data yet -->
-        <div *ngIf="isLoading() && !team" class="flex-center p-xl" style="min-height: 400px;">
-            <div class="spinner-lg"></div>
-        </div>
+        @if (isLoading() && !team) {
+            <div class="flex-center p-xl loading-viewport">
+                <div class="spinner-lg"></div>
+            </div>
+        }
 
-        <div *ngIf="!isLoading() && !team" class="flex-center p-xl">
-            <p>لم يتم العثور على الفريق</p>
-            <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
-        </div>
+        @if (!isLoading() && !team) {
+            <div class="flex-center p-xl">
+                <p>لم يتم العثور على الفريق</p>
+                <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
+            </div>
+        }
     `,
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [`
+        .loading-viewport {
+            min-height: 400px;
+        }
+    `]
 })
 export class TeamDetailPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
@@ -84,14 +94,14 @@ export class TeamDetailPageComponent implements OnInit {
     // Computed Stats from Matches
     teamStats = computed(() => {
         const matches = this.teamMatches();
-        let stats = { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, rank: 0 };
+        const stats = { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, rank: 0 };
 
-        matches.filter((m: any) => m.status === 'Finished').forEach((m: any) => {
+        matches.filter((m: { status: string }) => m.status === 'Finished').forEach((m: { teamScore: number, opponentScore: number }) => {
             stats.matches++;
-            stats.goalsFor += m.teamScore;
-            stats.goalsAgainst += m.opponentScore;
-            if (m.teamScore > m.opponentScore) stats.wins++;
-            else if (m.teamScore < m.opponentScore) stats.losses++;
+            stats.goalsFor += m.teamScore || 0;
+            stats.goalsAgainst += m.opponentScore || 0;
+            if (m.teamScore! > m.opponentScore!) stats.wins++;
+            else if (m.teamScore! < m.opponentScore!) stats.losses++;
             else stats.draws++;
         });
         return stats;
@@ -112,12 +122,12 @@ export class TeamDetailPageComponent implements OnInit {
             captainId: t.captainId,
             city: t.city || 'غير محدد',
             captainName: t.captainName || 'غير معروف',
-            logo: t.logo || 'assets/images/team-placeholder.png',
+            logo: t.logoUrl || t.logo || 'assets/images/team-placeholder.png',
             status: 'READY',
             isActive: t.isActive ?? false,
-            createdAt: t.founded ? new Date(t.founded) : new Date(),
+            createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
             stats: stats,
-            players: (t.players || []).map((p: any) => ({
+            players: (t.players || []).map((p: { id: string, name: string, number?: number, position?: string, goals?: number, yellowCards?: number, redCards?: number, status?: string }) => ({
                 id: p.id,
                 name: p.name,
                 number: p.number || 0,
@@ -174,7 +184,7 @@ export class TeamDetailPageComponent implements OnInit {
     checkPermissions(team: Team): void {
         const user = this.authService.getCurrentUser();
         if (user && team) {
-            this.isCaptainOrAdmin = user.role === 'Admin' || (user.id === team.captainId);
+            this.isCaptainOrAdmin = user.role === UserRole.ADMIN || (user.id === team.captainId);
         }
     }
 
@@ -203,13 +213,13 @@ export class TeamDetailPageComponent implements OnInit {
                 this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
                 // Store updates via RealTime event
             },
-            error: (err) => {
+            error: () => {
                 this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
             }
         });
     }
 
-    handlePlayerAction(event: { player: TeamPlayer, action: any }): void {
+    handlePlayerAction(event: { player: TeamPlayer, action: string }): void {
         const { player, action } = event;
         const config = {
             activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟`, btn: 'تفعيل الآن', type: 'info' as const },
@@ -229,7 +239,7 @@ export class TeamDetailPageComponent implements OnInit {
                         next: () => {
                             this.uiFeedback.success('تم الحذف', 'تم إزالة اللاعب من الفريق');
                         },
-                        error: (err) => {
+                        error: () => {
                             this.uiFeedback.error('خطأ', 'فشل في إزالة اللاعب');
                         }
                     });
@@ -239,10 +249,4 @@ export class TeamDetailPageComponent implements OnInit {
             }
         });
     }
-
-    handleTabChange(tab: string): void {
-        // no-op
-    }
 }
-
-

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, map } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MatchMessage } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
@@ -22,7 +22,7 @@ export class ChatService {
         if (this.currentMatchId === matchId) return;
 
         if (this.currentMatchId) {
-            await this.leaveMatch(this.currentMatchId);
+            await this.leaveMatch();
         }
 
         this.currentMatchId = matchId;
@@ -46,7 +46,7 @@ export class ChatService {
         }
     }
 
-    async leaveMatch(matchId: string): Promise<void> {
+    async leaveMatch(): Promise<void> {
         if (!this.currentMatchId) return;
 
         const connection = this.signalRService.createConnection('chat');

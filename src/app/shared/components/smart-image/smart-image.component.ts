@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
@@ -7,21 +7,22 @@ import { environment } from '../../../../environments/environment';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './smart-image.component.html',
-    styleUrls: ['./smart-image.component.scss']
+    styleUrls: ['./smart-image.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SmartImageComponent implements OnInit, OnChanges {
     @Input() src: string | null | undefined;
     @Input() type: 'avatar' | 'id' | 'team' | 'referee' | 'tournament' = 'avatar';
     @Input() size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'custom' = 'md';
-    @Input() alt: string = '';
-    @Input() rounded: boolean = true;
-    @Input() showBorder: boolean = false;
-    @Input() customClass: string = '';
-    @Input() initials: string = '';
+    @Input() alt = '';
+    @Input() rounded = true;
+    @Input() showBorder = false;
+    @Input() customClass = '';
+    @Input() initials = '';
 
     fullUrl: string | null = null;
-    hasError: boolean = false;
-    isLoaded: boolean = false;
+    hasError = false;
+    isLoaded = false;
 
     ngOnInit() {
         this.processUrl();

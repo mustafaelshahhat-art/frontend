@@ -1,21 +1,22 @@
 <div class="chat-page">
-    <app-chat-box *ngIf="!isLoading && isAuthorized && match" [title]="match.homeTeamName + ' vs ' + match.awayTeamName"
-        [match]="match" [messages]="mappedMessages" [currentUserId]="currentUser?.id || ''"
-        [participants]="participants" [referee]="getReferee() || null" [readOnly]="isMatchFinished"
-        [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
+    @if (!isLoading && isAuthorized && match) {
+    <app-chat-box [title]="match.homeTeamName + ' vs ' + match.awayTeamName" [match]="match" [messages]="mappedMessages"
+        [currentUserId]="currentUser?.id || ''" [participants]="participants" [referee]="getReferee() || null"
+        [readOnly]="isMatchFinished" [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
         (schedule)="openScheduleModal()">
     </app-chat-box>
+    }
 
     <!-- Schedule Modal -->
     <app-modal [visible]="showScheduleModal" title="تحديد موعد اللقاء" icon="calendar_month"
-        (onClose)="closeScheduleModal()">
+        (closeRequest)="closeScheduleModal()">
         <div class="form-grid">
             <div class="form-field">
-                <label class="form-label">تاريخ اللقاء الجديد</label>
+                <span class="form-label">تاريخ اللقاء الجديد</span>
                 <app-form-control type="date" [(ngModel)]="scheduleDate" iconLeft="calendar_today"></app-form-control>
             </div>
             <div class="form-field">
-                <label class="form-label">وقت اللقاء</label>
+                <span class="form-label">وقت اللقاء</span>
                 <app-form-control type="time" [(ngModel)]="scheduleTime" iconLeft="schedule"></app-form-control>
             </div>
         </div>
@@ -29,13 +30,17 @@
     </app-modal>
 
     <!-- Loading State -->
-    <div *ngIf="isLoading" class="flex-center p-xl">
+    @if (isLoading) {
+    <div class="flex-center p-xl">
         <div class="spinner-lg"></div>
     </div>
+    }
 
     <!-- Unauthorized State -->
-    <div *ngIf="!isLoading && !isAuthorized" class="chat-unauthorized">
+    @if (!isLoading && !isAuthorized) {
+    <div class="chat-unauthorized">
         <h2>غير مصرح لك بالدخول</h2>
-        <app-button (onClick)="goBack()">العودة</app-button>
+        <app-button (trigger)="goBack()">العودة</app-button>
     </div>
+    }
 </div>

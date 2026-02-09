@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, effect, signal, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { Router } from '@angular/router';
@@ -15,7 +15,7 @@ import { Match } from '../../core/models/tournament.model';
 import { MatchStore } from '../../core/stores/match.store';
 import { TournamentStore } from '../../core/stores/tournament.store';
 import { UserStore } from '../../core/stores/user.store';
-import { ActivityStore } from '../../core/stores/activity.store';
+import { ActivityStore, StoreActivity } from '../../core/stores/activity.store';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -31,7 +31,8 @@ import { ActivityStore } from '../../core/stores/activity.store';
         CardComponent
     ],
     templateUrl: './dashboard.component.html',
-    styleUrls: ['./dashboard.component.scss']
+    styleUrls: ['./dashboard.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
@@ -44,20 +45,34 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private readonly activityStore = inject(ActivityStore);
     private readonly adminLayout = inject(AdminLayoutService);
 
-    stats: { label: string, value: string, icon: string, colorClass: string, route?: string }[] = [];
+    // Computed Stats from Stores
+    stats = computed(() => {
+        const totalUsers = this.userStore.totalUserCount();
+        const tournaments = this.tournamentStore.activeTournaments();
+        const matches = this.matchStore.matches();
+        const liveMatches = this.matchStore.ongoingMatches();
+        const loginsCount = this.loginsTodaySignal();
+        const teamsCount = this.totalTeamsSignal();
+        const refereesCount = this.totalRefereesSignal();
+
+        return [
+            { label: 'إجمالي المستخدمين', value: totalUsers.toString(), icon: 'groups', colorClass: 'info', route: '/admin/users' },
+            { label: 'الفرق المسجلة', value: teamsCount.toString(), icon: 'shield', colorClass: 'primary', route: '/admin/teams' },
+            { label: 'طاقم التحكيم', value: refereesCount.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/users' },
+            { label: 'نشاط الدخول اليوم', value: loginsCount.toString(), icon: 'login', colorClass: 'success', route: '/admin/activity-log' },
+            { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary', route: '/admin/tournaments' },
+            { label: 'المباريات اليوم', value: matches.length.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/matches' },
+            { label: 'المباريات الحية', value: liveMatches.length.toString(), icon: 'sensors', colorClass: 'danger', route: '/admin/matches' },
+            { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger', route: '/admin/objections' }
+        ];
+    });
+
     recentActivities: Activity[] = [];
     liveMatches: Match[] = [];
     loginsTodaySignal = signal(0);
     totalTeamsSignal = signal(0);
     totalRefereesSignal = signal(0);
 
-    constructor() {
-        // React to store changes for automatic updates
-        effect(() => {
-            this.updateStatsFromStores();
-            this.updateLiveMatchesFromStore();
-        });
-    }
 
     ngOnInit(): void {
         this.adminLayout.setTitle('منصة التحكم للمدير');
@@ -70,7 +85,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     private loadInitialData(): void {
-        // Load initial data into stores
         this.loadDashboardStats();
         this.loadActivities();
         this.loadLiveMatches();
@@ -79,61 +93,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private loadDashboardStats(): void {
         this.analyticsService.getDashboardStats().subscribe({
             next: (data: DashboardStats) => {
-                // Update stores with fresh data
-                this.userStore.setUsers(Array(data.totalUsers).fill({} as any)); // Simplified
+                this.userStore.setTotalUserCount(data.totalUsers);
                 this.loginsTodaySignal.set(data.loginsToday);
                 this.totalTeamsSignal.set(data.totalTeams);
                 this.totalRefereesSignal.set(data.totalReferees);
-
-                // Tournament store would be updated by tournament service
-                queueMicrotask(() => {
-                    this.updateStatsFromStores();
-                    this.cdr.detectChanges();
-                });
+                this.cdr.detectChanges();
             },
             error: () => {
-                queueMicrotask(() => {
-                    this.stats = [
-                        { label: 'إجمالي المستخدمين', value: '0', icon: 'groups', colorClass: 'info', route: '/admin/users' },
-                        { label: 'الفرق المسجلة', value: '0', icon: 'shield', colorClass: 'primary', route: '/admin/teams' },
-                        { label: 'طاقم التحكيم', value: '0', icon: 'sports_soccer', colorClass: 'gold', route: '/admin/users' },
-                        { label: 'نشاط الدخول اليوم', value: '0', icon: 'login', colorClass: 'success', route: '/admin/activity-log' },
-                        { label: 'البطولات النشطة', value: '0', icon: 'emoji_events', colorClass: 'primary', route: '/admin/tournaments' },
-                        { label: 'المباريات اليوم', value: '0', icon: 'sports_soccer', colorClass: 'gold', route: '/admin/matches' },
-                        { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger', route: '/admin/objections' }
-                    ];
-                    this.cdr.detectChanges();
-                });
+                this.userStore.setTotalUserCount(0);
+                this.cdr.detectChanges();
             }
         });
-    }
-
-    private updateStatsFromStores(): void {
-        const users = this.userStore.users();
-        const tournaments = this.tournamentStore.activeTournaments();
-        const matches = this.matchStore.matches();
-        const liveMatches = this.matchStore.ongoingMatches();
-        const loginsCount = this.loginsTodaySignal();
-        const teamsCount = this.totalTeamsSignal();
-        const refereesCount = this.totalRefereesSignal();
-
-        this.stats = [
-            { label: 'إجمالي المستخدمين', value: users.length.toString(), icon: 'groups', colorClass: 'info', route: '/admin/users' },
-            { label: 'الفرق المسجلة', value: teamsCount.toString(), icon: 'shield', colorClass: 'primary', route: '/admin/teams' },
-            { label: 'طاقم التحكيم', value: refereesCount.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/users' },
-            { label: 'نشاط الدخول اليوم', value: loginsCount.toString(), icon: 'login', colorClass: 'success', route: '/admin/activity-log' },
-            { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary', route: '/admin/tournaments' },
-            { label: 'المباريات اليوم', value: matches.length.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/matches' },
-            { label: 'المباريات الحية', value: liveMatches.length.toString(), icon: 'sensors', colorClass: 'danger', route: '/admin/matches' },
-            { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger', route: '/admin/objections' } // Would come from objections store
-        ];
     }
 
     private loadActivities(): void {
         this.analyticsService.getRecentActivities().subscribe({
             next: (data) => {
                 // Transform analytics activities to store format
-                const storeActivities: any[] = data.map(activity => ({
+                const storeActivities: StoreActivity[] = data.map(activity => ({
                     id: crypto.randomUUID(),
                     userId: '',
                     userName: activity.userName || 'System',
@@ -141,7 +118,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                     entityType: 'System',
                     entityId: '',
                     description: activity.message,
-                    timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(activity.time)
+                    timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(Date.now())
                 }));
                 this.activityStore.setActivities(storeActivities);
                 queueMicrotask(() => {

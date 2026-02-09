@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewChecked, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Match } from '../../../../core/models/tournament.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { IconButtonComponent } from '../../../../shared/components/icon-button/icon-button.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 
@@ -32,9 +33,9 @@ export interface ChatParticipant {
 })
 export class ChatBoxComponent implements OnInit, AfterViewChecked {
     @Input() title = 'المحادثة المباشرة';
-    @Input() match: any; // Using any for flexibility, better to define Match interface
+    @Input() match: Match | null = null;
     @Input() messages: ChatMessage[] = [];
-    @Input() currentUserId: string = '';
+    @Input() currentUserId = '';
     @Input() participants: ChatParticipant[] = [];
     @Input() referee: ChatParticipant | null = null;
     @Input() isLoading = false;
@@ -49,7 +50,7 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
 
     newMessage = '';
 
-    constructor(private router: Router) { }
+    private router = inject(Router);
 
     ngOnInit(): void {
         this.scrollToBottom();
@@ -61,8 +62,12 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
 
     scrollToBottom(): void {
         try {
-            this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
-        } catch (err) { }
+            if (this.scrollContainer) {
+                this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+            }
+        } catch {
+            // Container might not be available yet
+        }
     }
 
     sendMessage(): void {

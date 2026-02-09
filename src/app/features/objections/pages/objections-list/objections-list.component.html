@@ -1,73 +1,77 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
 </ng-template>
-
-<!-- Pending Status -->
-<ng-container *ngIf="isPending() && !isAdmin(); else mainContent">
-    <app-pending-status-card title="حسابك قيد المراجعة"
-        message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
-    </app-pending-status-card>
-</ng-container>
 
 <!-- Main Content -->
-<ng-template #mainContent>
-    <div class="flex-col gap-md">
-        <!-- Loading -->
-        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الاعتراضات..."></app-inline-loading>
+@if (isPending() && !isAdmin()) {
+<app-pending-status-card title="حسابك قيد المراجعة"
+    message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
+</app-pending-status-card>
+} @else {
+<div class="flex-col gap-md">
+    <!-- Loading -->
+    @if (isLoading()) {
+    <app-inline-loading message="جاري تحميل الاعتراضات..."></app-inline-loading>
+    }
 
-        <!-- Empty State -->
-        <app-empty-state
-            *ngIf="!isLoading() && (isAdmin() ? filteredObjections().length === 0 : objections().length === 0) && !showForm"
-            icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
-            [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
-        </app-empty-state>
+    <!-- Empty State -->
+    @if (!isLoading() && (isAdmin() ? filteredObjections().length === 0 : objections().length === 0) && !showForm) {
+    <app-empty-state icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
+        [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
+    </app-empty-state>
+    }
 
-        <!-- Admin: Table View -->
-        <div *ngIf="!isLoading() && isAdmin() && filteredObjections().length > 0"
-            class="card p-0 overflow-hidden objections-table-card">
-            <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()">
-            </app-table>
-        </div>
-
-        <!-- Captain: Card View -->
-        <div *ngIf="!isLoading() && !isAdmin() && filteredObjections().length > 0"
-            style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <app-card *ngFor="let objection of filteredObjections()" class="objection-item-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
-                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ objection.tournamentName }}
-                        </h3>
-                    </div>
-                    <app-badge
-                        [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
-                        {{ getStatusLabel(objection.status) }}
-                    </app-badge>
-                </div>
-
-                <div class="objection-description">
-                    {{ objection.description }}
-                </div>
-
-                <div class="objection-meta">
-                    <span><span class="material-symbols-outlined">sports_soccer</span> المباراة: {{
-                        objection.homeTeamName }} vs {{ objection.awayTeamName }}</span>
-                    <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
-                        date:'yyyy/MM/dd' }}</span>
-                </div>
-
-                <div *ngIf="objection.adminNotes" class="admin-response">
-                    <div class="response-header">
-                        <span class="material-symbols-outlined">feedback</span>
-                        قرار اللجنة
-                    </div>
-                    <p>{{ objection.adminNotes }}</p>
-                </div>
-            </app-card>
-        </div>
+    <!-- Admin: Table View -->
+    @if (!isLoading() && isAdmin() && filteredObjections().length > 0) {
+    <div class="card p-0 overflow-hidden objections-table-card">
+        <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()">
+        </app-table>
     </div>
-</ng-template>
+    }
+
+    <!-- Captain: Card View -->
+    @if (!isLoading() && !isAdmin() && filteredObjections().length > 0) {
+    <div class="objections-card-list">
+        @for (objection of filteredObjections(); track objection.id) {
+        <app-card class="objection-item-card">
+            <div class="objection-card-header">
+                <div class="objection-type-info">
+                    <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
+                    <h3 class="objection-tournament-name">{{ objection.tournamentName }}</h3>
+                </div>
+                <app-badge
+                    [type]="objection.status === ObjectionStatus.APPROVED ? 'success' : objection.status === ObjectionStatus.REJECTED ? 'danger' : 'warning'">
+                    {{ getStatusLabel(objection.status) }}
+                </app-badge>
+            </div>
+
+            <div class="objection-description">
+                {{ objection.description }}
+            </div>
+
+            <div class="objection-meta">
+                <span><span class="material-symbols-outlined">sports_soccer</span> المباراة: {{
+                    objection.homeTeamName }} vs {{ objection.awayTeamName }}</span>
+                <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
+                    date:'yyyy/MM/dd' }}</span>
+            </div>
+
+            @if (objection.adminNotes) {
+            <div class="admin-response">
+                <div class="response-header">
+                    <span class="material-symbols-outlined">feedback</span>
+                    قرار اللجنة
+                </div>
+                <p>{{ objection.adminNotes }}</p>
+            </div>
+            }
+        </app-card>
+        }
+    </div>
+    }
+</div>
+}
 
 <!-- Templates for table columns -->
 <ng-template #matchInfo let-row="row">
@@ -102,13 +106,13 @@
         </app-button>
 
         <!-- Quick Actions (Only for pending) -->
-        <ng-container *ngIf="canPerformQuickAction(row.status)">
-            <app-button variant="icon" size="sm" icon="check_circle" class="text-success"
-                (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.APPROVED)" title="قبول سريع">
-            </app-button>
-            <app-button variant="icon" size="sm" icon="cancel" class="text-danger"
-                (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.REJECTED)" title="رفض سريع">
-            </app-button>
-        </ng-container>
+        @if (canPerformQuickAction(row.status)) {
+        <app-button variant="icon" size="sm" icon="check_circle" class="text-success"
+            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.APPROVED)" title="قبول سريع">
+        </app-button>
+        <app-button variant="icon" size="sm" icon="cancel" class="text-danger"
+            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.REJECTED)" title="رفض سريع">
+        </app-button>
+        }
     </div>
 </ng-template>

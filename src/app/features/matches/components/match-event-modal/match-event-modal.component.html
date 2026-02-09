@@ -1,9 +1,8 @@
-<app-modal [visible]="visible" title="تسجيل حدث جديد" icon="edit_note" (onClose)="cancel()" size="lg">
-
+<app-modal [visible]="visible" title="تسجيل حدث جديد" icon="edit_note" (closeRequest)="cancel()" size="lg">
     <div class="form-grid">
         <!-- Event Type -->
         <div class="form-field">
-            <label class="form-label">نوع الحدث</label>
+            <span class="form-label">نوع الحدث</span>
             <app-select [options]="eventTypeOptions" [ngModel]="eventForm.type" (ngModelChange)="onTypeChange($event)"
                 placeholder="اختر الحدث">
             </app-select>
@@ -11,7 +10,7 @@
 
         <!-- Team Selection -->
         <div class="form-field">
-            <label class="form-label">الفريق</label>
+            <span class="form-label">الفريق</span>
             <app-select [options]="teamOptions" [ngModel]="eventForm.teamId" (ngModelChange)="onTeamChange($event)"
                 placeholder="اختر الفريق">
             </app-select>
@@ -21,25 +20,25 @@
     <!-- Row for Player and Minute -->
     <div class="form-grid mt-4">
         <!-- Player Selection -->
-        <div class="form-field" style="flex: 2;">
-            <label class="form-label">اسم اللاعب</label>
+        <div class="form-field flex-2">
+            <span class="form-label">اسم اللاعب</span>
             <app-select [options]="playerOptions" [ngModel]="eventForm.playerId"
                 (ngModelChange)="onPlayerChange($event)" placeholder="اختر اللاعب" [disabled]="isPlayersLoading">
             </app-select>
         </div>
 
         <!-- Minute -->
-        <div class="form-field" style="flex: 1;">
-            <label class="form-label">الدقيقة</label>
+        <div class="form-field flex-1">
+            <span class="form-label">الدقيقة</span>
             <input type="number" [(ngModel)]="eventForm.minute" class="form-input" min="0" max="150" placeholder="0">
         </div>
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">
-        <app-button variant="ghost" (onClick)="cancel()" [disabled]="isSubmitting">
+        <app-button variant="ghost" (trigger)="cancel()" [disabled]="isSubmitting">
             إلغاء
         </app-button>
-        <app-button variant="primary" (onClick)="submit()" [isLoading]="isSubmitting" icon="add">
+        <app-button variant="primary" (trigger)="submit()" [isLoading]="isSubmitting" icon="add">
             تسجيل الحدث
         </app-button>
     </div>

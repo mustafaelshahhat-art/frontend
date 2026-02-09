@@ -1,47 +1,60 @@
 <!-- Actions Template -->
 <ng-template #actions>
-    <app-button *ngIf="isAdmin()" (click)="createNewTournament()" icon="add_circle">
+    @if (isAdmin()) {
+    <app-button (click)="createNewTournament()" icon="add_circle">
         بطولة جديدة
     </app-button>
+    }
 </ng-template>
 
 <!-- Filters Template -->
 <ng-template #filtersRef>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)">
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)">
     </app-filter>
 </ng-template>
 
 <!-- Main Content -->
 <!-- Loading State -->
-<app-inline-loading *ngIf="isLoading()" message="جاري تحميل البطولات...">
+@if (isLoading()) {
+<app-inline-loading message="جاري تحميل البطولات...">
 </app-inline-loading>
+}
 
 <!-- Empty States Based on Context -->
-<ng-container *ngIf="!isLoading() && filteredTournaments().length === 0">
-    <!-- No tournaments at all -->
-    <app-empty-state *ngIf="tournaments().length === 0" icon="emoji_events" title="لا توجد بطولات حالياً"
-        description="ترقبوا الإعلانات القادمة! سيتم الإعلان عن بطولات جديدة قريباً.">
-    </app-empty-state>
+@if (!isLoading() && filteredTournaments().length === 0) {
+<!-- No tournaments at all -->
+@if (tournaments().length === 0) {
+<app-empty-state icon="emoji_events" title="لا توجد بطولات حالياً"
+    description="ترقبوا الإعلانات القادمة! سيتم الإعلان عن بطولات جديدة قريباً.">
+</app-empty-state>
+}
 
-    <!-- Filter returned no results -->
-    <app-empty-state *ngIf="tournaments().length > 0" icon="filter_alt_off" title="لا توجد نتائج"
-        [description]="getEmptyFilterMessage()">
-    </app-empty-state>
-</ng-container>
+<!-- Filter returned no results -->
+@if (tournaments().length > 0) {
+<app-empty-state icon="filter_alt_off" title="لا توجد نتائج" [description]="getEmptyFilterMessage()">
+</app-empty-state>
+}
+}
 
 <!-- Tournaments Grid -->
-<div *ngIf="!isLoading() && filteredTournaments().length > 0" class="tournaments-grid">
-    <app-tournament-card *ngFor="let tournament of filteredTournaments(); trackBy: trackById" [tournament]="tournament"
-        [showRegisterButton]="isCaptain()" [showNonOwnerHint]="!isCaptain() && hasTeam()" [isBusy]="isTeamBusy()"
-        [isTeamDisabled]="isTeamDisabled()" (viewDetails)="viewDetails($event)" (register)="registerTeam($event)">
+@if (!isLoading() && filteredTournaments().length > 0) {
+<div class="tournaments-grid">
+    @for (tournament of filteredTournaments(); track tournament.id) {
+    <app-tournament-card [tournament]="tournament" [showRegisterButton]="isCaptain()"
+        [showNonOwnerHint]="!isCaptain() && hasTeam()" [isBusy]="isTeamBusy()" [isTeamDisabled]="isTeamDisabled()"
+        (viewDetails)="viewDetails($event)" (register)="registerTeam($event)">
     </app-tournament-card>
+    }
 </div>
+}
 
 <!-- Player Non-Owner Info Banner -->
-<div *ngIf="isPlayerWithoutTeam() && !isLoading() && filteredTournaments().length > 0" class="player-info-banner">
+@if (isPlayerWithoutTeam() && !isLoading() && filteredTournaments().length > 0) {
+<div class="player-info-banner">
     <span class="material-symbols-outlined">info</span>
     <p>أنت مسجل كلاعب. يجب إنشاء فريق أولاً لتتمكن من التسجيل في البطولات.</p>
 </div>
+}
 
 <!-- Full Registration Modal (Shared) -->
 <app-team-registration-modal [tournament]="selectedTournamentForRegistration" [isVisible]="isRegistrationModalVisible"

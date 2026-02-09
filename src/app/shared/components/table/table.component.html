@@ -3,40 +3,56 @@
         <table [class.hoverable]="hoverable" [class.striped]="striped">
             <thead>
                 <tr>
-                    <th *ngFor="let col of columns" [style.width]="col.width">
+                    @for (col of columns; track col.key) {
+                    <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
+                    <th [style.width]="col.width">
                         {{ col.label }}
                     </th>
+                    }
                 </tr>
             </thead>
 
-            <tbody *ngIf="!loading && data.length > 0">
-                <tr *ngFor="let row of data; let i = index">
-                    <td *ngFor="let col of columns">
-                        <ng-container *ngIf="col.template; else defaultCell">
-                            <ng-container
-                                *ngTemplateOutlet="col.template; context: { $implicit: row, row: row, index: i }"></ng-container>
-                        </ng-container>
-                        <ng-template #defaultCell>
-                            {{ getCellValue(row, col.key) }}
-                        </ng-template>
+            @if (!loading && data.length > 0) {
+            <tbody>
+                @for (row of data; track i; let i = $index) {
+                <tr>
+                    @for (col of columns; track col.key) {
+                    <td>
+                        @if (col.template) {
+                        <ng-container
+                            *ngTemplateOutlet="col.template; context: { $implicit: row, row: row, index: i }"></ng-container>
+                        } @else {
+                        {{ getCellValue(row, col.key) }}
+                        }
                     </td>
+                    }
                 </tr>
+                }
             </tbody>
+            }
 
-            <tbody *ngIf="loading">
-                <tr *ngFor="let i of [1,2,3,4,5]">
-                    <td *ngFor="let col of columns">
+            @if (loading) {
+            <tbody>
+                @for (i of [1,2,3,4,5]; track i) {
+                <tr>
+                    @for (col of columns; track col.key) {
+                    <td>
                         <div class="skeleton-text"></div>
                     </td>
+                    }
                 </tr>
+                }
             </tbody>
+            }
         </table>
     </div>
 
-    <div class="empty-state" *ngIf="!loading && data.length === 0">
+    @if (!loading && data.length === 0) {
+    <div class="empty-state">
         <div class="empty-icon">
             <span class="material-symbols-outlined">inbox</span>
         </div>
         <span class="empty-text">{{ emptyMessage }}</span>
     </div>
+    }
 </div>

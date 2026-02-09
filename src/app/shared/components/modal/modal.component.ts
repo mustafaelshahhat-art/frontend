@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './modal.component.html',
-    styleUrls: ['./modal.component.scss']
+    styleUrls: ['./modal.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ModalComponent {
     @Input() visible = false;
@@ -17,9 +18,15 @@ export class ModalComponent {
     @Input() hasFooter = true;
     @Input() closeOnOverlay = true;
 
-    @Output() onClose = new EventEmitter<void>();
+    @Output() closeRequest = new EventEmitter<void>();
 
     close() {
-        this.onClose.emit();
+        this.closeRequest.emit();
+    }
+
+    onBackdropClick(event: MouseEvent) {
+        if (this.closeOnOverlay && event.target === event.currentTarget) {
+            this.close();
+        }
     }
 }

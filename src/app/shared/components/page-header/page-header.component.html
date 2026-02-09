@@ -1,11 +1,14 @@
 <div class="page-header" [class.page-glow-top]="showGradient">
     <div class="header-content">
-        <app-button *ngIf="showBack" variant="ghost" size="sm" icon="arrow_forward" (click)="back.emit()"
-            style="margin-right: -0.5rem;"></app-button>
+        @if (showBack) {
+        <app-button variant="ghost" size="sm" icon="arrow_forward" (click)="back.emit()" class="back-btn"></app-button>
+        }
 
         <div class="title-wrapper">
             <h1 class="page-title">{{ title }}</h1>
-            <p class="page-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+            @if (subtitle) {
+            <p class="page-subtitle">{{ subtitle }}</p>
+            }
         </div>
 
         <ng-content select="[breadcrumbs]"></ng-content>

@@ -17,30 +17,39 @@
                 <!-- Identity Details -->
                 <div class="flex-1">
                     <div class="flex items-center gap-4 mb-3 mobile-center">
-                        <ng-container *ngIf="!isEditingName">
-                            <h1 class="text-4xl font-super-black text-primary mb-0 tracking-tighter">{{ team.name }}
-                            </h1>
-                            <app-button *ngIf="canEditName" (click)="startEditName()" variant="ghost" size="sm"
-                                icon="edit" class="text-primary-light"></app-button>
-                            <app-button *ngIf="canDeleteTeam" (click)="onDeleteTeamClick()" variant="danger-ghost"
-                                size="sm" icon="delete" title="حذف الفريق"></app-button>
-                        </ng-container>
+                        @if (!isEditingName) {
+                        <h1 class="text-4xl font-super-black text-primary mb-0 tracking-tighter">{{ team.name }}
+                        </h1>
+                        @if (canEditName) {
+                        <app-button (click)="startEditName()" variant="ghost" size="sm" icon="edit"
+                            class="text-primary-light"></app-button>
+                        }
+                        @if (canDeleteTeam) {
+                        <app-button (click)="onDeleteTeamClick()" variant="danger-ghost" size="sm" icon="delete"
+                            title="حذف الفريق"></app-button>
+                        }
+                        }
 
-                        <div *ngIf="isEditingName" class="flex items-center gap-2">
+                        @if (isEditingName) {
+                        <div class="flex items-center gap-2">
+                            <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
                             <input [(ngModel)]="tempName"
                                 class="text-4xl font-super-black text-primary bg-surface border-primary rounded-xl px-3 outline-none"
-                                style="width: auto; max-width: 300px;">
+                                [style.width]="'auto'" [style.max-width.px]="300">
                             <app-button (click)="saveName()" variant="primary" size="sm" icon="check"></app-button>
                             <app-button (click)="cancelEdit()" variant="ghost" size="sm" icon="close"></app-button>
                         </div>
+                        }
 
                         <app-badge [type]="team.status === 'READY' ? 'success' : 'warning'" [dot]="true"
                             [dotType]="team.status === 'READY' ? 'active' : 'pending'" class="px-3">
                             {{ team.status === 'READY' ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
                         </app-badge>
 
-                        <app-button *ngIf="canManageStatus && team.isActive" (click)="onDisableTeamClick()"
-                            variant="danger" size="sm" icon="block" class="ms-auto">تعطيل الفريق</app-button>
+                        @if (canManageStatus && team.isActive) {
+                        <app-button (click)="onDisableTeamClick()" variant="danger" size="sm" icon="block"
+                            class="ms-auto">تعطيل الفريق</app-button>
+                        }
                     </div>
 
                     <div class="flex items-center gap-lg flex-wrap mobile-center">
@@ -58,8 +67,8 @@
         </div>
 
         <!-- Team Disabled Banner -->
-        <div *ngIf="!team.isActive"
-            class="card bg-danger bg-opacity-10 border-danger border-opacity-20 p-lg animate-pulse-subtle">
+        @if (!team.isActive) {
+        <div class="card bg-danger bg-opacity-10 border-danger border-opacity-20 p-lg animate-pulse-subtle">
             <div class="flex items-center gap-4 text-danger">
                 <span class="material-symbols-outlined text-3xl">warning</span>
                 <div class="flex-col">
@@ -69,17 +78,21 @@
                 </div>
             </div>
         </div>
+        }
 
         <!-- Tabbed Content Section -->
         <div class="tabs-scroll-container">
-            <app-filter [items]="filteredTabs" [activeValue]="activeTab" (change)="onTabChange($event)"></app-filter>
+            <app-filter [items]="filteredTabs" [activeValue]="activeTab"
+                (filterChange)="onTabChange($event)"></app-filter>
         </div>
 
         <!-- Dynamic Content Area -->
-        <div [ngSwitch]="activeTab" class="animate-fade-in-up">
+        <div class="animate-fade-in-up">
+            @switch (activeTab) {
 
             <!-- Overview Tab (Stats Dashboard) -->
-            <div *ngSwitchCase="'overview'" class="flex-col gap-lg">
+            @case ('overview') {
+            <div class="flex-col gap-lg">
                 <div class="grid-stats">
                     <div class="stat-card">
                         <div class="stat-card-decoration"><span class="material-symbols-outlined">sports_soccer</span>
@@ -133,15 +146,20 @@
                     </div>
                 </div>
             </div>
+            }
 
             <!-- Players Tab (Grid View) -->
-            <div *ngSwitchCase="'players'" class="flex-col gap-md">
-                <div *ngIf="canAddPlayers" class="flex justify-end mb-4">
+            @case ('players') {
+            <div class="flex-col gap-md">
+                @if (canAddPlayers) {
+                <div class="flex justify-end mb-4">
                     <app-button (click)="onAddPlayerClick()" variant="primary" icon="person_add">إضافة لاعب
                         جديد</app-button>
                 </div>
+                }
                 <div class="grid-2-cols gap-md">
-                    <div *ngFor="let player of team.players" class="player-mobile-card p-3">
+                    @for (player of team.players; track player.id) {
+                    <div class="player-mobile-card p-3">
                         <div class="flex items-center gap-4">
                             <div class="player-avatar-pill">
                                 <app-smart-image [src]="null" type="avatar" size="sm"
@@ -165,36 +183,45 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <ng-container *ngIf="canManageStatus">
-                                            <app-button *ngIf="player.status !== 'active'"
-                                                (click)="requestPlayerAction(player, 'activate')" variant="ghost"
-                                                size="sm" icon="check_circle" class="text-success"></app-button>
-                                            <app-button *ngIf="player.status === 'active'"
-                                                (click)="requestPlayerAction(player, 'deactivate')" variant="ghost"
-                                                size="sm" icon="block" class="text-warning"></app-button>
-                                            <app-button (click)="requestPlayerAction(player, 'ban')" variant="ghost"
-                                                size="sm" icon="person_off" class="text-danger"></app-button>
-                                        </ng-container>
+                                        @if (canManageStatus) {
+                                        @if (player.status !== 'active') {
+                                        <app-button (click)="requestPlayerAction(player, 'activate')" variant="ghost"
+                                            size="sm" icon="check_circle" class="text-success"></app-button>
+                                        }
+                                        @if (player.status === 'active') {
+                                        <app-button (click)="requestPlayerAction(player, 'deactivate')" variant="ghost"
+                                            size="sm" icon="block" class="text-warning"></app-button>
+                                        }
+                                        <app-button (click)="requestPlayerAction(player, 'ban')" variant="ghost"
+                                            size="sm" icon="person_off" class="text-danger"></app-button>
+                                        }
 
-                                        <app-button *ngIf="canRemovePlayers && player.id !== team.captainId"
-                                            (click)="requestPlayerAction(player, 'remove')" variant="ghost" size="sm"
-                                            icon="delete" class="text-danger"></app-button>
+                                        @if (canRemovePlayers && player.id !== team.captainId) {
+                                        <app-button (click)="requestPlayerAction(player, 'remove')" variant="ghost"
+                                            size="sm" icon="delete" class="text-danger"></app-button>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    }
                 </div>
             </div>
+            }
 
             <!-- Matches Tab (Match Cards) -->
-            <div *ngSwitchCase="'matches'" class="flex-col gap-4">
-                <div *ngIf="!team.matches || team.matches.length === 0" class="empty-state p-xl text-center">
+            @case ('matches') {
+            <div class="flex-col gap-4">
+                @if (!team.matches || team.matches.length === 0) {
+                <div class="empty-state p-xl text-center">
                     <span class="material-symbols-outlined text-4xl opacity-20 mb-4">sports_soccer</span>
                     <p class="text-muted">لا يوجد مباريات مسجلة حالياً</p>
                 </div>
+                }
 
-                <div *ngFor="let match of team.matches" class="card p-0 overflow-hidden match-pro-card">
+                @for (match of team.matches; track match.id) {
+                <div class="card p-0 overflow-hidden match-pro-card">
                     <div class="match-card-header flex-between p-3">
                         <div class="flex items-center gap-2">
                             <app-badge type="gold" class="text-2xs px-2">{{ match.type }}</app-badge>
@@ -235,17 +262,23 @@
                         </div>
                     </div>
                 </div>
+                }
             </div>
+            }
 
             <!-- Finances Tab (Financial Grid) -->
-            <div *ngSwitchCase="'finances'" class="flex-col gap-md">
-                <div *ngIf="!team.finances || team.finances.length === 0" class="empty-state p-xl text-center">
+            @case ('finances') {
+            <div class="flex-col gap-md">
+                @if (!team.finances || team.finances.length === 0) {
+                <div class="empty-state p-xl text-center">
                     <span class="material-symbols-outlined text-4xl opacity-20 mb-4">account_balance_wallet</span>
                     <p class="text-muted">لا يوجد سجل مالي حالياً</p>
                 </div>
+                }
 
                 <div class="grid-2-cols gap-md">
-                    <div *ngFor="let entry of team.finances" class="card p-md finance-entry">
+                    @for (entry of team.finances; track entry.id) {
+                    <div class="card p-md finance-entry">
                         <div class="flex-between items-center mb-4">
                             <div class="flex flex-col">
                                 <span class="text-xs text-muted font-bold mb-1">{{ entry.date | date:'y/MM/dd'
@@ -263,21 +296,26 @@
                             </div>
                         </div>
                     </div>
+                    }
                 </div>
             </div>
+            }
 
             <!-- Requests/Invitations Tab -->
-            <div *ngSwitchCase="'requests'" class="flex-col gap-4">
-                <div *ngIf="!team.invitations || team.invitations.length === 0" class="empty-state p-xl text-center">
+            @case ('requests') {
+            <div class="flex-col gap-4">
+                @if (!team.invitations || team.invitations.length === 0) {
+                <div class="empty-state p-xl text-center">
                     <span class="material-symbols-outlined text-4xl opacity-20 mb-4">mail_outline</span>
                     <p class="text-muted">لا يوجد طلبات أو دعوات معلقة حالياً</p>
                 </div>
+                }
 
-                <div *ngFor="let request of team.invitations"
-                    class="card p-md flex-between items-center animate-fade-in">
+                @for (request of team.invitations; track request.id) {
+                <div class="card p-md flex-between items-center animate-fade-in">
                     <div class="flex items-center gap-3">
                         <app-smart-image [src]="null" type="avatar" size="sm"
-                            [initials]="request.playerName?.charAt(0) || 'P'">
+                            [initials]="request.playerName.charAt(0) || 'P'">
                         </app-smart-image>
                         <div class="flex-col">
                             <span class="font-bold">{{ request.playerName }}</span>
@@ -290,22 +328,26 @@
                             {{ request.status === 'pending' ? 'بانتظار الرد' : request.status }}
                         </app-badge>
 
-                        <div *ngIf="canManageInvitations && request.status === 'pending' && request.initiatedByPlayer"
-                            class="flex gap-1">
+                        @if (canManageInvitations && request.status === 'pending') {
+                        <div class="flex gap-1">
                             <app-button (click)="onRespondRequest(request, true)" variant="ghost" size="sm" icon="check"
                                 class="text-success"></app-button>
                             <app-button (click)="onRespondRequest(request, false)" variant="ghost" size="sm"
                                 icon="close" class="text-danger"></app-button>
                         </div>
+                        }
                     </div>
                 </div>
+                }
             </div>
+            }
+            }
 
         </div>
     </div>
 
     <!-- Modal: Add Player by ID -->
-    <app-modal [visible]="isInviteModalOpen" title="إضافة لاعب جديد" (onClose)="closeInviteModal()">
+    <app-modal [visible]="isInviteModalOpen" title="إضافة لاعب جديد" (closeRequest)="closeInviteModal()">
 
         <div class="flex-col gap-4">
             <p class="text-muted text-sm mb-2">

@@ -1,36 +1,44 @@
 <header class="header">
 
-    <div class="header-main-group">
-        <!-- Menu Button (Mobile) -->
-        <button *ngIf="isMobile" (click)="handleToggleSidebar()" class="header-menu-btn">
-            <span class="material-symbols-outlined">menu_open</span>
-        </button>
+  <div class="header-main-group">
+    <!-- Menu Button (Mobile) -->
+    @if (isMobile) {
+    <button (click)="handleToggleSidebar()" class="header-menu-btn">
+      <span class="material-symbols-outlined">menu_open</span>
+    </button>
+    }
 
-        <!-- Breadcrumbs/Title -->
-        <div *ngIf="windowSize >= 768" class="flex items-center gap-3">
-            <h2 class="header-title">{{ title }}</h2>
-            <ng-content select="[breadcrumbs]"></ng-content>
-        </div>
+    <!-- Breadcrumbs/Title -->
+    @if (windowSize >= 768) {
+    <div class="flex items-center gap-3">
+      <h2 class="header-title">{{ title }}</h2>
+      <ng-content select="[breadcrumbs]"></ng-content>
+    </div>
+    }
 
-        <!-- Search Bar (Responsive) -->
-        <app-search *ngIf="windowSize >= 640" placeholder="البحث...">
-        </app-search>
+    <!-- Search Bar (Responsive) -->
+    @if (windowSize >= 640) {
+    <app-search placeholder="البحث...">
+    </app-search>
+    }
+  </div>
+
+  <div class="header-actions">
+    <!-- Notifications Button -->
+    <div class="relative notifications-wrapper">
+      <button (click)="toggleNotifications()" class="header-btn">
+        <span class="material-symbols-outlined text-xl">notifications</span>
+        @if (unreadCount > 0) {
+        <span class="header-btn-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+        }
+      </button>
+
+      <!-- Notifications Dropdown -->
+      <app-notifications-dropdown [isOpen]="showNotifications" [isMobile]="isMobile" [unreadCount]="unreadCount"
+        [notifications]="notifications" (dropdownClosed)="showNotifications = false"
+        (viewNotification)="handleViewNotification($event)" (viewAll)="handleViewAllNotifications()">
+      </app-notifications-dropdown>
     </div>
 
-    <div class="header-actions">
-        <!-- Notifications Button -->
-        <div class="relative notifications-wrapper">
-            <button (click)="toggleNotifications()" class="header-btn">
-                <span class="material-symbols-outlined text-xl">notifications</span>
-                <span *ngIf="unreadCount > 0" class="header-btn-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-            </button>
-
-            <!-- Notifications Dropdown -->
-            <app-notifications-dropdown [isOpen]="showNotifications" [isMobile]="isMobile" [unreadCount]="unreadCount"
-                [notifications]="notifications" (close)="showNotifications = false"
-                (viewNotification)="handleViewNotification($event)" (viewAll)="handleViewAllNotifications()">
-            </app-notifications-dropdown>
-        </div>
-
-    </div>
+  </div>
 </header>

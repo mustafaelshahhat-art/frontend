@@ -1,15 +1,17 @@
 <!-- Actions Template -->
 <ng-template #actionsTemplate>
-    <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary" icon="person_add">
+    @if (userType() === 'admins') {
+    <app-button (click)="openAddAdminModal()" variant="primary" icon="person_add">
         إضافة مشرف
     </app-button>
+    }
 </ng-template>
 
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
     <div class="flex flex-col gap-md w-full items-start">
-        <app-filter [items]="userTypeTabs" [activeValue]="userType()" (change)="setUserType($event)"></app-filter>
-        <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+        <app-filter [items]="userTypeTabs" [activeValue]="userType()" (filterChange)="setUserType($event)"></app-filter>
+        <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
     </div>
 </ng-template>
 
@@ -33,7 +35,9 @@
             <div class="flex-col">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-sm">{{ row.name }}</span>
-                    <app-badge *ngIf="row.role === 'Player' && row.isTeamOwner" type="gold" size="xs">قائد</app-badge>
+                    @if (row.role === 'Player' && row.isTeamOwner) {
+                    <app-badge type="gold" size="xs">قائد</app-badge>
+                    }
                 </div>
                 <span class="text-xs text-muted">ID: #{{ row.displayId }}</span>
             </div>
@@ -62,36 +66,37 @@
     <ng-template #actionsInfo let-row="row">
         <div class="flex items-center justify-center gap-2">
             <!-- Approve/Activate (Pending or Suspended users) -->
-            <app-button *ngIf="row.status === 'Pending' || row.status === 'Suspended'" (click)="approveUser(row)"
-                variant="ghost" size="sm" icon="check_circle" class="text-success"
+            @if (row.status === 'Pending' || row.status === 'Suspended') {
+            <app-button (click)="approveUser(row)" variant="ghost" size="sm" icon="check_circle" class="text-success"
                 [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'">
             </app-button>
+            }
 
             <!-- View -->
             <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility" class="text-info">
             </app-button>
 
-
-
             <!-- Suspend (with last admin protection) -->
-            <ng-container *ngIf="row.status !== 'Suspended'">
-                <app-button *ngIf="!isLastAdmin(row)" (click)="suspendUser(row)" variant="ghost" size="sm" icon="block"
-                    class="text-gold">
-                </app-button>
-                <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
-                    <span class="material-symbols-outlined text-muted">lock</span>
-                </span>
-            </ng-container>
+            @if (row.status !== 'Suspended') {
+            @if (!isLastAdmin(row)) {
+            <app-button (click)="suspendUser(row)" variant="ghost" size="sm" icon="block" class="text-gold">
+            </app-button>
+            } @else {
+            <span class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
+                <span class="material-symbols-outlined text-muted">lock</span>
+            </span>
+            }
+            }
 
             <!-- Delete (with last admin protection) -->
-            <ng-container>
-                <app-button *ngIf="!isLastAdmin(row)" (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete"
-                    class="text-danger">
-                </app-button>
-                <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن حذف آخر مشرف">
-                    <span class="material-symbols-outlined text-muted">shield</span>
-                </span>
-            </ng-container>
+            @if (!isLastAdmin(row)) {
+            <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger">
+            </app-button>
+            } @else {
+            <span class="last-admin-note" title="لا يمكن حذف آخر مشرف">
+                <span class="material-symbols-outlined text-muted">shield</span>
+            </span>
+            }
         </div>
     </ng-template>
 
@@ -109,7 +114,7 @@
 
 <!-- Add Admin Modal -->
 <app-modal [visible]="showAddAdminModal()" title="إضافة مشرف جديد" icon="person_add" size="md"
-    (onClose)="closeAddAdminModal()">
+    (closeRequest)="closeAddAdminModal()">
 
     <form [formGroup]="adminForm" class="flex-col gap-lg">
         <!-- Full Name -->
@@ -129,8 +134,8 @@
 
         <!-- Status -->
         <div class="form-group">
-            <label class="form-label">حالة الحساب</label>
-            <div class="status-options">
+            <span id="statusLabel" class="form-label">حالة الحساب</span>
+            <div class="status-options" role="radiogroup" aria-labelledby="statusLabel">
                 <label class="status-option" [class.active]="adminForm.get('status')?.value === 'Active'">
                     <input type="radio" formControlName="status" value="Active">
                     <span class="status-dot active"></span>

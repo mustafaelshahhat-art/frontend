@@ -1,15 +1,17 @@
-<app-modal [visible]="visible" title="تقديم اعتراض" icon="gavel" (onClose)="close()" size="lg">
+<app-modal [visible]="visible" title="تقديم اعتراض" icon="gavel" (closeRequest)="close()" size="lg">
     <div class="objection-form-content">
         <!-- Header Info -->
-        <div class="mb-4" *ngIf="match">
+        @if (match) {
+        <div class="mb-4">
             <p class="text-secondary">{{ match.homeTeamName }} vs {{ match.awayTeamName }}</p>
             <p class="text-xs text-muted">{{ match.tournamentName }}</p>
         </div>
+        }
 
         <div class="form-grid">
             <!-- Objection Type -->
             <div class="form-field full-width">
-                <label class="form-label">نوع الاعتراض</label>
+                <span class="form-label">نوع الاعتراض</span>
                 <app-select [options]="objectionTypeOptions" [(ngModel)]="objectionForm.type"
                     placeholder="اختر نوع الاعتراض">
                 </app-select>
@@ -17,7 +19,7 @@
 
             <!-- Description -->
             <div class="form-field full-width">
-                <label class="form-label">شرح الاعتراض</label>
+                <span class="form-label">شرح الاعتراض</span>
                 <app-form-control type="textarea" [(ngModel)]="objectionForm.description" [rows]="4"
                     placeholder="اشرح سبب الاعتراض بالتفصيل...">
                 </app-form-control>
@@ -33,8 +35,8 @@
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">
-        <app-button (click)="close()" variant="ghost" [disabled]="isSubmitting()">إلغاء</app-button>
-        <app-button (click)="submit()" variant="primary" icon="send"
+        <app-button (trigger)="close()" variant="ghost" [disabled]="isSubmitting()">إلغاء</app-button>
+        <app-button (trigger)="submit()" variant="primary" icon="send"
             [disabled]="!objectionForm.type || !objectionForm.description || isSubmitting()"
             [isLoading]="isSubmitting()">
             إرسال الاعتراض

@@ -4,7 +4,7 @@
   <div class="ramadan-pattern absolute inset-0"></div>
 
   <!-- Login Card -->
-  <div class="auth-card relative z-10 w-full animate-fade-in-up">
+  <div class="auth-card relative z-10 w-full" [class.animate-fade-in-up]="isPageReady()">
 
     <!-- Header Section -->
     <header class="text-center mb-2xl">
@@ -17,15 +17,19 @@
 
     <div class="auth-card-body">
       <!-- Maintenance Mode Alert -->
-      <app-alert *ngIf="isMaintenanceMode()" type="warning" title="وضع الصيانة" icon="build" class="mb-lg">
+      @if (isMaintenanceMode()) {
+      <app-alert type="warning" title="وضع الصيانة" icon="build" class="mb-lg">
         النظام تحت الصيانة حالياً. الدخول متاح لمديري النظام فقط.
       </app-alert>
+      }
 
       <!-- Error Alert -->
-      <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" [autoDismiss]="5000"
-        (onClose)="errorMessage.set(null)" class="mb-lg">
+      @if (errorMessage()) {
+      <app-alert type="danger" [dismissible]="true" [autoDismiss]="5000" (dismissed)="errorMessage.set(null)"
+        class="mb-lg">
         {{ errorMessage() }}
       </app-alert>
+      }
     </div>
 
     <!-- Login Form -->
@@ -64,7 +68,8 @@
 
 
     <!-- Register Link -->
-    <div *ngIf="!isMaintenanceMode()" class="text-center pt-6 pb-2">
+    @if (!isMaintenanceMode()) {
+    <div class="text-center pt-6 pb-2">
       <p class="text-secondary text-sm m-0">
         ليس لديك حساب؟
         <a routerLink="/auth/register"
@@ -73,6 +78,7 @@
         </a>
       </p>
     </div>
+    }
 
   </div>
 

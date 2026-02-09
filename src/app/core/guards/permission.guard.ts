@@ -12,7 +12,7 @@ import { Permission } from '../permissions/permissions.model';
  * canActivate: [permissionGuard([Permission.VIEW_USERS])]
  */
 export function permissionGuard(requiredPermissions: Permission[]): CanActivateFn {
-    return (route, state) => {
+    return () => {
         const authService = inject(AuthService);
         const permissionsService = inject(PermissionsService);
         const router = inject(Router);

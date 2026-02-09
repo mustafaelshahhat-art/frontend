@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,13 +6,14 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './action-card.component.html',
-    styleUrls: ['./action-card.component.scss']
+    styleUrls: ['./action-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActionCardComponent {
-    @Input() title: string = '';
-    @Input() description: string = '';
-    @Input() icon: string = '';
-    @Input() colorClass: string = 'primary';
+    @Input() title = '';
+    @Input() description = '';
+    @Input() icon = '';
+    @Input() colorClass = 'primary';
     @Output() clicked = new EventEmitter<void>();
 
     handleClick() {

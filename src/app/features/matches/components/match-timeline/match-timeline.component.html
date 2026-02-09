@@ -1,8 +1,9 @@
 <div class="events-timeline">
     <div class="timeline-line"></div>
 
-    <div *ngFor="let event of events; trackBy: trackById" class="event-row"
-        [class.event-home]="event.teamId === homeTeamId" [class.event-away]="event.teamId !== homeTeamId">
+    @for (event of events; track event.id) {
+    <div class="event-row" [class.event-home]="event.teamId === homeTeamId"
+        [class.event-away]="event.teamId !== homeTeamId">
 
         <div class="timeline-dot"></div>
 
@@ -14,7 +15,9 @@
             <div class="event-info">
                 <div class="event-top-row">
                     <span class="event-type-label">{{ getEventLabel(event.type) }}</span>
-                    <span class="event-time" *ngIf="event.minute">{{ event.minute }}'</span>
+                    @if (event.minute) {
+                    <span class="event-time">{{ event.minute }}'</span>
+                    }
                 </div>
 
                 <h4 class="player-name">{{ event.playerName || 'لاعب غير معروف' }}</h4>
@@ -31,9 +34,10 @@
             <div class="card-side-indicator" [class.home]="event.teamId === homeTeamId"
                 [class.away]="event.teamId !== homeTeamId"></div>
 
-            <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (onClick)="onDelete(event.id)" icon="delete"
+            <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (trigger)="onDelete(event.id)" icon="delete"
                 variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn">
             </app-icon-button>
         </div>
     </div>
+    }
 </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, no-restricted-syntax */
 import { Injectable, inject, NgZone } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -66,14 +67,14 @@ export class RealTimeUpdateService {
         return this.systemEvents$.pipe(filter(event => types.includes(event.type)));
     }
 
-    setEditingState(_isEditing: boolean): void {
+    setEditingState(): void {
         // Deprecated compatibility no-op.
     }
 
     private initializeSignalR(): void {
         const token = this.authService.getToken();
         if (!token) {
-            console.log('SignalR: No token available, skipping initialization.');
+            console.warn('SignalR: No token available, skipping initialization.');
             return;
         }
 
@@ -341,7 +342,7 @@ export class RealTimeUpdateService {
             // Critical fix: Automatic token refresh to update JWT status/role claims
             this.authService.refreshToken().subscribe({
                 next: () => {
-                    console.log('JWT refreshed after account approval');
+                    console.warn('JWT refreshed after account approval');
                     this.authService.refreshUserProfile().subscribe();
                 },
                 error: () => this.authService.logout()

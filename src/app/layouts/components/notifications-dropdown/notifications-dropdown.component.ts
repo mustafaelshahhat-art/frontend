@@ -1,32 +1,34 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
+import { Notification } from '../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-notifications-dropdown',
     standalone: true,
-    imports: [CommonModule, TimeAgoPipe],
+    imports: [TimeAgoPipe],
     templateUrl: './notifications-dropdown.component.html',
-    styleUrls: ['./notifications-dropdown.component.scss']
+    styleUrls: ['./notifications-dropdown.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotificationsDropdownComponent {
-    @Input() notifications: any[] = [];
-    @Input() unreadCount: number = 0;
-    @Input() isMobile: boolean = false;
-    @Input() isOpen: boolean = false;
+    @Input() notifications: Notification[] = [];
+    @Input() unreadCount = 0;
+    @Input() isMobile = false;
+    @Input() isOpen = false;
 
-    @Output() close = new EventEmitter<void>();
-    @Output() viewNotification = new EventEmitter<any>();
+    @Output() dropdownClosed = new EventEmitter<void>();
+    @Output() viewNotification = new EventEmitter<Notification>();
     @Output() viewAll = new EventEmitter<void>();
 
-    handleViewNotification(notification: any) {
+    handleViewNotification(notification: Notification) {
         this.viewNotification.emit(notification);
-        this.close.emit();
+        this.dropdownClosed.emit();
     }
 
     handleViewAll() {
         this.viewAll.emit();
-        this.close.emit();
+        this.dropdownClosed.emit();
     }
 
     getTypeIcon(type: string): string {

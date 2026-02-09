@@ -1,26 +1,28 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { SearchComponent } from '../../../shared/components/search/search.component';
 import { NotificationsDropdownComponent } from '../notifications-dropdown/notifications-dropdown.component';
+import { Notification } from '../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [CommonModule, SearchComponent, NotificationsDropdownComponent],
+    imports: [SearchComponent, NotificationsDropdownComponent],
     templateUrl: './header.component.html',
-    styleUrls: ['./header.component.scss']
+    styleUrls: ['./header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent {
     private elementRef = inject(ElementRef);
 
-    @Input() isMobile: boolean = false;
-    @Input() windowSize: number = window.innerWidth;
-    @Input() title: string = '';
-    @Input() unreadCount: number = 0;
-    @Input() notifications: any[] = [];
+    @Input() isMobile = false;
+    @Input() windowSize = window.innerWidth;
+    @Input() title = '';
+    @Input() unreadCount = 0;
+    @Input() notifications: Notification[] = [];
 
     @Output() toggleSidebar = new EventEmitter<void>();
-    @Output() viewNotification = new EventEmitter<any>();
+    @Output() viewNotification = new EventEmitter<Notification>();
     @Output() viewAllNotifications = new EventEmitter<void>();
 
     showNotifications = false;
@@ -43,7 +45,7 @@ export class HeaderComponent {
         this.showNotifications = !this.showNotifications;
     }
 
-    handleViewNotification(notification: any) {
+    handleViewNotification(notification: Notification) {
         this.viewNotification.emit(notification);
         this.showNotifications = false;
     }

@@ -15,9 +15,7 @@ import { CaptainLayoutService } from '../../../../core/services/captain-layout.s
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { SearchComponent } from '../../../../shared/components/search/search.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { TournamentCardComponent } from '../../components/tournament-card/tournament-card.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
@@ -38,7 +36,6 @@ interface TournamentFilter {
         RouterModule,
         EmptyStateComponent,
         FilterComponent,
-        PageHeaderComponent,
         ButtonComponent,
         InlineLoadingComponent,
         TournamentCardComponent,
@@ -64,8 +61,8 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         return this.router.url.startsWith('/captain') ? this.captainLayout : this.adminLayout;
     }
 
-    @ViewChild('actions') actionsTemplate!: TemplateRef<any>;
-    @ViewChild('filtersRef') filtersTemplate!: TemplateRef<any>;
+    @ViewChild('actions') actionsTemplate!: TemplateRef<unknown>;
+    @ViewChild('filtersRef') filtersTemplate!: TemplateRef<unknown>;
 
     // Signals State
     // ✅ FIXED: Bind directly to TournamentStore instead of local state
@@ -134,7 +131,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.layoutService.setActions(this.actionsTemplate);
             this.layoutService.setFilters(this.filtersTemplate);
         });
@@ -216,7 +213,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         return item.id;
     }
 
-    setFilter(filter: string): void {
+    setFilter(filter: unknown): void {
         this.currentFilter.set(filter as TournamentFilterValue);
     }
 
@@ -233,7 +230,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         this.registerTeam(tournament);
     }
 
-    unregister(id: string): void {
+    unregister(): void {
         // API does not support unregistering by captain directly currently.
         this.uiFeedback.info('تنبيه', 'يرجى التواصل مع الإدارة لإلغاء التسجيل');
     }

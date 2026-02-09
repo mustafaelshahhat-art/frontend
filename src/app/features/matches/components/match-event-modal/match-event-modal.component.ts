@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, HostListener, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatchService } from '../../../../core/services/match.service';
@@ -14,7 +14,8 @@ import { Match, MatchEventType } from '../../../../core/models/tournament.model'
     standalone: true,
     imports: [CommonModule, FormsModule, ModalComponent, ButtonComponent, SelectComponent],
     templateUrl: './match-event-modal.component.html',
-    styleUrls: ['./match-event-modal.component.scss']
+    styleUrls: ['./match-event-modal.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatchEventModalComponent implements OnChanges {
     private matchService = inject(MatchService);
@@ -73,17 +74,17 @@ export class MatchEventModalComponent implements OnChanges {
         }
     }
 
-    onTypeChange(type: any): void {
+    onTypeChange(type: MatchEventType): void {
         this.eventForm.type = type;
     }
 
-    onTeamChange(teamId: any): void {
+    onTeamChange(teamId: string): void {
         this.eventForm.teamId = teamId;
         this.eventForm.playerId = '';
         this.loadTeamPlayers(teamId);
     }
 
-    onPlayerChange(playerId: any): void {
+    onPlayerChange(playerId: string): void {
         this.eventForm.playerId = playerId;
     }
 
@@ -93,9 +94,9 @@ export class MatchEventModalComponent implements OnChanges {
         this.teamService.getTeamById(teamId).subscribe(team => {
             // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
             // which can happen if the service returns synchronously
-            setTimeout(() => {
+            queueMicrotask(() => {
                 if (team && team.players) {
-                    this.playerOptions = team.players.map((p: any) => ({
+                    this.playerOptions = team.players.map((p: { name: string, id: string }) => ({
                         label: p.name,
                         value: p.id,
                         icon: 'person'

@@ -2,379 +2,422 @@
 
     <div class="tournament-detail-container">
         <!-- Loading -->
-        <div *ngIf="isLoading()" class="loading-state">
+        @if (isLoading()) {
+        <div class="loading-state">
             <div class="spinner"></div>
             <p>جاري تحميل البيانات...</p>
         </div>
+        }
 
-        <ng-container *ngIf="!isLoading() && tournament() as t">
-            <!-- Banner Card -->
-            <app-card class="tournament-banner-card">
-                <div class="banner-overlay"></div>
-                <div class="tournament-header-content">
-                    <div class="tournament-main-info">
-                        <div class="top-meta">
-                            <app-badge
-                                [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
-                                class="status-badge">
-                                <span class="dot"></span>
-                                {{ getStatusLabel(t.status) }}
-                            </app-badge>
-                            <span class="created-at">أنشئت في {{ t.createdAt | date:'shortDate' }}</span>
+        @if (!isLoading() && tournament(); as t) {
+        <!-- Banner Card -->
+        <app-card class="tournament-banner-card">
+            <div class="banner-overlay"></div>
+            <div class="tournament-header-content">
+                <div class="tournament-main-info">
+                    <div class="top-meta">
+                        <app-badge
+                            [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
+                            class="status-badge">
+                            <span class="dot"></span>
+                            {{ getStatusLabel(t.status) }}
+                        </app-badge>
+                        <span class="created-at">أنشئت في {{ t.createdAt | date:'shortDate' }}</span>
+                    </div>
+
+                    <!-- Winner Announcement -->
+                    @if (t.status === TournamentStatus.COMPLETED && t.winnerTeamName) {
+                    <div class="winner-announcement animate-bounce-subtle">
+                        <span class="material-symbols-outlined trophy">emoji_events</span>
+                        <div class="winner-info">
+                            <span>البطل المتوج</span>
+                            <h3>{{ t.winnerTeamName }}</h3>
                         </div>
+                    </div>
+                    }
 
-                        <!-- Winner Announcement -->
-                        <div *ngIf="t.status === TournamentStatus.COMPLETED && t.winnerTeamName"
-                            class="winner-announcement animate-bounce-subtle">
-                            <span class="material-symbols-outlined trophy">emoji_events</span>
-                            <div class="winner-info">
-                                <label>البطل المتوج</label>
-                                <h3>{{ t.winnerTeamName }}</h3>
-                            </div>
-                        </div>
+                    <h2>{{ t.name }}</h2>
 
-                        <h2>{{ t.name }}</h2>
-
-                        <div class="tournament-meta">
-                            <div class="meta-item">
-                                <span class="material-symbols-outlined">calendar_today</span>
-                                <div>
-                                    <label>البداية</label>
-                                    <span>{{ t.startDate | date:'yyyy/MM/dd' }}</span>
-                                </div>
-                            </div>
-                            <div class="meta-item">
-                                <span class="material-symbols-outlined">location_on</span>
-                                <div>
-                                    <label>الموقع</label>
-                                    <span>{{ t.location || 'غير محدد' }}</span>
-                                </div>
-                            </div>
-                            <div class="meta-item">
-                                <span class="material-symbols-outlined">payments</span>
-                                <div>
-                                    <label>الاشتراك</label>
-                                    <span>{{ t.entryFee }} ريال</span>
-                                </div>
+                    <div class="tournament-meta">
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">calendar_today</span>
+                            <div class="flex-col items-start">
+                                <span>البداية</span>
+                                <span>{{ t.startDate | date:'yyyy/MM/dd' }}</span>
                             </div>
                         </div>
-
-                        <div class="banner-actions">
-                            <!-- Admin Actions -->
-                            <ng-container *ngIf="isAdmin()">
-                                <app-button variant="primary" size="md" shadow="glow"
-                                    [icon]="t.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
-                                    (click)="toggleStatus()">
-                                    {{ t.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' :
-                                    'فتح
-                                    التسجيل' }}
-                                </app-button>
-
-                                <!-- Generate Matches Button -->
-                                <app-button *ngIf="canGenerateMatches" variant="outline" size="md" icon="calendar_month"
-                                    (click)="generateMatches()" [disabled]="isGeneratingMatches">
-                                    {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
-                                </app-button>
-
-                                <!-- Delete Tournament Button -->
-                                <app-button variant="ghost" size="md" icon="delete" class="text-danger"
-                                    (click)="deleteTournament()">
-                                    حذف البطولة
-                                </app-button>
-                            </ng-container>
-
-                            <!-- Captain Actions -->
-                            <div class="captain-actions-container"
-                                *ngIf="isCaptain() && t.status === TournamentStatus.REGISTRATION_OPEN">
-                                <ng-container *ngIf="!isRegistered">
-                                    <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
-                                        (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
-                                        [title]="isUserPending ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
-                                        {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration?.status ===
-                                        RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
-                                    </app-button>
-                                </ng-container>
-
-                                <div *ngIf="isRegistered" class="registration-status-wrapper">
-                                    <div class="registration-status-info">
-                                        <span class="material-symbols-outlined text-success">check_circle</span>
-                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration?.status || '') }})</span>
-                                    </div>
-
-                                    <!-- Temporary Registration Banner -->
-                                    <div *ngIf="myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW"
-                                        class="review-banner animate-pulse-subtle">
-                                        <span class="material-symbols-outlined">info</span>
-                                        <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
-                                    </div>
-                                </div>
-
-                                <p *ngIf="isUserPending" class="pending-hint">
-                                    <span class="material-symbols-outlined">info</span>
-                                    يجب تفعيل حسابك لتتمكن من التسجيل
-                                </p>
-                                <p *ngIf="isBusyElsewhere && !isRegistered" class="pending-hint">
-                                    <span class="material-symbols-outlined">info</span>
-                                    لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت
-                                </p>
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">location_on</span>
+                            <div class="flex-col items-start">
+                                <span>الموقع</span>
+                                <span>{{ t.location || 'غير محدد' }}</span>
+                            </div>
+                        </div>
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">payments</span>
+                            <div class="flex-col items-start">
+                                <span>الاشتراك</span>
+                                <span>{{ t.entryFee }} ريال</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="tournament-quick-stats">
-                        <div class="stat-circle" [style.--progress]="(t.currentTeams / t.maxTeams) * 100">
-                            <div class="stat-content">
-                                <span class="stat-value">{{ t.currentTeams }}/{{ t.maxTeams
-                                    }}</span>
-                                <span class="stat-label">فريق</span>
-                            </div>
-                            <svg viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" class="bg"></circle>
-                                <circle cx="50" cy="50" r="45" class="fg"></circle>
-                            </svg>
-                        </div>
-                        <div class="stat-pill">
-                            <span class="material-symbols-outlined">sports_soccer</span>
-                            <span class="value">{{ tournamentMatches().length }}</span>
-                            <span class="label">مباراة</span>
-                        </div>
-                    </div>
-                </div>
-            </app-card>
+                    <div class="banner-actions">
+                        <!-- Admin Actions -->
+                        @if (isAdmin()) {
+                        <app-button variant="primary" size="md" shadow="glow"
+                            [icon]="t.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
+                            (click)="toggleStatus()">
+                            {{ t.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح التسجيل' }}
+                        </app-button>
 
-            <!-- Navigation Tabs -->
-            <app-filter [items]="tabs" [activeValue]="activeTab" (change)="activeTab = $event"
-                class="tab-filter"></app-filter>
+                        <!-- Generate Matches Button -->
+                        @if (canGenerateMatches) {
+                        <app-button variant="outline" size="md" icon="calendar_month" (click)="generateMatches()"
+                            [disabled]="isGeneratingMatches">
+                            {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
+                        </app-button>
+                        }
 
-            <!-- Navigation Tabs Content -->
-            <div class="tab-content" [ngSwitch]="activeTab">
-                <!-- Info Tab -->
-                <div *ngSwitchCase="'info'" class="info-grid">
-                    <app-card class="scorers-card">
-                        <div class="card-header-premium">
-                            <span class="material-symbols-outlined">star</span>
-                            <h3>هدافو البطولة</h3>
-                        </div>
-                        <div class="scorers-list">
-                            <div *ngFor="let s of scorers(); let i = index" class="scorer-item">
-                                <span class="rank">{{ i + 1 }}</span>
-                                <div class="info">
-                                    <span class="name">{{ s.name }}</span>
-                                    <span class="team">{{ s.team }}</span>
-                                </div>
-                                <div class="goals-badge">
-                                    <span class="value">{{ s.goals }}</span>
-                                    <span class="label">أهداف</span>
-                                </div>
-                            </div>
-                            <app-empty-state *ngIf="scorers().length === 0" icon="sports_soccer" title="لا يوجد هدافين"
-                                description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن.">
-                            </app-empty-state>
-                        </div>
-                    </app-card>
+                        <!-- Delete Tournament Button -->
+                        <app-button variant="ghost" size="md" icon="delete" class="text-danger"
+                            (click)="deleteTournament()">
+                            حذف البطولة
+                        </app-button>
+                        }
 
-                    <app-card class="rules-card">
-                        <div class="card-header-premium">
-                            <span class="material-symbols-outlined">gavel</span>
-                            <h3>قواعد البطولة</h3>
-                        </div>
-                        <div class="rules-list">
-                            <div *ngFor="let rule of rulesList" class="rule-item">
-                                <span class="material-symbols-outlined check">check_circle</span>
-                                <p>{{ rule }}</p>
-                            </div>
-                            <app-empty-state *ngIf="rulesList.length === 0" icon="gavel" title="لا يوجد قواعد"
-                                description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد.">
-                            </app-empty-state>
-                        </div>
-                    </app-card>
-
-                    <app-card class="prizes-card">
-                        <div class="card-header-premium">
-                            <span class="material-symbols-outlined">workspace_premium</span>
-                            <h3>جوائز البطولة</h3>
-                        </div>
-                        <div class="prizes-content">
-                            <p *ngIf="t.prizes"
-                                style="white-space: pre-line; line-height: 1.6; color: var(--text-primary);">
-                                {{ t.prizes }}
-                            </p>
-                            <app-empty-state *ngIf="!t.prizes" icon="military_tech" title="لا يوجد جوائز"
-                                description="لم يتم تحديد الجوائز لهذه البطولة بعد.">
-                            </app-empty-state>
-                        </div>
-                    </app-card>
-                </div>
-
-                <!-- Standings Tab -->
-                <div *ngSwitchCase="'standings'" class="standings-wrapper">
-                    <!-- Desktop Table -->
-                    <div class="desktop-only">
-                        <ng-template #rankTemplate let-row>
-                            <div class="rank-cell">
-                                <span *ngIf="t.winnerTeamId === row.teamId"
-                                    class="material-symbols-outlined winner-icon">military_tech</span>
-                                {{ row.rank }}
-                            </div>
-                        </ng-template>
-
-                        <ng-template #teamTemplate let-row>
-                            <div class="flex items-center gap-2">
-                                <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
-                                    [initials]="row.team.charAt(0)"></app-smart-image>
-                                <span>{{ row.team }}</span>
-                            </div>
-                        </ng-template>
-
-                        <ng-template #formTemplate let-row>
-                            <div style="display: flex; gap: 4px; justify-content: center;">
-                                <span *ngFor="let r of row.form" class="form-dot" [class]="r">{{ r }}</span>
-                            </div>
-                        </ng-template>
-
-                        <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()">
-                        </app-table>
-                    </div>
-
-                    <!-- Mobile Shared Grid Design -->
-                    <div class="mobile-data-grid">
-                        <div *ngFor="let s of standings(); let i = index" class="mobile-data-card"
-                            [class.is-winner]="t.winnerTeamId === s.teamId">
-                            <div class="card-mobile-header">
-                                <div class="title-group">
-                                    <div class="rank-badge">
-                                        <span *ngIf="t.winnerTeamId === s.teamId"
-                                            class="material-symbols-outlined">military_tech</span>
-                                        {{ i + 1 }}
-                                    </div>
-                                    <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                        [initials]="s.team.charAt(0)">
-                                    </app-smart-image>
-                                    <h4>{{ s.team }}</h4>
-                                </div>
-                                <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">{{
-                                    s.points }} نقطة</app-badge>
-                            </div>
-
-                            <div class="card-mobile-stats">
-                                <div class="stat-box"><span class="label">لعب</span><span class="value">{{ s.played
-                                        }}</span></div>
-                                <div class="stat-box highlight"><span class="label">فاز</span><span class="value">{{
-                                        s.won }}</span></div>
-                                <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.draw
-                                        }}</span></div>
-                                <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost
-                                        }}</span></div>
-                                <div class="stat-box"><span class="label">له</span><span class="value">{{ s.gf }}</span>
-                                </div>
-                                <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.ga
-                                        }}</span></div>
-                                <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.gd
-                                        }}</span></div>
-                                <div class="stat-box highlight"><span class="label">نقاط</span><span class="value">{{
-                                        s.points }}</span></div>
-                            </div>
-
-                            <div class="card-mobile-footer">
-                                <span class="footer-label">آخر 5 مباريات:</span>
-                                <div class="footer-content">
-                                    <span *ngFor="let r of s.form" class="form-dot" [class]="r">{{ r }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Matches Tab -->
-                <div *ngSwitchCase="'matches'">
-                    <div *ngIf="tournamentMatches().length > 0" class="matches-grid">
-                        <app-match-card *ngFor="let match of tournamentMatches()" (click)="viewMatch(match.id)"
-                            class="clickable-match-card" [match]="match">
-
-                            <div class="match-card-actions" actions>
-                                <!-- Admin Actions -->
-                                <app-button *ngIf="isAdmin()" (click)="$event.stopPropagation(); updateScore(match)"
-                                    size="sm" variant="outline" icon="scoreboard">
-                                    تحديث النتيجة
-                                </app-button>
-
-                                <!-- Captain/Player Actions -->
-                                <div *ngIf="!isAdmin()" class="player-actions">
-                                    <button class="action-btn details-btn"
-                                        (click)="$event.stopPropagation(); viewMatch(match.id)">
-                                        <span class="material-symbols-outlined">info</span>
-                                        <span>التفاصيل</span>
-                                    </button>
-
-                                    <!-- Chat Button (for non-finished, non-cancelled matches) -->
-                                    <button
-                                        *ngIf="match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED"
-                                        class="action-btn chat-btn"
-                                        [class.chat-live]="match.status === MatchStatus.LIVE"
-                                        (click)="$event.stopPropagation(); openChat(match.id)">
-                                        <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ?
-                                            'forum' :
-                                            'chat' }}</span>
-                                        <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
-                                            }}</span>
-                                    </button>
-
-                                    <!-- Objection Button (for finished or cancelled matches) -->
-                                    <button
-                                        *ngIf="match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED"
-                                        class="action-btn objection-btn"
-                                        (click)="$event.stopPropagation(); submitObjection(match.id)">
-                                        <span class="material-symbols-outlined">report</span>
-                                        <span>تقديم اعتراض</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </app-match-card>
-                    </div>
-                    <app-empty-state *ngIf="tournamentMatches().length === 0" icon="event_busy" title="لا توجد مباريات"
-                        description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
-                    </app-empty-state>
-                </div>
-
-                <!-- Teams Tab -->
-                <div *ngSwitchCase="'teams'" class="teams-grid">
-                    <div *ngFor="let reg of t.registrations" class="team-card">
-                        <div class="team-logo">
-                            <app-smart-image [src]="$any(reg).teamLogoUrl" type="team" size="sm"
-                                [initials]="reg.teamName.charAt(0)">
-                            </app-smart-image>
-                        </div>
-                        <div class="team-info">
-                            <h3>{{ reg.teamName }}</h3>
-                            <div class="captain-info">
-                                <span class="material-symbols-outlined">person</span>
-                                <span>{{ reg.captainName }}</span>
-                            </div>
-                        </div>
-                        <div class="team-footer">
-                            <div class="flex flex-col gap-1">
-                                <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
-                                <app-badge [type]="getRegStatusType(reg.status)" size="sm">
-                                    {{ getRegStatusLabel(reg.status) }}
-                                </app-badge>
-                            </div>
-
-                            <!-- Admin Actions: Eliminate Team -->
-                            <app-button
-                                *ngIf="isAdmin() && t.status !== TournamentStatus.COMPLETED && reg.status !== RegistrationStatus.ELIMINATED && reg.status === RegistrationStatus.APPROVED"
-                                variant="ghost" size="sm" icon="person_remove" class="text-danger"
-                                (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
-                                title="إقصاء الفريق">
-                                إقصاء
+                        <!-- Captain Actions -->
+                        @if (isCaptain() && t.status === TournamentStatus.REGISTRATION_OPEN) {
+                        <div class="captain-actions-container">
+                            @if (!isRegistered) {
+                            <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
+                                (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
+                                [title]="isUserPending ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
+                                {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration?.status ===
+                                RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
                             </app-button>
+                            }
+
+                            @if (isRegistered) {
+                            <div class="registration-status-wrapper">
+                                <div class="registration-status-info">
+                                    <span class="material-symbols-outlined text-success">check_circle</span>
+                                    <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration?.status || '') }})</span>
+                                </div>
+
+                                <!-- Temporary Registration Banner -->
+                                @if (myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+                                <div class="review-banner animate-pulse-subtle">
+                                    <span class="material-symbols-outlined">info</span>
+                                    <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
+                                </div>
+                                }
+                            </div>
+                            }
+
+                            @if (isUserPending) {
+                            <p class="pending-hint">
+                                <span class="material-symbols-outlined">info</span>
+                                يجب تفعيل حسابك لتتمكن من التسجيل
+                            </p>
+                            }
+                            @if (isBusyElsewhere && !isRegistered) {
+                            <p class="pending-hint">
+                                <span class="material-symbols-outlined">info</span>
+                                لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت
+                            </p>
+                            }
                         </div>
+                        }
                     </div>
-                    <app-empty-state *ngIf="!t.registrations || t.registrations.length === 0" icon="groups"
-                        title="لا يوجد فرق" description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
-                    </app-empty-state>
+                </div>
+
+                <div class="tournament-quick-stats">
+                    <div class="stat-circle">
+                        <div class="stat-content">
+                            <span class="stat-value">{{ t.currentTeams }}/{{ t.maxTeams }}</span>
+                            <span class="stat-label">فريق</span>
+                        </div>
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" class="bg"></circle>
+                            <circle cx="50" cy="50" r="45" class="fg"></circle>
+                        </svg>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="material-symbols-outlined">sports_soccer</span>
+                        <span class="value">{{ tournamentMatches().length }}</span>
+                        <span class="label">مباراة</span>
+                    </div>
                 </div>
             </div>
-        </ng-container>
+        </app-card>
+
+        <!-- Navigation Tabs -->
+        <app-filter [items]="tabs" [activeValue]="activeTab" (filterChange)="onTabChange($any($event))"
+            class="tab-filter"></app-filter>
+
+        <!-- Navigation Tabs Content -->
+        <div class="tab-content">
+            @switch (activeTab) {
+            @case ('info') {
+            <div class="info-grid">
+                <app-card class="scorers-card">
+                    <div class="card-header-premium">
+                        <span class="material-symbols-outlined">star</span>
+                        <h3>هدافو البطولة</h3>
+                    </div>
+                    <div class="scorers-list">
+                        @for (s of scorers(); track s.id; let i = $index) {
+                        <div class="scorer-item">
+                            <span class="rank">{{ i + 1 }}</span>
+                            <div class="info items-start">
+                                <span class="name">{{ s.name }}</span>
+                                <span class="team">{{ s.team }}</span>
+                            </div>
+                            <div class="goals-badge">
+                                <span class="value">{{ s.goals }}</span>
+                                <span class="label">أهداف</span>
+                            </div>
+                        </div>
+                        } @empty {
+                        <app-empty-state icon="sports_soccer" title="لا يوجد هدافين"
+                            description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن.">
+                        </app-empty-state>
+                        }
+                    </div>
+                </app-card>
+
+                <app-card class="rules-card">
+                    <div class="card-header-premium">
+                        <span class="material-symbols-outlined">gavel</span>
+                        <h3>قواعد البطولة</h3>
+                    </div>
+                    <div class="rules-list">
+                        @for (rule of rulesList; track rule) {
+                        <div class="rule-item">
+                            <span class="material-symbols-outlined check">check_circle</span>
+                            <p>{{ rule }}</p>
+                        </div>
+                        } @empty {
+                        <app-empty-state icon="gavel" title="لا يوجد قواعد"
+                            description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد.">
+                        </app-empty-state>
+                        }
+                    </div>
+                </app-card>
+
+                <app-card class="prizes-card">
+                    <div class="card-header-premium">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        <h3>جوائز البطولة</h3>
+                    </div>
+                    <div class="prizes-content">
+                        @if (t.prizes) {
+                        <p class="prizes-text">
+                            {{ t.prizes }}
+                        </p>
+                        } @else {
+                        <app-empty-state icon="military_tech" title="لا يوجد جوائز"
+                            description="لم يتم تحديد الجوائز لهذه البطولة بعد.">
+                        </app-empty-state>
+                        }
+                    </div>
+                </app-card>
+            </div>
+            }
+
+            @case ('standings') {
+            <div class="standings-wrapper">
+                <!-- Desktop Table -->
+                <div class="desktop-only">
+                    <ng-template #rankTemplate let-row>
+                        <div class="rank-cell">
+                            @if (t.winnerTeamId === row.teamId) {
+                            <span class="material-symbols-outlined winner-icon">military_tech</span>
+                            }
+                            {{ row.rank }}
+                        </div>
+                    </ng-template>
+
+                    <ng-template #teamTemplate let-row>
+                        <div class="flex items-center gap-2">
+                            <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
+                                [initials]="row.team.charAt(0)"></app-smart-image>
+                            <span>{{ row.team }}</span>
+                        </div>
+                    </ng-template>
+
+                    <ng-template #formTemplate let-row>
+                        <div class="form-dots-container">
+                            @for (r of row.form; track $index) {
+                            <span class="form-dot" [class]="r">{{ r }}</span>
+                            }
+                        </div>
+                    </ng-template>
+
+                    <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()">
+                    </app-table>
+                </div>
+
+                <!-- Mobile Shared Grid Design -->
+                <div class="mobile-data-grid">
+                    @for (s of standings(); track s.teamId; let i = $index) {
+                    <div class="mobile-data-card" [class.is-winner]="t.winnerTeamId === s.teamId">
+                        <div class="card-mobile-header">
+                            <div class="title-group items-center">
+                                <div class="rank-badge items-center justify-center">
+                                    @if (t.winnerTeamId === s.teamId) {
+                                    <span class="material-symbols-outlined">military_tech</span>
+                                    }
+                                    {{ i + 1 }}
+                                </div>
+                                <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
+                                    [initials]="s.team.charAt(0)">
+                                </app-smart-image>
+                                <h4>{{ s.team }}</h4>
+                            </div>
+                            <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">
+                                {{ s.points }} نقطة
+                            </app-badge>
+                        </div>
+
+                        <div class="card-mobile-stats">
+                            <div class="stat-box"><span class="label">لعب</span><span class="value">{{ s.played
+                                    }}</span></div>
+                            <div class="stat-box highlight"><span class="label">فاز</span><span class="value">{{ s.won
+                                    }}</span></div>
+                            <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.draw
+                                    }}</span></div>
+                            <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost }}</span>
+                            </div>
+                            <div class="stat-box"><span class="label">له</span><span class="value">{{ s.gf }}</span>
+                            </div>
+                            <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.ga }}</span>
+                            </div>
+                            <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.gd }}</span>
+                            </div>
+                            <div class="stat-box highlight"><span class="label">نقاط</span><span class="value">{{
+                                    s.points }}</span></div>
+                        </div>
+
+                        <div class="card-mobile-footer">
+                            <span class="footer-label">آخر 5 مباريات:</span>
+                            <div class="footer-content">
+                                @for (r of s.form; track $index) {
+                                <span class="form-dot" [class]="r">{{ r }}</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            @case ('matches') {
+            <div>
+                @if (tournamentMatches().length > 0) {
+                <div class="matches-grid">
+                    @for (match of tournamentMatches(); track match.id) {
+                    <app-match-card (click)="viewMatch(match.id)" class="clickable-match-card" [match]="match">
+
+                        <div class="match-card-actions" actions>
+                            <!-- Admin Actions -->
+                            @if (isAdmin()) {
+                            <app-button (click)="$event.stopPropagation(); updateScore(match)" size="sm"
+                                variant="outline" icon="scoreboard">
+                                تحديث النتيجة
+                            </app-button>
+                            }
+
+                            <!-- Captain/Player Actions -->
+                            @if (!isAdmin()) {
+                            <div class="player-actions">
+                                <button class="action-btn details-btn items-center justify-center"
+                                    (click)="$event.stopPropagation(); viewMatch(match.id)">
+                                    <span class="material-symbols-outlined">info</span>
+                                    <span>التفاصيل</span>
+                                </button>
+
+                                <!-- Chat Button (for non-finished, non-cancelled matches) -->
+                                @if (match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED) {
+                                <button class="action-btn chat-btn items-center justify-center"
+                                    [class.chat-live]="match.status === MatchStatus.LIVE"
+                                    (click)="$event.stopPropagation(); openChat(match.id)">
+                                    <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ?
+                                        'forum' : 'chat' }}</span>
+                                    <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
+                                        }}</span>
+                                </button>
+                                }
+
+                                <!-- Objection Button (for finished or cancelled matches) -->
+                                @if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) {
+                                <button class="action-btn objection-btn items-center justify-center"
+                                    (click)="$event.stopPropagation(); submitObjection(match.id)">
+                                    <span class="material-symbols-outlined">report</span>
+                                    <span>تقديم اعتراض</span>
+                                </button>
+                                }
+                            </div>
+                            }
+                        </div>
+                    </app-match-card>
+                    }
+                </div>
+                } @else {
+                <app-empty-state icon="event_busy" title="لا توجد مباريات"
+                    description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
+                </app-empty-state>
+                }
+            </div>
+            }
+
+            @case ('teams') {
+            <div class="teams-grid">
+                @for (reg of t.registrations; track reg.teamId) {
+                <div class="team-card">
+                    <div class="team-logo items-center justify-center">
+                        <app-smart-image [src]="reg.teamLogoUrl" type="team" size="sm"
+                            [initials]="reg.teamName.charAt(0)">
+                        </app-smart-image>
+                    </div>
+                    <div class="team-info">
+                        <h3>{{ reg.teamName }}</h3>
+                        <div class="captain-info items-center">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>{{ reg.captainName }}</span>
+                        </div>
+                    </div>
+                    <div class="team-footer">
+                        <div class="flex-col gap-1 items-start">
+                            <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
+                            <app-badge [type]="getRegStatusType(reg.status)" size="sm">
+                                {{ getRegStatusLabel(reg.status) }}
+                            </app-badge>
+                        </div>
+
+                        <!-- Admin Actions: Eliminate Team -->
+                        @if (isAdmin() && t.status !== TournamentStatus.COMPLETED && reg.status !==
+                        RegistrationStatus.ELIMINATED && reg.status === RegistrationStatus.APPROVED) {
+                        <app-button variant="ghost" size="sm" icon="person_remove" class="text-danger"
+                            (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
+                            title="إقصاء الفريق">
+                            إقصاء
+                        </app-button>
+                        }
+                    </div>
+                </div>
+                } @empty {
+                <app-empty-state icon="groups" title="لا يوجد فرق"
+                    description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
+                </app-empty-state>
+                }
+            </div>
+            }
+            }
+        </div>
+        }
     </div>
 </div>
 

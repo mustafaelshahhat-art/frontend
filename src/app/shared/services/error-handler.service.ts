@@ -28,13 +28,14 @@ export class ErrorHandlerService {
     /**
      * Handle generic errors
      */
-    handleError(error: any, context?: string): AppError {
-        const message = error?.message || (typeof error === 'string' ? error : 'حدث خطأ غير متوقع');
+    handleError(error: unknown, context?: string): AppError {
+        const err = error as { message?: string; stack?: string };
+        const message = err?.message || (typeof error === 'string' ? error : 'حدث خطأ غير متوقع');
 
         const appError: AppError = {
             code: 'GENERIC_ERROR',
             message: message,
-            details: { context, stack: error?.stack },
+            details: { context, stack: err?.stack },
             timestamp: new Date()
         };
 

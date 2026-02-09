@@ -1,33 +1,41 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="selectedFilter()" (change)="setFilter($event)">
+    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)">
     </app-filter>
 </ng-template>
 
 <!-- Actions Template -->
 <ng-template #actionsTemplate>
     <div class="flex items-center gap-2">
-        <app-button *ngIf="unreadCount > 0" variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
+        @if (unreadCount > 0) {
+        <app-button variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
             تحديد الكل كمقروء
         </app-button>
-        <app-badge *ngIf="unreadCount > 0" type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
+        <app-badge type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
+        }
     </div>
 </ng-template>
 
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
-    <app-inline-loading *ngIf="isLoading()" message="جاري تحميل التنبيهات..."></app-inline-loading>
+    @if (isLoading()) {
+    <app-inline-loading message="جاري تحميل التنبيهات..."></app-inline-loading>
+    }
 
     <!-- Empty State -->
-    <app-empty-state *ngIf="!isLoading() && notifications.length === 0" icon="notifications_off" title="لا توجد تنبيهات"
+    @if (!isLoading() && notifications.length === 0) {
+    <app-empty-state icon="notifications_off" title="لا توجد تنبيهات"
         description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
     </app-empty-state>
+    }
 
     <!-- Notifications List -->
-    <div *ngIf="!isLoading() && notifications.length > 0" class="notifications-list flex-col gap-md">
-        <app-card *ngFor="let notif of notifications; trackBy: trackByNotification" class="notification-item"
-            [class.unread]="!notif.isRead" (click)="markAsRead(notif)" [isClickable]="true">
+    @if (!isLoading() && notifications.length > 0) {
+    <div class="notifications-list flex-col gap-md">
+        @for (notif of notifications; track notif.id) {
+        <app-card class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif)"
+            [isClickable]="true">
 
             <div class="notification-content-wrapper">
                 <div class="notif-icon-box" [attr.data-type]="notif.type">
@@ -42,5 +50,7 @@
                 </div>
             </div>
         </app-card>
+        }
     </div>
+    }
 </div>

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface DashboardStats {
@@ -39,17 +39,21 @@ export class AnalyticsService {
     private readonly apiUrl = `${environment.apiUrl}/Analytics`;
 
     getDashboardStats(): Observable<DashboardStats> {
-        return this.http.get<any>(`${this.apiUrl}/overview`).pipe(
-            map(data => ({
-                totalUsers: data.totalUsers,
-                totalTeams: data.totalTeams,
-                totalReferees: data.totalReferees,
-                activeTournaments: data.activeTournaments,
-                matchesToday: data.matchesToday,
-                pendingObjections: data.pendingObjections,
-                totalGoals: data.totalGoals,
-                loginsToday: data.loginsToday
-            }))
+        return this.http.get<unknown>(`${this.apiUrl}/overview`).pipe(
+            map(data => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
+                const d = data as any;
+                return {
+                    totalUsers: d.totalUsers,
+                    totalTeams: d.totalTeams,
+                    totalReferees: d.totalReferees,
+                    activeTournaments: d.activeTournaments,
+                    matchesToday: d.matchesToday,
+                    pendingObjections: d.pendingObjections,
+                    totalGoals: d.totalGoals,
+                    loginsToday: d.loginsToday
+                };
+            })
         );
     }
 
@@ -58,44 +62,30 @@ export class AnalyticsService {
     }
 
     getRecentActivities(): Observable<Activity[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/activities`).pipe(
-            map(data => (data || []).map(item => ({
-                type: item.type || item.Type || '',
-                message: this.cleanMessage(item.message || item.Message || ''),
-                time: '', // Deprecated, will use pipe on timestamp
-                userName: item.userName || item.UserName,
-                action: item.action || item.Action,
-                timestamp: new Date(item.timestamp || item.Timestamp),
-                status: item.status || item.Status
-            })))
+        return this.http.get<unknown[]>(`${this.apiUrl}/activities`).pipe(
+            map(data => (data || []).map(item => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
+                const it = item as any;
+                return {
+                    type: it.type || it.Type || '',
+                    message: this.cleanMessage(it.message || it.Message || ''),
+                    time: '', // Deprecated, will use pipe on timestamp
+                    userName: it.userName || it.UserName,
+                    action: it.action || it.Action,
+                    timestamp: new Date(it.timestamp || it.Timestamp),
+                    status: it.status || it.Status
+                };
+            }))
         );
     }
 
+    migrateLogs(): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/migrate-logs`, {});
+    }
+
     private cleanMessage(msg: string): string {
-        if (!msg) return '';
-
-        // Remove GUIDs/IDs like (ID: 9c7af14a-...)
-        let clean = msg.replace(/\(ID: [^)]+\)/gi, '').trim();
-
-        // Specific pattern replacements
-        if (clean.toLowerCase().includes('activated by system/admin')) {
-            const teamName = clean.replace(/Team/i, '').replace(/activated by system\/admin/i, '').trim();
-            return `تم تفعيل فريق ${teamName || ''}`;
-        }
-        if (clean.toLowerCase().includes('deactivated by system/admin') || clean.toLowerCase().includes('has been disabled by admin')) {
-            const teamName = clean.replace(/Team/i, '').replace(/deactivated by system\/admin/i, '').replace(/has been disabled by admin/i, '').trim();
-            return `تم تعطيل فريق ${teamName || ''}`;
-        }
-        if (clean.toLowerCase().includes('logged in')) {
-            const userName = clean.replace(/User/i, '').replace(/logged in/i, '').trim();
-            if (!userName || userName.toLowerCase() === 'admin user') return 'تسجيل دخول: مدير النظام';
-            return `تسجيل دخول: ${userName}`;
-        }
-        if (clean.toLowerCase().includes('registration closed for tournament')) {
-            const tourneyName = clean.replace(/Registration closed for Tournament/i, '').trim();
-            return `إغلاق التسجيل في بطولة ${tourneyName || ''}`;
-        }
-
-        return clean;
+        // Migration logic is now handled in the backend ActivityLogMigrationService.
+        // We keep this method simple for future-proofing or minor string adjustments.
+        return msg || '';
     }
 }

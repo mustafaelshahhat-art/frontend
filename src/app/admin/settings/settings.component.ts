@@ -1,8 +1,7 @@
-import { Component, OnInit, inject, signal, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { ToggleComponent } from '../../shared/components/toggle/toggle.component';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
@@ -16,12 +15,12 @@ import { finalize } from 'rxjs';
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        PageHeaderComponent,
         ButtonComponent,
         ToggleComponent
     ],
     templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.scss']
+    styleUrls: ['./settings.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
@@ -33,7 +32,7 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
     isLoading = signal(false);
     isSaving = signal(false);
 
-    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
 
     constructor() {
         this.settingsForm = this.fb.group({
@@ -50,7 +49,7 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.adminLayout.setActions(this.actionsTemplate);
         });
     }

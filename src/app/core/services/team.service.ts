@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Team, Player, JoinRequest } from '../models/team.model';
-import { User, UserRole } from '../models/user.model';
+import { Team, Player, JoinRequest, ApiTeamMatch, ApiTeamFinance } from '../models/team.model';
+import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,8 +12,6 @@ import { environment } from '../../../environments/environment';
 export class TeamService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/teams`;
-
-    constructor() { }
 
     getTeamByCaptainId(captainId: string): Observable<Team | undefined> {
         return this.http.get<Team[]>(this.apiUrl, { params: { captainId } }).pipe(
@@ -71,28 +69,29 @@ export class TeamService {
         return this.http.delete<void>(`${this.apiUrl}/${teamId}`);
     }
 
-    requestToJoinTeam(teamId: string, user: User): Observable<JoinRequest> {
+    requestToJoinTeam(teamId: string): Observable<JoinRequest> {
         return this.http.post<JoinRequest>(`${this.apiUrl}/${teamId}/join`, {});
     }
 
-    respondToJoinRequest(teamId: string, requestId: string, approve: boolean, captain: User): Observable<{ request: JoinRequest, player?: Player }> {
+    respondToJoinRequest(teamId: string, requestId: string, approve: boolean): Observable<{ request: JoinRequest, player?: Player }> {
         return this.http.post<JoinRequest>(`${this.apiUrl}/${teamId}/join-requests/${requestId}/respond`, { approve }).pipe(
             map(request => {
                 // Backend returns Updated JoinRequest. 
                 // We fake 'player' return if needed or fetch it.
                 // The component might expect 'player' object if approved.
                 // I'll return basics.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
                 return { request, player: approve ? { id: request.playerId, name: request.playerName } as any : undefined };
             })
         );
     }
 
-    getTeamRequests(teamId: string): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/requests`);
+    getTeamRequests(teamId: string): Observable<unknown[]> {
+        return this.http.get<unknown[]>(`${this.apiUrl}/${teamId}/requests`);
     }
 
-    invitePlayerByDisplayId(teamId: string, displayId: string): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/${teamId}/invite`, { displayId });
+    invitePlayerByDisplayId(teamId: string, displayId: string): Observable<{ playerName: string }> {
+        return this.http.post<{ playerName: string }>(`${this.apiUrl}/${teamId}/invite`, { displayId });
     }
 
     removePlayer(teamId: string, playerId: string): Observable<{ teamRemoved: boolean, playerId: string, teamId: string }> {
@@ -107,16 +106,16 @@ export class TeamService {
         return this.http.get<Player[]>(`${this.apiUrl}/${teamId}/players`);
     }
 
-    getTeamMatches(teamId: string): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/matches`);
+    getTeamMatches(teamId: string): Observable<ApiTeamMatch[]> {
+        return this.http.get<ApiTeamMatch[]>(`${this.apiUrl}/${teamId}/matches`);
     }
 
-    getTeamFinancials(teamId: string): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/${teamId}/financials`);
+    getTeamFinancials(teamId: string): Observable<ApiTeamFinance[]> {
+        return this.http.get<ApiTeamFinance[]>(`${this.apiUrl}/${teamId}/financials`);
     }
 
-    disableTeam(teamId: string): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/${teamId}/disable`, {});
+    disableTeam(teamId: string): Observable<unknown> {
+        return this.http.post<unknown>(`${this.apiUrl}/${teamId}/disable`, {});
     }
 }
 

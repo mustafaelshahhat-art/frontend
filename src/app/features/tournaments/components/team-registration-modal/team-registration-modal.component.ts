@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
@@ -23,47 +23,9 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
         SelectComponent,
         FileUploadComponent
     ],
-    template: `
-        <app-modal 
-            [visible]="isVisible"
-            title="تسجيل الفريق" 
-            icon="rocket_launch"
-            width="500px"
-            (close)="close()">
-            
-            <div class="form-body">
-                <app-form-control 
-                    label="الرقم المحول منه"
-                    [(ngModel)]="registerForm.fromNumber"
-                    placeholder="رقم الجوال المحول منه">
-                </app-form-control>
-
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label class="form-label" style="display: block; font-size: 0.875rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; text-align: right;">نوع التحويل</label>
-                    <app-select 
-                        [(ngModel)]="registerForm.transferType"
-                        [options]="transferOptions"
-                        placeholder="اختر النوع">
-                    </app-select>
-                </div>
-
-                <div class="form-group">
-                    <app-file-upload 
-                        label="إيصال الدفع" 
-                        accept="image/*"
-                        [multiple]="false"
-                        (filesSelected)="onFileSelected($event)">
-                    </app-file-upload>
-                </div>
-            </div>
-
-            <div class="modal-footer" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
-                <app-button variant="ghost" (onClick)="close()">إلغاء</app-button>
-                <app-button variant="primary" icon="send" (onClick)="submit()" [isLoading]="isSubmitting"
-                    [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال الطلب</app-button>
-            </div>
-        </app-modal>
-    `
+    templateUrl: './team-registration-modal.component.html',
+    styleUrls: ['./team-registration-modal.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TeamRegistrationModalComponent {
     @Input() tournament: Tournament | null = null;
@@ -125,9 +87,9 @@ export class TeamRegistrationModalComponent {
         this.isSubmitting = true;
 
         // Step 1: Register Team (PendingPayment)
-        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId, '', '', '').subscribe({
+        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId).subscribe({
             next: () => this.uploadPayment(currentUser.teamId!),
-            error: (err: any) => {
+            error: (err: { status: number, error?: { message?: string } }) => {
                 if (err.status === 409) {
                     // Already registered, try to just upload the payment
                     this.uploadPayment(currentUser.teamId!);
@@ -149,7 +111,7 @@ export class TeamRegistrationModalComponent {
                 this.successEvent.emit();
                 this.close();
             },
-            error: (err: any) => {
+            error: (err: { error?: { message?: string } }) => {
                 this.isSubmitting = false;
                 this.uiFeedback.error('خطأ في رفع الإيصال', err.error?.message || 'تم حجز مكانك ولكن فشل رفع الإيصال، يرجى المحاولة مرة أخرى');
             }

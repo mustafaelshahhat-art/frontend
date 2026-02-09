@@ -1,33 +1,50 @@
 <div class="search-container flex-1 mr-3">
     <span class="material-symbols-outlined search-icon">search</span>
-    <input type="text" [placeholder]="placeholder" [value]="value" (input)="onInput($event)" (focus)="onFocus()" class="search-input" />
-    <button *ngIf="value" (click)="clearSearch()" class="search-clear">
+    <input type="text" [placeholder]="placeholder" [value]="value" (input)="onInput($event)" (focus)="onFocus()"
+        class="search-input" />
+    @if (value) {
+    <button (click)="clearSearch()" class="search-clear">
         <span class="material-symbols-outlined">close</span>
     </button>
+    }
 
     <!-- Search Results Dropdown -->
-    <div *ngIf="showDropdown" class="search-dropdown">
+    @if (showDropdown) {
+    <div class="search-dropdown">
         <!-- Loading State -->
-        <div *ngIf="isSearching()" class="search-loading">
+        @if (isSearching()) {
+        <div class="search-loading">
             <span class="loading-spinner"></span>
             <span>جاري البحث...</span>
         </div>
+        }
 
         <!-- Results -->
-        <ng-container *ngIf="!isSearching()">
-            <div *ngIf="searchResults().length === 0" class="search-empty">
+        @if (!isSearching()) {
+        <ng-container>
+            @if (searchResults().length === 0) {
+            <div class="search-empty">
                 <span class="material-symbols-outlined">search_off</span>
                 <span>لا توجد نتائج</span>
             </div>
+            }
 
-            <div *ngFor="let result of searchResults()" (click)="navigateToResult(result)" class="search-result-item">
+            @for (result of searchResults(); track result.id) {
+            <div (click)="navigateToResult(result)" (keyup.enter)="navigateToResult(result)" tabindex="0"
+                class="search-result-item">
                 <span class="material-symbols-outlined result-icon">{{ result.icon }}</span>
                 <div class="result-content">
                     <span class="result-title">{{ result.title }}</span>
-                    <span *ngIf="result.subtitle" class="result-subtitle">{{ result.subtitle }}</span>
+                    @if (result.subtitle) {
+                    <span class="result-subtitle">{{ result.subtitle }}</span>
+                    }
                 </div>
-                <span class="result-type-badge">{{ result.type === 'tournament' ? 'بطولة' : result.type === 'match' ? 'مباراة' : result.type === 'team' ? 'فريق' : 'مستخدم' }}</span>
+                <span class="result-type-badge">{{ result.type === 'tournament' ? 'بطولة' : result.type === 'match' ?
+                    'مباراة' : result.type === 'team' ? 'فريق' : 'مستخدم' }}</span>
             </div>
+            }
         </ng-container>
+        }
     </div>
+    }
 </div>

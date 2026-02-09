@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Tournament, TeamRegistration, Match, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse } from '../models/tournament.model';
+import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -12,7 +12,8 @@ export class TournamentService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/tournaments`;
 
-    constructor() { }
+
+
 
     getTournaments(): Observable<Tournament[]> {
         return this.http.get<Tournament[]>(this.apiUrl);
@@ -38,7 +39,7 @@ export class TournamentService {
         return this.http.post<Tournament>(`${this.apiUrl}/${id}/close-registration`, {});
     }
 
-    requestTournamentRegistration(tournamentId: string, teamId: string, teamName: string, captainId: string, captainName: string): Observable<TeamRegistration> {
+    requestTournamentRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         // According to TournamentsController: POST {id}/register
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId });
     }
@@ -52,11 +53,11 @@ export class TournamentService {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/payment`, formData);
     }
 
-    approvePayment(tournamentId: string, teamId: string, adminId: string): Observable<TeamRegistration> {
+    approvePayment(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/approve`, {});
     }
 
-    rejectPayment(tournamentId: string, teamId: string, adminId: string, reason: string): Observable<TeamRegistration> {
+    rejectPayment(tournamentId: string, teamId: string, reason: string): Observable<TeamRegistration> {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/reject`, { reason });
     }
 
@@ -83,13 +84,13 @@ export class TournamentService {
     }
 
     // Helper methods (mock replacement)
-    getTeamActiveTournament(teamId: string): Observable<Tournament | null> {
+    getTeamActiveTournament(): Observable<Tournament | null> {
         // This logic usually requires a specific endpoint "active-tournament-for-team".
         // Or client filters all tournaments.
         // For now, assume generic fetch and filter locally or return null if not easy.
         // Or better, let component handle it. I'll implementation generic logic for MVP.
         return this.getTournaments().pipe(
-            map(tournaments => {
+            map(() => {
                 // This is heavy, but MVP acceptable. ideally backend provides this.
                 // Or we fetch registrations for each? No.
                 // Skipping for now, returning null to force manual check or implement later.
@@ -112,12 +113,12 @@ export class TournamentService {
         );
     }
 
-    registerTeam(tournamentId: string, teamId: string, receiptUrl: string): Observable<TeamRegistration> {
+    registerTeam(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         // Two step: Register then Payment? Or just Register (which is PendingPayment)?
         // Backend 'RegisterTeam' sets status to PendingPayment.
         // 'SubmitPayment' sets ReceiptUrl.
         // So this aliases requestTournamentRegistration.
-        return this.requestTournamentRegistration(tournamentId, teamId, '', '', '');
+        return this.requestTournamentRegistration(tournamentId, teamId);
     }
 
     eliminateTeam(tournamentId: string, teamId: string): Observable<Tournament> {

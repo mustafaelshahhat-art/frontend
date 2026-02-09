@@ -1,10 +1,10 @@
-import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface SelectOption {
     label: string;
-    value: any;
+    value: unknown;
     icon?: string;
 }
 
@@ -20,7 +20,8 @@ export interface SelectOption {
             useExisting: forwardRef(() => SelectComponent),
             multi: true
         }
-    ]
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectComponent implements ControlValueAccessor {
     private _options: SelectOption[] = [];
@@ -33,22 +34,22 @@ export class SelectComponent implements ControlValueAccessor {
     get options(): SelectOption[] {
         return this._options;
     }
-    @Input() placeholder: string = 'اختر خياراً';
+    @Input() placeholder = 'اختر خياراً';
     @Input() label?: string;
-    @Input() disabled: boolean = false;
-    @Input() loading: boolean = false;
+    @Input() disabled = false;
+    @Input() loading = false;
     @Input() error?: string;
 
-    @Output() change = new EventEmitter<any>();
+    @Output() selectionChange = new EventEmitter<unknown>();
 
     @ViewChild('selectRef') selectRef!: ElementRef;
 
     isOpen = false;
-    selectedValue: any = null;
-    selectedLabel: string = '';
+    selectedValue: unknown = null;
+    selectedLabel = '';
 
-    onChange: any = () => { };
-    onTouched: any = () => { };
+    onChange: (value: unknown) => void = () => { /* empty */ };
+    onTouched: () => void = () => { /* empty */ };
 
     toggle(): void {
         if (this.disabled || this.loading) return;
@@ -60,15 +61,15 @@ export class SelectComponent implements ControlValueAccessor {
         this.selectedLabel = option.label;
         this.isOpen = false;
         this.onChange(this.selectedValue);
-        this.change.emit(this.selectedValue);
+        this.selectionChange.emit(this.selectedValue);
     }
 
-    writeValue(value: any): void {
+    writeValue(value: unknown): void {
         this.selectedValue = value;
         this.syncSelectedLabel(true);
     }
 
-    private syncSelectedLabel(allowValueFallback: boolean = false): void {
+    private syncSelectedLabel(allowValueFallback = false): void {
         const value = this.selectedValue;
         const option = this._options.find(o => o.value === value);
         if (option) {
@@ -84,11 +85,11 @@ export class SelectComponent implements ControlValueAccessor {
         this.selectedLabel = '';
     }
 
-    registerOnChange(fn: any): void {
+    registerOnChange(fn: (value: unknown) => void): void {
         this.onChange = fn;
     }
 
-    registerOnTouched(fn: any): void {
+    registerOnTouched(fn: () => void): void {
         this.onTouched = fn;
     }
 
@@ -98,7 +99,7 @@ export class SelectComponent implements ControlValueAccessor {
 
     @HostListener('document:click', ['$event'])
     onClickOutside(event: MouseEvent): void {
-        if (this.selectRef && !this.selectRef.nativeElement.contains(event.target)) {
+        if (this.selectRef && !this.selectRef.nativeElement.contains(event.target as Node)) {
             this.isOpen = false;
         }
     }

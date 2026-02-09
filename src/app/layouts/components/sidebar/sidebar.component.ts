@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { RouterModule } from '@angular/router';
 import { NavItem } from '../../../shared/models/nav-item.model';
+import { User } from '../../../core/models/user.model';
 import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 
@@ -9,28 +10,28 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
     selector: 'app-sidebar',
     standalone: true,
     imports: [
-        CommonModule,
         RouterModule,
         SmartImageComponent
     ],
     templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss']
+    styleUrls: ['./sidebar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidebarComponent {
     private uiFeedback = inject(UIFeedbackService);
 
-    @Input() isOpen: boolean = false;
-    @Input() isMobile: boolean = false;
+    @Input() isOpen = false;
+    @Input() isMobile = false;
     @Input() navItems: NavItem[] = [];
-    @Input() currentUser: any;
-    @Input() brandSubtitle: string = 'لوحة التحكم';
-    @Input() userRoleLabel: string = 'مسؤول';
+    @Input() currentUser: User | null = null;
+    @Input() brandSubtitle = 'لوحة التحكم';
+    @Input() userRoleLabel = 'مسؤول';
 
-    @Output() close = new EventEmitter<void>();
+    @Output() closeSidebar = new EventEmitter<void>();
     @Output() logout = new EventEmitter<void>();
 
     handleClose() {
-        this.close.emit();
+        this.closeSidebar.emit();
     }
 
     handleLogout() {

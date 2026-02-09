@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Tournament, TournamentStatus } from '../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TeamRegistration } from '../../core/models/tournament.model';
 
 export interface TournamentState {
   tournaments: Tournament[];
@@ -21,17 +21,17 @@ export class TournamentStore {
   tournaments = computed(() => this.state().tournaments);
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
-  
+
   // Computed selectors for specific views
-  activeTournaments = computed(() => 
+  activeTournaments = computed(() =>
     this.tournaments().filter(t => t.status === TournamentStatus.ACTIVE)
   );
-  
-  upcomingTournaments = computed(() => 
+
+  upcomingTournaments = computed(() =>
     this.tournaments().filter(t => t.status === TournamentStatus.REGISTRATION_OPEN)
   );
-  
-  completedTournaments = computed(() => 
+
+  completedTournaments = computed(() =>
     this.tournaments().filter(t => t.status === TournamentStatus.COMPLETED)
   );
 
@@ -58,7 +58,7 @@ export class TournamentStore {
   updateTournament(updatedTournament: Tournament): void {
     this.state.update(state => ({
       ...state,
-      tournaments: state.tournaments.map(tournament => 
+      tournaments: state.tournaments.map(tournament =>
         tournament.id === updatedTournament.id ? updatedTournament : tournament
       )
     }));
@@ -81,7 +81,7 @@ export class TournamentStore {
     }));
   }
 
-  updateRegistration(tournamentId: string, registration: any): void {
+  updateRegistration(tournamentId: string, registration: TeamRegistration): void {
     this.state.update(state => ({
       ...state,
       tournaments: state.tournaments.map(tournament => {

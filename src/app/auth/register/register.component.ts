@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -16,18 +16,52 @@ import { FormControlComponent } from '../../shared/components/form-control/form-
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, SelectComponent, FormControlComponent],
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.scss']
+  styleUrls: ['./register.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private systemSettings = inject(SystemSettingsService);
   private uiFeedback = inject(UIFeedbackService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
   private locationService = inject(LocationService);
+
+  UserRole = UserRole;
+  isLoading = signal(false);
+  currentStep = signal<1 | 2>(1);
+  isPageReady = signal(false);
+
+  form = {
+    name: signal(''),
+    email: signal(''),
+    phone: signal(''),
+    age: signal<number | null>(null),
+    nationalId: signal(''),
+    governorate: signal(''),
+    city: signal(''),
+    neighborhood: signal(''),
+    role: signal<UserRole>(UserRole.PLAYER),
+    password: signal(''),
+    confirmPassword: signal(''),
+    idFront: signal<File | null>(null),
+    idBack: signal<File | null>(null)
+  };
+
+  governorateOptions = signal<SelectOption[]>([]);
+  cityOptions = signal<SelectOption[]>([]);
+  neighborhoodOptions = signal<SelectOption[]>([]);
+
+  selectedGovernorate = signal('');
+  selectedCity = signal('');
 
   ngOnInit(): void {
     this.checkMaintenance();
+  }
+
+  ngAfterViewInit(): void {
+    requestAnimationFrame(() => {
+      this.isPageReady.set(true);
+    });
   }
 
   private checkMaintenance(): void {
@@ -41,37 +75,10 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  UserRole = UserRole;
-  isLoading = false;
-  currentStep: 1 | 2 = 1;
-
-  form = {
-    name: '',
-    email: '',
-    phone: '',
-    age: null as number | null,
-    nationalId: '',
-    governorate: '',
-    city: '',
-    neighborhood: '',
-    role: UserRole.PLAYER,
-    password: '',
-    confirmPassword: '',
-    idFront: null as File | null,
-    idBack: null as File | null
-  };
-
-  governorateOptions: SelectOption[] = [];
-  cityOptions: SelectOption[] = [];
-  neighborhoodOptions: SelectOption[] = [];
-
-  selectedGovernorate = '';
-  selectedCity = '';
-
   nextStep(role: UserRole): void {
-    this.form.role = role;
-    this.currentStep = 2;
-    if (this.governorateOptions.length === 0) {
+    this.form.role.set(role);
+    this.currentStep.set(2);
+    if (this.governorateOptions().length === 0) {
       this.loadGovernorates();
     }
   }
@@ -79,12 +86,10 @@ export class RegisterComponent implements OnInit {
   private loadGovernorates(): void {
     this.locationService.getGovernorates().subscribe({
       next: (govs) => {
-        this.governorateOptions = govs.map(g => ({ label: g, value: g }));
-        this.cdr.detectChanges();
+        this.governorateOptions.set(govs.map(g => ({ label: g, value: g })));
       },
       error: () => {
-        this.governorateOptions = [];
-        this.cdr.detectChanges();
+        this.governorateOptions.set([]);
       }
     });
   }
@@ -92,12 +97,10 @@ export class RegisterComponent implements OnInit {
   private loadCities(governorate: string): void {
     this.locationService.getCities(governorate).subscribe({
       next: (cities) => {
-        this.cityOptions = cities.map(c => ({ label: c, value: c }));
-        this.cdr.detectChanges();
+        this.cityOptions.set(cities.map(c => ({ label: c, value: c })));
       },
       error: () => {
-        this.cityOptions = [];
-        this.cdr.detectChanges();
+        this.cityOptions.set([]);
       }
     });
   }
@@ -105,68 +108,80 @@ export class RegisterComponent implements OnInit {
   private loadNeighborhoods(city: string): void {
     this.locationService.getDistricts(city).subscribe({
       next: (districts) => {
-        this.neighborhoodOptions = districts.map(d => ({ label: d, value: d }));
-        this.cdr.detectChanges();
+        this.neighborhoodOptions.set(districts.map(d => ({ label: d, value: d })));
       },
       error: () => {
-        this.neighborhoodOptions = [];
-        this.cdr.detectChanges();
+        this.neighborhoodOptions.set([]);
       }
     });
   }
 
   onGovChange(value: string): void {
-    this.form.governorate = value;  // Update form value
-    this.selectedGovernorate = value;
-    this.form.city = '';
-    this.form.neighborhood = '';
-    this.selectedCity = '';
-    this.cityOptions = [];
-    this.neighborhoodOptions = [];
+    this.form.governorate.set(value);
+    this.selectedGovernorate.set(value);
+    this.form.city.set('');
+    this.form.neighborhood.set('');
+    this.selectedCity.set('');
+    this.cityOptions.set([]);
+    this.neighborhoodOptions.set([]);
     if (value) {
       this.loadCities(value);
     }
-    this.cdr.detectChanges();
   }
 
   onCityChange(value: string): void {
-    this.form.city = value;  // Update form value
-    this.selectedCity = value;
-    this.form.neighborhood = '';
-    this.neighborhoodOptions = [];
+    this.form.city.set(value);
+    this.selectedCity.set(value);
+    this.form.neighborhood.set('');
+    this.neighborhoodOptions.set([]);
     if (value) {
       this.loadNeighborhoods(value);
     }
-    this.cdr.detectChanges();
   }
 
-  onFileChange(event: any, field: 'idFront' | 'idBack'): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.form[field] = file;
+  onFileChange(event: Event, field: 'idFront' | 'idBack'): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.form[field].set(file);
     }
   }
 
   onSubmit(): void {
-    if (this.form.password !== this.form.confirmPassword) {
+    if (this.form.password() !== this.form.confirmPassword()) {
       this.uiFeedback.error('خطأ', 'كلمات المرور غير متطابقة');
       return;
     }
 
-    if (!this.form.idFront || !this.form.idBack) {
+    if (!this.form.idFront() || !this.form.idBack()) {
       this.uiFeedback.error('خطأ', 'يرجى رفع صور البطاقة');
       return;
     }
 
-    this.isLoading = true;
-    this.cdr.detectChanges(); // Sync state before async call
+    this.isLoading.set(true);
 
-    this.authService.register(this.form).subscribe({
+    const formData = {
+      name: this.form.name(),
+      email: this.form.email(),
+      phone: this.form.phone(),
+      age: this.form.age(),
+      nationalId: this.form.nationalId(),
+      governorate: this.form.governorate(),
+      city: this.form.city(),
+      neighborhood: this.form.neighborhood(),
+      role: this.form.role(),
+      password: this.form.password(),
+      confirmPassword: this.form.confirmPassword(),
+      idFront: this.form.idFront(),
+      idBack: this.form.idBack()
+    };
+
+    // Note: authService.register expects original object structure
+    // We map signals to values here.
+    this.authService.register(formData).subscribe({
       next: () => {
-        this.isLoading = false;
-        // Navigate immediately to the verification page for an "instant" feel
-        // Encrypt (Base64) the email for URL privacy
-        const encodedEmail = btoa(this.form.email);
+        this.isLoading.set(false);
+        const encodedEmail = btoa(this.form.email());
         this.router.navigate(['/auth/verify-email'], {
           queryParams: {
             email: encodedEmail,
@@ -175,9 +190,8 @@ export class RegisterComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         this.uiFeedback.error('فشل التسجيل', err.error?.message || 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
-        this.cdr.detectChanges();
       }
     });
   }

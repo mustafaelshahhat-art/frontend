@@ -1,8 +1,9 @@
-import { Component, inject, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { timer, interval, take } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
@@ -13,9 +14,10 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, FormControlComponent, ButtonComponent, AlertComponent],
     templateUrl: './reset-password.component.html',
-    styleUrls: ['./reset-password.component.scss']
+    styleUrls: ['./reset-password.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ResetPasswordComponent implements OnInit {
+export class ResetPasswordComponent implements OnInit, AfterViewInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private router = inject(Router);
@@ -30,13 +32,13 @@ export class ResetPasswordComponent implements OnInit {
 
     isLoading = signal(false);
     isResending = signal(false);
+    isPageReady = signal(false);
     errorMessage = signal<string | null>(null);
     successMessage = signal<string | null>(null);
     email: string | null = null;
 
     resendCountdown = signal(60);
     canResend = signal(false);
-    timerInterval: any;
 
     private decodeEmail(value: string): string {
         try {
@@ -65,19 +67,29 @@ export class ResetPasswordComponent implements OnInit {
         this.startResendTimer();
     }
 
+    ngAfterViewInit(): void {
+        requestAnimationFrame(() => {
+            this.isPageReady.set(true);
+        });
+    }
+
     startResendTimer(): void {
         this.canResend.set(false);
         this.resendCountdown.set(60);
 
-        if (this.timerInterval) clearInterval(this.timerInterval);
-
-        this.timerInterval = setInterval(() => {
-            this.resendCountdown.update(val => val - 1);
-            if (this.resendCountdown() <= 0) {
-                this.canResend.set(true);
-                clearInterval(this.timerInterval);
-            }
-        }, 1000);
+        interval(1000)
+            .pipe(
+                take(60),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe({
+                next: (val) => {
+                    this.resendCountdown.set(59 - val);
+                },
+                complete: () => {
+                    this.canResend.set(true);
+                }
+            });
     }
 
     resendOtp(): void {
@@ -131,9 +143,12 @@ export class ResetPasswordComponent implements OnInit {
                 next: () => {
                     this.isLoading.set(false);
                     this.successMessage.set('تم تغيير كلمة المرور بنجاح. جاري تحويلك لتسجيل الدخول...');
-                    setTimeout(() => {
-                        this.router.navigate(['/auth/login']);
-                    }, 2000);
+
+                    timer(2000)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe(() => {
+                            this.router.navigate(['/auth/login']);
+                        });
                 },
                 error: (err) => {
                     this.isLoading.set(false);

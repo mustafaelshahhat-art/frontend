@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,11 +6,12 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './stat-card.component.html',
-    styleUrls: ['./stat-card.component.scss']
+    styleUrls: ['./stat-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StatCardComponent {
-    @Input() label: string = '';
+    @Input() label = '';
     @Input() value: string | number = '';
-    @Input() icon: string = '';
-    @Input() colorClass: string = 'primary';
+    @Input() icon = '';
+    @Input() colorClass = 'primary';
 }

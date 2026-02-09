@@ -1,20 +1,25 @@
 <div [class]="containerClasses">
     <!-- Real Image -->
-    <ng-container *ngIf="fullUrl && !hasError; else placeholder">
-        <img [src]="fullUrl" [alt]="alt" (load)="onLoad()" (error)="onError()" [class.loaded]="isLoaded"
-            class="main-img">
-        <!-- Skeleton loader while loading -->
-        <div *ngIf="!isLoaded" class="skeleton-loader"></div>
-    </ng-container>
-
+    @if (fullUrl && !hasError) {
+    <img [src]="fullUrl" [alt]="alt" (load)="onLoad()" (error)="onError()" [class.loaded]="isLoaded" class="main-img">
+    <!-- Skeleton loader while loading -->
+    @if (!isLoaded) {
+    <div class="skeleton-loader"></div>
+    }
+    } @else {
     <!-- Placeholder -->
-    <ng-template #placeholder>
-        <div class="image-placeholder animate-fade-in">
-            <div class="placeholder-content">
-                <span *ngIf="!initials" class="material-symbols-outlined">{{ placeholderIcon }}</span>
-                <span *ngIf="initials" class="initials">{{ initials | uppercase }}</span>
-                <span *ngIf="placeholderLabel" class="label">{{ placeholderLabel }}</span>
-            </div>
+    <div class="image-placeholder animate-fade-in">
+        <div class="placeholder-content">
+            @if (!initials) {
+            <span class="material-symbols-outlined">{{ placeholderIcon }}</span>
+            }
+            @if (initials) {
+            <span class="initials">{{ initials | uppercase }}</span>
+            }
+            @if (placeholderLabel) {
+            <span class="label">{{ placeholderLabel }}</span>
+            }
         </div>
-    </ng-template>
+    </div>
+    }
 </div>

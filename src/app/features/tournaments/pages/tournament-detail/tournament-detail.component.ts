@@ -1,16 +1,15 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Goal } from '../../../../core/models/tournament.model';
+import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
@@ -26,6 +25,7 @@ import { Permission } from '../../../../core/permissions/permissions.model';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
 import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-tournament-detail',
@@ -35,7 +35,6 @@ import { RefereeLayoutService } from '../../../../core/services/referee-layout.s
         RouterModule,
         FormsModule,
         FilterComponent,
-        PageHeaderComponent,
         CardComponent,
         BadgeComponent,
         ButtonComponent,
@@ -47,9 +46,10 @@ import { RefereeLayoutService } from '../../../../core/services/referee-layout.s
         TableComponent
     ],
     templateUrl: './tournament-detail.component.html',
-    styleUrls: ['./tournament-detail.component.scss']
+    styleUrls: ['./tournament-detail.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TournamentDetailComponent implements OnInit, AfterViewInit {
+export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private tournamentService = inject(TournamentService);
@@ -63,10 +63,16 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private adminLayout = inject(AdminLayoutService);
     private captainLayout = inject(CaptainLayoutService);
     private refereeLayout = inject(RefereeLayoutService);
+    private sanitizer = inject(DomSanitizer);
 
-    @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
-    @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
-    @ViewChild('formTemplate') formTemplate!: TemplateRef<any>;
+    @HostBinding('style.--progress-val')
+    get progressValStyle(): SafeStyle {
+        return this.sanitizer.bypassSecurityTrustStyle(this.getProgressPercent().toString());
+    }
+
+    @ViewChild('rankTemplate') rankTemplate!: TemplateRef<unknown>;
+    @ViewChild('teamTemplate') teamTemplate!: TemplateRef<unknown>;
+    @ViewChild('formTemplate') formTemplate!: TemplateRef<unknown>;
 
     // Signals
     tournamentId = signal<string | null>(null);
@@ -80,17 +86,31 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
 
     tournamentMatches = computed(() => {
         const id = this.tournamentId();
-        return id ? (this.matchStore as any).matches().filter((m: Match) => m.tournamentId === id) : [];
+        return id ? this.matchStore.matches().filter((m: Match) => m.tournamentId === id) : [];
     });
 
     // Compute Standings Client-Side for Real-Time Accuracy
     standings = computed(() => {
-        const ms = this.tournamentMatches().filter((m: Match) => m.status === 'Finished');
-        const teamsMap = new Map<string, any>();
+        const ms = this.tournamentMatches().filter((m: Match) => m.status === MatchStatus.FINISHED);
 
-        // Initialize teams from Tournament registrations if available? 
-        // Or just build from matches. Better to use registrations to include 0-game teams.
-        // But registrations are on Tournament object.
+        interface StandingEntry {
+            teamId: string;
+            team: string;
+            teamLogoUrl: string;
+            played: number;
+            won: number;
+            draw: number;
+            lost: number;
+            gf: number;
+            ga: number;
+            gd: number;
+            points: number;
+            form: string[];
+            rank?: number;
+        }
+
+        const teamsMap = new Map<string, StandingEntry>();
+
         const t = this.tournament();
         if (t?.registrations) {
             t.registrations.filter((r: TeamRegistration) =>
@@ -101,7 +121,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
                 teamsMap.set(r.teamId, {
                     teamId: r.teamId,
                     team: r.teamName,
-                    teamLogoUrl: r.teamLogoUrl || '', // Assuming logo is available
+                    teamLogoUrl: r.teamLogoUrl || '',
                     played: 0, won: 0, draw: 0, lost: 0,
                     gf: 0, ga: 0, gd: 0, points: 0,
                     form: []
@@ -110,16 +130,14 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         }
 
         ms.forEach((m: Match) => {
-            // Home
-            if (!teamsMap.has(m.homeTeamId)) return; // Should not happen
-            const home = teamsMap.get(m.homeTeamId);
+            if (!teamsMap.has(m.homeTeamId) || !teamsMap.has(m.awayTeamId)) return;
+            const home = teamsMap.get(m.homeTeamId)!;
+            const away = teamsMap.get(m.awayTeamId)!;
+
             home.played++;
             home.gf += m.homeScore;
             home.ga += m.awayScore;
 
-            // Away
-            if (!teamsMap.has(m.awayTeamId)) return;
-            const away = teamsMap.get(m.awayTeamId);
             away.played++;
             away.gf += m.awayScore;
             away.ga += m.homeScore;
@@ -136,22 +154,19 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
             }
         });
 
-        // Calculate GD and trim form
-        const result = Array.from(teamsMap.values()).map((t: any) => {
-            t.gd = t.gf - t.ga;
-            t.form = t.form.slice(-5); // Last 5
-            return t;
-        });
+        const result = Array.from(teamsMap.values()).map((entry) => ({
+            ...entry,
+            gd: entry.gf - entry.ga,
+            form: entry.form.slice(-5)
+        }));
 
-        // Sort: Points DESC, GD DESC, GF DESC
         result.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points;
             if (b.gd !== a.gd) return b.gd - a.gd;
             return b.gf - a.gf;
         });
 
-        // Add Rank
-        return result.map((t, index) => ({ ...t, rank: index + 1 }));
+        return result.map((entry, index) => ({ ...entry, rank: index + 1 }));
     });
 
     activeMatch = signal<Match | null>(null);
@@ -175,15 +190,16 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
 
     tableColumns: TableColumn[] = [];
     scorers = computed(() => {
-        const ms = this.tournamentMatches() as any[];
-        const playerGoals = new Map<string, { name: string, team: string, goals: number, teamId: string }>();
+        const ms = this.tournamentMatches();
+        const playerGoals = new Map<string, { id: string, name: string, team: string, goals: number, teamId: string }>();
 
-        ms.forEach((m: any) => {
+        ms.forEach((m) => {
             if (m.goals && Array.isArray(m.goals)) {
-                m.goals.forEach((g: any) => {
+                m.goals.forEach((g) => {
                     const key = g.playerId;
                     if (!playerGoals.has(key)) {
                         playerGoals.set(key, {
+                            id: key,
                             name: g.playerName,
                             team: g.teamId === m.homeTeamId ? m.homeTeamName : m.awayTeamName,
                             goals: 0,
@@ -209,6 +225,13 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
             .filter(r => r.length > 0);
     }
 
+    onTabChange(tab: string | number | null): void {
+        if (typeof tab === 'string') {
+            this.activeTab = tab;
+            this.cdr.markForCheck();
+        }
+    }
+
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -231,7 +254,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private getLayout(): any {
+    private getLayout(): AdminLayoutService | CaptainLayoutService | RefereeLayoutService | null {
         if (this.isAdmin()) return this.adminLayout;
         if (this.isCaptain()) return this.captainLayout;
         if (this.authService.hasRole(UserRole.REFEREE)) return this.refereeLayout;
@@ -516,20 +539,17 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
 
     // Navigation
     checkGlobalBusyStatus(): void {
-        const teamId = this.authService.getCurrentUser()?.teamId;
-        if (!teamId) return;
+        const user = this.authService.getCurrentUser();
+        if (!user?.teamId) return;
 
-        // This is a check against "All Tournaments".
-        // Use store if possible:
-        const allTournaments = (this.tournamentStore as any).tournaments();
-        // If store is empty, might need fetch. But this check is auxiliary.
-        // Let's assume store has data or skip check for now to avoid refetch.
-        // Or fetch once.
+        const store = this.tournamentStore as unknown as { tournaments: () => { id: string, registrations: TeamRegistration[] }[] };
+        const allTournaments = store.tournaments();
         const t = this.tournament();
+
         if (allTournaments.length > 0 && t) {
-            this.isBusyElsewhere = allTournaments.some((other: any) =>
+            this.isBusyElsewhere = allTournaments.some((other) =>
                 other.id !== t.id &&
-                other.registrations?.some((r: any) => r.teamId === teamId && r.status !== 'Rejected')
+                other.registrations?.some((r) => r.teamId === user.teamId && r.status !== RegistrationStatus.REJECTED)
             );
         }
     }

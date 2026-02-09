@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { TeamDetailComponent, TeamData } from '../../../shared/components/team-detail';
 import { TeamService } from '../../../core/services/team.service';
 import { TeamStore } from '../../../core/stores/team.store';
+import { Team, Player } from '../../../core/models/team.model';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 
 @Component({
@@ -13,8 +14,9 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
         CommonModule,
         TeamDetailComponent
     ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div *ngIf="!loading && teamData">
+        @if (!loading() && teamData) {
             <app-team-detail 
                 [team]="teamData"
                 [showBackButton]="true"
@@ -24,13 +26,16 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
                 [canRemovePlayers]="false"
                 [canManageStatus]="false">
             </app-team-detail>
-        </div>
+        }
 
-        <div *ngIf="loading" class="flex-center p-xl">
-            <p>جاري تحميل بيانات الفريق...</p>
-        </div>
+        @if (loading()) {
+            <div class="flex-center p-xl">
+                <p>جاري تحميل بيانات الفريق...</p>
+            </div>
+        }
     `
 })
+
 export class RefereeTeamDetailComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly teamService = inject(TeamService);
@@ -44,7 +49,7 @@ export class RefereeTeamDetailComponent implements OnInit {
         return team ? this.convertToTeamData(team) : null;
     });
 
-    loading = true;
+    loading = signal(true);
 
     get teamData(): TeamData | null {
         return this.teamDataSignal();
@@ -59,34 +64,34 @@ export class RefereeTeamDetailComponent implements OnInit {
     }
 
     loadTeam(id: string): void {
-        this.loading = true;
+        this.loading.set(true);
         this.teamService.getTeamById(id).subscribe({
             next: (team) => {
                 if (team) {
                     this.teamStore.upsertTeam(team);
                 }
-                this.loading = false;
+                this.loading.set(false);
             },
             error: () => {
                 this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات الفريق');
-                this.loading = false;
+                this.loading.set(false);
             }
         });
     }
 
-    private convertToTeamData(team: any): TeamData {
+    private convertToTeamData(team: Team): TeamData {
         return {
             id: team.id,
             name: team.name,
             captainId: team.captainId || '',
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
-            logo: team.logoUrl || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
+            logo: team.logoUrl || team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
             status: team.isReady ? 'READY' : 'NOT_READY',
             isActive: team.isActive ?? true,
             createdAt: team.createdAt ? new Date(team.createdAt) : new Date(),
             stats: {
-                matches: team.stats?.totalMatches || 0,
+                matches: team.stats?.matches || 0,
                 wins: team.stats?.wins || 0,
                 draws: team.stats?.draws || 0,
                 losses: team.stats?.losses || 0,
@@ -94,7 +99,7 @@ export class RefereeTeamDetailComponent implements OnInit {
                 goalsAgainst: team.stats?.goalsAgainst || 0,
                 rank: team.stats?.rank || 0
             },
-            players: (team.players || []).map((p: any) => ({
+            players: (team.players || []).map((p: Player) => ({
                 id: p.id,
                 name: p.name,
                 number: p.number || 0,
@@ -104,11 +109,14 @@ export class RefereeTeamDetailComponent implements OnInit {
                 redCards: p.redCards || 0,
                 status: p.status || 'active'
             })),
-            matches: (team.matches || []).map((m: any) => ({
+            matches: (team.matches || []).map((m: { id: string, opponent?: string, opponentLogo?: string, date: string | Date, score?: string, teamScore?: number, opponentScore?: number, status?: string, type?: string }) => ({
                 id: m.id,
                 opponent: m.opponent || 'خصم غير معروف',
+                opponentLogo: m.opponentLogo,
                 date: new Date(m.date),
-                score: m.score || '0-0',
+                score: m.score,
+                teamScore: m.teamScore,
+                opponentScore: m.opponentScore,
                 status: m.status || 'draw',
                 type: m.type || 'غير محدد'
             })),

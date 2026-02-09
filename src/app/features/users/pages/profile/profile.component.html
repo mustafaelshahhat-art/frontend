@@ -1,181 +1,190 @@
 <ng-template #actionsTemplate>
     <div class="action-buttons-wrapper flex items-center gap-3">
-        <app-button *ngIf="!isPending()" (onClick)="toggleEditMode()" [isLoading]="isLoading"
-            [icon]="isEditing ? 'save' : 'edit'" [disabled]="isLoading || (isEditing && !hasChanges)">
+        @if (!isPending()) {
+        <app-button (trigger)="toggleEditMode()" [isLoading]="isLoading" [icon]="isEditing ? 'save' : 'edit'"
+            [disabled]="isLoading || (isEditing && !hasChanges)">
             {{ saveButtonLabel }}
         </app-button>
+        }
     </div>
 </ng-template>
 
 <div class="profile-page">
 
     <!-- Pending Status - Replace content when pending -->
-    <ng-container *ngIf="isPending(); else mainContent">
-        <app-pending-status-card title="حسابك قيد المراجعة"
-            message="عذراً، لا يمكنك الوصول لإعدادات الحساب حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-            (onRefresh)="refreshStatus()">
-        </app-pending-status-card>
-    </ng-container>
-
+    @if (isPending()) {
+    <app-pending-status-card title="حسابك قيد المراجعة"
+        message="عذراً، لا يمكنك الوصول لإعدادات الحساب حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
+        (refreshRequest)="refreshStatus()">
+    </app-pending-status-card>
+    } @else {
     <!-- Main Content (only when not pending) -->
-    <ng-template #mainContent>
-        <div class="profile-nav" style="margin-top: 0.75rem; margin-bottom: 1.5rem;">
-            <app-filter
-                [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
-                [activeValue]="activeSection" (change)="setActiveSection($event)">
-            </app-filter>
+    <div class="profile-nav-wrapper">
+        <app-filter
+            [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
+            [activeValue]="activeSection" (filterChange)="setActiveSection($event)">
+        </app-filter>
+    </div>
+
+    <div class="profile-container">
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <app-card class="avatar-card">
+                <div class="avatar-wrapper" [class.editable]="isEditing" (click)="isEditing && fileInput.click()"
+                    (keydown.enter)="isEditing && fileInput.click()"
+                    (keydown.space)="$event.preventDefault(); isEditing && fileInput.click()"
+                    [tabindex]="isEditing ? 0 : -1" [attr.role]="isEditing ? 'button' : undefined"
+                    aria-label="تغيير الصورة الشخصية">
+                    <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
+                        class="avatar-image" [initials]="userInitial">
+                    </app-smart-image>
+
+                    @if (isUploadingPicture) {
+                    <div class="uploading-overlay">
+                        <app-inline-loading></app-inline-loading>
+                    </div>
+                    }
+
+                    @if (isEditing && !isUploadingPicture) {
+                    <div class="edit-overlay" (click)="fileInput.click(); $event.stopPropagation()"
+                        (keydown.enter)="fileInput.click(); $event.stopPropagation()"
+                        (keydown.space)="$event.preventDefault(); fileInput.click(); $event.stopPropagation()"
+                        tabindex="0" role="button">
+                        <span class="material-symbols-outlined">edit</span>
+                        <span>تغيير الصورة</span>
+                    </div>
+                    }
+                </div>
+                <input #fileInput type="file" accept="image/*" (change)="onFileInputChange($event)"
+                    class="hidden-input" />
+                <h2>{{ user?.name }}</h2>
+                <span class="username">@{{ user?.username }}</span>
+
+                <div class="avatar-actions">
+                    @if (profilePicture && !isUploadingPicture && isEditing) {
+                    <app-button variant="ghost" size="sm" icon="delete" (trigger)="removePicture()" variant="danger">
+                        حذف الصورة
+                    </app-button>
+                    }
+                </div>
+
+                <div class="membership-card">
+                    <p class="membership-label">معرف العضوية</p>
+                    <p class="membership-id">{{ displayId || user?.username }}</p>
+                </div>
+            </app-card>
         </div>
 
-        <div class="profile-container">
-            <!-- Sidebar -->
-            <div class="profile-sidebar">
-                <app-card class="avatar-card">
-                    <div class="avatar-wrapper" [class.editable]="isEditing" (click)="isEditing && fileInput.click()">
-                        <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
-                            style="width: 100%; height: 100%;" [initials]="userInitial">
-                        </app-smart-image>
-
-                        <div *ngIf="isUploadingPicture" class="uploading-overlay">
-                            <app-inline-loading></app-inline-loading>
+        <!-- Content Area -->
+        <div class="profile-content">
+            <!-- Edit Info Section -->
+            @if (activeSection === 'info' && profileForm) {
+            <app-card title="المعلومات الشخصية" icon="settings_account_box">
+                <form [formGroup]="profileForm" (ngSubmit)="toggleEditMode()">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <app-form-control formControlName="name" label="الاسم الكامل"
+                                [control]="profileForm.get('name')" [disabled]="isFormDisabled">
+                            </app-form-control>
                         </div>
 
-                        <div *ngIf="isEditing && !isUploadingPicture" class="edit-overlay"
-                            (click)="fileInput.click(); $event.stopPropagation()">
-                            <span class="material-symbols-outlined">edit</span>
-                            <span>تغيير الصورة</span>
+                        <div class="form-group">
+                            <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
+                                [control]="profileForm.get('email')" [disabled]="isFormDisabled">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
+                                type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
+                                [control]="profileForm.get('username')">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)" [disabled]="true"
+                                [control]="profileForm.get('nationalId')">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-select [options]="governorateOptions" [ngModel]="profileForm.get('governorate')?.value"
+                                (ngModelChange)="onGovernorateChange($event)" label="المحافظة"
+                                placeholder="اختر المحافظة" [disabled]="isFormDisabled"
+                                [ngModelOptions]="{standalone: true}">
+                            </app-select>
+                        </div>
+
+                        <div class="form-group">
+                            <app-select [options]="cityOptions" [ngModel]="profileForm.get('city')?.value"
+                                (ngModelChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
+                                [disabled]="isFormDisabled || !profileForm.get('governorate')?.value"
+                                [ngModelOptions]="{standalone: true}">
+                            </app-select>
+                        </div>
+
+                        <div class="form-group">
+                            <app-select [options]="districtOptions" [ngModel]="profileForm.get('neighborhood')?.value"
+                                (ngModelChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
+                                [disabled]="isFormDisabled || !profileForm.get('city')?.value"
+                                [ngModelOptions]="{standalone: true}">
+                            </app-select>
                         </div>
                     </div>
-                    <input #fileInput type="file" accept="image/*" (change)="onFileInputChange($event)"
-                        style="display: none;" />
-                    <h2>{{ user?.name }}</h2>
-                    <span class="username">@{{ user?.username }}</span>
 
-                    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                        <app-button *ngIf="profilePicture && !isUploadingPicture && isEditing" variant="ghost" size="sm"
-                            icon="delete" (onClick)="removePicture()" variant="danger">
-                            حذف الصورة
+                    <!-- Cancel button only (Save is in layout header) -->
+                    @if (isEditing) {
+                    <div class="form-actions">
+                        <app-button type="button" (trigger)="cancelEdit()" variant="outline" icon="close">
+                            إلغاء التعديل
                         </app-button>
                     </div>
+                    }
+                </form>
+            </app-card>
+            }
 
-                    <div class="membership-info"
-                        style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                        <p style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">معرف
-                            العضوية</p>
-                        <p
-                            style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #10B981; letter-spacing: 1px;">
-                            {{ displayId || user?.username }}</p>
+            <!-- Change Password Section -->
+            @if (activeSection === 'password' && passwordForm) {
+            <app-card title="تغيير كلمة المرور" icon="key">
+                <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+                    <div class="password-form-container">
+                        <div class="form-group">
+                            <app-form-control formControlName="currentPassword" label="كلمة المرور الحالية"
+                                type="password" placeholder="أدخل كلمة المرور الحالية"
+                                [control]="passwordForm.get('currentPassword')">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-form-control formControlName="newPassword" label="كلمة المرور الجديدة" type="password"
+                                placeholder="6 أحرف على الأقل" [control]="passwordForm.get('newPassword')">
+                            </app-form-control>
+                        </div>
+
+                        <div class="form-group">
+                            <app-form-control formControlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
+                                type="password" placeholder="أعد إدخال كلمة المرور"
+                                [control]="passwordForm.get('confirmPassword')">
+                            </app-form-control>
+                        </div>
                     </div>
-                </app-card>
-            </div>
 
-            <!-- Content Area -->
-            <div class="profile-content">
-                <!-- Edit Info Section -->
-                <app-card *ngIf="activeSection === 'info' && profileForm" title="المعلومات الشخصية"
-                    icon="settings_account_box">
-                    <form [formGroup]="profileForm" (ngSubmit)="toggleEditMode()">
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <app-form-control formControlName="name" label="الاسم الكامل"
-                                    [control]="profileForm.get('name')" [disabled]="isFormDisabled">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
-                                    [control]="profileForm.get('email')" [disabled]="isFormDisabled">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
-                                    type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
-                                    [control]="profileForm.get('username')">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)"
-                                    [disabled]="true" [control]="profileForm.get('nationalId')">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-select [options]="governorateOptions"
-                                    [ngModel]="profileForm.get('governorate')?.value"
-                                    (ngModelChange)="onGovernorateChange($event)" label="المحافظة"
-                                    placeholder="اختر المحافظة" [disabled]="isFormDisabled"
-                                    [ngModelOptions]="{standalone: true}">
-                                </app-select>
-                            </div>
-
-                            <div class="form-group">
-                                <app-select [options]="cityOptions" [ngModel]="profileForm.get('city')?.value"
-                                    (ngModelChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
-                                    [disabled]="isFormDisabled || !profileForm.get('governorate')?.value"
-                                    [ngModelOptions]="{standalone: true}">
-                                </app-select>
-                            </div>
-
-                            <div class="form-group">
-                                <app-select [options]="districtOptions"
-                                    [ngModel]="profileForm.get('neighborhood')?.value"
-                                    (ngModelChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
-                                    [disabled]="isFormDisabled || !profileForm.get('city')?.value"
-                                    [ngModelOptions]="{standalone: true}">
-                                </app-select>
-                            </div>
-                        </div>
-
-                        <!-- Cancel button only (Save is in layout header) -->
-                        <div *ngIf="isEditing" style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                            <app-button type="button" (onClick)="cancelEdit()" variant="outline" icon="close">
-                                إلغاء التعديل
-                            </app-button>
-                        </div>
-                    </form>
-                </app-card>
-
-                <!-- Change Password Section -->
-                <app-card *ngIf="activeSection === 'password' && passwordForm" title="تغيير كلمة المرور" icon="key">
-                    <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px;">
-                            <div class="form-group">
-                                <app-form-control formControlName="currentPassword" label="كلمة المرور الحالية"
-                                    type="password" placeholder="أدخل كلمة المرور الحالية"
-                                    [control]="passwordForm.get('currentPassword')">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="newPassword" label="كلمة المرور الجديدة"
-                                    type="password" placeholder="6 أحرف على الأقل"
-                                    [control]="passwordForm.get('newPassword')">
-                                </app-form-control>
-                            </div>
-
-                            <div class="form-group">
-                                <app-form-control formControlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
-                                    type="password" placeholder="أعد إدخال كلمة المرور"
-                                    [control]="passwordForm.get('confirmPassword')">
-                                </app-form-control>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                            <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading"
-                                icon="lock_reset" [disabled]="passwordForm.invalid">
-                                تحديث كلمة المرور
-                            </app-button>
-                        </div>
-                    </form>
-                </app-card>
-            </div>
+                    <div class="form-actions">
+                        <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading" icon="lock_reset"
+                            [disabled]="passwordForm.invalid">
+                            تحديث كلمة المرور
+                        </app-button>
+                    </div>
+                </form>
+            </app-card>
+            }
         </div>
-    </ng-template>
+    </div>
+    }
 </div>

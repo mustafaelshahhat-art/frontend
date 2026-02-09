@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, computed, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, computed, ViewChild, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,14 +6,11 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { User, UserRole } from '../../../../core/models/user.model';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { UserService } from '../../../../core/services/user.service';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
-import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { LocationService } from '../../../../core/services/location.service';
@@ -30,10 +27,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        PageHeaderComponent,
         CardComponent,
         ButtonComponent,
-        BadgeComponent,
         FilterComponent,
         SmartImageComponent,
         FormControlComponent,
@@ -42,10 +37,11 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         InlineLoadingComponent
     ],
     templateUrl: './profile.component.html',
-    styleUrls: ['./profile.component.scss']
+    styleUrls: ['./profile.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
-    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
@@ -112,7 +108,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             if (this.actionsTemplate) {
                 this.layoutService.setActions(this.actionsTemplate);
             }
@@ -245,8 +241,14 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Location change handlers
-    onGovernorateChange(governorate: any): void {
-        const value = typeof governorate === 'string' ? governorate : governorate?.value || '';
+    onGovernorateChange(governorate: string | SelectOption | null): void {
+        let value = '';
+        if (typeof governorate === 'string') {
+            value = governorate;
+        } else if (governorate && 'value' in governorate) {
+            value = String(governorate.value);
+        }
+
         this.profileForm.get('governorate')?.setValue(value);
         this.profileForm.get('city')?.setValue('');
         this.profileForm.get('neighborhood')?.setValue('');
@@ -258,8 +260,14 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onCityChange(city: any): void {
-        const value = typeof city === 'string' ? city : city?.value || '';
+    onCityChange(city: string | SelectOption | null): void {
+        let value = '';
+        if (typeof city === 'string') {
+            value = city;
+        } else if (city && 'value' in city) {
+            value = String(city.value);
+        }
+
         this.profileForm.get('city')?.setValue(value);
         this.profileForm.get('neighborhood')?.setValue('');
         this.districtOptions = [];
@@ -269,8 +277,13 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onDistrictChange(district: any): void {
-        const value = typeof district === 'string' ? district : district?.value || '';
+    onDistrictChange(district: string | SelectOption | null): void {
+        let value = '';
+        if (typeof district === 'string') {
+            value = district;
+        } else if (district && 'value' in district) {
+            value = String(district.value);
+        }
         this.profileForm.get('neighborhood')?.setValue(value);
     }
 
@@ -328,13 +341,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    get pageTitle(): string {
-        return 'الملف الشخصي';
-    }
-
-    get pageSubtitle(): string {
-        return 'إدارة البيانات الشخصية وتحديث معلومات التواصل';
-    }
+    readonly pageTitle = 'الملف الشخصي';
+    readonly pageSubtitle = 'إدارة البيانات الشخصية وتحديث معلومات التواصل';
 
     get roleBadge(): string {
         return this.getRoleLabel(this.userRole);
@@ -353,8 +361,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         return role ? (roles[role] || '') : '';
     }
 
-    setActiveSection(section: 'info' | 'password'): void {
-        this.activeSection = section;
+    setActiveSection(section: unknown): void {
+        this.activeSection = section as 'info' | 'password';
     }
 
     toggleEditMode(): void {
@@ -433,7 +441,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
             // Prepare update data
-            const updateData: any = {};
+            const updateData: Record<string, unknown> = {};
 
             // Add form field changes
             const formValue = this.profileForm.getRawValue();
@@ -447,9 +455,9 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
             // Handle avatar changes
             if (this.avatarToDelete) {
-                updateData.removeAvatar = true;
+                updateData['removeAvatar'] = true;
             } else if (this.pendingAvatar && this.pendingAvatar !== this.originalAvatar) {
-                updateData.avatar = this.pendingAvatar;
+                updateData['avatar'] = this.pendingAvatar;
             }
 
 

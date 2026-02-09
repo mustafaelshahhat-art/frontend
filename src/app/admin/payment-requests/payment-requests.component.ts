@@ -1,9 +1,8 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -19,7 +18,6 @@ import { TournamentStore } from '../../core/stores/tournament.store';
     imports: [
         CommonModule,
         FilterComponent,
-        PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
@@ -27,7 +25,8 @@ import { TournamentStore } from '../../core/stores/tournament.store';
         TableComponent
     ],
     templateUrl: './payment-requests.component.html',
-    styleUrls: ['./payment-requests.component.scss']
+    styleUrls: ['./payment-requests.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestroy {
     RegistrationStatus = RegistrationStatus;
@@ -40,6 +39,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     currentFilter = 'all';
     showReceiptModal = false;
     selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
+
 
     // ✅ FIXED: Compute requests from TournamentStore instead of local state
     requests = computed(() => {
@@ -70,14 +70,14 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
 
     columns: TableColumn[] = [];
 
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
-    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
-    @ViewChild('amountInfo') amountInfo!: TemplateRef<any>;
-    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
-    @ViewChild('senderNumberInfo') senderNumberInfo!: TemplateRef<any>;
-    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
-    @ViewChild('receiptInfo') receiptInfo!: TemplateRef<any>;
-    @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('amountInfo') amountInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('senderNumberInfo') senderNumberInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('receiptInfo') receiptInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
+    @ViewChild('actionInfo') actionInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
 
     ngOnInit(): void {
         this.adminLayout.setTitle('طلبات الدفع');
@@ -98,7 +98,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         ];
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.adminLayout.setFilters(this.filtersTemplate);
         });
 
@@ -129,7 +129,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     approve(request: { tournament: Tournament, registration: TeamRegistration }): void {
-        this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId, 'admin').subscribe({
+        this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId).subscribe({
             next: () => {
                 this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
             }
@@ -139,7 +139,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     reject(request: { tournament: Tournament, registration: TeamRegistration }): void {
         this.uiFeedback.confirm('رفض الطلب', 'يرجى تأكيد رفض طلب الدفع', 'رفض', 'danger').subscribe(confirmed => {
             if (confirmed) {
-                this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'admin', 'Rejected by admin').subscribe({
+                this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'Rejected by admin').subscribe({
                     next: () => {
                         this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
                     }
@@ -158,8 +158,8 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         this.selectedRequest = null;
     }
 
-    setFilter(filter: string): void {
-        this.currentFilter = filter;
+    setFilter(filter: unknown): void {
+        this.currentFilter = filter as string;
     }
 
     getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {

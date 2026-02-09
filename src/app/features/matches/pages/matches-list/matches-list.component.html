@@ -1,98 +1,114 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter *ngIf="!isPending()" [items]="filters" [activeValue]="selectedFilter()" (change)="setFilter($event)">
+    @if (!isPending()) {
+    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)">
     </app-filter>
+    }
 </ng-template>
 
 <!-- Pending Status (Blocker) -->
-<ng-container *ngIf="isPending() && !isAdmin(); else mainContent">
-    <app-pending-status-card title="حسابك قيد المراجعة"
-        message="عذراً، لا يمكنك استعراض أو إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-        (onRefresh)="refreshStatus()">
-    </app-pending-status-card>
-</ng-container>
-
+@if (isPending() && !isAdmin()) {
+<app-pending-status-card title="حسابك قيد المراجعة"
+    message="عذراً، لا يمكنك استعراض أو إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
+    (onRefresh)="refreshStatus()">
+</app-pending-status-card>
+} @else {
 <!-- Main Content -->
-<ng-template #mainContent>
-    <div class="flex-col gap-md">
-        <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل المباريات...">
-        </app-inline-loading>
+<div class="flex-col gap-md">
+    <!-- Loading State -->
+    @if (isLoading()) {
+    <app-inline-loading message="جاري تحميل المباريات...">
+    </app-inline-loading>
+    }
 
-        <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading() && filteredMatches().length === 0" icon="event_busy"
-            title="لا توجد مباريات" [description]="emptyStateDescription">
-        </app-empty-state>
+    <!-- Empty State -->
+    @if (!isLoading() && filteredMatches().length === 0) {
+    <app-empty-state icon="event_busy" title="لا توجد مباريات" [description]="emptyStateDescription">
+    </app-empty-state>
+    }
 
-        <!-- Matches Grid -->
-        <div *ngIf="!isLoading() && filteredMatches().length > 0" class="matches-grid">
-            <app-match-card *ngFor="let match of filteredMatches(); trackBy: trackById" [match]="match"
-                (click)="viewMatch(match.id)" class="clickable-match-card">
+    <!-- Matches Grid -->
+    @if (!isLoading() && filteredMatches().length > 0) {
+    <div class="matches-grid">
+        @for (match of filteredMatches(); track match.id) {
+        <app-match-card [match]="match" (click)="viewMatch(match.id)" class="clickable-match-card">
 
-                <div class="match-card-actions" actions>
-                    <!-- Admin: Update Score -->
-                    <app-button *ngIf="isAdmin()" (click)="$event.stopPropagation(); updateScore(match)" size="sm"
-                        variant="outline" icon="scoreboard">
-                        تحديث النتيجة
-                    </app-button>
+            <div class="match-card-actions" actions>
+                <!-- Admin: Update Score -->
+                @if (isAdmin()) {
+                <app-button (click)="$event.stopPropagation(); updateScore(match)" size="sm" variant="outline"
+                    icon="scoreboard">
+                    تحديث النتيجة
+                </app-button>
+                }
 
-                    <!-- Referee: Start Match -->
-                    <app-button *ngIf="isReferee() && match.status === MatchStatus.SCHEDULED"
-                        (click)="$event.stopPropagation(); startMatch(match)" size="sm" variant="primary"
-                        icon="play_arrow">
-                        بدء المباراة
-                    </app-button>
+                <!-- Referee: Start Match -->
+                @if (isReferee() && match.status === MatchStatus.SCHEDULED) {
+                <app-button (click)="$event.stopPropagation(); startMatch(match)" size="sm" variant="primary"
+                    icon="play_arrow">
+                    بدء المباراة
+                </app-button>
+                }
 
-                    <!-- Referee: Live Actions -->
-                    <div *ngIf="isReferee() && match.status === MatchStatus.LIVE" class="live-actions gap-2 w-full">
-                        <button (click)="$event.stopPropagation(); openEventModal(match)"
-                            class="match-card-action primary-btn flex-1">
-                            <span class="material-symbols-outlined">edit_note</span>
-                            تسجيل حدث
-                        </button>
-                        <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
-                            class="match-card-action danger-btn flex-1">
-                            <span class="material-symbols-outlined">stop_circle</span>
-                            إنهاء
-                        </button>
-                    </div>
-
-                    <!-- Captain/Player Actions -->
-                    <div *ngIf="!isAdmin() && !isReferee()" class="player-actions">
-                        <!-- Details Button -->
-                        <button class="action-btn details-btn" (click)="$event.stopPropagation(); viewMatch(match.id)">
-                            <span class="material-symbols-outlined">info</span>
-                            <span>التفاصيل</span>
-                        </button>
-
-                        <!-- Chat Button -->
-                        <button *ngIf="match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED"
-                            class="action-btn chat-btn" [class.chat-live]="match.status === MatchStatus.LIVE"
-                            (click)="$event.stopPropagation(); openChat(match.id)">
-                            <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ? 'forum' :
-                                'chat' }}</span>
-                            <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة' }}</span>
-                        </button>
-
-                        <!-- Objection Button -->
-                        <button *ngIf="match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED"
-                            class="action-btn objection-btn"
-                            (click)="$event.stopPropagation(); submitObjection(match.id)">
-                            <span class="material-symbols-outlined">report</span>
-                            <span>تقديم اعتراض</span>
-                        </button>
-                    </div>
-
-                    <!-- Referee: View Details -->
-                    <app-button *ngIf="isReferee() && match.status === MatchStatus.FINISHED" variant="ghost" size="sm"
-                        icon="chevron_left">
-                        التفاصيل
-                    </app-button>
+                <!-- Referee: Live Actions -->
+                @if (isReferee() && match.status === MatchStatus.LIVE) {
+                <div class="live-actions gap-2 w-full">
+                    <button (click)="$event.stopPropagation(); openEventModal(match)"
+                        class="match-card-action primary-btn flex-1">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        تسجيل حدث
+                    </button>
+                    <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
+                        class="match-card-action danger-btn flex-1">
+                        <span class="material-symbols-outlined">stop_circle</span>
+                        إنهاء
+                    </button>
                 </div>
-            </app-match-card>
-        </div>
+                }
+
+                <!-- Captain/Player Actions -->
+                @if (!isAdmin() && !isReferee()) {
+                <div class="player-actions">
+                    <!-- Details Button -->
+                    <button class="action-btn details-btn" (click)="$event.stopPropagation(); viewMatch(match.id)">
+                        <span class="material-symbols-outlined">info</span>
+                        <span>التفاصيل</span>
+                    </button>
+
+                    <!-- Chat Button -->
+                    @if (match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED) {
+                    <button class="action-btn chat-btn" [class.chat-live]="match.status === MatchStatus.LIVE"
+                        (click)="$event.stopPropagation(); openChat(match.id)">
+                        <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ? 'forum' :
+                            'chat' }}</span>
+                        <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة' }}</span>
+                    </button>
+                    }
+
+                    <!-- Objection Button -->
+                    @if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) {
+                    <button class="action-btn objection-btn"
+                        (click)="$event.stopPropagation(); submitObjection(match.id)">
+                        <span class="material-symbols-outlined">report</span>
+                        <span>تقديم اعتراض</span>
+                    </button>
+                    }
+                </div>
+                }
+
+                <!-- Referee: View Details -->
+                @if (isReferee() && match.status === MatchStatus.FINISHED) {
+                <app-button variant="ghost" size="sm" icon="chevron_left">
+                    التفاصيل
+                </app-button>
+                }
+            </div>
+        </app-match-card>
+        }
     </div>
-</ng-template>
+    }
+</div>
+}
 
 <!-- Modals -->
 <app-end-match-confirm [matchId]="activeMatchId || ''" [(visible)]="showEndMatchConfirm"

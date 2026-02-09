@@ -1,16 +1,22 @@
-<div class="alert" [class]="'alert-' + type" *ngIf="visible">
+@if (visible) {
+<div class="alert" [class]="'alert-' + type">
     <div class="alert-icon">
         <span class="material-symbols-outlined">{{ icon || getDefaultIcon() }}</span>
     </div>
 
     <div class="alert-content">
-        <div *ngIf="title" class="alert-title">{{ title }}</div>
+        @if (title) {
+        <div class="alert-title">{{ title }}</div>
+        }
         <div class="alert-message">
             <ng-content></ng-content>
         </div>
     </div>
 
-    <button *ngIf="dismissible" (click)="dismiss()" class="close-btn">
-        <span class="material-symbols-outlined" style="font-size: 18px">close</span>
+    @if (dismissible) {
+    <button (click)="dismiss()" class="close-btn">
+        <span class="material-symbols-outlined close-icon">close</span>
     </button>
+    }
 </div>
+}

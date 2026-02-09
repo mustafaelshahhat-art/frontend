@@ -1,4 +1,5 @@
-<div (click)="handleClick()" class="action-card animate-fade-in">
+<div (click)="handleClick()" (keydown.enter)="handleClick()" (keydown.space)="$event.preventDefault(); handleClick()"
+    class="action-card animate-fade-in" tabindex="0" role="button">
     <div class="action-header">
         <div class="action-icon-wrapper" [ngClass]="colorClass">
             <span class="material-symbols-outlined">{{ icon }}</span>

@@ -1,13 +1,13 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Tournament, TournamentStatus, RegistrationStatus } from '../../../../core/models/tournament.model';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { AuthService } from '../../../../core/services/auth.service';
+import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 /**
  * TournamentCardComponent - Displays a tournament in a premium card format.
@@ -25,10 +25,17 @@ import { AuthService } from '../../../../core/services/auth.service';
         SmartImageComponent
     ],
     templateUrl: './tournament-card.component.html',
-    styleUrls: ['./tournament-card.component.scss']
+    styleUrls: ['./tournament-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TournamentCardComponent {
     private readonly authService = inject(AuthService);
+    private readonly sanitizer = inject(DomSanitizer);
+
+    @HostBinding('style.--progress-width')
+    get progressWidthStyle(): SafeStyle {
+        return this.sanitizer.bypassSecurityTrustStyle(this.progressPercent + '%');
+    }
 
     @Input({ required: true }) tournament!: Tournament;
     @Input() showRegisterButton = false;
@@ -192,5 +199,12 @@ export class TournamentCardComponent {
     onRegisterClick(event: Event): void {
         event.stopPropagation();
         this.register.emit(this.tournament);
+    }
+
+    onKeyDown(event: KeyboardEvent): void {
+        if (this.isClickable && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            this.onCardClick();
+        }
     }
 }

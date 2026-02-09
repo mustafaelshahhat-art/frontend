@@ -64,7 +64,7 @@
 
                 <!-- Action Buttons -->
                 <div class="form-actions">
-                    <app-button variant="outline" type="button" (onClick)="cancel()">إلغاء</app-button>
+                    <app-button variant="outline" type="button" (trigger)="cancel()">إلغاء</app-button>
                     <app-button variant="primary" type="submit" [disabled]="tournamentForm.invalid || isSubmitting()">
                         {{ isSubmitting() ? 'جاري الحفظ...' : (isEditMode() ? 'حفظ التغييرات' : 'إنشاء البطولة') }}
                     </app-button>

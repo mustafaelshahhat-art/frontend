@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -13,9 +13,10 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, RouterLink, FormControlComponent, ButtonComponent, AlertComponent],
     templateUrl: './forgot-password.component.html',
-    styleUrls: ['./forgot-password.component.scss']
+    styleUrls: ['./forgot-password.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ForgotPasswordComponent {
+export class ForgotPasswordComponent implements OnInit, AfterViewInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private destroyRef = inject(DestroyRef);
@@ -27,6 +28,15 @@ export class ForgotPasswordComponent {
 
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
+    isPageReady = signal(false);
+
+    ngOnInit(): void { }
+
+    ngAfterViewInit(): void {
+        requestAnimationFrame(() => {
+            this.isPageReady.set(true);
+        });
+    }
 
     get email() {
         return this.forgotForm.get('email');
@@ -56,7 +66,7 @@ export class ForgotPasswordComponent {
                         }
                     });
                 },
-                error: (err) => {
+                error: (err: { error: { message: string } }) => {
                     this.isLoading.set(false);
                     // Use the backend message if available, otherwise a generic one
                     this.errorMessage.set(err.error?.message || 'فشل الطلب. يرجى المحاولة لاحقاً.');

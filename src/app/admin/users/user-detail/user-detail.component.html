@@ -2,16 +2,21 @@
     <div class="page-content">
 
         <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل بيانات المستخدم..."></app-inline-loading>
+        @if (isLoading) {
+        <app-inline-loading message="جاري تحميل بيانات المستخدم..."></app-inline-loading>
+        }
 
         <!-- Error/Not Found State -->
-        <app-empty-state *ngIf="!isLoading && !user" icon="person_off" title="لم يتم العثور على المستخدم"
+        @if (!isLoading && !user) {
+        <app-empty-state icon="person_off" title="لم يتم العثور على المستخدم"
             description="قد يكون المستخدم غير موجود أو تم حذفه">
             <app-button (click)="navigateBack()">العودة لقائمة المستخدمين</app-button>
         </app-empty-state>
+        }
 
         <!-- User Data Content -->
-        <ng-container *ngIf="!isLoading && user">
+        @if (!isLoading && user) {
+        <ng-container>
             <!-- Hero Section with User Profile -->
             <div class="user-hero animate-fade-in">
                 <div class="hero-backdrop"></div>
@@ -42,13 +47,15 @@
                             </div>
                         </div>
 
-                        <div class="profile-actions" *ngIf="!isLastAdmin() || user.status !== 'Active'">
+                        @if (!isLastAdmin() || user.status !== 'Active') {
+                        <div class="profile-actions">
                             <app-button (click)="toggleUserStatus()"
                                 [variant]="user.status === 'Active' ? 'danger' : 'primary'"
                                 [icon]="user.status === 'Active' ? 'block' : 'check_circle'" size="lg">
                                 {{ user.status === 'Active' ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
                             </app-button>
                         </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -68,26 +75,32 @@
                     <!-- Left Column: Activity & Location -->
                     <div class="column-left">
                         <!-- Activity Timeline -->
-                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.1s">
+                        <div class="glass-card animate-fade-in-up animate-delay-100">
                             <div class="card-header">
                                 <div class="card-icon">
                                     <span class="material-symbols-outlined">history</span>
                                 </div>
                                 <h2 class="card-title">سجل النشاط</h2>
-                                <span class="activity-count" *ngIf="user.activities?.length">
+                                @if (user.activities?.length) {
+                                <span class="activity-count">
                                     {{ user.activities?.length }}
                                 </span>
+                                }
                             </div>
 
-                            <div class="timeline" *ngIf="user.activities && user.activities.length > 0">
-                                <div *ngFor="let activity of user.activities; let i = index; let last = last"
-                                    class="timeline-item" [style.animation-delay]="(i * 0.05) + 's'">
+                            @if (user.activities && user.activities.length > 0) {
+                            <div class="timeline">
+                                @for (activity of user.activities; track $index; let i = $index; let last = $last) {
+                                <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
+                                <div class="timeline-item" [style.animation-delay]="(i * 0.05) + 's'">
                                     <div class="timeline-dot" [ngClass]="getActivityBadgeClass(activity.type)">
                                         <span class="material-symbols-outlined">
                                             {{ getActivityIcon(activity.type) }}
                                         </span>
                                     </div>
-                                    <div class="timeline-connector" *ngIf="!last"></div>
+                                    @if (!last) {
+                                    <div class="timeline-connector"></div>
+                                    }
                                     <div class="timeline-content">
                                         <p class="timeline-message">{{ activity.message }}</p>
                                         <span class="timeline-time">
@@ -96,19 +109,23 @@
                                         </span>
                                     </div>
                                 </div>
+                                }
                             </div>
+                            }
 
-                            <div class="empty-timeline" *ngIf="!user.activities?.length">
+                            @if (!user.activities?.length) {
+                            <div class="empty-timeline">
                                 <span class="material-symbols-outlined">history_toggle_off</span>
                                 <p>لا يوجد نشاط مسجل حالياً</p>
                             </div>
+                            }
                         </div>
                     </div>
 
                     <!-- Right Column: Info & Documents -->
                     <div class="column-right">
                         <!-- Location Card -->
-                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.15s">
+                        <div class="glass-card animate-fade-in-up animate-delay-150">
                             <div class="card-header">
                                 <div class="card-icon">
                                     <span class="material-symbols-outlined">location_on</span>
@@ -132,7 +149,7 @@
                         </div>
 
                         <!-- Identity Documents -->
-                        <div class="glass-card animate-fade-in-up" style="animation-delay: 0.2s">
+                        <div class="glass-card animate-fade-in-up animate-delay-200">
                             <div class="card-header">
                                 <div class="card-icon">
                                     <span class="material-symbols-outlined">verified_user</span>
@@ -172,5 +189,6 @@
                 </div>
             </div>
         </ng-container>
+        }
     </div>
 </div>

@@ -1,22 +1,27 @@
 <div class="file-upload-container" [class.disabled]="disabled" [class.error]="!!error">
     <input #fileInput type="file" [accept]="accept" [multiple]="multiple" (change)="onFileSelected($event)" hidden />
 
-    <div class="upload-area" (click)="triggerClick(fileInput)">
+    <div class="upload-area" (click)="triggerClick(fileInput)" (keyup.enter)="triggerClick(fileInput)" tabindex="0"
+        role="button" [attr.aria-label]="label">
         <div class="upload-content">
             <div class="icon-wrapper">
                 <span class="material-symbols-outlined">cloud_upload</span>
             </div>
             <div class="text-content">
                 <span class="label">{{ label }}</span>
-                <span class="hint" *ngIf="!selectedFiles.length">
+                @if (!selectedFiles.length) {
+                <span class="hint">
                     {{ multiple ? 'Drag and drop files here or click to browse' : 'Click to browse' }}
                 </span>
+                }
             </div>
         </div>
     </div>
 
-    <div class="file-list" *ngIf="selectedFiles.length > 0">
-        <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+    @if (selectedFiles.length > 0) {
+    <div class="file-list">
+        @for (file of selectedFiles; track file; let i = $index) {
+        <div class="file-item">
             <div class="file-info">
                 <span class="material-symbols-outlined file-icon">description</span>
                 <div class="file-details">
@@ -28,10 +33,14 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
+        }
     </div>
+    }
 
-    <div class="error-message" *ngIf="error">
+    @if (error) {
+    <div class="error-message">
         <span class="material-symbols-outlined">error</span>
         {{ error }}
     </div>
+    }
 </div>

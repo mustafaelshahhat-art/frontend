@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, HostListener, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,15 +10,16 @@ import { toSignal } from '@angular/core/rxjs-interop';
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './search.component.html',
-    styleUrls: ['./search.component.scss']
+    styleUrls: ['./search.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchComponent {
     private searchService = inject(SearchService);
     private router = inject(Router);
     private elementRef = inject(ElementRef);
 
-    @Input() placeholder: string = 'البحث...';
-    @Input() value: string = '';
+    @Input() placeholder = 'البحث...';
+    @Input() value = '';
 
     @Output() searchChange = new EventEmitter<string>();
 

@@ -1,14 +1,15 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, effect, signal, untracked, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, effect, signal, untracked, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Observable, Subscription, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
-import { TeamDetailComponent, TeamData, TeamPlayer } from '../../shared/components/team-detail';
+import { Observable, Subscription, of, timer } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TeamDetailComponent, TeamData, TeamPlayer, TeamMatch, TeamFinance } from '../../shared/components/team-detail';
 import { TeamService } from '../../core/services/team.service';
-import { Player, Team } from '../../core/models/team.model';
+import { Team, Player, ApiTeamMatch, ApiTeamFinance } from '../../core/models/team.model';
 import { AuthService } from '../../core/services/auth.service';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
-import { User, UserRole, UserStatus } from '../../core/models/user.model';
+import { User, UserStatus } from '../../core/models/user.model';
 
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../shared/components/button/button.component';
@@ -17,6 +18,23 @@ import { NotificationService } from '../../core/services/notification.service';
 import { TeamJoinRequest } from '../../core/models/team-request.model';
 import { TeamStore } from '../../core/stores/team.store';
 import { AuthStore } from '../../core/stores/auth.store';
+
+interface TeamStats {
+    matches: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    rank: number;
+}
+
+
+interface ExtendedTeam extends Team {
+    stats?: TeamStats;
+    isActive?: boolean;
+}
+
 
 @Component({
     selector: 'app-my-team-detail',
@@ -27,82 +45,97 @@ import { AuthStore } from '../../core/stores/auth.store';
         TeamDetailComponent,
         ButtonComponent
     ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div *ngIf="!loading() && teamData()" class="my-team-page">
-            <app-team-detail 
-                [team]="teamData()!"
-                [showBackButton]="false"
-                [canEditName]="isCaptain() && teamData()!.isActive"
-                [canAddPlayers]="isCaptain() && teamData()!.isActive"
-                [canRemovePlayers]="isCaptain() && teamData()!.isActive"
-                [canManageStatus]="false"
-                [canManageInvitations]="isCaptain() && teamData()!.isActive"
-                [canDeleteTeam]="isCaptain()"
-                [canSeeRequests]="isCaptain()"
-                [canSeeFinances]="isCaptain() || isAdmin()"
-                [isInviteLoading]="isAddingPlayer"
-                [initialTab]="'players'"
-                (playerAction)="handlePlayerAction($event)"
-                (editName)="handleEditName($event)"
-                (addPlayer)="onAddPlayerClick($event)"
-                (tabChanged)="handleTabChange($event)"
-                (respondRequest)="handleRespondRequest($event)"
-                (deleteTeam)="handleDeleteTeam()">
-            </app-team-detail>
-        </div>
+@if (!loading() && teamData()) {
+    <div class="my-team-page">
+        <app-team-detail 
+            [team]="teamData()!"
+            [showBackButton]="false"
+            [canEditName]="isCaptain() && teamData()!.isActive"
+            [canAddPlayers]="isCaptain() && teamData()!.isActive"
+            [canRemovePlayers]="isCaptain() && teamData()!.isActive"
+            [canManageStatus]="false"
+            [canManageInvitations]="isCaptain() && teamData()!.isActive"
+            [canDeleteTeam]="isCaptain()"
+            [canSeeRequests]="isCaptain()"
+            [canSeeFinances]="isCaptain() || isAdmin()"
+            [isInviteLoading]="isAddingPlayer"
+            [initialTab]="'players'"
+            (playerAction)="handlePlayerAction($event)"
+            (editName)="handleEditName($event)"
+            (addPlayer)="onAddPlayerClick($event)"
+            (tabChanged)="handleTabChange($event)"
+            (respondRequest)="handleRespondRequest($event)"
+            (deleteTeam)="handleDeleteTeam()">
+        </app-team-detail>
+    </div>
+}
 
-        <div *ngIf="loading()" class="loading-container">
-            <p>جاري التحميل...</p>
-        </div>
+@if (loading()) {
+    <div class="loading-container">
+        <p>جاري التحميل...</p>
+    </div>
+}
 
-        <div *ngIf="!loading() && !teamData()" class="no-team-container">
-            <!-- Case 1: Account Pending -->
-            <div *ngIf="isUserPending()" class="create-team-card pending-card animate-fade-in-up">
-                <div class="icon-circle warning">
-                    <span class="material-symbols-outlined">pending_actions</span>
+@if (!loading() && !teamData()) {
+    <div class="no-team-container">
+        <!-- Case 1: Account Pending -->
+        @if (isUserPending()) {
+        <div class="create-team-card pending-card animate-fade-in-up">
+            <div class="icon-circle warning">
+                <span class="material-symbols-outlined">pending_actions</span>
+            </div>
+            <h2>حسابك قيد المراجعة</h2>
+            <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.</p>
+            
+            <app-button variant="ghost" icon="refresh" (click)="loadTeamData()" class="w-full">
+                تحديث الحالة
+            </app-button>
+        </div>
+        }
+
+        <!-- Case 2: Account Active, No Team, Has Invitation -->
+        @if (!isUserPending() && pendingInvitations().length > 0) {
+        <div class="create-team-card invite-card animate-fade-in-up">
+            <div class="icon-circle primary">
+                <span class="material-symbols-outlined">mail</span>
+            </div>
+            <h2>لديك دعوة للانضمام إلى فريق</h2>
+            @for (invite of pendingInvitations(); track invite.id) {
+            <div class="invite-item">
+                <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
+                <div class="flex gap-4">
+                    <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check" class="flex-1">قبول</app-button>
+                    <app-button (click)="rejectInvite(invite.id)" variant="outline" icon="close" class="flex-1">رفض</app-button>
                 </div>
-                <h2>حسابك قيد المراجعة</h2>
-                <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.</p>
-                
-                <app-button variant="ghost" icon="refresh" (click)="loadTeamData()" class="w-full">
-                    تحديث الحالة
+            </div>
+            }
+        </div>
+        }
+
+        <!-- Case 3: Account Active, No Team, No Invitation -->
+        @if (!isUserPending() && pendingInvitations().length === 0) {
+        <div class="create-team-card animate-fade-in-up">
+            <div class="icon-circle">
+                <span class="material-symbols-outlined">groups</span>
+            </div>
+            <h2>أنت لست عضواً في أي فريق</h2>
+            <p>قم بإنشاء فريقك الخاص الآن وقد فريقك نحو البطولة!</p>
+            
+            <div class="create-form">
+                <div class="input-group">
+                    <span class="material-symbols-outlined">shield</span>
+                    <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input">
+                </div>
+                <app-button (click)="createNewTeam()" [isLoading]="creatingTeam" variant="primary" size="lg" icon="add" class="w-full">
+                    إنشاء فريق جديد
                 </app-button>
             </div>
-
-            <!-- Case 2: Account Active, No Team, Has Invitation -->
-            <div *ngIf="!isUserPending() && pendingInvitations().length > 0" class="create-team-card invite-card animate-fade-in-up">
-                <div class="icon-circle primary">
-                    <span class="material-symbols-outlined">mail</span>
-                </div>
-                <h2>لديك دعوة للانضمام إلى فريق</h2>
-                <div *ngFor="let invite of pendingInvitations()" class="invite-item">
-                    <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
-                    <div class="flex gap-4">
-                        <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check" class="flex-1">قبول</app-button>
-                        <app-button (click)="rejectInvite(invite.id)" variant="outline" icon="close" class="flex-1">رفض</app-button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Case 3: Account Active, No Team, No Invitation -->
-            <div *ngIf="!isUserPending() && pendingInvitations().length === 0" class="create-team-card animate-fade-in-up">
-                <div class="icon-circle">
-                    <span class="material-symbols-outlined">groups</span>
-                </div>
-                <h2>أنت لست عضواً في أي فريق</h2>
-                <p>قم بإنشاء فريقك الخاص الآن وقد فريقك نحو البطولة!</p>
-                
-                <div class="create-form">
-                    <div class="input-group">
-                        <span class="material-symbols-outlined">shield</span>
-                        <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input">
-                    </div>
-                    <app-button (click)="createNewTeam()" [isLoading]="creatingTeam" variant="primary" size="lg" icon="add" class="w-full">
-                        إنشاء فريق جديد
-                    </app-button>
-                </div>
-            </div>
         </div>
+        }
+    </div>
+}
     `,
     styles: [`
         .my-team-page {
@@ -255,6 +288,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     private readonly notificationService = inject(NotificationService);
     private readonly authStore = inject(AuthStore);
     private readonly teamStore = inject(TeamStore);
+    private readonly destroyRef = inject(DestroyRef);
 
     @ViewChild(TeamDetailComponent) teamDetail!: TeamDetailComponent;
 
@@ -285,7 +319,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     constructor() {
         // Reactive effect: Watch TeamStore and Auth state for real-time updates
         effect(() => {
-            const teams = this.teamStore.teams(); // Track store changes
+            // Track store changes
+            this.teamStore.teams();
             const user = this.authStore.currentUser(); // Track user changes (REACTIVE SIGNAL)
 
             // Collect current state without tracking it
@@ -404,7 +439,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 this.uiFeedback.success('تمت الإضافة', 'أهلاً بك في فريقك الجديد!');
 
                 // Typed response handling
-                const teamId = (response as any).teamId;
+                const teamId = (response as { teamId: string }).teamId;
 
                 if (teamId && typeof teamId === 'string') {
                     if (this.currentUser) {
@@ -459,6 +494,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             return;
         }
 
+        // eslint-disable-next-line no-useless-assignment
         let loadTeam$: Observable<Team | null> | null = null;
 
         if (this.currentUser.teamId) {
@@ -485,19 +521,17 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             queueMicrotask(() => this.loading.set(true));
         }
 
-        // Safety timeout using unref/ref pattern or just robust logic
-        // We defer to queueMicrotask for cleanup if needed
-        const safetyTimer = setTimeout(() => {
+        // Safety timeout using RxJS timer
+        timer(8000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
             if (this.loading() && this.isLoadingTeam) {
                 console.warn('Force clearing loading state after timeout');
                 this.isLoadingTeam = false;
                 this.loading.set(false);
             }
-        }, 8000);
+        });
 
         loadTeam$.subscribe({
             next: (team: Team | null) => {
-                clearTimeout(safetyTimer);
 
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
@@ -506,7 +540,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     if (team) {
                         const isMember = team.captainId === this.currentUser?.id ||
                             (this.currentUser?.teamId === team.id) ||
-                            (team.players && team.players.some((p: any) => p.userId === this.currentUser?.id || p.id === this.currentUser?.id));
+                            (team.players && team.players.some((p: Player) => p.userId === this.currentUser?.id || p.id === this.currentUser?.id));
 
                         if (!isMember) {
                             console.warn('Membership lost - clearing team association');
@@ -547,7 +581,6 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 });
             },
             error: (err) => {
-                clearTimeout(safetyTimer);
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
@@ -608,9 +641,9 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             switch (tab) {
                 case 'players':
                     this.teamService.getTeamPlayers(current.id).subscribe(players => {
-                        const updated = {
+                        const updated: TeamData = {
                             ...current,
-                            players: players.map(p => ({
+                            players: players.map((p) => ({
                                 id: p.id,
                                 name: p.name,
                                 number: p.number || 0,
@@ -625,28 +658,30 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     });
                     break;
                 case 'matches':
-                    this.teamService.getTeamMatches(current.id).subscribe(matches => {
-                        const updated = {
+                    this.teamService.getTeamMatches(current.id).subscribe((matches: ApiTeamMatch[]) => {
+                        const updated: TeamData = {
                             ...current,
-                            matches: matches.map(m => ({
+                            matches: matches.map((m: ApiTeamMatch) => ({
                                 id: m.id,
                                 opponent: m.homeTeamId === current.id ? m.awayTeamName : m.homeTeamName,
                                 date: new Date(m.date),
                                 teamScore: m.homeTeamId === current.id ? m.homeScore : m.awayScore,
                                 opponentScore: m.homeTeamId === current.id ? m.awayScore : m.homeScore,
                                 status: m.status,
-                                type: 'مباراة بطولة'
+                                type: 'مباراة بطولة',
+                                // Optional props mapping
+                                opponentLogo: undefined
                             }))
                         };
                         this.teamData.set(updated);
                     });
                     break;
                 case 'finances':
-                    this.teamService.getTeamFinancials(current.id).subscribe(finances => {
-                        const updated = {
+                    this.teamService.getTeamFinancials(current.id).subscribe((finances: ApiTeamFinance[]) => {
+                        const updated: TeamData = {
                             ...current,
-                            finances: finances.map(f => ({
-                                id: f.tournamentId,
+                            finances: finances.map((f: ApiTeamFinance) => ({
+                                id: f.tournamentId || 'unknown',
                                 title: f.tournamentName || 'تسجيل بطولة',
                                 category: 'Tournament Registration',
                                 amount: 0,
@@ -669,7 +704,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    private convertToTeamData(team: any): TeamData {
+    private convertToTeamData(team: ExtendedTeam): TeamData {
         return {
             id: team.id,
             name: team.name,
@@ -677,7 +712,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
             logo: team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
-            status: team.playerCount >= 8 ? 'READY' : 'NOT_READY',
+            status: (team.playerCount || 0) >= 8 ? 'READY' : 'NOT_READY',
             playerCount: team.playerCount,
             maxPlayers: team.maxPlayers,
             isActive: team.isActive ?? true,
@@ -691,7 +726,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 goalsAgainst: team.stats?.goalsAgainst || 0,
                 rank: team.stats?.rank || 0
             },
-            players: (team.players || []).map((p: any) => ({
+            players: (team.players || []).map((p) => ({
                 id: p.id,
                 name: p.name,
                 number: p.number || 0,
@@ -701,13 +736,13 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 redCards: p.redCards || 0,
                 status: p.status || 'active'
             })),
-            matches: [],
-            finances: [],
+            matches: [] as TeamMatch[],
+            finances: [] as TeamFinance[],
             invitations: []
         };
     }
 
-    handleRespondRequest(event: { request: any, approve: boolean }): void {
+    handleRespondRequest(event: { request: TeamJoinRequest, approve: boolean }): void {
         const { request, approve } = event;
         const currentData = this.teamData();
         if (!currentData) return;
@@ -737,7 +772,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         const current = this.teamData();
         if (!current || !newName.trim()) return;
 
-        this.teamService.updateTeam({ id: current.id, name: newName } as any).subscribe({
+        this.teamService.updateTeam({ id: current.id, name: newName } as Partial<Team>).subscribe({
             next: (updated) => {
                 this.teamData.set({ ...current, name: updated.name });
                 this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
@@ -752,12 +787,12 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
         this.isAddingPlayer = true;
         this.teamService.invitePlayerByDisplayId(current.id, playerId).subscribe({
-            next: (response: any) => {
+            next: (response: { playerName: string }) => {
                 this.isAddingPlayer = false;
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
                 this.teamDetail.closeInviteModal();
             },
-            error: (err: any) => {
+            error: (err: { error?: { message?: string }, message?: string }) => {
                 this.isAddingPlayer = false;
                 this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
             }
@@ -783,7 +818,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                     this.teamService.removePlayer(current.id, player.id.toString()).subscribe(() => {
                         this.teamData.set({
                             ...current,
-                            players: current.players.filter((p: any) => p.id !== player.id)
+                            players: current.players.filter((p) => p.id !== player.id)
                         });
                         this.uiFeedback.success('تم الاستبعاد', 'تم إزالة اللاعب من الفريق');
                     });

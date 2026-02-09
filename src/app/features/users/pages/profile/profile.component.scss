@@ -33,6 +33,7 @@
         flex-direction: column;
     }
 
+    // Deep selectors to force card bodies to expand
     ::ng-deep .card-body {
         flex: 1; // Content area expands to push footer/fill space
         display: flex;
@@ -59,7 +60,6 @@
     height: 100%;
 }
 
-// 3. Avatar Card Styles (Flex Item)
 // 3. Avatar Card Styles (Flex Item)
 .avatar-card {
     flex: 1; // Expand to fill sidebar height
@@ -165,6 +165,49 @@
         font-size: var(--text-sm, 14px);
         color: var(--text-muted, #64748b);
     }
+
+    .avatar-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .hidden-input {
+        display: none;
+    }
+
+    .avatar-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .membership-card {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+    }
+
+    .membership-label {
+        font-size: 10px;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .membership-id {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #10B981;
+        letter-spacing: 1px;
+    }
+}
+
+.profile-nav-wrapper {
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
 .profile-nav {
@@ -262,4 +305,17 @@
             }
         }
     }
+}
+
+.form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.password-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
 }

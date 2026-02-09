@@ -2,7 +2,7 @@
     <!-- Background Texture -->
     <div class="ramadan-pattern absolute inset-0"></div>
 
-    <div class="auth-card relative z-10 w-full animate-fade-in-up">
+    <div class="auth-card relative z-10 w-full" [class.animate-fade-in-up]="isPageReady()">
         <!-- Header Section -->
         <header class="text-center mb-xl">
             <div class="auth-logo mx-auto">
@@ -18,24 +18,31 @@
 
         <div class="auth-card-body">
             <!-- Global Alerts -->
-            <app-alert *ngIf="errorMessage()" type="danger" [dismissible]="true" [autoDismiss]="5000"
-                (onClose)="errorMessage.set(null)" class="mb-lg">
+            @if (errorMessage()) {
+            <app-alert type="danger" [dismissible]="true" [autoDismiss]="5000" (dismissed)="errorMessage.set(null)"
+                class="mb-lg">
                 {{ errorMessage() }}
             </app-alert>
+            }
 
-            <app-alert *ngIf="successMessage()" type="success" [dismissible]="true" [autoDismiss]="5000"
-                (onClose)="successMessage.set(null)" class="mb-lg">
+            @if (successMessage()) {
+            <app-alert type="success" [dismissible]="true" [autoDismiss]="5000" (dismissed)="successMessage.set(null)"
+                class="mb-lg">
                 {{ successMessage() }}
             </app-alert>
+            }
 
             <!-- Verification Form -->
             <form [formGroup]="verifyForm" (ngSubmit)="onSubmit()" class="auth-form">
 
                 <!-- OTP Inputs (Strict Horizontal Row) -->
                 <div class="otp-input-container mb-xl" (paste)="onPaste($event)">
-                    <input *ngFor="let key of otpDigits; let i = index" [id]="'digit-' + i" [formControlName]="key"
-                        type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" placeholder="•" class="otp-field"
-                        (input)="onInput($event, i)" (keydown)="onKeyDown($event, i)" autocomplete="one-time-code">
+                    @for (key of otpDigits; track $index) {
+                    <input [id]="'digit-' + $index" [formControlName]="key" type="text" inputmode="numeric"
+                        pattern="[0-9]*" maxlength="1" placeholder="•" class="otp-field"
+                        (input)="onInput($event, $index)" (keydown)="onKeyDown($event, $index)"
+                        autocomplete="one-time-code">
+                    }
                 </div>
 
                 <!-- Primary Action -->
@@ -55,7 +62,9 @@
                         [disabled]="isLoading() || isResending() || !canResend()">
                         <span class="material-symbols-outlined text-lg">restart_alt</span>
                         <span>إعادة إرسال الرمز</span>
-                        <span *ngIf="!canResend()" class="text-xs opacity-70">( {{ resendCountdown() }} ثانية )</span>
+                        @if (!canResend()) {
+                        <span class="text-xs opacity-70">( {{ resendCountdown() }} ثانية )</span>
+                        }
                     </button>
 
                     <a routerLink="/auth/login"

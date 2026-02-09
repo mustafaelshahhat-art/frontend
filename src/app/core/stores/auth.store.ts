@@ -41,8 +41,8 @@ export class AuthStore {
   }
 
   setCurrentUser(user: User | null): void {
-    this.state.update(state => ({ 
-      ...state, 
+    this.state.update(state => ({
+      ...state,
       currentUser: user,
       isAuthenticated: !!user,
       isLoading: false,
@@ -76,7 +76,7 @@ export class AuthStore {
   }
 
   isCaptain(): boolean {
-    return this.hasRole('Captain');
+    return !!this.currentUser()?.isTeamOwner;
   }
 
   isPlayer(): boolean {

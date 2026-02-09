@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './icon-button.component.html',
-    styleUrls: ['./icon-button.component.scss']
+    styleUrls: ['./icon-button.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IconButtonComponent {
     @Input() icon!: string;
@@ -20,11 +21,11 @@ export class IconButtonComponent {
 
     @Input() type: 'button' | 'submit' | 'reset' = 'button';
 
-    @Output() onClick = new EventEmitter<MouseEvent>();
+    @Output() trigger = new EventEmitter<MouseEvent>();
 
     handleClick(event: MouseEvent) {
         if (!this.disabled && !this.isLoading) {
-            this.onClick.emit(event);
+            this.trigger.emit(event);
         }
     }
 }

@@ -1,58 +1,63 @@
 <aside [class.open]="isOpen" class="sidebar" [class.sidebar-mobile]="isMobile">
-    <div class="sidebar-inner">
+  <div class="sidebar-inner">
 
-        <!-- Close Button (Mobile) -->
-        <button *ngIf="isMobile" (click)="handleClose()" class="sidebar-close">
-            <span class="material-symbols-outlined">close</span>
-        </button>
+    <!-- Close Button (Mobile) -->
+    @if (isMobile) {
+    <button (click)="handleClose()" class="sidebar-close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    }
 
-        <div class="sidebar-content">
-            <!-- Logo & Brand -->
-            <div class="sidebar-brand">
-                <div class="sidebar-brand-icon">
-                    <span class="material-symbols-outlined text-primary text-2xl">shield</span>
-                </div>
-                <div class="flex-col">
-                    <h1 class="sidebar-brand-text">بطولة<br>رمضان</h1>
-                    <p class="text-brand text-xs font-bold uppercase mt-1 tracking-wide">{{ brandSubtitle }}</p>
-                </div>
-            </div>
-
-            <!-- Navigation Links -->
-            <nav class="sidebar-nav">
-                <a *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
-                    #rla="routerLinkActive" (click)="handleClose()" class="sidebar-nav-item">
-                    <span class="material-symbols-outlined sidebar-nav-icon">{{ item.icon }}</span>
-                    <span class="sidebar-nav-label">{{ item.label }}</span>
-                </a>
-            </nav>
+    <div class="sidebar-content">
+      <!-- Logo & Brand -->
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+          <span class="material-symbols-outlined text-primary text-2xl">shield</span>
         </div>
-
-        <!-- Bottom Section -->
-        <div class="sidebar-footer">
-            <!-- User Profile Card -->
-            <div class="sidebar-profile hover-lift" [routerLink]="getProfileRoute()"
-                (click)="isMobile && handleClose()">
-                <div class="sidebar-profile-avatar-wrapper">
-                    <app-smart-image [src]="currentUser?.avatar" type="avatar" size="xs"
-                        [initials]="currentUser?.name?.charAt(0) || 'U'">
-                    </app-smart-image>
-                </div>
-                <div class="sidebar-profile-info">
-                    <p class="sidebar-profile-name">{{ currentUser?.name || 'المستخدم' }}</p>
-                    <div class="flex items-center gap-2">
-                        <p class="text-brand font-mono text-xs font-bold">{{ currentUser?.displayId }}</p>
-                        <span class="status-dot"></span>
-                        <p class="text-muted text-xs font-semibold">{{ roleLabel }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Logout Button -->
-            <button type="button" (click)="handleLogout()" class="sidebar-logout">
-                <span class="material-symbols-outlined text-xl">logout</span>
-                <span>تسجيل الخروج</span>
-            </button>
+        <div class="flex-col">
+          <h1 class="sidebar-brand-text">بطولة<br>رمضان</h1>
+          <p class="text-brand text-xs font-bold uppercase mt-1 tracking-wide">{{ brandSubtitle }}</p>
         </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        @for (item of navItems; track item) {
+        <a [routerLink]="item.route" routerLinkActive="active" #rla="routerLinkActive" (click)="handleClose()"
+          class="sidebar-nav-item">
+          <span class="material-symbols-outlined sidebar-nav-icon">{{ item.icon }}</span>
+          <span class="sidebar-nav-label">{{ item.label }}</span>
+        </a>
+        }
+      </nav>
     </div>
+
+    <!-- Bottom Section -->
+    <div class="sidebar-footer">
+      <!-- User Profile Card -->
+      <a class="sidebar-profile hover-lift" [routerLink]="getProfileRoute()" (click)="isMobile && handleClose()"
+        (keydown.enter)="isMobile && handleClose()"
+        (keydown.space)="$event.preventDefault(); isMobile && handleClose()">
+        <div class="sidebar-profile-avatar-wrapper">
+          <app-smart-image [src]="currentUser?.avatar" type="avatar" size="xs"
+            [initials]="currentUser?.name?.charAt(0) || 'U'">
+          </app-smart-image>
+        </div>
+        <div class="sidebar-profile-info">
+          <p class="sidebar-profile-name">{{ currentUser?.name || 'المستخدم' }}</p>
+          <div class="flex items-center gap-2">
+            <p class="text-brand font-mono text-xs font-bold">{{ currentUser?.displayId }}</p>
+            <span class="status-dot"></span>
+            <p class="text-muted text-xs font-semibold">{{ roleLabel }}</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Logout Button -->
+      <button type="button" (click)="handleLogout()" class="sidebar-logout">
+        <span class="material-symbols-outlined text-xl">logout</span>
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
+  </div>
 </aside>

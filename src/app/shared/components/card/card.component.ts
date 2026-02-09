@@ -1,4 +1,4 @@
-import { Component, Input, ContentChild, ElementRef, AfterContentInit } from '@angular/core';
+import { Component, Input, ContentChild, ElementRef, AfterContentInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './card.component.html',
-    styleUrls: ['./card.component.scss']
+    styleUrls: ['./card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CardComponent implements AfterContentInit {
     @Input() variant: 'default' | 'glass' | 'featured' = 'default';
@@ -19,11 +20,6 @@ export class CardComponent implements AfterContentInit {
 
     @ContentChild('footer') footerContent?: ElementRef;
     hasFooter = false;
-
-    ngContentSelectAll(selector: string): boolean {
-        // This is a simplified check, in real Angular we might use @ContentChildren
-        return false;
-    }
 
     ngAfterContentInit() {
         // Simple way to check for projected content if needed, 

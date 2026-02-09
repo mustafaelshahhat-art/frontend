@@ -1,6 +1,6 @@
 <div class="match-card-compact" [class.is-live]="isLive" [class.is-finished]="isFinished"
     [class.is-cancelled]="isCancelled" [class.is-postponed]="isPostponed" [class.clickable]="isClickable"
-    (click)="onCardClick()">
+    (click)="onCardClick()" (keyup.enter)="onCardClick()" [attr.tabindex]="isClickable ? 0 : null">
 
     <!-- Header -->
     <div class="match-card-header">
@@ -8,7 +8,9 @@
             <span class="material-symbols-outlined">{{ statusConfig.icon || 'sports_soccer' }}</span>
         </div>
         <span class="match-card-badge" [attr.data-variant]="statusConfig.variant">
-            <span *ngIf="isLive" class="live-dot"></span>
+            @if (isLive) {
+            <span class="live-dot"></span>
+            }
             {{ statusConfig.label }}
         </span>
     </div>
@@ -16,11 +18,15 @@
     <!-- Title -->
     <div class="match-card-title">
         <h4>{{ title || match.tournamentName || 'مباراة ودية' }}</h4>
-        <div class="match-time-badge" *ngIf="match.date">
+        @if (match.date) {
+        <div class="match-time-badge">
             <span class="material-symbols-outlined icon-xs">schedule</span>
             {{ match.date | date:'hh:mm a' }} - {{ match.date | date:'yyyy/MM/dd' }}
         </div>
-        <p *ngIf="subtitle">{{ subtitle }}</p>
+        }
+        @if (subtitle) {
+        <p>{{ subtitle }}</p>
+        }
     </div>
 
     <!-- Match Info -->
@@ -38,10 +44,14 @@
 
             <!-- VS / Score -->
             <div class="match-card-vs">
-                <span *ngIf="isScheduled">vs</span>
-                <div *ngIf="!isScheduled" class="match-card-score">
+                @if (isScheduled) {
+                <span>vs</span>
+                }
+                @if (!isScheduled) {
+                <div class="match-card-score">
                     {{ match.homeScore }} - {{ match.awayScore }}
                 </div>
+                }
             </div>
 
             <!-- Away Team -->

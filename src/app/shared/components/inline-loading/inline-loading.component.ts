@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
@@ -13,9 +13,10 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './inline-loading.component.html',
-    styleUrls: ['./inline-loading.component.scss']
+    styleUrls: ['./inline-loading.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlineLoadingComponent {
-    @Input() message: string = 'جاري التحميل...';
+    @Input() message = 'جاري التحميل...';
     @Input() size: 'sm' | 'md' | 'lg' = 'md';
 }

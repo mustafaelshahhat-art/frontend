@@ -1,23 +1,29 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter" (filterChange)="setFilter($event)"></app-filter>
 </ng-template>
 
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
-    <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الطلبات..."></app-inline-loading>
+    <!-- Loading State -->
+    @if (isLoading()) {
+    <app-inline-loading message="جاري تحميل الطلبات..."></app-inline-loading>
+    }
 
     <!-- Empty State -->
-    <app-empty-state *ngIf="!isLoading() && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
-        description="لا توجد طلبات دفع في هذا التصنيف حالياً">
+    @if (!isLoading() && filteredRequests.length === 0) {
+    <app-empty-state icon="payments" title="لا توجد طلبات دفع" description="لا توجد طلبات دفع في هذا التصنيف حالياً">
     </app-empty-state>
+    }
 
     <!-- Table -->
-    <div *ngIf="!isLoading() && filteredRequests.length > 0" class="card p-0 overflow-hidden">
+    @if (!isLoading() && filteredRequests.length > 0) {
+    <div class="card p-0 overflow-hidden">
         <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()">
         </app-table>
     </div>
+    }
 </div>
 
 <!-- Team Template -->
@@ -59,19 +65,24 @@
 
 <!-- Action Template -->
 <ng-template #actionInfo let-row="row">
-    <div class="action-buttons" *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
+    @if (row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+    <div class="action-buttons">
         <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary">
         </app-button>
         <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
         </app-button>
     </div>
-    <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
-        class="text-muted text-xs">-</span>
+    }
+    @if (row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+    <span class="text-muted text-xs">-</span>
+    }
 </ng-template>
 
 <!-- Receipt Modal -->
-<div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">
-    <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()">
+@if (showReceiptModal) {
+<div class="receipt-modal-overlay" (click)="closeReceipt()" (keyup.escape)="closeReceipt()" tabindex="0">
+    <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()" tabindex="-1">
         <div class="modal-header">
             <h3>إيصال دفع: {{ selectedRequest?.registration?.teamName }}</h3>
             <button class="close-btn" (click)="closeReceipt()">
@@ -86,3 +97,4 @@
         </div>
     </div>
 </div>
+}

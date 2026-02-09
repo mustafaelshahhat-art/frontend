@@ -1,28 +1,34 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter" (filterChange)="setFilter($event)"></app-filter>
 </ng-template>
 
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
-    <app-inline-loading *ngIf="isLoading" message="جاري تحميل السجلات..."></app-inline-loading>
+    @if (isLoading) {
+    <app-inline-loading message="جاري تحميل السجلات..."></app-inline-loading>
+    }
 
     <!-- Empty State (No Logs at all) -->
-    <app-empty-state *ngIf="!isLoading && logs.length === 0" icon="history" title="لا توجد سجلات"
-        description="لم يتم تسجيل أي نشاط بعد">
+    @if (!isLoading && logs.length === 0) {
+    <app-empty-state icon="history" title="لا توجد سجلات" description="لم يتم تسجيل أي نشاط بعد">
     </app-empty-state>
+    }
 
     <!-- Empty State (No Logs matching filter) -->
-    <app-empty-state *ngIf="!isLoading && logs.length > 0 && filteredLogs.length === 0" icon="search_off"
-        title="لا توجد نتائج" description="لا توجد سجلات تطابق الفلتر المختار">
+    @if (!isLoading && logs.length > 0 && filteredLogs.length === 0) {
+    <app-empty-state icon="search_off" title="لا توجد نتائج" description="لا توجد سجلات تطابق الفلتر المختار">
     </app-empty-state>
+    }
 
     <!-- Table -->
-    <div *ngIf="!isLoading && filteredLogs.length > 0" class="card p-0 overflow-hidden">
+    @if (!isLoading && filteredLogs.length > 0) {
+    <div class="card p-0 overflow-hidden">
         <app-table [data]="filteredLogs" [columns]="columns" [loading]="isLoading">
         </app-table>
     </div>
+    }
 </div>
 
 <!-- User Template -->

@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { GlobalAlertsComponent } from './shared/components/global-alerts/global-alerts.component';
@@ -16,7 +16,8 @@ import { RealTimeUpdateService } from './core/services/real-time-update.service'
     GlobalLoadingComponent
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
   protected readonly title = signal('ramadan-tournament');

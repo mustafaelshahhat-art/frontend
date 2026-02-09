@@ -1,8 +1,11 @@
 <div class="filter-tabs">
-    <button *ngFor="let item of items" (click)="onSelect(item.value)" class="filter-tab"
-        [class.active]="activeValue === item.value">
-        <span *ngIf="item.icon" class="material-symbols-outlined">{{ item.icon }}</span>
+    @for (item of items; track item.value) {
+    <button (click)="onSelect(item.value)" class="filter-tab" [class.active]="activeValue === item.value">
+        @if (item.icon) {
+        <span class="material-symbols-outlined">{{ item.icon }}</span>
+        }
         {{ item.label }}
         <span class="tab-indicator"></span>
     </button>
+    }
 </div>

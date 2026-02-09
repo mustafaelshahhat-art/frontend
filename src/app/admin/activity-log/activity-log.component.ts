@@ -1,7 +1,6 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../shared/components/inline-loading/inline-loading.component';
@@ -16,7 +15,6 @@ import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
     standalone: true,
     imports: [
         CommonModule,
-        PageHeaderComponent,
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
@@ -25,7 +23,8 @@ import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
         TimeAgoPipe
     ],
     templateUrl: './activity-log.component.html',
-    styleUrls: ['./activity-log.component.scss']
+    styleUrls: ['./activity-log.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly analyticsService = inject(AnalyticsService);
@@ -57,15 +56,15 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    setFilter(value: string): void {
-        this.currentFilter = value;
+    setFilter(value: unknown): void {
+        this.currentFilter = value as string;
     }
 
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
-    @ViewChild('userInfo') userInfo!: TemplateRef<any>;
-    @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
-    @ViewChild('timeInfo') timeInfo!: TemplateRef<any>;
-    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
+    @ViewChild('userInfo') userInfo!: TemplateRef<unknown>;
+    @ViewChild('actionInfo') actionInfo!: TemplateRef<unknown>;
+    @ViewChild('timeInfo') timeInfo!: TemplateRef<unknown>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<unknown>;
 
     ngOnInit(): void {
         this.adminLayout.setTitle('إحصائيات النشاط');
@@ -82,8 +81,9 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         ];
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.adminLayout.setFilters(this.filtersTemplate);
+            this.cdr.markForCheck();
         });
 
         this.cdr.detectChanges();

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BreadcrumbService, Breadcrumb } from '../../../core/services/breadcrumb.service';
@@ -8,23 +8,38 @@ import { toSignal } from '@angular/core/rxjs-interop';
     selector: 'app-breadcrumb',
     standalone: true,
     imports: [CommonModule, RouterLink],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <nav class="breadcrumb-nav" *ngIf="breadcrumbs().length > 0">
-            <ol class="breadcrumb-list">
-                <li *ngFor="let crumb of breadcrumbs(); let last = last" class="breadcrumb-item">
-                    <a *ngIf="!last" [routerLink]="crumb.url" class="breadcrumb-link">
-                        <span *ngIf="crumb.icon" class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
-                        {{ crumb.label }}
-                    </a>
-                    <span *ngIf="last" class="breadcrumb-current">
-                        <span *ngIf="crumb.icon" class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
-                        {{ crumb.label }}
-                    </span>
-                    <span *ngIf="!last" class="breadcrumb-separator">/</span>
-                </li>
-            </ol>
-        </nav>
+        @if (breadcrumbs().length > 0) {
+            <nav class="breadcrumb-nav">
+                <ol class="breadcrumb-list">
+                    @for (crumb of breadcrumbs(); track crumb.url; let last = $last) {
+                        <li class="breadcrumb-item">
+                            @if (!last) {
+                                <a [routerLink]="crumb.url" class="breadcrumb-link">
+                                    @if (crumb.icon) {
+                                        <span class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
+                                    }
+                                    {{ crumb.label }}
+                                </a>
+                            } @else {
+                                <span class="breadcrumb-current">
+                                    @if (crumb.icon) {
+                                        <span class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
+                                    }
+                                    {{ crumb.label }}
+                                </span>
+                            }
+                            @if (!last) {
+                                <span class="breadcrumb-separator">/</span>
+                            }
+                        </li>
+                    }
+                </ol>
+            </nav>
+        }
     `,
+
     styles: [`
         .breadcrumb-nav {
             display: flex;

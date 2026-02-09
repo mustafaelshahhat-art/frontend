@@ -30,12 +30,14 @@
 }
 
 .auth-card {
-    background: rgba(19, 27, 46, 0.7);
-    /* Custom glass opacity for login */
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-glass);
+    backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--border-visible);
     border-radius: var(--radius-3xl);
     padding: var(--space-3xl);
+    opacity: 1; /* Ensure visibility by default */
+    visibility: visible;
+    transform: none;
     box-shadow: var(--shadow-2xl);
     /* Deep shadow */
     max-width: var(--width-card-sm);
@@ -132,9 +134,8 @@
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(40px) scale(0.98);
+        transform: translateY(var(--space-10)) scale(0.98);
     }
-
     to {
         opacity: 1;
         transform: translateY(0) scale(1);

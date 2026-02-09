@@ -1,28 +1,35 @@
 <!-- Filter Section -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
 </ng-template>
 
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
-    <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الفرق..."></app-inline-loading>
+    @if (isLoading()) {
+    <app-inline-loading message="جاري تحميل الفرق..."></app-inline-loading>
+    }
 
     <!-- Empty State -->
-    <app-empty-state *ngIf="!isLoading() && filteredTeams().length === 0" icon="groups" title="لا توجد فرق"
-        description="لا توجد فرق في هذا التصنيف حالياً">
+    @if (!isLoading() && filteredTeams().length === 0) {
+    <app-empty-state icon="groups" title="لا توجد فرق" description="لا توجد فرق في هذا التصنيف حالياً">
     </app-empty-state>
+    }
 
     <!-- Desktop Table View -->
-    <div *ngIf="!isLoading() && filteredTeams().length > 0" class="table-wrapper hide-on-mobile">
+    @if (!isLoading() && filteredTeams().length > 0) {
+    <div class="table-wrapper hide-on-mobile">
         <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
             emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
         </app-table>
     </div>
+    }
 
     <!-- Mobile Cards View -->
-    <div *ngIf="!isLoading() && filteredTeams().length > 0" class="mobile-teams-list show-only-mobile">
-        <div *ngFor="let team of filteredTeams()" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
+    @if (!isLoading() && filteredTeams().length > 0) {
+    <div class="mobile-teams-list show-only-mobile">
+        @for (team of filteredTeams(); track team.id) {
+        <div class="card team-mobile-card" [class.is-disabled]="!team.isActive">
             <div class="card-header-flex">
                 <div class="flex items-center gap-3">
                     <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">
@@ -32,11 +39,11 @@
                         <span class="text-muted text-xs">{{ team.city }}</span>
                     </div>
                 </div>
-                <ng-container *ngIf="getTeamStatusConfig(team.isActive) as status">
-                    <app-badge [type]="status.variant">
-                        {{ status.label }}
-                    </app-badge>
-                </ng-container>
+                @if (getTeamStatusConfig(team.isActive); as status) {
+                <app-badge [type]="status.variant">
+                    {{ status.label }}
+                </app-badge>
+                }
             </div>
 
             <div class="card-body-details">
@@ -65,7 +72,9 @@
                 </div>
             </div>
         </div>
+        }
     </div>
+    }
 </div>
 
 <!-- Team Info Template -->
@@ -92,11 +101,11 @@
 
 <!-- Status Template -->
 <ng-template #adminStatusInfo let-row="row">
-    <ng-container *ngIf="getTeamStatusConfig(row.isActive) as status">
-        <app-badge [type]="status.variant" [dot]="true" [dotType]="row.isActive ? 'active' : 'error'">
-            {{ status.label }}
-        </app-badge>
-    </ng-container>
+    @if (getTeamStatusConfig(row.isActive); as status) {
+    <app-badge [type]="status.variant" [dot]="true" [dotType]="row.isActive ? 'active' : 'error'">
+        {{ status.label }}
+    </app-badge>
+    }
 </ng-template>
 
 <!-- Actions Template -->

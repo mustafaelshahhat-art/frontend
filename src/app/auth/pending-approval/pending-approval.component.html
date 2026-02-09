@@ -7,7 +7,7 @@
     </div>
 
     <!-- Main Card -->
-    <div class="pending-card">
+    <div class="pending-card" [class.animate-fade-in-up]="isPageReady()">
         <!-- Decorative Elements -->
         <div class="card-glow"></div>
 
@@ -45,11 +45,11 @@
 
         <!-- Actions -->
         <div class="actions">
-            <button class="btn btn-primary" (click)="goToHome()">
+            <button class="btn-pending btn-primary-pending" (click)="goToHome()">
                 <span class="material-symbols-outlined">home</span>
                 <span>الصفحة الرئيسية</span>
             </button>
-            <button class="btn btn-secondary" (click)="onLogout()">
+            <button class="btn-pending btn-secondary-pending" (click)="onLogout()">
                 <span class="material-symbols-outlined">logout</span>
                 <span>تسجيل الخروج</span>
             </button>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, effect, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
@@ -25,19 +25,24 @@ import { FormsModule } from '@angular/forms';
     ],
     template: `
         <div class="objection-detail-content">
-            <div *ngIf="isLoading" class="loading-state">
+            @if (isLoading) {
+            <div class="loading-state">
                 <div class="loading-spinner"></div>
                 <p>جاري تحميل التفاصيل...</p>
             </div>
+            }
 
-            <div *ngIf="!isLoading && !objection" class="error-state">
+            @if (!isLoading && !objection) {
+            <div class="error-state">
                 <app-empty-state icon="search_off" title="لم يتم العثور على الاعتراض"
                     description="قد يكون الاعتراض غير موجود أو تم حذفه">
                     <app-button (click)="loadObjection()">إعادة المحاولة</app-button>
                 </app-empty-state>
             </div>
+            }
 
-            <div *ngIf="!isLoading && objection" class="detail-grid">
+            @if (!isLoading && objection) {
+            <div class="detail-grid">
                 <!-- Main Content -->
                 <div class="main-column">
                     <app-card [title]="'وصف الاعتراض'" icon="description">
@@ -45,22 +50,25 @@ import { FormsModule } from '@angular/forms';
                             {{ objection.description }}
                         </div>
 
-                        <div *ngIf="objection.evidence && objection.evidence.length > 0" class="evidence-section">
+                        @if (objection.evidence && objection.evidence.length > 0) {
+                        <div class="evidence-section">
                             <h4 class="text-sm font-bold mb-md text-secondary">المرفقات والأدلة</h4>
                             <div class="evidence-grid">
-                                <div *ngFor="let img of objection.evidence; let i = index" 
-                                    class="evidence-item rounded-xl overflow-hidden border border-visible hover-lift">
+                                @for (img of objection.evidence; track img) {
+                                <div class="evidence-item rounded-xl overflow-hidden border border-visible hover-lift">
                                     <img [src]="img" alt="Evidence" class="evidence-img">
                                 </div>
+                                }
                             </div>
                         </div>
+                        }
                     </app-card>
 
                     <!-- Decision Section (Admin Only) -->
-                    <app-card *ngIf="objection.status === ObjectionStatus.PENDING || objection.status === ObjectionStatus.UNDER_REVIEW" 
-                        title="اتخاذ قرار" icon="gavel" class="decision-card">
+                    @if (objection.status === ObjectionStatus.PENDING || objection.status === ObjectionStatus.UNDER_REVIEW) {
+                    <app-card title="اتخاذ قرار" icon="gavel" class="decision-card">
                         <div class="form-group mb-lg">
-                            <label class="label mb-xs">ملاحظات اللجنة (اختياري)</label>
+                            <span class="label mb-xs">ملاحظات اللجنة (اختياري)</span>
                             <textarea [(ngModel)]="adminNotes" class="premium-input w-full" rows="3" 
                                 placeholder="اكتب مبررات القرار هنا..."></textarea>
                         </div>
@@ -71,9 +79,11 @@ import { FormsModule } from '@angular/forms';
                                 (click)="handleDecision(ObjectionStatus.APPROVED)">قبول الاعتراض</app-button>
                         </div>
                     </app-card>
+                    }
 
                     <!-- Feedback Display -->
-                    <app-card *ngIf="objection.adminNotes" title="قرار اللجنة" icon="feedback" class="feedback-card">
+                    @if (objection.adminNotes) {
+                    <app-card title="قرار اللجنة" icon="feedback" class="feedback-card">
                         <div class="decision-feedback p-md rounded-xl border">
                             <div class="flex items-center gap-2 mb-sm">
                                 <span class="material-symbols-outlined text-primary text-sm">schedule</span>
@@ -83,6 +93,7 @@ import { FormsModule } from '@angular/forms';
                             <p class="text-secondary m-0">{{ objection.adminNotes }}</p>
                         </div>
                     </app-card>
+                    }
                 </div>
 
                 <!-- Sidebar Info -->
@@ -131,6 +142,7 @@ import { FormsModule } from '@angular/forms';
                     </app-card>
                 </div>
             </div>
+            }
         </div>
     `,
     styles: [`
@@ -208,7 +220,8 @@ import { FormsModule } from '@angular/forms';
             color: var(--text-muted); 
             font-weight: var(--font-medium); 
         }
-    `]
+    `],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObjectionDetailComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
@@ -220,8 +233,8 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
     private cdr = inject(ChangeDetectorRef);
 
     objection: Objection | undefined;
-    isLoading: boolean = false;
-    adminNotes: string = '';
+    isLoading = false;
+    adminNotes = '';
     ObjectionStatus = ObjectionStatus;
 
     constructor() {
@@ -270,7 +283,7 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
                     this.isLoading = false;
                     this.cdr.detectChanges();
                 },
-                error: (err) => {
+                error: () => {
                     this.isLoading = false;
                     this.uiFeedback.error('خطأ', 'فشل في تحميل تفاصيل الاعتراض');
                     this.cdr.detectChanges();

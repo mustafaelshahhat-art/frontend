@@ -1,6 +1,6 @@
 @if (uiFeedback.confirmDialog(); as dialog) {
-<div class="confirm-overlay" (click)="onCancel()">
-    <div class="confirm-modal" (click)="$event.stopPropagation()">
+<div class="confirm-overlay" (click)="onCancel()" (keyup.enter)="onCancel()" tabindex="0">
+    <div class="confirm-modal" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()" tabindex="0">
         <div class="confirm-icon" [attr.data-type]="dialog.type">
             <span class="material-symbols-outlined">{{ dialog.icon }}</span>
         </div>
@@ -8,12 +8,12 @@
         <p class="confirm-message">{{ dialog.message }}</p>
         <div class="confirm-actions">
             <!-- Cancel Button -->
-            <app-button variant="ghost" (onClick)="onCancel()">
+            <app-button variant="ghost" (trigger)="onCancel()">
                 {{ dialog.cancelText }}
             </app-button>
 
             <!-- Confirm Button -->
-            <app-button [variant]="dialog.type === 'danger' ? 'danger' : 'primary'" (onClick)="onConfirm()">
+            <app-button [variant]="dialog.type === 'danger' ? 'danger' : 'primary'" (trigger)="onConfirm()">
                 {{ dialog.confirmText }}
             </app-button>
         </div>

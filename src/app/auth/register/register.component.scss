@@ -28,7 +28,7 @@
 
 .ramadan-pattern {
     /* background-image: url('/assets/images/pattern-light.png'); */
-    opacity: 0.03;
+    opacity: var(--opacity-subtle, 0.03);
     pointer-events: none;
     mix-blend-mode: overlay;
     position: absolute;
@@ -36,12 +36,15 @@
 }
 
 .auth-card {
-    background: rgba(19, 27, 46, 0.7);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
+    backdrop-filter: var(--blur-lg);
+    border: 1px solid var(--border-visible);
     border-radius: var(--radius-3xl);
     padding: var(--space-xl);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: var(--shadow-2xl);
     max-width: 760px;
     width: 100%;
     margin: 0 auto;
@@ -460,7 +463,7 @@ select.form-input {
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(var(--space-5));
     }
 
     to {
@@ -479,4 +482,11 @@ select.form-input {
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+.step-avatar {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }

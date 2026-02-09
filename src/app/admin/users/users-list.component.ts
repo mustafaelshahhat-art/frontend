@@ -1,11 +1,10 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
@@ -23,7 +22,6 @@ import { UserStore } from '../../core/stores/user.store';
         CommonModule,
         ReactiveFormsModule,
         FilterComponent,
-        PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
         SmartImageComponent,
@@ -32,7 +30,8 @@ import { UserStore } from '../../core/stores/user.store';
         FormControlComponent
     ],
     templateUrl: './users-list.component.html',
-    styleUrls: ['./users-list.component.scss']
+    styleUrls: ['./users-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
@@ -89,14 +88,14 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         status: ['Active', Validators.required]
     });
 
-    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
-    @ViewChild('indexInfo') indexInfo!: TemplateRef<any>;
-    @ViewChild('userInfo') userInfo!: TemplateRef<any>;
-    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
-    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
-    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
-    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
+    @ViewChild('indexInfo') indexInfo!: TemplateRef<unknown>;
+    @ViewChild('userInfo') userInfo!: TemplateRef<unknown>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<unknown>;
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<unknown>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<unknown>;
+    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<unknown>;
 
     ngOnInit(): void {
         this.adminLayout.setTitle('إدارة المستخدمين');
@@ -117,9 +116,10 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         ];
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.adminLayout.setActions(this.actionsTemplate);
             this.adminLayout.setFilters(this.filtersTemplate);
+            this.cdr.markForCheck();
         });
 
         this.cdr.detectChanges();
@@ -164,12 +164,12 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         return result;
     });
 
-    setFilter(filter: string): void {
-        this.currentFilter.set(filter);
+    setFilter(filter: unknown): void {
+        this.currentFilter.set(filter as string);
     }
 
-    setUserType(type: any): void {
-        this.userType.set(type);
+    setUserType(type: unknown): void {
+        this.userType.set(type as 'admins' | 'referees' | 'players');
     }
 
     getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {

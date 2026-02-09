@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Match, MatchStatus, Card, Goal, MatchEvent, MatchReport } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
@@ -111,7 +111,7 @@ export class MatchService {
         return this.http.post<Match>(`${this.apiUrl}/${matchId}/events`, event);
     }
 
-    submitMatchReport(matchId: string, notes: string, refereeId: string, refereeName: string): Observable<Match | undefined> {
+    submitMatchReport(matchId: string, notes: string): Observable<Match | undefined> {
         return this.http.post<Match>(`${this.apiUrl}/${matchId}/report`, { notes });
     }
 

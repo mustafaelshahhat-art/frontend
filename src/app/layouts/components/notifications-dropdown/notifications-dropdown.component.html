@@ -1,37 +1,47 @@
-<div *ngIf="isOpen" class="notifications-dropdown" [class.notifications-dropdown-mobile]="isMobile">
-    <div class="notifications-header">
-        <h3 class="notifications-title">التنبيهات</h3>
-        <span class="badge badge-primary">{{ unreadCount }} جديدة</span>
+@if (isOpen) {
+<div class="notifications-dropdown" [class.notifications-dropdown-mobile]="isMobile" role="listbox"
+  aria-label="قائمة التنبيهات">
+  <div class="notifications-header">
+    <h3 class="notifications-title">التنبيهات</h3>
+    <span class="badge badge-primary">{{ unreadCount }} جديدة</span>
+  </div>
+  <div class="notifications-list">
+    <!-- Empty State -->
+    @if (notifications.length === 0) {
+    <div class="notification-empty">
+      <div class="notification-empty-icon">
+        <span class="material-symbols-outlined">notifications_off</span>
+      </div>
+      <div class="text-center">
+        <p class="text-primary font-bold mb-2">لا توجد تنبيهات</p>
+        <p class="text-muted text-sm">سنتصل بك عند وجود تحديثات جديدة</p>
+      </div>
     </div>
-    <div class="notifications-list">
-        <!-- Empty State -->
-        <div *ngIf="notifications.length === 0" class="notification-empty">
-            <div class="notification-empty-icon">
-                <span class="material-symbols-outlined">notifications_off</span>
-            </div>
-            <div class="text-center">
-                <p class="text-primary font-bold mb-2">لا توجد تنبيهات</p>
-                <p class="text-muted text-sm">سنتصل بك عند وجود تحديثات جديدة</p>
-            </div>
+    }
+    @for (n of notifications; track n.id) {
+    <div class="notification-item" (click)="handleViewNotification(n)" (keydown.enter)="handleViewNotification(n)"
+      (keydown.space)="$event.preventDefault(); handleViewNotification(n)" tabindex="0" role="option"
+      [aria-selected]="!n.isRead">
+      <div class="notification-icon" [class]="'notification-icon-' + n.type">
+        <span class="material-symbols-outlined">{{ getTypeIcon(n.type) }}</span>
+      </div>
+      <div class="notification-content">
+        <div class="flex-between mb-1">
+          <p class="notification-title">{{ n.title }}</p>
+          <div class="flex items-center gap-2">
+            <span class="notification-time">{{ n.createdAt | timeAgo }}</span>
+            @if (!n.isRead) {
+            <div class="notification-unread-dot"></div>
+            }
+          </div>
         </div>
-
-        <div *ngFor="let n of notifications" class="notification-item" (click)="handleViewNotification(n)">
-            <div class="notification-icon" [class]="'notification-icon-' + n.type">
-                <span class="material-symbols-outlined">{{ getTypeIcon(n.type) }}</span>
-            </div>
-            <div class="notification-content">
-                <div class="flex-between mb-1">
-                    <p class="notification-title">{{ n.title }}</p>
-                    <div class="flex items-center gap-2">
-                        <span class="notification-time">{{ n.createdAt | timeAgo }}</span>
-                        <div *ngIf="!n.isRead" class="notification-unread-dot"></div>
-                    </div>
-                </div>
-                <p class="notification-message truncate">{{ n.message }}</p>
-            </div>
-        </div>
+        <p class="notification-message truncate">{{ n.message }}</p>
+      </div>
     </div>
-    <div class="notifications-footer">
-        <a (click)="handleViewAll()" class="notifications-view-all">عرض كافة التنبيهات</a>
-    </div>
+    }
+  </div>
+  <div class="notifications-footer">
+    <button type="button" (click)="handleViewAll()" class="notifications-view-all">عرض كافة التنبيهات</button>
+  </div>
 </div>
+}

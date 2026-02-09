@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../services/ui-feedback.service';
 import { ButtonComponent } from '../button/button.component';
@@ -8,7 +8,8 @@ import { ButtonComponent } from '../button/button.component';
     standalone: true,
     imports: [CommonModule, ButtonComponent],
     templateUrl: './global-confirm-dialog.component.html',
-    styleUrls: ['./global-confirm-dialog.component.scss']
+    styleUrls: ['./global-confirm-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GlobalConfirmDialogComponent {
     uiFeedback = inject(UIFeedbackService);

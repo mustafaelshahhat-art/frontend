@@ -1,11 +1,11 @@
-import { Component, Input, TemplateRef, ContentChild, Directive } from '@angular/core';
+import { Component, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface TableColumn {
     key: string;
     label: string;
     width?: string;
-    template?: TemplateRef<any>;
+    template?: TemplateRef<unknown>;
     sortable?: boolean;
     align?: 'left' | 'center' | 'right';
 }
@@ -15,17 +15,18 @@ export interface TableColumn {
     standalone: true,
     imports: [CommonModule],
     templateUrl: './table.component.html',
-    styleUrls: ['./table.component.scss']
+    styleUrls: ['./table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableComponent {
-    @Input() data: any[] = [];
+    @Input() data: unknown[] = [];
     @Input() columns: TableColumn[] = [];
     @Input() loading = false;
     @Input() emptyMessage = 'No data available';
     @Input() hoverable = true;
     @Input() striped = false;
 
-    getCellValue(row: any, key: string): any {
-        return key.split('.').reduce((obj, k) => obj && obj[k], row);
+    getCellValue(row: unknown, key: string): unknown {
+        return key.split('.').reduce((obj, k) => (obj as Record<string, unknown>)?.[k], row);
     }
 }

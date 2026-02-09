@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,9 +11,9 @@ import { FormControlComponent } from '../form-control/form-control.component';
 import { ModalComponent } from '../modal/modal.component';
 import {
     getPlayerStatus,
-    PlayerStatus,
     BadgeVariant
 } from '../../utils/status-labels';
+import { TeamJoinRequest } from '../../../core/models/team-request.model';
 
 export interface TeamPlayer {
     id: string; // Changed to string (Guid)
@@ -74,7 +74,7 @@ export interface TeamData {
     players: TeamPlayer[];
     matches: TeamMatch[];
     finances: TeamFinance[];
-    invitations?: any[];
+    invitations?: TeamJoinRequest[];
 }
 
 @Component({
@@ -92,25 +92,26 @@ export interface TeamData {
         ModalComponent
     ],
     templateUrl: './team-detail.component.html',
-    styleUrls: ['./team-detail.component.scss']
+    styleUrls: ['./team-detail.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TeamDetailComponent implements OnChanges {
+export class TeamDetailComponent implements OnChanges, OnInit {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
 
     @Input() team!: TeamData;
-    @Input() showBackButton: boolean = false;
-    @Input() backRoute: string = '/admin/teams';
+    @Input() showBackButton = false;
+    @Input() backRoute = '/admin/teams';
     @Input() initialTab: 'overview' | 'players' | 'matches' | 'finances' = 'overview';
 
     // Permissions
-    @Input() canEditName: boolean = false;
-    @Input() canAddPlayers: boolean = false;
-    @Input() canRemovePlayers: boolean = false;
-    @Input() canManageStatus: boolean = false; // للأدمن فقط (تفعيل/تعليق/حظر)
-    @Input() canDeleteTeam: boolean = false; // للكابتن
-    @Input() canManageInvitations: boolean = false; // للكابتن
-    @Input() isInviteLoading: boolean = false; // حالة تحميل الدعوة
+    @Input() canEditName = false;
+    @Input() canAddPlayers = false;
+    @Input() canRemovePlayers = false;
+    @Input() canManageStatus = false; // للأدمن فقط (تفعيل/تعليق/حظر)
+    @Input() canDeleteTeam = false; // للكابتن
+    @Input() canManageInvitations = false; // للكابتن
+    @Input() isInviteLoading = false; // حالة تحميل الدعوة
 
     @Output() playerAction = new EventEmitter<{ player: TeamPlayer, action: 'activate' | 'deactivate' | 'ban' | 'remove' }>();
     @Output() tabChanged = new EventEmitter<string>();
@@ -119,17 +120,17 @@ export class TeamDetailComponent implements OnChanges {
     @Output() addPlayer = new EventEmitter<string>();
     @Output() deleteTeam = new EventEmitter<void>();
     @Output() disableTeam = new EventEmitter<void>();
-    @Output() respondRequest = new EventEmitter<{ request: any, approve: boolean }>();
+    @Output() respondRequest = new EventEmitter<{ request: TeamJoinRequest, approve: boolean }>();
 
-    @Input() canSeeRequests: boolean = false;
-    @Input() canSeeFinances: boolean = false;
+    @Input() canSeeRequests = false;
+    @Input() canSeeFinances = false;
 
     activeTab = 'overview';
     isEditingName = false;
     tempName = '';
-    filteredTabs: any[] = [];
+    filteredTabs: { value: string, label: string, icon: string }[] = [];
 
-    onRespondRequest(request: any, approve: boolean): void {
+    onRespondRequest(request: TeamJoinRequest, approve: boolean): void {
         this.respondRequest.emit({ request, approve });
     }
 
@@ -210,9 +211,10 @@ export class TeamDetailComponent implements OnChanges {
         }
     }
 
-    onTabChange(tab: string): void {
-        this.activeTab = tab;
-        this.tabChanged.emit(tab);
+    onTabChange(tab: unknown): void {
+        const t = tab as 'overview' | 'players' | 'matches' | 'finances' | 'requests';
+        this.activeTab = t;
+        this.tabChanged.emit(t);
     }
 
     getPlayerStatusBadgeType(status: string): BadgeVariant {

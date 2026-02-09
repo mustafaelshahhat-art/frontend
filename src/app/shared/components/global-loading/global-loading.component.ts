@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../services/ui-feedback.service';
 
@@ -7,7 +7,8 @@ import { UIFeedbackService } from '../../services/ui-feedback.service';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './global-loading.component.html',
-    styleUrls: ['./global-loading.component.scss']
+    styleUrls: ['./global-loading.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GlobalLoadingComponent {
     uiFeedback = inject(UIFeedbackService);

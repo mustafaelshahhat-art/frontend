@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
     standalone: true,
     imports: [CommonModule],
     templateUrl: './file-upload.component.html',
-    styleUrls: ['./file-upload.component.scss']
+    styleUrls: ['./file-upload.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FileUploadComponent {
     @Input() label = 'Upload File';

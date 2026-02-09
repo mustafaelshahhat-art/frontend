@@ -1,263 +1,279 @@
 ﻿<ng-template #headerActions>
-    <div class="actions flex-center-gap" *ngIf="match() as matchData">
-        <ng-container *ngIf="matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED">
-            <app-button
-                *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
-                [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
-                المحادثة
-            </app-button>
-        </ng-container>
+    @if (match() ; as matchData) {
+    <div class="actions flex-center-gap">
+        @if (matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED) {
+        <app-button *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
+            [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
+            المحادثة
+        </app-button>
+        }
 
         <!-- Player: Objection Button in Header -->
-        <ng-container *ngIf="canShowObjectionSection()">
-            <app-button (click)="openObjectionModal()" variant="ghost" icon="report" title="تقديم اعتراض">
-                اعتراض
-            </app-button>
-        </ng-container>
+        @if (canShowObjectionSection()) {
+        <app-button (click)="openObjectionModal()" variant="ghost" icon="report" title="تقديم اعتراض">
+            اعتراض
+        </app-button>
+        }
 
-        <ng-container *ngIf="getStatusConfig(matchData.status) as statusConfig">
-            <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
-                [dot]="matchData.status === MatchStatus.LIVE" dotType="live">
-                {{ statusConfig.label }}
-            </app-badge>
-        </ng-container>
+        @if (getStatusConfig(matchData.status) ; as statusConfig) {
+        <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
+            [dot]="matchData.status === MatchStatus.LIVE" dotType="live">
+            {{ statusConfig.label }}
+        </app-badge>
+        }
     </div>
+    }
 </ng-template>
 
 <div class="match-detail-page">
 
     <!-- Loading State -->
-    <div *ngIf="isLoading()" class="match-detail-loading">
+    @if (isLoading()) {
+    <div class="match-detail-loading">
         <div class="loading-content">
             <div class="loading-spinner-lg"></div>
             <p>جاري تحميل تفاصيل المباراة...</p>
         </div>
     </div>
+    }
 
     <!-- Match Content -->
-    <ng-container *ngIf="!isLoading() && match() as matchData">
+    @if (!isLoading() && match() ; as matchData) {
 
-        <!-- Main Score Hero -->
-        <div class="score-card-hero" [class.is-live]="matchData.status === MatchStatus.LIVE"
-            [class.is-finished]="matchData.status === MatchStatus.FINISHED"
-            [class.is-cancelled]="matchData.status === MatchStatus.CANCELLED">
+    <!-- Main Score Hero -->
+    <div class="score-card-hero" [class.is-live]="matchData.status === MatchStatus.LIVE"
+        [class.is-finished]="matchData.status === MatchStatus.FINISHED"
+        [class.is-cancelled]="matchData.status === MatchStatus.CANCELLED">
 
-            <div *ngIf="matchData.status === MatchStatus.LIVE" class="live-banner">
-                <span class="pulse-dot"></span>
-                مباراة جارية الآن
+        @if (matchData.status === MatchStatus.LIVE) {
+        <div class="live-banner">
+            <span class="pulse-dot"></span>
+            مباراة جارية الآن
+        </div>
+        }
+
+        <div class="score-card-content">
+            <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
+                <div class="team-logo-container">
+                    <app-smart-image [src]="matchData.homeTeamLogoUrl" type="team" size="md"
+                        [initials]="matchData.homeTeamName.charAt(0)">
+                    </app-smart-image>
+                </div>
+                <h2>{{ matchData.homeTeamName }}</h2>
+                <span class="team-tag">صاحب الأرض</span>
             </div>
 
-            <div class="score-card-content">
-                <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
-                    <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
-                        <app-smart-image [src]="matchData.homeTeamLogoUrl" type="team" size="md"
-                            [initials]="matchData.homeTeamName.charAt(0)">
-                        </app-smart-image>
-                    </div>
-                    <h2>{{ matchData.homeTeamName }}</h2>
-                    <span class="team-tag">صاحب الأرض</span>
+            <div class="score-block">
+                <div class="score-numbers">
+                    <span class="score home">{{ matchData.homeScore }}</span>
+                    <span class="score-divider">:</span>
+                    <span class="score away">{{ matchData.awayScore }}</span>
                 </div>
 
-                <div class="score-block">
-                    <div class="score-numbers">
-                        <span class="score home">{{ matchData.homeScore }}</span>
-                        <span class="score-divider">:</span>
-                        <span class="score away">{{ matchData.awayScore }}</span>
-                    </div>
-
-                    <div *ngIf="matchData.date" class="match-time-banner">
-                        <span class="material-symbols-outlined">calendar_today</span>
-                        موعد اللقاء: {{ matchData.date | date:'yyyy/MM/dd' }} - {{ matchData.date | date:'hh:mm a' }}
-                    </div>
-
-                    <div *ngIf="matchData.refereeName" class="referee-bar">
-                        <span class="material-symbols-outlined">sports</span>
-                        الحكم: {{ matchData.refereeName }}
-                    </div>
+                @if (matchData.date) {
+                <div class="match-time-banner">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                    موعد اللقاء: {{ matchData.date | date:'yyyy/MM/dd' }} - {{ matchData.date | date:'hh:mm a' }}
                 </div>
+                }
 
-                <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
-                    <div style="width: 80px; height: 80px; margin-bottom: 1rem;">
-                        <app-smart-image [src]="matchData.awayTeamLogoUrl" type="team" size="md"
-                            [initials]="matchData.awayTeamName.charAt(0)">
-                        </app-smart-image>
-                    </div>
-                    <h2>{{ matchData.awayTeamName }}</h2>
-                    <span class="team-tag">الضيف</span>
+                @if (matchData.refereeName) {
+                <div class="referee-bar">
+                    <span class="material-symbols-outlined">sports</span>
+                    الحكم: {{ matchData.refereeName }}
                 </div>
+                }
             </div>
 
+            <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
+                <div class="team-logo-container">
+                    <app-smart-image [src]="matchData.awayTeamLogoUrl" type="team" size="md"
+                        [initials]="matchData.awayTeamName.charAt(0)">
+                    </app-smart-image>
+                </div>
+                <h2>{{ matchData.awayTeamName }}</h2>
+                <span class="team-tag">الضيف</span>
+            </div>
         </div>
 
-        <!-- Main Grid: Controls + Events -->
-        <div class="match-detail-main-grid">
+    </div>
 
-            <!-- Events Column -->
-            <div class="events-section">
-                <div class="events-panel">
-                    <div class="panel-header">
-                        <span class="material-symbols-outlined">timeline</span>
-                        <h3>أحداث المباراة</h3>
-                        <span class="events-badge">{{ matchData.events?.length || 0 }}</span>
-                    </div>
+    <!-- Main Grid: Controls + Events -->
+    <div class="match-detail-main-grid">
 
-                    <!-- Empty State -->
-                    <app-empty-state *ngIf="!matchData.events || matchData.events.length === 0" icon="sports_soccer"
-                        title="لا توجد أحداث" description="لا توجد أحداث حتى الآن">
-                    </app-empty-state>
-
-                    <!-- Events List -->
-                    <app-match-timeline *ngIf="matchData.events && matchData.events.length > 0"
-                        [events]="matchData.events" [homeTeamId]="matchData.homeTeamId"
-                        [homeTeamName]="matchData.homeTeamName" [awayTeamName]="matchData.awayTeamName"
-                        (deleteEvent)="deleteEvent($event)">
-                    </app-match-timeline>
+        <!-- Events Column -->
+        <div class="events-section">
+            <div class="events-panel">
+                <div class="panel-header">
+                    <span class="material-symbols-outlined">timeline</span>
+                    <h3>أحداث المباراة</h3>
+                    <span class="events-badge">{{ matchData.events?.length || 0 }}</span>
                 </div>
+
+                <!-- Empty State -->
+                @if (!matchData.events || matchData.events.length === 0) {
+                <app-empty-state icon="sports_soccer" title="لا توجد أحداث" description="لا توجد أحداث حتى الآن">
+                </app-empty-state>
+                }
+
+                <!-- Events List -->
+                @if (matchData.events && matchData.events.length > 0) {
+                <app-match-timeline [events]="matchData.events" [homeTeamId]="matchData.homeTeamId"
+                    [homeTeamName]="matchData.homeTeamName" [awayTeamName]="matchData.awayTeamName"
+                    (deleteEvent)="deleteEvent($event)">
+                </app-match-timeline>
+                }
             </div>
-
-            <!-- Controls Column -->
-            <div class="controls-section">
-
-                <!-- Admin Controls (Premium Redesign) -->
-                <div *appHasPermission="Permission.MANAGE_MATCHES" class="admin-tools-premium">
-                    <div class="admin-header">
-                        <div class="admin-title">
-                            <span class="material-symbols-outlined">admin_panel_settings</span>
-                            <h3>لوحة التحكم الإدارية</h3>
-                        </div>
-                        <div class="admin-badge">Admin Mode</div>
-                    </div>
-
-                    <div class="admin-content">
-                        <!-- Main Action: Score -->
-                        <div class="admin-main-actions" style="margin-bottom: 1rem;">
-                            <app-button (click)="openScoreModal()" icon="scoreboard" style="width: 100%;">
-                                تحديث النتيجة
-                            </app-button>
-                        </div>
-
-                        <!-- Management Grid -->
-                        <div class="admin-grid"
-                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-                            <app-button variant="outline" icon="calendar_month" (click)="openSetScheduleModal()">
-                                تحديد موعد اللقاء
-                            </app-button>
-                            <app-button variant="outline" icon="person_pin" (click)="openRefereeModal()">
-                                {{ matchData.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
-                            </app-button>
-                        </div>
-                        <div class="admin-grid"
-                            style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-                            <app-button variant="outline" icon="edit_note" (click)="openEventModal()"
-                                style="grid-column: span 2;">
-                                إدارة الأحداث
-                            </app-button>
-                        </div>
-
-                        <div class="admin-divider"
-                            style="margin-top: 1.5rem; margin-bottom: 1rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
-                            <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase;">حالة
-                                اللقاء</span>
-                        </div>
-
-                        <!-- Status Controls -->
-                        <div class="status-grid" style="display: flex; gap: 0.5rem;">
-                            <app-button variant="outline" size="sm" icon="schedule" (click)="openPostponeModal()"
-                                [disabled]="matchData.status === MatchStatus.CANCELLED"
-                                style="flex: 1;">تأجيل</app-button>
-                            <app-button variant="outline" size="sm" icon="replay" (click)="openRescheduleModal()"
-                                style="flex: 1;">إعادة</app-button>
-                            <app-button variant="danger" size="sm" icon="cancel" (click)="openCancelModal()"
-                                [disabled]="matchData.status === MatchStatus.CANCELLED" style="flex: 1;">{{
-                                matchData.status === MatchStatus.CANCELLED ? 'ملغاة' : 'إلغاء' }}</app-button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Referee Controls -->
-                <div *ngIf="canShowRefereeControls()" class="control-panel">
-                    <div class="panel-header">
-                        <span class="material-symbols-outlined">dashboard_customize</span>
-                        <h3>مركز التحكم</h3>
-                    </div>
-                    <div class="panel-body">
-                        <app-button *ngIf="matchData.status === MatchStatus.SCHEDULED" (click)="startMatch()"
-                            style="width: 100%;" variant="primary" icon="play_circle">
-                            بدء المباراة
-                        </app-button>
-
-                        <app-button *ngIf="matchData.status === MatchStatus.LIVE" (click)="onEndMatchClick()"
-                            style="width: 100%;" variant="danger" icon="stop_circle">
-                            إنهاء المباراة
-                        </app-button>
-
-                        <div *ngIf="matchData.status === MatchStatus.FINISHED" class="report-done">
-                            <span class="material-symbols-outlined">task_alt</span>
-                            تم إنهاء المباراة
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Event Button -->
-                <div *ngIf="canShowRefereeControls()" class="control-panel">
-                    <div class="panel-header">
-                        <span class="material-symbols-outlined">edit_note</span>
-                        <h3>تسجيل حدث</h3>
-                    </div>
-                    <div class="panel-body">
-                        <app-button (click)="openEventModal()" variant="primary" style="width: 100%;" icon="add">
-                            تسجيل حدث جديد
-                        </app-button>
-                    </div>
-                </div>
-
-                <!-- Report Preview -->
-                <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
-                    <ng-container *ngIf="matchData.report?.isSubmitted">
-                        <div class="panel-header">
-                            <span class="material-symbols-outlined">description</span>
-                            <h3>تقرير المباراة</h3>
-                        </div>
-                        <div class="panel-body">
-                            <p class="report-notes">"{{ matchData.report?.notes || 'لا توجد ملاحظات' }}"</p>
-                            <div class="report-date">
-                                <span class="material-symbols-outlined">schedule</span>
-                                {{ matchData.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
-                            </div>
-                        </div>
-                    </ng-container>
-                </div>
-
-                <!-- Captain: Submit Objection -->
-                <div *ngIf="canShowObjectionSection()" class="control-panel">
-                    <div class="panel-header">
-                        <span class="material-symbols-outlined">gavel</span>
-                        <h3>تقديم اعتراض</h3>
-                    </div>
-                    <div class="panel-body">
-                        <p class="text-muted text-sm mb-md">إذا كان لديك اعتراض على نتيجة المباراة أو أي قرار تحكيمي</p>
-                        <app-button (click)="openObjectionModal()" variant="primary" style="width: 100%;" icon="report">
-                            تقديم اعتراض
-                        </app-button>
-                    </div>
-                </div>
-            </div>
-
         </div>
 
-    </ng-container>
+        <!-- Controls Column -->
+        <div class="controls-section">
+
+            <!-- Admin Controls (Premium Redesign) -->
+            <div *appHasPermission="Permission.MANAGE_MATCHES" class="admin-tools-premium">
+                <div class="admin-header">
+                    <div class="admin-title">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <h3>لوحة التحكم الإدارية</h3>
+                    </div>
+                    <div class="admin-badge">Admin Mode</div>
+                </div>
+
+                <div class="admin-content">
+                    <!-- Main Action: Score -->
+                    <div class="admin-main-actions mb-4">
+                        <app-button (click)="openScoreModal()" icon="scoreboard" class="w-full">
+                            تحديث النتيجة
+                        </app-button>
+                    </div>
+
+                    <!-- Management Grid -->
+                    <div class="admin-grid-two">
+                        <app-button variant="outline" icon="calendar_month" (click)="openSetScheduleModal()">
+                            تحديد موعد اللقاء
+                        </app-button>
+                        <app-button variant="outline" icon="person_pin" (click)="openRefereeModal()">
+                            {{ matchData.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
+                        </app-button>
+                    </div>
+                    <div class="admin-grid-full mt-3">
+                        <app-button variant="outline" icon="edit_note" (click)="openEventModal()" class="w-full">
+                            إدارة الأحداث
+                        </app-button>
+                    </div>
+
+                    <div class="admin-divider-section">
+                        <span class="admin-divider-text">حالة اللقاء</span>
+                    </div>
+
+                    <!-- Status Controls -->
+                    <div class="status-grid-flex">
+                        <app-button variant="outline" size="sm" icon="schedule" (click)="openPostponeModal()"
+                            [disabled]="matchData.status === MatchStatus.CANCELLED" class="flex-1">تأجيل</app-button>
+                        <app-button variant="outline" size="sm" icon="replay" (click)="openRescheduleModal()"
+                            class="flex-1">إعادة</app-button>
+                        <app-button variant="danger" size="sm" icon="cancel" (click)="openCancelModal()"
+                            [disabled]="matchData.status === MatchStatus.CANCELLED" class="flex-1">
+                            {{ matchData.status === MatchStatus.CANCELLED ? 'ملغاة' : 'إلغاء' }}
+                        </app-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referee Controls -->
+            @if (canShowRefereeControls()) {
+            <div class="control-panel">
+                <div class="panel-header">
+                    <span class="material-symbols-outlined">dashboard_customize</span>
+                    <h3>مركز التحكم</h3>
+                </div>
+                <div class="panel-body">
+                    @if (matchData.status === MatchStatus.SCHEDULED) {
+                    <app-button (click)="startMatch()" class="w-full" variant="primary" icon="play_circle">
+                        بدء المباراة
+                    </app-button>
+                    }
+
+                    @if (matchData.status === MatchStatus.LIVE) {
+                    <app-button (click)="onEndMatchClick()" class="w-full" variant="danger" icon="stop_circle">
+                        إنهاء المباراة
+                    </app-button>
+                    }
+
+                    @if (matchData.status === MatchStatus.FINISHED) {
+                    <div class="report-done">
+                        <span class="material-symbols-outlined">task_alt</span>
+                        تم إنهاء المباراة
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            <!-- Add Event Button -->
+            @if (canShowRefereeControls()) {
+            <div class="control-panel">
+                <div class="panel-header">
+                    <span class="material-symbols-outlined">edit_note</span>
+                    <h3>تسجيل حدث</h3>
+                </div>
+                <div class="panel-body">
+                    <app-button (click)="openEventModal()" variant="primary" class="w-full" icon="add">
+                        تسجيل حدث جديد
+                    </app-button>
+                </div>
+            </div>
+            }
+
+            <!-- Report Preview -->
+            @if (matchData.report?.isSubmitted) {
+            <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
+                <div class="panel-header">
+                    <span class="material-symbols-outlined">description</span>
+                    <h3>تقرير المباراة</h3>
+                </div>
+                <div class="panel-body">
+                    <p class="report-notes">"{{ matchData.report?.notes || 'لا توجد ملاحظات' }}"</p>
+                    <div class="report-date">
+                        <span class="material-symbols-outlined">schedule</span>
+                        {{ matchData.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- Captain: Submit Objection -->
+            @if (canShowObjectionSection()) {
+            <div class="control-panel">
+                <div class="panel-header">
+                    <span class="material-symbols-outlined">gavel</span>
+                    <h3>تقديم اعتراض</h3>
+                </div>
+                <div class="panel-body">
+                    <p class="text-muted text-sm mb-md">إذا كان لديك اعتراض على نتيجة المباراة أو أي قرار تحكيمي</p>
+                    <app-button (click)="openObjectionModal()" variant="primary" class="w-full" icon="report">
+                        تقديم اعتراض
+                    </app-button>
+                </div>
+            </div>
+            }
+        </div>
+
+    </div>
+
+    }
 </div>
 
 <!-- Score Modal -->
-<app-modal [visible]="showScoreModal()" title="تحديث النتيجة" icon="scoreboard" (onClose)="closeScoreModal()">
+<app-modal [visible]="showScoreModal()" title="تحديث النتيجة" icon="scoreboard" (closeRequest)="closeScoreModal()">
     <div class="score-form">
         <div class="score-team-input">
-            <label>{{ match()?.homeTeamName }}</label>
+            <span class="form-label mb-2 block">{{ match()?.homeTeamName }}</span>
             <app-form-control type="number" [(ngModel)]="scoreForm.homeScore" [min]="0"></app-form-control>
         </div>
         <span class="score-colon">:</span>
         <div class="score-team-input">
-            <label>{{ match()?.awayTeamName }}</label>
+            <span class="form-label mb-2 block">{{ match()?.awayTeamName }}</span>
             <app-form-control type="number" [(ngModel)]="scoreForm.awayScore" [min]="0"></app-form-control>
         </div>
     </div>
@@ -282,8 +298,9 @@
 </app-objection-modal>
 
 <!-- Referee Selection Modal -->
-<app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin" (onClose)="closeRefereeModal()">
-    <div class="form-grid" style="grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+<app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin"
+    (closeRequest)="closeRefereeModal()">
+    <div class="form-grid-single gap-4 mb-6">
         <!-- Governorate -->
         <div class="form-field">
             <app-select [options]="governorateOptions()" [ngModel]="selectedGovernorate()"
@@ -328,15 +345,15 @@
 <app-modal [visible]="showScheduleModal()"
     [title]="scheduleType === 'postpone' ? 'تأجيل المباراة' : (scheduleType === 'reset' ? 'إعادة جدولة المباراة' : 'تحديد موعد اللقاء')"
     [icon]="scheduleType === 'postpone' ? 'schedule' : (scheduleType === 'reset' ? 'restart_alt' : 'calendar_month')"
-    (onClose)="closeScheduleModal()">
+    (closeRequest)="closeScheduleModal()">
 
     <div class="form-grid">
         <div class="form-field">
-            <label class="form-label">تاريخ اللقاء الجديد</label>
+            <span class="form-label">تاريخ اللقاء الجديد</span>
             <app-form-control type="date" [(ngModel)]="scheduleForm.date" iconLeft="calendar_today"></app-form-control>
         </div>
         <div class="form-field">
-            <label class="form-label">وقت اللقاء</label>
+            <span class="form-label">وقت اللقاء</span>
             <app-form-control type="time" [(ngModel)]="scheduleForm.time" iconLeft="schedule"></app-form-control>
         </div>
     </div>
@@ -351,13 +368,13 @@
 
 <!-- Cancel Match Modal -->
 <app-modal [visible]="showCancelModal()" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
-    (onClose)="closeCancelModal()">
+    (closeRequest)="closeCancelModal()">
     <div class="prose mb-4">
         <p class="text-secondary">سيتم إرسال إشعار فوري لجميع اللاعبين والحكم بسبب الإلغاء.</p>
     </div>
 
     <div class="form-field full-width">
-        <label class="form-label">سبب الإلغاء</label>
+        <span class="form-label">سبب الإلغاء</span>
         <app-form-control type="textarea" [(ngModel)]="cancelReason" [rows]="4"
             placeholder="اكتب سبب الإلغاء هنا ليظهر للجميع...">
         </app-form-control>

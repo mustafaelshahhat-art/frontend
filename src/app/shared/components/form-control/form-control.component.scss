@@ -1,5 +1,3 @@
-@use 'tokens' as *;
-
 :host {
     display: block;
     width: 100%;
@@ -184,4 +182,14 @@
     .material-symbols-outlined {
         font-size: 22px;
     }
+}
+
+.textarea-control {
+    height: auto;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.error-icon {
+    font-size: 14px;
 }

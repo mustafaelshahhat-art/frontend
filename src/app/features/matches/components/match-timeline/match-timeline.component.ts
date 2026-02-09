@@ -23,9 +23,9 @@ export interface TimelineEvent {
 })
 export class MatchTimelineComponent {
     @Input() events: TimelineEvent[] = [];
-    @Input() homeTeamId: string = '';
-    @Input() homeTeamName: string = 'صاحب الأرض';
-    @Input() awayTeamName: string = 'الضيف';
+    @Input() homeTeamId = '';
+    @Input() homeTeamName = 'صاحب الأرض';
+    @Input() awayTeamName = 'الضيف';
 
     // Permission for template usage
     Permission = Permission;

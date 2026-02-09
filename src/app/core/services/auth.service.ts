@@ -2,7 +2,7 @@ import { Injectable, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
-import { tap, map, catchError } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterRequest } from '../models/user.model';
 import { Team } from '../models/team.model';
 import { environment } from '../../../environments/environment';
@@ -158,8 +158,12 @@ export class AuthService {
         // Stop existing connections to ensure fresh token usage
         try {
             const signalRService = this.injector.get(SignalRService);
-            signalRService.stopAllConnections().catch(() => { });
-        } catch { }
+            signalRService.stopAllConnections().catch(() => {
+                // Ignore errors during connection stop
+            });
+        } catch {
+            // SignalR service might not be available or initialized
+        }
 
         localStorage.setItem(this.TOKEN_KEY, response.token);
         if (response.refreshToken) {
@@ -237,7 +241,7 @@ export class AuthService {
             const payload = parts[1];
             return JSON.parse(atob(payload)) as TokenPayload;
         } catch (e) {
-            throw new Error('Could not decode token');
+            throw new Error('Could not decode token', { cause: e });
         }
     }
 

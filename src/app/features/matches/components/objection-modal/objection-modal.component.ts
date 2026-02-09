@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
@@ -22,7 +22,8 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
         FileUploadComponent,
         ButtonComponent
     ],
-    templateUrl: './objection-modal.component.html'
+    templateUrl: './objection-modal.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObjectionModalComponent {
     private objectionsService = inject(ObjectionsService);

@@ -8,7 +8,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { NotificationStore } from '../../../../core/stores/notification.store';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
@@ -39,7 +38,6 @@ type NotificationFilterValue = 'all' | 'unread' | 'read';
         CommonModule,
         FormsModule,
         EmptyStateComponent,
-        PageHeaderComponent,
         CardComponent,
         ButtonComponent,
         BadgeComponent,
@@ -74,7 +72,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
 
     // Filter State
     selectedFilter = signal<NotificationFilterValue>('all');
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
 
     readonly filters: FilterItem[] = [
         { label: 'الكل', value: 'all', icon: 'all_inclusive' },
@@ -108,7 +106,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         return this.notificationsView();
     }
 
-    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
 
     ngOnInit(): void {
         this.layoutService.setTitle(this.pageTitle);
@@ -118,7 +116,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             if (this.actionsTemplate) this.layoutService.setActions(this.actionsTemplate);
             if (this.filtersTemplate) this.layoutService.setFilters(this.filtersTemplate);
         });
@@ -153,7 +151,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         }
     }
 
-    setFilter(filter: string): void {
+    setFilter(filter: unknown): void {
         this.selectedFilter.set(filter as NotificationFilterValue);
     }
 

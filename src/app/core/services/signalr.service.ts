@@ -2,14 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, timer } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
 })
 export class SignalRService {
     private readonly authService = inject(AuthService);
-    private hubs: Map<string, signalR.HubConnection> = new Map();
+    private hubs: Map<string, signalR.HubConnection> = new Map<string, signalR.HubConnection>();
     private connectionStatus$ = new BehaviorSubject<boolean>(false);
 
     get isConnected$(): Observable<boolean> {
@@ -50,7 +50,7 @@ export class SignalRService {
                 this.connectionStatus$.next(true);
             } catch (err) {
                 console.error(`SignalR: Error connecting to ${hubPath}:`, err);
-                setTimeout(() => this.startConnection(hubPath), 5000);
+                timer(5000).subscribe(() => this.startConnection(hubPath));
             }
         }
     }

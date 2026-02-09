@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchService } from '../../../../core/services/match.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -11,13 +11,14 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
     standalone: true,
     imports: [CommonModule, ModalComponent, ButtonComponent],
     templateUrl: './end-match-confirm.component.html',
-    styleUrls: ['./end-match-confirm.component.scss']
+    styleUrls: ['./end-match-confirm.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EndMatchConfirmComponent {
     private matchService = inject(MatchService);
     private uiFeedback = inject(UIFeedbackService);
 
-    @Input() matchId: string = '';
+    @Input() matchId = '';
     @Input() visible = false;
 
     @Output() visibleChange = new EventEmitter<boolean>();
@@ -34,9 +35,7 @@ export class EndMatchConfirmComponent {
                 // Auto submit report
                 this.matchService.submitMatchReport(
                     this.matchId,
-                    'تم إنهاء المباراة تلقائياً.',
-                    endedMatch?.refereeId || '',
-                    endedMatch?.refereeName || ''
+                    'تم إنهاء المباراة تلقائياً.'
                 ).subscribe({
                     next: (matchWithReport) => {
                         this.uiFeedback.success('تم بنجاح', 'تم إنهاء المباراة وتقديم التقرير بنجاح');

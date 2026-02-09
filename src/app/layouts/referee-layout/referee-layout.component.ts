@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, HostListener, effect } from '@angular/core';
+import { Component, inject, OnInit, HostListener, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -12,15 +12,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { RefereeLayoutService } from '../../core/services/referee-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { Notification } from '../../core/models/tournament.model';
 
 @Component({
     selector: 'app-referee-layout',
     standalone: true,
     imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
     templateUrl: './referee-layout.component.html',
-    styleUrls: ['./referee-layout.component.scss']
+    styleUrls: ['./referee-layout.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RefereeLayoutComponent implements OnInit, OnDestroy {
+export class RefereeLayoutComponent implements OnInit {
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
     private router = inject(Router);
@@ -75,8 +77,6 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy(): void { }
-
     @HostListener('window:resize')
     onResize(): void {
         this.checkScreenSize();
@@ -112,7 +112,7 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
         // No need to navigate - effect handles it
     }
 
-    viewNotification(notification: any): void {
+    viewNotification(notification: Notification): void {
         this.notificationService.markAsRead(notification.id).subscribe();
         this.showNotifications = false;
     }
@@ -130,11 +130,11 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
 
     getTypeColor(type: string): string {
         switch (type) {
-            case 'info': return '#10b981';
-            case 'warning': return '#f59e0b';
-            case 'error': return '#ef4444';
-            case 'success': return '#10b981';
-            default: return '#64748b';
+            case 'info': return 'var(--color-info)';
+            case 'warning': return 'var(--color-warning)';
+            case 'error': return 'var(--color-danger)';
+            case 'success': return 'var(--color-success)';
+            default: return 'var(--text-muted)';
         }
     }
 
@@ -146,13 +146,5 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
             case 'success': return 'check_circle';
             default: return 'notifications';
         }
-    }
-
-    formatTimeAgo(date: Date): string {
-        const diff = Date.now() - date.getTime();
-        const minutes = Math.floor(diff / 60000);
-        if (minutes < 60) return `منذ ${minutes} دقيقة`;
-        const hours = Math.floor(minutes / 60);
-        return `منذ ${hours} ساعة`;
     }
 }

@@ -10,9 +10,11 @@
                     <h2 class="chat-title">{{ title }}</h2>
                     <div class="chat-subtitle">
                         {{ match?.homeTeamName }} <span class="chat-subtitle-vs">VS</span> {{ match?.awayTeamName }}
-                        <span class="chat-subtitle-date" *ngIf="match?.date">
+                        @if (match && match.date) {
+                        <span class="chat-subtitle-date">
                             - {{ match.date | date:'hh:mm a' }} ({{ match.date | date:'yyyy/MM/dd' }})
                         </span>
+                        }
                     </div>
                 </div>
             </div>
@@ -22,34 +24,39 @@
                     <span class="live-dot"></span>
                     <span class="online-status-text">متصل</span>
                 </div>
-                <app-icon-button *ngIf="canSchedule" (onClick)="schedule.emit()" icon="calendar_month" variant="ghost"
+                @if (canSchedule) {
+                <app-icon-button (trigger)="schedule.emit()" icon="calendar_month" variant="ghost"
                     title="تحديد موعد اللقاء"></app-icon-button>
-                <app-icon-button (onClick)="navigateBack()" icon="arrow_forward" variant="ghost"></app-icon-button>
+                }
+                <app-icon-button (trigger)="navigateBack()" icon="arrow_forward" variant="ghost"></app-icon-button>
             </div>
         </div>
 
         <!-- Messages Area -->
         <div class="chat-messages" #scrollContainer>
-            <div *ngIf="messages.length === 0" class="chat-empty">
+            @if (messages.length === 0) {
+            <div class="chat-empty">
                 <div class="chat-empty-icon">
                     <span class="material-symbols-outlined">chat_bubble_outline</span>
                 </div>
                 <h3 class="chat-empty-title">لا توجد رسائل بعد</h3>
                 <p class="chat-empty-subtitle">ابدأ المحادثة مع الحكم والفرق الأخرى</p>
             </div>
+            }
 
-            <div *ngFor="let msg of messages; trackBy: trackByMessage" class="chat-message"
-                [class.chat-message-me]="isMe(msg)" [class.chat-message-other]="!isMe(msg)">
+            @for (msg of messages; track trackByMessage($index, msg)) {
+            <div class="chat-message" [class.chat-message-me]="isMe(msg)" [class.chat-message-other]="!isMe(msg)">
 
                 <div class="chat-message-sender" [class.chat-message-sender-reversed]="isMe(msg)">
                     <span class="chat-message-name">{{ msg.senderName }}</span>
-                    <span *ngIf="msg.senderRole" class="chat-message-role"
-                        [class.bg-primary-subtle]="msg.senderRole === 'captain'"
+                    @if (msg.senderRole) {
+                    <span class="chat-message-role" [class.bg-primary-subtle]="msg.senderRole === 'captain'"
                         [class.bg-info-subtle]="msg.senderRole === 'referee'"
                         [class.text-primary]="msg.senderRole === 'captain'"
                         [class.text-info]="msg.senderRole === 'referee'">
                         {{ msg.senderRole }}
                     </span>
+                    }
                 </div>
 
                 <div class="chat-bubble" [class.chat-bubble-me]="isMe(msg)" [class.chat-bubble-other]="!isMe(msg)">
@@ -57,6 +64,7 @@
                 </div>
                 <div class="chat-message-time">{{ msg.timestamp | date:'shortTime' }}</div>
             </div>
+            }
         </div>
 
         <!-- Input Area -->
@@ -64,10 +72,10 @@
             <div class="chat-input-wrapper">
                 <app-form-control type="text" [(ngModel)]="newMessage"
                     [placeholder]="readOnly ? 'هذه المباراة انتهت، المحادثة للقراءة فقط' : 'اكتب رسالتك هنا...'"
-                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" style="flex: 1;">
+                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" class="chat-input-control">
                 </app-form-control>
 
-                <app-icon-button (onClick)="sendMessage()" icon="send" variant="primary"
+                <app-icon-button (trigger)="sendMessage()" icon="send" variant="primary"
                     [disabled]="!newMessage.trim() || isLoading || readOnly" [isLoading]="isLoading">
                 </app-icon-button>
             </div>

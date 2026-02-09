@@ -1,14 +1,15 @@
 <div class="tournament-card-premium" [class.clickable]="isClickable"
-    [class.is-finished]="tournament.status === TournamentStatus.COMPLETED" (click)="onCardClick()">
+    [class.is-finished]="tournament.status === TournamentStatus.COMPLETED" (click)="onCardClick()"
+    (keydown)="onKeyDown($event)" [tabindex]="isClickable ? 0 : -1" [attr.role]="isClickable ? 'button' : 'article'">
     <!-- Banner with Icon and Status Badge -->
     <div class="tournament-banner" [class.winner-glow]="tournament.winnerTeamId">
-        <app-smart-image [src]="tournament.imageUrl" type="tournament" size="custom"
-            style="height: 100%; width: 100%; position: absolute; inset: 0;">
+        <app-smart-image [src]="tournament.imageUrl" type="tournament" size="custom" class="banner-image">
         </app-smart-image>
 
         <!-- Winner Trophy Overlay -->
-        <span *ngIf="tournament.winnerTeamId"
-            class="material-symbols-outlined trophy-icon animate-bounce-subtle">emoji_events</span>
+        @if (tournament.winnerTeamId) {
+        <span class="material-symbols-outlined trophy-icon animate-bounce-subtle">emoji_events</span>
+        }
 
         <!-- Status Badge -->
         <div class="status-badge-overlay">
@@ -19,13 +20,15 @@
         </div>
 
         <!-- Winner Banner Overlay -->
-        <div *ngIf="tournament.winnerTeamId && tournament.winnerTeamName" class="winner-overlay">
+        @if (tournament.winnerTeamId && tournament.winnerTeamName) {
+        <div class="winner-overlay">
             <div class="winner-content">
                 <span class="crown">👑</span>
                 <span class="winner-label">البطل</span>
                 <span class="winner-name">{{ tournament.winnerTeamName }}</span>
             </div>
         </div>
+        }
     </div>
 
     <!-- Tournament Info -->
@@ -67,79 +70,98 @@
             <span>{{ tournament.currentTeams }} / {{ tournament.maxTeams }}</span>
         </div>
         <div class="fill-bar">
-            <div class="fill-progress" [style.width.%]="progressPercent" [class.full]="progressPercent >= 100"></div>
+            <div class="fill-progress" [class.full]="progressPercent >= 100"></div>
         </div>
     </div>
 
     <!-- Contextual Info Messages -->
-    <div class="context-messages" *ngIf="showRegisterButton">
-        <!-- Captain: Already Registered Status -->
-        <div *ngIf="isRegistered && myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW"
-            class="context-msg pending">
-            <span class="material-symbols-outlined">hourglass_top</span>
-            <span>طلبك قيد المراجعة - أنت مسجل مؤقتاً</span>
-        </div>
-        <div *ngIf="isRegistered && myRegistration?.status === RegistrationStatus.APPROVED"
-            class="context-msg approved">
-            <span class="material-symbols-outlined">verified</span>
-            <span>فريقك مُوافَق عليه رسمياً</span>
-        </div>
-        <div *ngIf="myRegistration?.status === RegistrationStatus.REJECTED" class="context-msg rejected">
-            <span class="material-symbols-outlined">error</span>
-            <span>تم رفض الطلب - يمكنك التسجيل مجدداً</span>
-        </div>
+    <div class="context-messages-container">
+        @if (showRegisterButton) {
+        <div class="context-messages">
+            <!-- Captain: Already Registered Status -->
+            @if (isRegistered && myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+            <div class="context-msg pending">
+                <span class="material-symbols-outlined">hourglass_top</span>
+                <span>طلبك قيد المراجعة - أنت مسجل مؤقتاً</span>
+            </div>
+            }
+            @if (isRegistered && myRegistration?.status === RegistrationStatus.APPROVED) {
+            <div class="context-msg approved">
+                <span class="material-symbols-outlined">verified</span>
+                <span>فريقك مُوافَق عليه رسمياً</span>
+            </div>
+            }
+            @if (myRegistration?.status === RegistrationStatus.REJECTED) {
+            <div class="context-msg rejected">
+                <span class="material-symbols-outlined">error</span>
+                <span>تم رفض الطلب - يمكنك التسجيل مجدداً</span>
+            </div>
+            }
 
-        <!-- Captain: Team Busy -->
-        <div *ngIf="isBusy && !isRegistered" class="context-msg busy">
-            <span class="material-symbols-outlined">block</span>
-            <span>فريقك مشارك في بطولة أخرى</span>
-        </div>
+            <!-- Captain: Team Busy -->
+            @if (isBusy && !isRegistered) {
+            <div class="context-msg busy">
+                <span class="material-symbols-outlined">block</span>
+                <span>فريقك مشارك في بطولة أخرى</span>
+            </div>
+            }
 
-        <!-- User Pending Approval -->
-        <div *ngIf="isUserPending" class="context-msg warning">
-            <span class="material-symbols-outlined">pending</span>
-            <span>حسابك بانتظار التفعيل</span>
+            <!-- User Pending Approval -->
+            @if (isUserPending) {
+            <div class="context-msg warning">
+                <span class="material-symbols-outlined">pending</span>
+                <span>حسابك بانتظار التفعيل</span>
+            </div>
+            }
         </div>
-    </div>
+        }
 
-    <!-- Team Disabled Info -->
-    <div *ngIf="isTeamDisabled" class="context-messages">
-        <div class="context-msg rejected animate-pulse-subtle">
-            <span class="material-symbols-outlined">warning</span>
-            <span>تم تعطيل الفريق بواسطة الإدارة</span>
+        <!-- Team Disabled Info -->
+        @if (isTeamDisabled) {
+        <div class="context-messages">
+            <div class="context-msg rejected animate-pulse-subtle">
+                <span class="material-symbols-outlined">warning</span>
+                <span>تم تعطيل الفريق بواسطة الإدارة</span>
+            </div>
         </div>
-    </div>
+        }
 
-    <!-- Non-Owner Player Info -->
-    <div *ngIf="showNonOwnerHint && !isTeamDisabled" class="context-messages">
-        <div class="context-msg info">
-            <span class="material-symbols-outlined">info</span>
-            <span>التسجيل متاح لقائد الفريق فقط</span>
+        <!-- Non-Owner Player Info -->
+        @if (showNonOwnerHint && !isTeamDisabled) {
+        <div class="context-messages">
+            <div class="context-msg info">
+                <span class="material-symbols-outlined">info</span>
+                <span>التسجيل متاح لقائد الفريق فقط</span>
+            </div>
         </div>
-    </div>
+        }
 
-    <!-- Finished Tournament Message -->
-    <div *ngIf="tournament.status === TournamentStatus.COMPLETED" class="context-messages">
-        <div class="context-msg finished">
-            <span class="material-symbols-outlined">flag</span>
-            <span>انتهت هذه البطولة</span>
+        <!-- Finished Tournament Message -->
+        @if (tournament.status === TournamentStatus.COMPLETED) {
+        <div class="context-messages">
+            <div class="context-msg finished">
+                <span class="material-symbols-outlined">flag</span>
+                <span>انتهت هذه البطولة</span>
+            </div>
         </div>
+        }
     </div>
 
     <!-- Action Buttons -->
     <div class="tournament-actions">
-        <app-button variant="primary" style="flex: 1;" (click)="onViewDetailsClick($event)">
+        <app-button variant="primary" class="flex-1" (click)="onViewDetailsClick($event)">
             {{ tournament.status === TournamentStatus.COMPLETED ? 'عرض النتائج' : 'التفاصيل' }}
         </app-button>
 
         <!-- Captain Registration Button -->
-        <ng-container *ngIf="showRegisterButton && tournament.status === TournamentStatus.REGISTRATION_OPEN">
-            <app-button [variant]="getRegisterButtonVariant()" style="flex: 1;" (click)="onRegisterClick($event)"
-                [disabled]="isRegisterDisabled" [title]="getRegisterTooltip()">
-                <span class="material-symbols-outlined btn-icon" *ngIf="getRegisterIcon()">{{ getRegisterIcon()
-                    }}</span>
-                {{ getRegisterLabel() }}
-            </app-button>
-        </ng-container>
+        @if (showRegisterButton && tournament.status === TournamentStatus.REGISTRATION_OPEN) {
+        <app-button [variant]="getRegisterButtonVariant()" class="flex-1" (click)="onRegisterClick($event)"
+            [disabled]="isRegisterDisabled" [title]="getRegisterTooltip()">
+            @if (getRegisterIcon()) {
+            <span class="material-symbols-outlined btn-icon">{{ getRegisterIcon() }}</span>
+            }
+            {{ getRegisterLabel() }}
+        </app-button>
+        }
     </div>
 </div>

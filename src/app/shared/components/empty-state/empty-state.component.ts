@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../button/button.component';
 
@@ -7,12 +7,13 @@ import { ButtonComponent } from '../button/button.component';
   standalone: true,
   imports: [CommonModule, ButtonComponent],
   templateUrl: './empty-state.component.html',
-  styleUrls: ['./empty-state.component.scss']
+  styleUrls: ['./empty-state.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EmptyStateComponent {
-  @Input() icon: string = 'inbox';
-  @Input() title: string = 'لا توجد بيانات';
-  @Input() description: string = 'لم يتم العثور على أي عناصر';
+  @Input() icon = 'inbox';
+  @Input() title = 'لا توجد بيانات';
+  @Input() description = 'لم يتم العثور على أي عناصر';
   @Input() actionLabel?: string;
   @Input() onAction?: () => void;
 

@@ -1,8 +1,12 @@
 <div class="empty-state">
     <span class="material-symbols-outlined icon">{{ icon }}</span>
     <h3 class="title">{{ title }}</h3>
-    <p *ngIf="description" class="empty-message">{{ description }}</p>
-    <div *ngIf="actionLabel" class="empty-action" style="margin-top: 1.5rem;">
-        <app-button (click)="handleAction()">{{ actionLabel }}</app-button>
+    @if (description) {
+    <p class="empty-message">{{ description }}</p>
+    }
+    @if (actionLabel) {
+    <div class="empty-action">
+        <app-button (trigger)="handleAction()">{{ actionLabel }}</app-button>
     </div>
+    }
 </div>

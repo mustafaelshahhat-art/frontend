@@ -3,6 +3,7 @@ import { User, UserRole, UserStatus } from '../../core/models/user.model';
 
 export interface UserState {
   users: User[];
+  totalUserCount: number; // For dashboard/analytics summary
   currentUser: User | null;
   isLoading: boolean;
   error: string | null;
@@ -14,12 +15,14 @@ export interface UserState {
 export class UserStore {
   private state = signal<UserState>({
     users: [],
+    totalUserCount: 0,
     currentUser: null,
     isLoading: false,
     error: null
   });
   // Selectors
   users = computed(() => this.state().users);
+  totalUserCount = computed(() => this.state().totalUserCount);
   currentUser = computed(() => this.state().currentUser);
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
@@ -47,7 +50,17 @@ export class UserStore {
   }
 
   setUsers(users: User[]): void {
-    this.state.update(state => ({ ...state, users, isLoading: false, error: null }));
+    this.state.update(state => ({
+      ...state,
+      users,
+      totalUserCount: users.length,
+      isLoading: false,
+      error: null
+    }));
+  }
+
+  setTotalUserCount(count: number): void {
+    this.state.update(state => ({ ...state, totalUserCount: count }));
   }
 
   setCurrentUser(user: User | null): void {

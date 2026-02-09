@@ -21,7 +21,7 @@
         </div>
 
         <!-- Maintenance Mode Control -->
-        <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in" style="animation-delay: 100ms">
+        <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in animate-delay-100">
             <div class="flex-col gap-1">
                 <h3 class="text-lg font-bold text-danger mb-0">وضع الصيانة</h3>
                 <p class="text-sm text-muted mb-0">إيقاف النظام مؤقتاً ومنع الدخول لجميع المستخدمين عدا مديري النظام
@@ -33,7 +33,9 @@
     </form>
 
     <!-- Loading State -->
-    <div *ngIf="isLoading()" class="flex-center p-2xl">
+    @if (isLoading()) {
+    <div class="flex-center p-2xl">
         <span class="material-symbols-outlined animate-spin text-primary text-4xl">sync</span>
     </div>
+    }
 </div>

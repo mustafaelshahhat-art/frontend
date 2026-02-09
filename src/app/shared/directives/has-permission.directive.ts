@@ -7,7 +7,7 @@ import { PermissionsService } from '../../core/services/permissions.service';
     standalone: true
 })
 export class HasPermissionDirective implements OnInit {
-    private templateRef = inject(TemplateRef<any>);
+    private templateRef = inject(TemplateRef<unknown>);
     private viewContainer = inject(ViewContainerRef);
     private permissionsService = inject(PermissionsService);
 
@@ -29,16 +29,13 @@ export class HasPermissionDirective implements OnInit {
             return;
         }
 
-        let hasAccess = false;
-        if (Array.isArray(this.requiredPermission)) {
-            hasAccess = this.permissionsService.hasAnyPermission(this.requiredPermission);
-        } else {
-            hasAccess = this.permissionsService.hasPermission(this.requiredPermission);
-        }
+        const isAuthorized = Array.isArray(this.requiredPermission)
+            ? this.permissionsService.hasAnyPermission(this.requiredPermission)
+            : this.permissionsService.hasPermission(this.requiredPermission);
 
-        if (hasAccess && this.isHidden) {
+        if (isAuthorized && this.isHidden) {
             this.show();
-        } else if (!hasAccess && !this.isHidden) {
+        } else if (!isAuthorized && !this.isHidden) {
             this.hide();
         }
     }

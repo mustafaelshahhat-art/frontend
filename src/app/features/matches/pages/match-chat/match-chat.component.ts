@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -49,7 +49,8 @@ import { FormControlComponent } from '../../../../shared/components/form-control
     standalone: true,
     imports: [CommonModule, ChatBoxComponent, ButtonComponent, ModalComponent, FormControlComponent, FormsModule],
     templateUrl: './match-chat.component.html',
-    styleUrls: ['./match-chat.component.scss']
+    styleUrls: ['./match-chat.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MatchChatComponent implements OnInit, OnDestroy {
     @ViewChild('messagesContainer') messagesContainer!: ElementRef;
@@ -70,7 +71,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     currentUser: User | null = null;
     isAuthorized = false;
     isLoading = true;
-    matchId: string = '';
+    matchId = '';
 
     match: Match | null = null;
     participants: ChatParticipant[] = [];
@@ -95,7 +96,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         if (this.matchId) {
-            this.chatService.leaveMatch(this.matchId);
+            this.chatService.leaveMatch();
         }
     }
 

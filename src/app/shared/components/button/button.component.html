@@ -1,20 +1,27 @@
 <button [type]="type" [class]="'btn btn-' + variant + ' btn-' + size" [class.loading]="isLoading"
-    [disabled]="disabled || isLoading" (click)="onClick.emit($event)" [attr.aria-label]="ariaLabel">
+    [disabled]="disabled || isLoading" (click)="!disabled && !isLoading && trigger.emit($event)"
+    [attr.aria-label]="ariaLabel">
 
-    <span *ngIf="isLoading" class="spinner"></span>
+    @if (isLoading) {
+    <span class="spinner"></span>
+    }
 
-    <ng-container *ngIf="!isLoading">
-        <span *ngIf="icon && iconPos === 'left'" class="material-symbols-outlined">
-            {{ icon }}
-        </span>
+    @if (!isLoading) {
+    @if (icon && iconPos === 'left') {
+    <span class="material-symbols-outlined">
+        {{ icon }}
+    </span>
+    }
 
-        <span class="btn-text">
-            <ng-content></ng-content>
-        </span>
+    <span class="btn-text">
+        <ng-content></ng-content>
+    </span>
 
-        <span *ngIf="icon && iconPos === 'right'" class="material-symbols-outlined">
-            {{ icon }}
-        </span>
-    </ng-container>
+    @if (icon && iconPos === 'right') {
+    <span class="material-symbols-outlined">
+        {{ icon }}
+    </span>
+    }
+    }
 
 </button>

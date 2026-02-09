@@ -1,10 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -15,7 +14,7 @@ import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
 import { TeamStore } from '../../../core/stores/team.store';
 
-import { TeamStatus, TEAM_STATUS_LABELS, StatusConfig } from '../../../shared/utils/status-labels';
+import { StatusConfig } from '../../../shared/utils/status-labels';
 
 type TeamFilterValue = 'all' | 'active' | 'inactive';
 
@@ -25,7 +24,6 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
     imports: [
         CommonModule,
         FilterComponent,
-        PageHeaderComponent,
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
@@ -34,7 +32,8 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
         TableComponent
     ],
     templateUrl: './teams-list.component.html',
-    styleUrls: ['./teams-list.component.scss']
+    styleUrls: ['./teams-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
@@ -61,21 +60,21 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         const filter = this.currentFilter();
 
         if (filter === 'active') {
-            return allTeams.filter((t: any) => t.isActive);
+            return allTeams.filter((t: Team) => t.isActive);
         } else if (filter === 'inactive') {
-            return allTeams.filter((t: any) => !t.isActive);
+            return allTeams.filter((t: Team) => !t.isActive);
         }
         return allTeams;
     });
 
     columns: TableColumn[] = [];
 
-    @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
-    @ViewChild('captainInfo') captainInfo!: TemplateRef<any>;
-    @ViewChild('playersInfo') playersInfo!: TemplateRef<any>;
-    @ViewChild('adminStatusInfo') adminStatusInfo!: TemplateRef<any>;
-    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
+    @ViewChild('teamInfo') teamInfo!: TemplateRef<unknown>;
+    @ViewChild('captainInfo') captainInfo!: TemplateRef<unknown>;
+    @ViewChild('playersInfo') playersInfo!: TemplateRef<unknown>;
+    @ViewChild('adminStatusInfo') adminStatusInfo!: TemplateRef<unknown>;
+    @ViewChild('actionsInfo') actionsInfo!: TemplateRef<unknown>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
 
     ngOnInit(): void {
         this.adminLayout.setTitle('إدارة الفرق');
@@ -93,7 +92,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         ];
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.adminLayout.setFilters(this.filtersTemplate);
         });
 
@@ -118,7 +117,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    setFilter(filter: string): void {
+    setFilter(filter: unknown): void {
         this.currentFilter.set(filter as TeamFilterValue);
     }
 

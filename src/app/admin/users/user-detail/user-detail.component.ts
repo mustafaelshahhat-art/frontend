@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -29,7 +29,8 @@ import { ChangeDetectorRef } from '@angular/core';
         InlineLoadingComponent
     ],
     templateUrl: './user-detail.component.html',
-    styleUrls: ['./user-detail.component.scss']
+    styleUrls: ['./user-detail.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserDetailComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);

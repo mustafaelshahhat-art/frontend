@@ -3,7 +3,7 @@
     <div class="ramadan-pattern"></div>
 
     <!-- Register Card -->
-    <div class="auth-card animate-fade-in-up">
+    <div class="auth-card" [class.animate-fade-in-up]="isPageReady()">
         <!-- Header Section -->
         <header class="text-center mb-xl flex flex-col items-center">
             <div class="auth-logo gradient-primary shadow-glow mx-auto">
@@ -14,15 +14,17 @@
         </header>
 
         <!-- Step 1: Account Type Selection -->
-        <div *ngIf="currentStep === 1" class="selection-container">
+        @if (currentStep() === 1) {
+        <div class="selection-container">
             <h2 class="text-xl font-bold mb-6 text-center">اختر نوع الحساب</h2>
             <p class="selection-subtitle text-center">يرجى تحديد الدور الذي ستقوم به في بطولة رمضان. سيساعدنا هذا في
                 تخصيص تجربتك بشكل أفضل.</p>
 
             <div class="cards-grid-selection">
                 <!-- Referee Card -->
-                <div class="role-card" [class.selected]="form.role === UserRole.REFEREE"
-                    (click)="form.role = UserRole.REFEREE" role="button" aria-label="تسجيل كحكم">
+                <div class="role-card" [class.selected]="form.role() === UserRole.REFEREE"
+                    (click)="form.role.set(UserRole.REFEREE)" (keyup.enter)="form.role.set(UserRole.REFEREE)"
+                    role="button" tabindex="0" aria-label="تسجيل كحكم">
                     <div class="role-card-icon">
                         <span class="material-symbols-outlined" aria-hidden="true">sports_whistle</span>
                     </div>
@@ -34,8 +36,9 @@
                 </div>
 
                 <!-- Player Card -->
-                <div class="role-card" [class.selected]="form.role === UserRole.PLAYER"
-                    (click)="form.role = UserRole.PLAYER" role="button" aria-label="تسجيل كلاعب">
+                <div class="role-card" [class.selected]="form.role() === UserRole.PLAYER"
+                    (click)="form.role.set(UserRole.PLAYER)" (keyup.enter)="form.role.set(UserRole.PLAYER)"
+                    role="button" tabindex="0" aria-label="تسجيل كلاعب">
                     <div class="role-card-icon">
                         <span class="material-symbols-outlined">groups</span>
                     </div>
@@ -48,7 +51,7 @@
             </div>
 
             <div class="flex justify-center mt-xl">
-                <app-button variant="primary" size="xl" (onClick)="nextStep(form.role)" icon="arrow_back"
+                <app-button variant="primary" size="xl" (trigger)="nextStep(form.role())" icon="arrow_back"
                     iconPos="right">
                     متابعة
                 </app-button>
@@ -61,15 +64,16 @@
                 </p>
             </div>
         </div>
+        }
 
         <!-- Step 2: Detailed Registration Form -->
-        <div *ngIf="currentStep === 2" class="form-container-inner animate-slide-in-left">
+        @if (currentStep() === 2) {
+        <div class="form-container-inner" [class.animate-slide-in-left]="isPageReady()">
             <div class="form-header-inner text-center">
-                <div class="avatar avatar-lg gradient-primary mx-auto mb-4 rounded-2xl flex-center"
-                    style="width: 56px; height: 56px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="avatar avatar-lg gradient-primary mx-auto mb-4 rounded-2xl flex-center step-avatar">
                     <span class="material-symbols-outlined text-xl text-primary">person_add</span>
                 </div>
-                <h2 class="form-step-title">بيانات ال{{ form.role === UserRole.REFEREE ? 'حكم' : 'لاعب' }}</h2>
+                <h2 class="form-step-title">بيانات ال{{ form.role() === UserRole.REFEREE ? 'حكم' : 'لاعب' }}</h2>
                 <p class="form-step-subtitle">أدخل بياناتك الشخصية لإتمام التسجيل في البطولة</p>
             </div>
 
@@ -77,115 +81,124 @@
                 <div class="form-grid">
                     <!-- Full Name -->
                     <div class="form-group grid-col-span-2">
-                        <label class="form-label">الاسم رباعي</label>
-                        <input type="text" name="name" [(ngModel)]="form.name" required class="form-input"
+                        <app-form-control label="الاسم رباعي" name="name" [ngModel]="form.name()"
+                            (ngModelChange)="form.name.set($event)" required
                             placeholder="أدخل اسمك بالكامل كما في البطاقة">
+                        </app-form-control>
                     </div>
 
                     <!-- Email -->
                     <div class="form-group">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <input type="email" name="email" [(ngModel)]="form.email" required class="form-input"
-                            placeholder="example@mail.com">
+                        <app-form-control label="البريد الإلكتروني" type="email" name="email" [ngModel]="form.email()"
+                            (ngModelChange)="form.email.set($event)" required placeholder="example@mail.com"
+                            iconLeft="mail">
+                        </app-form-control>
                     </div>
 
                     <!-- Phone -->
                     <div class="form-group">
-                        <label class="form-label">رقم الهاتف</label>
-                        <input type="tel" name="phone" [(ngModel)]="form.phone" required class="form-input"
-                            placeholder="05xxxxxxxx">
+                        <app-form-control label="رقم الهاتف" type="tel" name="phone" [ngModel]="form.phone()"
+                            (ngModelChange)="form.phone.set($event)" required placeholder="05xxxxxxxx" iconLeft="phone">
+                        </app-form-control>
                     </div>
 
                     <!-- Age -->
                     <div class="form-group">
-                        <label class="form-label">العمر</label>
-                        <input type="number" name="age" [(ngModel)]="form.age" required class="form-input"
-                            placeholder="سنوات">
+                        <app-form-control label="العمر" type="number" name="age" [ngModel]="form.age()"
+                            (ngModelChange)="form.age.set($event)" required placeholder="سنوات">
+                        </app-form-control>
                     </div>
 
                     <!-- National ID -->
                     <div class="form-group">
-                        <label class="form-label">الرقم القومي</label>
-                        <input type="text" name="nationalId" [(ngModel)]="form.nationalId" required class="form-input"
-                            placeholder="14 رقم">
+                        <app-form-control label="الرقم القومي" type="text" name="nationalId"
+                            [ngModel]="form.nationalId()" (ngModelChange)="form.nationalId.set($event)" required
+                            placeholder="14 رقم" iconLeft="badge">
+                        </app-form-control>
                     </div>
 
                     <!-- Governorate -->
                     <div class="form-group">
-                        <label class="form-label">المحافظة</label>
-                        <app-select [options]="governorateOptions" [ngModel]="form.governorate"
-                            (ngModelChange)="onGovChange($event)" placeholder="اختر المحافظة"
-                            [ngModelOptions]="{standalone: true}">
+                        <label class="form-label" for="governorate">المحافظة</label>
+                        <app-select id="governorate" name="governorate" [options]="governorateOptions()"
+                            [ngModel]="form.governorate()" (ngModelChange)="onGovChange($event)"
+                            placeholder="اختر المحافظة">
                         </app-select>
                     </div>
 
                     <!-- City -->
                     <div class="form-group">
-                        <label class="form-label">المدينة</label>
-                        <app-select [options]="cityOptions" [ngModel]="form.city" (ngModelChange)="onCityChange($event)"
-                            [disabled]="!form.governorate" placeholder="اختر المدينة"
-                            [ngModelOptions]="{standalone: true}">
+                        <label class="form-label" for="city">المدينة</label>
+                        <app-select id="city" name="city" [options]="cityOptions()" [ngModel]="form.city()"
+                            (ngModelChange)="onCityChange($event)" [disabled]="!form.governorate()"
+                            placeholder="اختر المدينة">
                         </app-select>
                     </div>
 
                     <!-- Neighborhood -->
                     <div class="form-group">
-                        <label class="form-label">الحي / المنطقة</label>
-                        <app-select [options]="neighborhoodOptions" [ngModel]="form.neighborhood"
-                            (ngModelChange)="form.neighborhood = $event" [disabled]="!form.city" placeholder="اختر الحي"
-                            [ngModelOptions]="{standalone: true}">
+                        <label class="form-label" for="neighborhood">الحي / المنطقة</label>
+                        <app-select id="neighborhood" name="neighborhood" [options]="neighborhoodOptions()"
+                            [ngModel]="form.neighborhood()" (ngModelChange)="form.neighborhood.set($event)"
+                            [disabled]="!form.city()" placeholder="اختر الحي">
                         </app-select>
                     </div>
 
                     <!-- Password -->
                     <div class="form-group">
                         <app-form-control label="كلمة المرور" type="password" name="password"
-                            [(ngModel)]="form.password" placeholder="••••••••" iconLeft="lock">
+                            [ngModel]="form.password()" (ngModelChange)="form.password.set($event)"
+                            placeholder="••••••••" iconLeft="lock" required>
                         </app-form-control>
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="form-group">
                         <app-form-control label="تأكيد كلمة المرور" type="password" name="confirmPassword"
-                            [(ngModel)]="form.confirmPassword" placeholder="••••••••" iconLeft="lock">
+                            [ngModel]="form.confirmPassword()" (ngModelChange)="form.confirmPassword.set($event)"
+                            placeholder="••••••••" iconLeft="lock" required>
                         </app-form-control>
                     </div>
                 </div>
 
                 <!-- ID Photos -->
                 <div class="file-upload-grid mb-6">
-                    <div class="file-upload-box" [class.has-file]="form.idFront" (click)="frontInput.click()">
+                    <div class="file-upload-box" [class.has-file]="form.idFront()" (click)="frontInput.click()"
+                        (keyup.enter)="frontInput.click()" tabindex="0">
                         <input type="file" #frontInput hidden (change)="onFileChange($event, 'idFront')"
                             accept="image/*">
-                        <span class="material-symbols-outlined file-upload-icon">{{ form.idFront ? 'check_circle' :
+                        <span class="material-symbols-outlined file-upload-icon">{{ form.idFront() ? 'check_circle' :
                             'badge' }}</span>
-                        <p class="file-upload-text">{{ form.idFront ? 'تم رفع الوجه الأمامي' : 'صورة الوجه الأمامي' }}
+                        <p class="file-upload-text">{{ form.idFront() ? 'تم رفع الوجه الأمامي' : 'صورة الوجه الأمامي' }}
                         </p>
                     </div>
 
-                    <div class="file-upload-box" [class.has-file]="form.idBack" (click)="backInput.click()">
+                    <div class="file-upload-box" [class.has-file]="form.idBack()" (click)="backInput.click()"
+                        (keyup.enter)="backInput.click()" tabindex="0">
                         <input type="file" #backInput hidden (change)="onFileChange($event, 'idBack')" accept="image/*">
-                        <span class="material-symbols-outlined file-upload-icon">{{ form.idBack ? 'check_circle' :
+                        <span class="material-symbols-outlined file-upload-icon">{{ form.idBack() ? 'check_circle' :
                             'contact_page' }}</span>
-                        <p class="file-upload-text">{{ form.idBack ? 'تم رفع الوجه الخلفي' : 'صورة الوجه الخلفي' }}</p>
+                        <p class="file-upload-text">{{ form.idBack() ? 'تم رفع الوجه الخلفي' : 'صورة الوجه الخلفي' }}
+                        </p>
                     </div>
                 </div>
 
 
                 <div class="flex justify-center">
-                    <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading"
-                        [disabled]="isLoading || !registerForm.valid">
+                    <app-button type="submit" variant="primary" size="xl" [isLoading]="isLoading()"
+                        [disabled]="isLoading() || !registerForm.valid">
                         إرسال طلب التسجيل
                     </app-button>
                 </div>
 
                 <div class="text-center mt-4">
-                    <app-button variant="ghost" (onClick)="currentStep = 1">
+                    <app-button variant="ghost" (trigger)="currentStep.set(1)">
                         العودة لاختيار الدور
                     </app-button>
                 </div>
             </form>
         </div>
+        }
     </div>
 
     <!-- Footer -->

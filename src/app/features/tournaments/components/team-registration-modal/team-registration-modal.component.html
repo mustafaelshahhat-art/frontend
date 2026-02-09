@@ -1,0 +1,27 @@
+<app-modal [visible]="isVisible" title="تسجيل الفريق" icon="rocket_launch" size="md" (closeRequest)="close()">
+
+    <div class="registration-form-body">
+        <app-form-control label="الرقم المحول منه" [(ngModel)]="registerForm.fromNumber"
+            placeholder="رقم الجوال المحول منه">
+        </app-form-control>
+
+        <div class="transfer-type-group">
+            <span class="registration-form-label">نوع التحويل</span>
+            <app-select [(ngModel)]="registerForm.transferType" [options]="transferOptions" placeholder="اختر النوع">
+            </app-select>
+        </div>
+
+        <div class="upload-group">
+            <app-file-upload label="إيصال الدفع" accept="image/*" [multiple]="false"
+                (filesSelected)="onFileSelected($event)">
+            </app-file-upload>
+        </div>
+    </div>
+
+    <div modal-footer class="registration-modal-footer">
+        <app-button variant="ghost" (trigger)="close()">إلغاء</app-button>
+        <app-button variant="primary" icon="send" (trigger)="submit()" [isLoading]="isSubmitting"
+            [disabled]="!registerForm.fromNumber || !registerForm.transferType || !registerForm.receipt">إرسال
+            الطلب</app-button>
+    </div>
+</app-modal>

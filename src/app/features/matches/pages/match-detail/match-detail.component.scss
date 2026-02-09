@@ -113,7 +113,7 @@
 
     /* Team logo wrapper is inline-styled in template; override on mobile to reduce height */
     @media (max-width: 640px) {
-        >div {
+        .team-logo-container {
             width: 56px !important;
             height: 56px !important;
             margin-bottom: 0 !important;
@@ -494,4 +494,66 @@
         font-size: 0.75rem;
         padding: 0.4rem 0.75rem;
     }
+}
+
+.team-logo-container {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.mb-md {
+    margin-bottom: 1rem;
+}
+
+.admin-grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.admin-grid-full {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.admin-divider-section {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 0.5rem;
+}
+
+.admin-divider-text {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.status-grid-flex {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.form-grid-single {
+    display: grid;
+    grid-template-columns: 1fr;
 }

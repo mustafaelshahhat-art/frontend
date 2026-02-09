@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
 import { CommonModule } from '@angular/common';
@@ -6,20 +6,17 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { Objection, ObjectionType, ObjectionStatus } from '../../../../core/models/objection.model';
-import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { ObjectionStore } from '../../../../core/stores/objection.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
-import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { SelectOption } from '../../../../shared/components/select/select.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
@@ -33,7 +30,6 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         RouterLink,
         EmptyStateComponent,
         FilterComponent,
-        PageHeaderComponent,
         CardComponent,
         BadgeComponent,
         ButtonComponent,
@@ -42,7 +38,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         InlineLoadingComponent
     ],
     templateUrl: './objections-list.component.html',
-    styleUrls: ['./objections-list.component.scss']
+    styleUrls: ['./objections-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private objectionsService = inject(ObjectionsService);
@@ -93,25 +90,25 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     ];
 
     columns: TableColumn[] = [];
-    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
-    @ViewChild('matchInfo') matchInfo!: TemplateRef<any>;
-    @ViewChild('captainInfo') captainInfo!: TemplateRef<any>;
-    @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
-    @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
-    @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
+    @ViewChild('matchInfo') matchInfo!: TemplateRef<unknown>;
+    @ViewChild('captainInfo') captainInfo!: TemplateRef<unknown>;
+    @ViewChild('dateInfo') dateInfo!: TemplateRef<unknown>;
+    @ViewChild('statusInfo') statusInfo!: TemplateRef<unknown>;
+    @ViewChild('actionInfo') actionInfo!: TemplateRef<unknown>;
     filteredObjections = computed(() => {
         const obs = this.objections();
         const filter = this.currentFilter();
 
         if (filter === 'all') return obs;
-        if (filter === 'pending') return obs.filter(o => o.status === ObjectionStatus.PENDING || o.status === ObjectionStatus.UNDER_REVIEW || (o.status as any) === 'NEW');
+        if (filter === 'pending') return obs.filter(o => o.status === ObjectionStatus.PENDING || o.status === ObjectionStatus.UNDER_REVIEW || (o.status as string) === 'NEW');
         if (filter === 'approved') return obs.filter(o => o.status === ObjectionStatus.APPROVED);
         if (filter === 'rejected') return obs.filter(o => o.status === ObjectionStatus.REJECTED);
         return obs;
     });
 
     totalCount = computed(() => this.objections().length);
-    pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as any) === 'NEW').length);
+    pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as unknown) === 'NEW').length);
 
     ngOnInit(): void {
         this.layoutService.setTitle(this.pageTitle);
@@ -129,8 +126,9 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
         ];
 
         // Enable filters for all layouts
-        setTimeout(() => {
+        queueMicrotask(() => {
             this.layoutService.setFilters(this.filtersTemplate);
+            this.cdr.markForCheck();
         });
 
         this.cdr.detectChanges();
@@ -174,8 +172,8 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
         }
     }
 
-    setFilter(filter: 'all' | 'pending' | 'approved' | 'rejected'): void {
-        this.currentFilter.set(filter);
+    setFilter(filter: unknown): void {
+        this.currentFilter.set(filter as 'all' | 'pending' | 'approved' | 'rejected');
     }
 
     get pageTitle(): string {
@@ -268,7 +266,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
         this.showForm = true;
     }
 
-    canPerformQuickAction(status: any): boolean {
+    canPerformQuickAction(status: ObjectionStatus | string): boolean {
         return status === ObjectionStatus.PENDING ||
             status === ObjectionStatus.UNDER_REVIEW ||
             status === 'NEW' ||

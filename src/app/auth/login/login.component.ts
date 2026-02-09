@@ -1,11 +1,11 @@
-import { Component, inject, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
-import { UserRole } from '../../core/models/user.model';
+import { UserRole, User } from '../../core/models/user.model';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { AlertComponent } from '../../shared/components/alert/alert.component';
@@ -22,9 +22,10 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
         AlertComponent
     ],
     templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss']
+    styleUrls: ['./login.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private systemSettings = inject(SystemSettingsService);
@@ -35,6 +36,7 @@ export class LoginComponent implements OnInit {
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
     isMaintenanceMode = signal(false);
+    isPageReady = signal(false);
 
     constructor() {
         this.loginForm = this.fb.group({
@@ -45,6 +47,13 @@ export class LoginComponent implements OnInit {
 
     ngOnInit(): void {
         this.checkMaintenance();
+    }
+
+    ngAfterViewInit(): void {
+        // Deterministic class application after view initialization
+        requestAnimationFrame(() => {
+            this.isPageReady.set(true);
+        });
     }
 
     private checkMaintenance(): void {
@@ -97,7 +106,7 @@ export class LoginComponent implements OnInit {
             });
     }
 
-    private handleNavigation(user: any): void {
+    private handleNavigation(user: User): void {
         const role = user.role?.toString();
 
         if (role === UserRole.ADMIN) {

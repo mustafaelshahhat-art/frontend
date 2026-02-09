@@ -94,10 +94,10 @@ export class ToggleComponent implements ControlValueAccessor {
     @Input() checked = false;
     @Input() disabled = false;
     @Input() variant: 'primary' | 'danger' = 'primary';
-    @Output() change = new EventEmitter<boolean>();
+    @Output() checkedChange = new EventEmitter<boolean>();
 
-    private onChange: (value: boolean) => void = () => { };
-    private onTouched: () => void = () => { };
+    private onChange: (value: boolean) => void = () => { /* empty */ };
+    private onTouched: () => void = () => { /* empty */ };
 
     onToggle(event: Event) {
         if (this.disabled) return;
@@ -105,7 +105,7 @@ export class ToggleComponent implements ControlValueAccessor {
         this.checked = input.checked;
         this.onChange(this.checked);
         this.onTouched();
-        this.change.emit(this.checked);
+        this.checkedChange.emit(this.checked);
         this.cdr.markForCheck();
     }
 
@@ -115,11 +115,11 @@ export class ToggleComponent implements ControlValueAccessor {
         this.cdr.markForCheck();
     }
 
-    registerOnChange(fn: any): void {
+    registerOnChange(fn: (value: boolean) => void): void {
         this.onChange = fn;
     }
 
-    registerOnTouched(fn: any): void {
+    registerOnTouched(fn: () => void): void {
         this.onTouched = fn;
     }
 
