@@ -1,8 +1,7 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
@@ -10,6 +9,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { User, UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UserStore } from '../../../core/stores/user.store';
+import { AdminLayoutService } from '../../../core/services/admin-layout.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { ChangeDetectorRef } from '@angular/core';
 
@@ -27,11 +27,12 @@ import { ChangeDetectorRef } from '@angular/core';
     templateUrl: './user-detail.component.html',
     styleUrls: ['./user-detail.component.scss']
 })
-export class UserDetailComponent implements OnInit {
+export class UserDetailComponent implements OnInit, OnDestroy {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly userService = inject(UserService);
     private readonly userStore = inject(UserStore);
+    private readonly adminLayout = inject(AdminLayoutService);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly cdr = inject(ChangeDetectorRef);
 
@@ -66,11 +67,25 @@ export class UserDetailComponent implements OnInit {
         }
     }
 
+    private updateLayout(): void {
+        const u = this.user;
+        if (!u) return;
+
+        this.adminLayout.setTitle(`تفاصيل المستخدم: ${u.name}`);
+        this.adminLayout.setSubtitle(u.email);
+        this.adminLayout.setBackAction(() => this.navigateBack());
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
+    }
+
     loadUser(id: string): void {
         this.isLoading = true;
         this.userService.getUserById(id).subscribe({
             next: (data) => {
                 this.userStore.upsertUser(data);
+                this.updateLayout();
                 this.isLoading = false;
                 this.cdr.detectChanges();
             },

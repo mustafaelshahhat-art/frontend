@@ -1,13 +1,14 @@
-import { Component, OnInit, inject, ChangeDetectorRef, effect } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { ObjectionStore } from '../../../../core/stores/objection.store';
 import { Objection, ObjectionStatus, ObjectionType } from '../../../../core/models/objection.model';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { FormsModule } from '@angular/forms';
 
@@ -17,41 +18,39 @@ import { FormsModule } from '@angular/forms';
     imports: [
         CommonModule,
         FormsModule,
-        PageHeaderComponent,
         CardComponent,
         BadgeComponent,
-        ButtonComponent
+        ButtonComponent,
+        EmptyStateComponent
     ],
     template: `
-        <div class="objection-detail-page p-xl">
-            <app-page-header [title]="'تفاصيل الاعتراض #' + (objection?.id || '')" 
-                [subtitle]="'مراجعة بيانات الاعتراض واتخاذ القرار المناسب'">
-                <app-button variant="ghost" (click)="navigateBack()" icon="arrow_forward">العودة للقائمة</app-button>
-            </app-page-header>
-
-            <div *ngIf="isLoading" style="text-align: center; padding: 4rem;">
+        <div class="objection-detail-content">
+            <div *ngIf="isLoading" class="loading-state">
+                <div class="loading-spinner"></div>
                 <p>جاري تحميل التفاصيل...</p>
             </div>
 
-            <div *ngIf="!isLoading && !objection" style="text-align: center; padding: 4rem;">
-                <p>لم يتم العثور على الاعتراض المطلوب أو حدث خطأ في التحميل.</p>
-                <app-button (click)="loadObjection()">إعادة المحاولة</app-button>
+            <div *ngIf="!isLoading && !objection" class="error-state">
+                <app-empty-state icon="search_off" title="لم يتم العثور على الاعتراض"
+                    description="قد يكون الاعتراض غير موجود أو تم حذفه">
+                    <app-button (click)="loadObjection()">إعادة المحاولة</app-button>
+                </app-empty-state>
             </div>
 
-            <div *ngIf="!isLoading && objection" class="grid-3-cols gap-xl mt-xl">
+            <div *ngIf="!isLoading && objection" class="detail-grid">
                 <!-- Main Content -->
-                <div class="col-span-2 flex-col gap-xl">
+                <div class="main-column">
                     <app-card [title]="'وصف الاعتراض'" icon="description">
-                        <div class="objection-description p-md bg-surface rounded-xl border border-visible mb-lg">
+                        <div class="objection-description rounded-xl border border-visible mb-lg">
                             {{ objection.description }}
                         </div>
 
                         <div *ngIf="objection.evidence && objection.evidence.length > 0" class="evidence-section">
                             <h4 class="text-sm font-bold mb-md text-secondary">المرفقات والأدلة</h4>
-                            <div class="evidence-grid grid-3-cols gap-md">
+                            <div class="evidence-grid">
                                 <div *ngFor="let img of objection.evidence; let i = index" 
                                     class="evidence-item rounded-xl overflow-hidden border border-visible hover-lift">
-                                    <img [src]="img" alt="Evidence" class="w-full h-32 object-cover">
+                                    <img [src]="img" alt="Evidence" class="evidence-img">
                                 </div>
                             </div>
                         </div>
@@ -75,7 +74,7 @@ import { FormsModule } from '@angular/forms';
 
                     <!-- Feedback Display -->
                     <app-card *ngIf="objection.adminNotes" title="قرار اللجنة" icon="feedback" class="feedback-card">
-                        <div class="p-md bg-primary bg-opacity-5 rounded-xl border border-primary border-opacity-20">
+                        <div class="decision-feedback p-md rounded-xl border">
                             <div class="flex items-center gap-2 mb-sm">
                                 <span class="material-symbols-outlined text-primary text-sm">schedule</span>
                                 <span class="text-xs text-muted">{{ objection.reviewedDate | date:'yyyy/MM/dd HH:mm' }}</span>
@@ -87,7 +86,7 @@ import { FormsModule } from '@angular/forms';
                 </div>
 
                 <!-- Sidebar Info -->
-                <div class="flex-col gap-xl">
+                <div class="side-column">
                     <app-card title="معلومات الاعتراض" icon="info">
                         <div class="info-list flex-col gap-lg">
                             <div class="info-item flex justify-between">
@@ -106,7 +105,7 @@ import { FormsModule } from '@angular/forms';
                             </div>
                             <div class="info-item flex justify-between">
                                 <span class="text-muted text-sm">المباراة</span>
-                                <span class="text-gold text-sm font-bold">#{{ objection.matchId }}</span>
+                                <span class="text-gold text-sm font-bold">{{ objection.homeTeamName }} vs {{ objection.awayTeamName }}</span>
                             </div>
                             <div class="border-t pt-md mt-md">
                                 <div class="flex items-center gap-2 mb-sm">
@@ -135,34 +134,88 @@ import { FormsModule } from '@angular/forms';
         </div>
     `,
     styles: [`
+        .objection-detail-content {
+            width: 100%;
+        }
+
+        .loading-state, .error-state {
+            padding: 4rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-xl);
+            align-items: start;
+
+            @media (max-width: 1024px) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-column, .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+
         .objection-description {
+            padding: var(--space-md);
+            background: var(--bg-surface);
             line-height: 1.8;
             color: var(--text-secondary);
             font-size: 1rem;
             white-space: pre-wrap;
         }
+
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .evidence-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .decision-feedback {
+            background: var(--color-primary-5);
+            border-color: var(--color-primary-20);
+        }
+
         .premium-input {
-            background: var(--surface);
+            background: var(--bg-surface-light);
             border: 1px solid var(--border-visible);
-            border-radius: 12px;
-            padding: 12px;
-            color: var(--text-main);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+            color: var(--text-primary);
+            width: 100%;
             outline: none;
             transition: all 0.3s ease;
             &:focus {
-                border-color: var(--primary);
-                box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+                border-color: var(--color-primary);
+                box-shadow: 0 0 0 3px var(--color-primary-10);
             }
         }
-        .w-full { width: 100%; }
-        .label { display: block; font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+
+        .label { 
+            display: block; 
+            font-size: var(--text-sm); 
+            color: var(--text-muted); 
+            font-weight: var(--font-medium); 
+        }
     `]
 })
-export class ObjectionDetailComponent implements OnInit {
+export class ObjectionDetailComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private objectionsService = inject(ObjectionsService);
     private objectionStore = inject(ObjectionStore);
+    private adminLayout = inject(AdminLayoutService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
 
@@ -193,6 +246,17 @@ export class ObjectionDetailComponent implements OnInit {
         this.loadObjection();
     }
 
+    private updateLayout(): void {
+        if (!this.objection) return;
+        this.adminLayout.setTitle(`اعتراض مباراة: ${this.objection.homeTeamName} ضد ${this.objection.awayTeamName}`);
+        this.adminLayout.setSubtitle('مراجعة بيانات الاعتراض واتخاذ القرار المناسب');
+        this.adminLayout.setBackAction(() => this.navigateBack());
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
+    }
+
     loadObjection(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -202,6 +266,7 @@ export class ObjectionDetailComponent implements OnInit {
                     this.objection = data;
                     // Add to store for real-time tracking if missing
                     this.objectionStore.upsertObjection(data);
+                    this.updateLayout();
                     this.isLoading = false;
                     this.cdr.detectChanges();
                 },
@@ -263,7 +328,9 @@ export class ObjectionDetailComponent implements OnInit {
             if (confirmed) {
                 this.objectionsService.updateObjectionStatus(this.objection!.id, status, this.adminNotes).subscribe((updated: Objection) => {
                     this.objection = updated;
+                    this.updateLayout();
                     this.uiFeedback.success('تم بنجاح', `تم ${actionText} الاعتراض وتحديث الحالة.`);
+                    this.cdr.detectChanges();
                 });
             }
         });

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +9,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 
 @Component({
     selector: 'app-tournament-manage',
@@ -25,12 +26,13 @@ import { FormControlComponent } from '../../../../shared/components/form-control
     templateUrl: './tournament-manage.component.html',
     styleUrls: ['./tournament-manage.component.scss']
 })
-export class TournamentManageComponent implements OnInit {
+export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly tournamentService = inject(TournamentService);
     private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     isEditMode = signal(false);
     tournamentId = signal<string | null>(null);
@@ -56,6 +58,17 @@ export class TournamentManageComponent implements OnInit {
             this.tournamentId.set(id);
             this.loadTournament(id);
         }
+        this.updateLayout();
+    }
+
+    private updateLayout(): void {
+        this.adminLayout.setTitle(this.isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة');
+        this.adminLayout.setSubtitle(this.isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل');
+        this.adminLayout.setBackAction(() => this.cancel());
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadTournament(id: string): void {

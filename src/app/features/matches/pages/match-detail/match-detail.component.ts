@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,7 +9,11 @@ import { ObjectionsService } from '../../../../core/services/objections.service'
 import { UserService } from '../../../../core/services/user.service';
 import { LocationService } from '../../../../core/services/location.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
+import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchTimelineComponent } from '../../components/match-timeline/match-timeline.component';
@@ -53,7 +57,7 @@ import { FileUploadComponent } from '../../../../shared/components/file-upload/f
     templateUrl: './match-detail.component.html',
     styleUrls: ['./match-detail.component.scss']
 })
-export class MatchDetailComponent implements OnInit {
+export class MatchDetailComponent implements OnInit, OnDestroy {
     // Services
     private route = inject(ActivatedRoute);
     private router = inject(Router);
@@ -66,6 +70,11 @@ export class MatchDetailComponent implements OnInit {
     private userService = inject(UserService);
     private objectionsService = inject(ObjectionsService);
     private matchStore = inject(MatchStore);
+    private adminLayout = inject(AdminLayoutService);
+    private captainLayout = inject(CaptainLayoutService);
+    private refereeLayout = inject(RefereeLayoutService);
+
+    @ViewChild('headerActions') headerActions!: TemplateRef<any>;
 
     // Reactivity
     matchId = signal<string | null>(null);
@@ -185,6 +194,32 @@ export class MatchDetailComponent implements OnInit {
         }
     }
 
+    private updateLayout(): void {
+        const m = this.match();
+        if (!m) return;
+
+        const layout = this.getLayout();
+        if (layout) {
+            layout.setTitle(m.tournamentName || 'تفاصيل المباراة');
+            layout.setSubtitle(`${m.homeTeamName} vs ${m.awayTeamName}`);
+            layout.setBackAction(() => this.navigateBack());
+            layout.setActions(this.headerActions);
+        }
+    }
+
+    private getLayout(): any {
+        if (this.authService.hasRole(UserRole.ADMIN)) return this.adminLayout;
+        if (this.authService.getCurrentUser()?.isTeamOwner) return this.captainLayout;
+        if (this.authService.hasRole(UserRole.REFEREE)) return this.refereeLayout;
+        return null;
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
+        this.captainLayout.reset();
+        this.refereeLayout.reset();
+    }
+
     Permission = Permission;
 
     loadMatch(id: string): void {
@@ -197,6 +232,7 @@ export class MatchDetailComponent implements OnInit {
                     if (!exists) {
                         this.matchStore.addMatch(match);
                     }
+                    this.updateLayout();
                 }
                 this.isLoading.set(false);
                 this.cdr.detectChanges();

@@ -3,6 +3,8 @@ export interface Objection {
     tournamentId: string;
     tournamentName: string;
     matchId: string;
+    homeTeamName: string;
+    awayTeamName: string;
     teamId: string;
     teamName: string;
     captainId: string;

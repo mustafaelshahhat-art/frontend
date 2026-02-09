@@ -27,7 +27,8 @@
         <main class="app-content">
             <div class="captain-page-container">
                 <!-- Header Section -->
-                <app-page-header *ngIf="layout.title()" [title]="layout.title()" [subtitle]="layout.subtitle()">
+                <app-page-header *ngIf="layout.title()" [title]="layout.title()" [subtitle]="layout.subtitle()"
+                    [showBack]="layout.showBack()" (back)="layout.onBack()">
                     <!-- Actions Slot -->
                     <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
                 </app-page-header>

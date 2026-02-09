@@ -1,4 +1,30 @@
-﻿<div class="match-detail-page">
+﻿<ng-template #headerActions>
+    <div class="actions flex-center-gap" *ngIf="match() as matchData">
+        <ng-container *ngIf="matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED">
+            <app-button
+                *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
+                [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
+                المحادثة
+            </app-button>
+        </ng-container>
+
+        <!-- Player: Objection Button in Header -->
+        <ng-container *ngIf="canShowObjectionSection()">
+            <app-button (click)="openObjectionModal()" variant="ghost" icon="report" title="تقديم اعتراض">
+                اعتراض
+            </app-button>
+        </ng-container>
+
+        <ng-container *ngIf="getStatusConfig(matchData.status) as statusConfig">
+            <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
+                [dot]="matchData.status === MatchStatus.LIVE" dotType="live">
+                {{ statusConfig.label }}
+            </app-badge>
+        </ng-container>
+    </div>
+</ng-template>
+
+<div class="match-detail-page">
 
     <!-- Loading State -->
     <div *ngIf="isLoading()" class="match-detail-loading">
@@ -10,34 +36,6 @@
 
     <!-- Match Content -->
     <ng-container *ngIf="!isLoading() && match() as matchData">
-
-        <app-page-header [title]="matchData.tournamentName || ''" [showBack]="true" (back)="navigateBack()">
-
-            <div class="actions flex-center-gap">
-                <ng-container
-                    *ngIf="matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED">
-                    <app-button
-                        *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
-                        [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
-                        المحادثة
-                    </app-button>
-                </ng-container>
-
-                <!-- Player: Objection Button in Header -->
-                <ng-container *ngIf="canShowObjectionSection()">
-                    <app-button (click)="openObjectionModal()" variant="ghost" icon="report" title="تقديم اعتراض">
-                        اعتراض
-                    </app-button>
-                </ng-container>
-
-                <ng-container *ngIf="getStatusConfig(matchData.status) as statusConfig">
-                    <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
-                        [dot]="matchData.status === MatchStatus.LIVE" dotType="live">
-                        {{ statusConfig.label }}
-                    </app-badge>
-                </ng-container>
-            </div>
-        </app-page-header>
 
         <!-- Main Score Hero -->
         <div class="score-card-hero" [class.is-live]="matchData.status === MatchStatus.LIVE"

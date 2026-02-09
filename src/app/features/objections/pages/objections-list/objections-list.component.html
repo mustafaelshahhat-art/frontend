@@ -36,9 +36,9 @@
         </div>
 
         <!-- Captain: Card View -->
-        <div *ngIf="!isLoading() && !isAdmin() && objections().length > 0"
+        <div *ngIf="!isLoading() && !isAdmin() && filteredObjections().length > 0"
             style="display: flex; flex-direction: column; gap: 1.5rem;">
-            <app-card *ngFor="let objection of objections()" class="objection-item-card">
+            <app-card *ngFor="let objection of filteredObjections()" class="objection-item-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <app-badge type="neutral">{{ getTypeLabel(objection.type) }}</app-badge>
@@ -56,8 +56,8 @@
                 </div>
 
                 <div class="objection-meta">
-                    <span><span class="material-symbols-outlined">tag</span> المباراة: #{{ objection.matchId
-                        }}</span>
+                    <span><span class="material-symbols-outlined">sports_soccer</span> المباراة: {{
+                        objection.homeTeamName }} vs {{ objection.awayTeamName }}</span>
                     <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
                         date:'yyyy/MM/dd' }}</span>
                 </div>
@@ -76,7 +76,7 @@
 
 <!-- Templates for table columns -->
 <ng-template #matchInfo let-row="row">
-    <span class="font-bold text-success text-lg">#{{ row.matchId }}</span>
+    <span class="font-bold text-success text-sm">{{ row.homeTeamName }} ضد {{ row.awayTeamName }}</span>
 </ng-template>
 
 <ng-template #captainInfo let-row="row">

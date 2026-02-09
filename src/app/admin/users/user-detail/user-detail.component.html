@@ -19,12 +19,6 @@
             <div class="user-hero animate-fade-in">
                 <div class="hero-backdrop"></div>
                 <div class="hero-content">
-                    <!-- Back Button -->
-                    <button class="back-btn" (click)="navigateBack()">
-                        <span class="material-symbols-outlined">arrow_forward</span>
-                        <span>العودة</span>
-                    </button>
-
                     <!-- Profile Card -->
                     <div class="profile-card">
                         <div class="profile-avatar">
@@ -40,10 +34,6 @@
                         </div>
 
                         <div class="profile-info">
-                            <div class="profile-name-group">
-                                <h1 class="profile-name">{{ user.name }}</h1>
-                                <p class="profile-email">{{ user.email }}</p>
-                            </div>
                             <div class="profile-meta">
                                 <app-badge type="gold">
                                     <span class="material-symbols-outlined">military_tech</span>
@@ -75,8 +65,8 @@
                             <span class="material-symbols-outlined">fingerprint</span>
                         </div>
                         <div class="stat-content">
-                            <span class="stat-label">المعرف</span>
-                            <span class="stat-value">{{ user.id }}</span>
+                            <span class="stat-label">معرف العضوية</span>
+                            <span class="stat-value">{{ user.displayId }}</span>
                         </div>
                     </div>
                     <div class="stat-card">

@@ -11,6 +11,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { Match } from '../../../../core/models/tournament.model';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -58,6 +59,7 @@ export class TeamDetailPageComponent implements OnInit {
     private readonly authService = inject(AuthService);
     private readonly teamStore: TeamStore = inject(TeamStore);
     private readonly matchStore: MatchStore = inject(MatchStore);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     teamId = signal<string | null>(null);
     isLoading = signal<boolean>(true);
@@ -136,6 +138,7 @@ export class TeamDetailPageComponent implements OnInit {
     isCaptainOrAdmin = false;
 
     ngOnInit(): void {
+        this.adminLayout.reset();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.teamId.set(id);

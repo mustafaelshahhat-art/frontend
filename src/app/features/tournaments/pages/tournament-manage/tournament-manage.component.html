@@ -1,8 +1,4 @@
 <div class="manage-tournament-page">
-    <app-page-header [title]="isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة'"
-        [subtitle]="isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل'"
-        [showBack]="true" (back)="cancel()">
-    </app-page-header>
 
     <div class="form-container">
         <form [formGroup]="tournamentForm" (ngSubmit)="onSubmit()">

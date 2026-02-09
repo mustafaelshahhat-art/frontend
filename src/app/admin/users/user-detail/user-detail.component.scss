@@ -11,6 +11,8 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 // ==========================================================================
@@ -275,12 +277,12 @@
     }
 
     @media (max-width: 480px) {
-        padding: 0 var(--space-sm) var(--space-md);
-        gap: var(--space-sm);
+        padding: 0 var(--space-md) var(--space-md);
+        gap: var(--space-md);
     }
 
     @media (max-width: 360px) {
-        padding: 0 var(--space-xs) var(--space-sm);
+        padding: 0 var(--space-sm) var(--space-sm);
     }
 }
 
@@ -297,11 +299,11 @@
 
     @media (max-width: 600px) {
         grid-template-columns: 1fr;
-        gap: var(--space-sm);
+        gap: var(--space-md);
     }
 
-    @media (max-width: 360px) {
-        gap: var(--space-xs);
+    @media (max-width: 400px) {
+        gap: var(--space-sm);
     }
 }
 
@@ -316,20 +318,17 @@
     transition: var(--transition-base);
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden; // Critical: prevent content from leaking out
 
     @media (max-width: 768px) {
         padding: var(--space-md);
         border-radius: var(--radius-xl);
     }
 
-    @media (max-width: 480px) {
-        padding: var(--space-sm);
-        gap: var(--space-sm);
-        border-radius: var(--radius-lg);
-    }
-
-    @media (max-width: 360px) {
-        padding: var(--space-sm) var(--space-xs);
+    @media (max-width: 400px) {
+        padding: var(--space-md);
+        gap: var(--space-md);
+        border-radius: var(--radius-xl);
     }
 
     &:hover {
@@ -371,10 +370,12 @@
 
 .stat-content {
     flex: 1;
-    min-width: 0;
+    min-width: 0; // Essential for ellipsis to work in flex
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    overflow: hidden;
+    text-align: right;
 }
 
 .stat-label {
@@ -391,6 +392,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+
+    @media (max-width: 480px) {
+        font-size: var(--text-sm);
+    }
 }
 
 // Main Columns

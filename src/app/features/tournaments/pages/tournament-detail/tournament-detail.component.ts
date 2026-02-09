@@ -23,6 +23,9 @@ import { ObjectionModalComponent } from '../../../matches/components/objection-m
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { PermissionsService } from '../../../../core/services/permissions.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
 
 @Component({
     selector: 'app-tournament-detail',
@@ -57,6 +60,9 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
     private tournamentStore: TournamentStore = inject(TournamentStore);
     private matchStore: MatchStore = inject(MatchStore);
     private permissionsService = inject(PermissionsService);
+    private adminLayout = inject(AdminLayoutService);
+    private captainLayout = inject(CaptainLayoutService);
+    private refereeLayout = inject(RefereeLayoutService);
 
     @ViewChild('rankTemplate') rankTemplate!: TemplateRef<any>;
     @ViewChild('teamTemplate') teamTemplate!: TemplateRef<any>;
@@ -213,6 +219,31 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
+    private updateLayout(): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        const layout = this.getLayout();
+        if (layout) {
+            layout.setTitle(t.name || 'تفاصيل البطولة');
+            layout.setSubtitle(t.description || '');
+            layout.setBackAction(() => this.navigateBack());
+        }
+    }
+
+    private getLayout(): any {
+        if (this.isAdmin()) return this.adminLayout;
+        if (this.isCaptain()) return this.captainLayout;
+        if (this.authService.hasRole(UserRole.REFEREE)) return this.refereeLayout;
+        return null;
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
+        this.captainLayout.reset();
+        this.refereeLayout.reset();
+    }
+
     ngAfterViewInit(): void {
         // Initialize columns with templates after view init
         this.tableColumns = [
@@ -298,7 +329,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit {
         // 1. Load Tournament
         this.tournamentService.getTournamentById(id).subscribe({
             next: (data) => {
-                if (data) this.tournamentStore.upsertTournament(data);
+                if (data) {
+                    this.tournamentStore.upsertTournament(data);
+                    this.updateLayout();
+                }
 
                 // 2. Load Matches (Populate MatchStore)
                 this.matchService.getMatchesByTournament(id).subscribe({
