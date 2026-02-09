@@ -10,18 +10,22 @@ import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 @Component({
     selector: 'app-admin-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent],
-    templateUrl: './admin-layout.component.html'
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
+    templateUrl: './admin-layout.component.html',
+    styleUrls: ['./admin-layout.component.scss']
 })
 export class AdminLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    public layout = inject(AdminLayoutService);
 
     isSidebarOpen = true;
     isMobile = false;

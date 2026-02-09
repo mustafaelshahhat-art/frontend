@@ -1,51 +1,39 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-2xl">
-        <!-- Header Section -->
-        <app-page-header title="إعدادات النظام" subtitle="التحكم في الوظائف الأساسية للنظام وحالة التوفر العامة">
-        </app-page-header>
+<!-- Actions Template -->
+<ng-template #actionsTemplate>
+    <app-button (click)="saveSettings()" variant="primary" icon="save" [isLoading]="isSaving()"
+        [disabled]="isLoading() || settingsForm.invalid">
+        حفظ الإعدادات
+    </app-button>
+</ng-template>
 
-        <!-- Main Content -->
-        <div class="settings-content max-w-2xl mx-auto flex-col gap-xl w-full">
-            
-            <form [formGroup]="settingsForm" class="flex-col gap-lg">
-                
-                <!-- Team Creation Control -->
-                <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in">
-                    <div class="flex-col gap-1">
-                        <h3 class="text-lg font-bold text-primary mb-0">تشغيل الفرق</h3>
-                        <p class="text-sm text-muted mb-0">التحكم في إمكانية إنشاء الفرق داخل النظام من قبل اللاعبين</p>
-                    </div>
-                    <app-toggle formControlName="allowTeamCreation"></app-toggle>
-                </div>
+<!-- Main Content -->
+<div class="max-w-2xl mx-auto flex-col gap-xl w-full">
 
-                <!-- Maintenance Mode Control -->
-                <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in" style="animation-delay: 100ms">
-                    <div class="flex-col gap-1">
-                        <h3 class="text-lg font-bold text-danger mb-0">وضع الصيانة</h3>
-                        <p class="text-sm text-muted mb-0">إيقاف النظام مؤقتاً ومنع الدخول لجميع المستخدمين عدا مديري النظام</p>
-                    </div>
-                    <app-toggle formControlName="maintenanceMode" variant="danger"></app-toggle>
-                </div>
+    <form [formGroup]="settingsForm" class="flex-col gap-lg">
 
-            </form>
-
-            <!-- Loading State -->
-            <div *ngIf="isLoading()" class="flex-center p-2xl">
-                <span class="material-symbols-outlined animate-spin text-primary text-4xl">sync</span>
+        <!-- Team Creation Control -->
+        <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in">
+            <div class="flex-col gap-1">
+                <h3 class="text-lg font-bold text-primary mb-0">تشغيل الفرق</h3>
+                <p class="text-sm text-muted mb-0">التحكم في إمكانية إنشاء الفرق داخل النظام من قبل اللاعبين</p>
             </div>
-
-            <!-- Action Footer -->
-            <div class="flex items-center justify-end pt-xl border-t mt-xl">
-                <app-button 
-                    (click)="saveSettings()" 
-                    variant="primary" 
-                    size="lg" 
-                    icon="save" 
-                    [isLoading]="isSaving()"
-                    [disabled]="isLoading() || settingsForm.invalid">
-                    حفظ الإعدادات
-                </app-button>
-            </div>
+            <app-toggle formControlName="allowTeamCreation"></app-toggle>
         </div>
+
+        <!-- Maintenance Mode Control -->
+        <div class="card p-xl flex items-center justify-between gap-xl animate-fade-in" style="animation-delay: 100ms">
+            <div class="flex-col gap-1">
+                <h3 class="text-lg font-bold text-danger mb-0">وضع الصيانة</h3>
+                <p class="text-sm text-muted mb-0">إيقاف النظام مؤقتاً ومنع الدخول لجميع المستخدمين عدا مديري النظام
+                </p>
+            </div>
+            <app-toggle formControlName="maintenanceMode" variant="danger"></app-toggle>
+        </div>
+
+    </form>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading()" class="flex-center p-2xl">
+        <span class="material-symbols-outlined animate-spin text-primary text-4xl">sync</span>
     </div>
 </div>

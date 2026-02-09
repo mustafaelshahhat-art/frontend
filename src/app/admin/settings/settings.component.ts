@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -22,14 +23,17 @@ import { finalize } from 'rxjs';
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly settingsService = inject(SystemSettingsService);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     settingsForm: FormGroup;
     isLoading = signal(false);
     isSaving = signal(false);
+
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
 
     constructor() {
         this.settingsForm = this.fb.group({
@@ -39,7 +43,20 @@ export class SettingsComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('إعدادات النظام');
+        this.adminLayout.setSubtitle('التحكم في الوظائف الأساسية للنظام وحالة التوفر العامة');
         this.loadSettings();
+    }
+
+    ngAfterViewInit(): void {
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setActions(this.actionsTemplate);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadSettings(): void {

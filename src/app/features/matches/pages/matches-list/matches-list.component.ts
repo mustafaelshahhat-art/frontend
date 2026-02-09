@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
@@ -51,7 +52,7 @@ interface MatchFilter {
     styleUrls: ['./matches-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MatchesListComponent implements OnInit {
+export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly matchService = inject(MatchService);
     private readonly authService = inject(AuthService);
     private readonly router = inject(Router);
@@ -59,6 +60,7 @@ export class MatchesListComponent implements OnInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly matchStore = inject(MatchStore);
     private readonly authStore = inject(AuthStore);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     // Signals State derived from Store
     matches = this.matchStore.matches;
@@ -80,6 +82,8 @@ export class MatchesListComponent implements OnInit {
     showObjectionModal = false;
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
+
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
 
     // Type-safe filters
     readonly filters: MatchFilter[] = [
@@ -115,7 +119,21 @@ export class MatchesListComponent implements OnInit {
     });
 
     ngOnInit(): void {
+        this.adminLayout.setTitle(this.pageTitle);
+        this.adminLayout.setSubtitle(this.pageSubtitle);
         this.loadMatches();
+    }
+
+    ngAfterViewInit(): void {
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+        this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     refreshStatus(): void {

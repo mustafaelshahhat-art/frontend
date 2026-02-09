@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../core/services/tournament.service';
@@ -9,6 +9,7 @@ import { UserRole } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -46,7 +47,7 @@ interface TournamentFilter {
     styleUrls: ['./tournaments-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TournamentsListComponent implements OnInit {
+export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly tournamentService = inject(TournamentService);
     private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
@@ -54,6 +55,10 @@ export class TournamentsListComponent implements OnInit {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentStore = inject(TournamentStore);
     private readonly teamStore = inject(TeamStore);
+    private readonly adminLayout = inject(AdminLayoutService);
+
+    @ViewChild('actions') actionsTemplate!: TemplateRef<any>;
+    @ViewChild('filtersRef') filtersTemplate!: TemplateRef<any>;
 
     // Signals State
     // ✅ FIXED: Bind directly to TournamentStore instead of local state
@@ -115,7 +120,21 @@ export class TournamentsListComponent implements OnInit {
     });
 
     ngOnInit(): void {
+        this.adminLayout.setTitle(this.isAdmin() ? 'إدارة البطولات' : 'البطولات المتاحة');
+        this.adminLayout.setSubtitle(this.isAdmin() ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك');
         this.loadInitialData();
+    }
+
+    ngAfterViewInit(): void {
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setActions(this.actionsTemplate);
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     // Registration Modal State

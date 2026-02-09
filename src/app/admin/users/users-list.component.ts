@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -33,13 +34,14 @@ import { UserStore } from '../../core/stores/user.store';
     templateUrl: './users-list.component.html',
     styleUrls: ['./users-list.component.scss']
 })
-export class UsersListComponent implements OnInit {
+export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly userService = inject(UserService);
     private readonly userStore = inject(UserStore);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly fb = inject(FormBuilder);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     // map store signals
     users = this.userStore.users;
@@ -87,6 +89,8 @@ export class UsersListComponent implements OnInit {
         status: ['Active', Validators.required]
     });
 
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
     @ViewChild('indexInfo') indexInfo!: TemplateRef<any>;
     @ViewChild('userInfo') userInfo!: TemplateRef<any>;
     @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
@@ -95,6 +99,9 @@ export class UsersListComponent implements OnInit {
     @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('إدارة المستخدمين');
+        this.adminLayout.setSubtitle('عرض وإدارة حسابات المشرفين والحكام واللاعبين في النظام');
+
         // Initial load only
         this.loadUsers();
     }
@@ -108,7 +115,18 @@ export class UsersListComponent implements OnInit {
             { key: 'status', label: 'الحالة', sortable: true, template: this.statusInfo },
             { key: 'actions', label: 'إجراءات', width: '180px', template: this.actionsInfo }
         ];
+
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setActions(this.actionsTemplate);
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+
         this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadUsers(): void {
@@ -213,10 +231,6 @@ export class UsersListComponent implements OnInit {
             if (confirmed) {
                 this.userService.suspendUser(user.id).subscribe({
                     next: () => {
-                        // Optimistic update handled by Store if backend emits event
-                        // But we can also set it locally to be snappy if event is slow
-                        // However, Rule #3 says Store is single source of truth.
-                        // We rely on backend event which we added: SendUserUpdatedAsync
                         this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
                     },
                     error: (err) => {
@@ -312,7 +326,6 @@ export class UsersListComponent implements OnInit {
             next: (newAdmin) => {
                 this.isCreatingAdmin.set(false);
                 this.closeAddAdminModal();
-                // Store update happens via SignalR 'UserCreated' event automatically
                 this.uiFeedback.success('تم الإنشاء', `تم إنشاء المشرف "${newAdmin.name}" بنجاح`);
             },
             error: (err) => {
@@ -322,5 +335,3 @@ export class UsersListComponent implements OnInit {
         });
     }
 }
-
-

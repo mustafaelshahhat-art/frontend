@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -35,12 +36,13 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
     templateUrl: './teams-list.component.html',
     styleUrls: ['./teams-list.component.scss']
 })
-export class TeamsListComponent implements OnInit, AfterViewInit {
+export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly teamService = inject(TeamService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly teamStore: TeamStore = inject(TeamStore);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     currentFilter = signal<TeamFilterValue>('all');
 
@@ -73,8 +75,11 @@ export class TeamsListComponent implements OnInit, AfterViewInit {
     @ViewChild('playersInfo') playersInfo!: TemplateRef<any>;
     @ViewChild('adminStatusInfo') adminStatusInfo!: TemplateRef<any>;
     @ViewChild('actionsInfo') actionsInfo!: TemplateRef<any>;
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('إدارة الفرق');
+        this.adminLayout.setSubtitle('استعراض وإدارة الفرق المسجلة في البطولة');
         this.loadTeams();
     }
 
@@ -86,7 +91,17 @@ export class TeamsListComponent implements OnInit, AfterViewInit {
             { key: 'status', label: 'الحالة الإدارية', template: this.adminStatusInfo },
             { key: 'actions', label: 'إجراءات', width: '150px', template: this.actionsInfo }
         ];
+
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+
         this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadTeams(): void {

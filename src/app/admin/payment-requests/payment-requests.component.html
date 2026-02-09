@@ -1,93 +1,88 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-xl">
-        <!-- Page Header -->
-        <app-page-header title="طلبات الدفع" subtitle="مراجعة وتأكيد إيصالات دفع رسوم اشتراك الفرق">
-        </app-page-header>
+<!-- Filters Template -->
+<ng-template #filtersTemplate>
+    <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+</ng-template>
 
-        <!-- Filter Tabs -->
-        <div class="mb-xl animate-fade-in-up">
-            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+<!-- Main Content -->
+<div class="flex-col gap-md">
+    <!-- Loading State -->
+    <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الطلبات..."></app-inline-loading>
+
+    <!-- Empty State -->
+    <app-empty-state *ngIf="!isLoading() && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
+        description="لا توجد طلبات دفع في هذا التصنيف حالياً">
+    </app-empty-state>
+
+    <!-- Table -->
+    <div *ngIf="!isLoading() && filteredRequests.length > 0" class="card p-0 overflow-hidden">
+        <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()">
+        </app-table>
+    </div>
+</div>
+
+<!-- Team Template -->
+<ng-template #teamInfo let-row="row">
+    <div class="flex-col">
+        <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
+        <span class="text-xs text-muted">{{ row.tournament?.name }}</span>
+    </div>
+</ng-template>
+
+<!-- Amount Template -->
+<ng-template #amountInfo let-row="row">
+    <span class="text-gold font-bold">{{ row.tournament?.entryFee }} ريال</span>
+</ng-template>
+
+<!-- Date Template -->
+<ng-template #dateInfo let-row="row">
+    <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
+</ng-template>
+
+<!-- Sender Number Template -->
+<ng-template #senderNumberInfo let-row="row">
+    <span class="text-info font-medium">{{ row.registration.senderNumber || '-' }}</span>
+</ng-template>
+
+<!-- Status Template -->
+<ng-template #statusInfo let-row="row">
+    <app-badge [type]="getBadgeType(row.registration.status)">
+        {{ getStatusLabel(row.registration.status) }}
+    </app-badge>
+</ng-template>
+
+<!-- Receipt Template -->
+<ng-template #receiptInfo let-row="row">
+    <app-button (click)="viewReceipt(row)" variant="ghost" size="sm" class="text-info">
+        عرض الإيصال
+    </app-button>
+</ng-template>
+
+<!-- Action Template -->
+<ng-template #actionInfo let-row="row">
+    <div class="action-buttons" *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
+        <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary">
+        </app-button>
+        <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
+        </app-button>
+    </div>
+    <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
+        class="text-muted text-xs">-</span>
+</ng-template>
+
+<!-- Receipt Modal -->
+<div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">
+    <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>إيصال دفع: {{ selectedRequest?.registration?.teamName }}</h3>
+            <button class="close-btn" (click)="closeReceipt()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
         </div>
-
-        <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الطلبات..."></app-inline-loading>
-
-        <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading() && filteredRequests.length === 0" icon="payments" title="لا توجد طلبات دفع"
-            description="لا توجد طلبات دفع في هذا التصنيف حالياً">
-        </app-empty-state>
-
-        <!-- Table -->
-        <div *ngIf="!isLoading() && filteredRequests.length > 0" class="card p-0 overflow-hidden">
-            <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()">
-            </app-table>
+        <div class="modal-body">
+            <img [src]="selectedRequest?.registration?.paymentReceiptUrl" alt="Receipt" class="receipt-image">
         </div>
-
-        <!-- Team Template -->
-        <ng-template #teamInfo let-row="row">
-            <div class="flex-col">
-                <span class="text-primary font-bold text-sm">{{ row.registration.teamName }}</span>
-                <span class="text-xs text-muted">{{ row.tournament?.name }}</span>
-            </div>
-        </ng-template>
-
-        <!-- Amount Template -->
-        <ng-template #amountInfo let-row="row">
-            <span class="text-gold font-bold">{{ row.tournament?.entryFee }} ريال</span>
-        </ng-template>
-
-        <!-- Date Template -->
-        <ng-template #dateInfo let-row="row">
-            <span class="text-muted text-xs">{{ row.registration.registeredAt | date:'yyyy-MM-dd' }}</span>
-        </ng-template>
-
-        <!-- Sender Number Template -->
-        <ng-template #senderNumberInfo let-row="row">
-            <span class="text-info font-medium">{{ row.registration.senderNumber || '-' }}</span>
-        </ng-template>
-
-        <!-- Status Template -->
-        <ng-template #statusInfo let-row="row">
-            <app-badge [type]="getBadgeType(row.registration.status)">
-                {{ getStatusLabel(row.registration.status) }}
-            </app-badge>
-        </ng-template>
-
-        <!-- Receipt Template -->
-        <ng-template #receiptInfo let-row="row">
-            <app-button (click)="viewReceipt(row)" variant="ghost" size="sm" class="text-info">
-                عرض الإيصال
-            </app-button>
-        </ng-template>
-
-        <!-- Action Template -->
-        <ng-template #actionInfo let-row="row">
-            <div class="action-buttons" *ngIf="row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW">
-                <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary">
-                </app-button>
-                <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
-                </app-button>
-            </div>
-            <span *ngIf="row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW"
-                class="text-muted text-xs">-</span>
-        </ng-template>
-
-        <!-- Receipt Modal -->
-        <div *ngIf="showReceiptModal" class="receipt-modal-overlay" (click)="closeReceipt()">
-            <div class="receipt-modal-content animate-fade-in-up" (click)="$event.stopPropagation()">
-                <div class="modal-header">
-                    <h3>إيصال دفع: {{ selectedRequest?.registration?.teamName }}</h3>
-                    <button class="close-btn" (click)="closeReceipt()">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <img [src]="selectedRequest?.registration?.paymentReceiptUrl" alt="Receipt" class="receipt-image">
-                </div>
-                <div class="modal-footer">
-                    <app-button variant="outline" (click)="closeReceipt()">إغلاق</app-button>
-                </div>
-            </div>
+        <div class="modal-footer">
+            <app-button variant="outline" (click)="closeReceipt()">إغلاق</app-button>
         </div>
     </div>
 </div>

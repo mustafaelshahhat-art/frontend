@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,11 +46,12 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
     styleUrls: ['./notifications.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NotificationsComponent implements OnInit {
+export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy {
     private authService = inject(AuthService);
     private notificationService = inject(NotificationService);
     private notificationStore = inject(NotificationStore);
     private router = inject(Router);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.PLAYER;
@@ -72,8 +74,23 @@ export class NotificationsComponent implements OnInit {
         return this.notificationsView();
     }
 
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
+
     ngOnInit(): void {
+        this.adminLayout.setTitle(this.pageTitle);
+        this.adminLayout.setSubtitle(this.pageSubtitle);
         this.notificationService.loadNotifications();
+    }
+
+    ngAfterViewInit(): void {
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setActions(this.actionsTemplate);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     get pageTitle(): string {

@@ -1,122 +1,108 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-2xl">
-        <!-- Page Heading -->
-        <app-page-header title="إدارة المستخدمين" subtitle="عرض وإدارة حسابات المشرفين والحكام واللاعبين في النظام">
-            <!-- Add Admin Button (only visible on admins tab) -->
-            <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary"
-                icon="person_add">
-                إضافة مشرف
-            </app-button>
-        </app-page-header>
+<!-- Actions Template -->
+<ng-template #actionsTemplate>
+    <app-button *ngIf="userType() === 'admins'" (click)="openAddAdminModal()" variant="primary" icon="person_add">
+        إضافة مشرف
+    </app-button>
+</ng-template>
 
-        <div class="flex-col gap-lg">
-            <!-- Header Row: Tabs -->
-            <div class="flex items-center justify-between flex-wrap gap-md">
-                <!-- Main Tabs -->
-                <app-filter [items]="userTypeTabs" [activeValue]="userType()"
-                    (change)="setUserType($event)"></app-filter>
-            </div>
+<!-- Filters Template -->
+<ng-template #filtersTemplate>
+    <div class="flex flex-col gap-md w-full items-start">
+        <app-filter [items]="userTypeTabs" [activeValue]="userType()" (change)="setUserType($event)"></app-filter>
+        <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+    </div>
+</ng-template>
 
-            <!-- Status Filter -->
-            <div class="mb-2xl animate-fade-in-up">
-                <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+<!-- Main Content -->
+<div class="card p-0 overflow-hidden">
+    <app-table [data]="filteredUsers()" [columns]="columns" [loading]="isLoading()"
+        emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً">
+    </app-table>
+
+    <!-- Index Template -->
+    <ng-template #indexInfo let-index="index">
+        <span class="text-muted">{{ (index + 1).toString().padStart(2, '0') }}</span>
+    </ng-template>
+
+    <!-- User Info Template -->
+    <ng-template #userInfo let-row="row">
+        <div class="flex items-center gap-3">
+            <app-smart-image [src]="row.avatar" [type]="row.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
+                [initials]="row.name.charAt(0)">
+            </app-smart-image>
+            <div class="flex-col">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-sm">{{ row.name }}</span>
+                    <app-badge *ngIf="row.role === 'Player' && row.isTeamOwner" type="gold" size="xs">قائد</app-badge>
+                </div>
+                <span class="text-xs text-muted">ID: #{{ row.displayId }}</span>
             </div>
         </div>
+    </ng-template>
 
-        <!-- Data Table -->
-        <div class="card p-0 overflow-hidden">
-            <app-table [data]="filteredUsers()" [columns]="columns" [loading]="isLoading()"
-                emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً">
-            </app-table>
+    <!-- Date Template -->
+    <ng-template #dateInfo let-row="row">
+        <span class="text-sm">{{ row.createdAt | date:'yyyy/MM/dd' }}</span>
+    </ng-template>
 
-            <!-- Index Template -->
-            <ng-template #indexInfo let-index="index">
-                <span class="text-muted">{{ (index + 1).toString().padStart(2, '0') }}</span>
-            </ng-template>
+    <!-- Team Template -->
+    <ng-template #teamInfo let-row="row">
+        <span class="text-sm">{{ row.teamName || '—' }}</span>
+    </ng-template>
 
-            <!-- User Info Template -->
-            <ng-template #userInfo let-row="row">
-                <div class="flex items-center gap-3">
-                    <app-smart-image [src]="row.avatar" [type]="row.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
-                        [initials]="row.name.charAt(0)">
-                    </app-smart-image>
-                    <div class="flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm">{{ row.name }}</span>
-                            <app-badge *ngIf="row.role === 'Player' && row.isTeamOwner" type="gold"
-                                size="xs">قائد</app-badge>
-                        </div>
-                        <span class="text-xs text-muted">ID: #{{ row.displayId }}</span>
-                    </div>
-                </div>
-            </ng-template>
+    <!-- Status Template -->
+    <ng-template #statusInfo let-row="row">
+        <app-badge [type]="getBadgeType(row.status)" [dot]="true"
+            [dotType]="row.status === 'Active' ? 'active' : (row.status === 'Pending' ? 'pending' : 'error')">
+            {{ getStatusLabel(row.status) }}
+        </app-badge>
+    </ng-template>
 
-            <!-- Date Template -->
-            <ng-template #dateInfo let-row="row">
-                <span class="text-sm">{{ row.createdAt | date:'yyyy/MM/dd' }}</span>
-            </ng-template>
+    <!-- Actions Template -->
+    <ng-template #actionsInfo let-row="row">
+        <div class="flex items-center justify-center gap-2">
+            <!-- Approve/Activate (Pending or Suspended users) -->
+            <app-button *ngIf="row.status === 'Pending' || row.status === 'Suspended'" (click)="approveUser(row)"
+                variant="ghost" size="sm" icon="check_circle" class="text-success"
+                [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'">
+            </app-button>
 
-            <!-- Team Template -->
-            <ng-template #teamInfo let-row="row">
-                <span class="text-sm">{{ row.teamName || '—' }}</span>
-            </ng-template>
-
-            <!-- Status Template -->
-            <ng-template #statusInfo let-row="row">
-                <app-badge [type]="getBadgeType(row.status)" [dot]="true"
-                    [dotType]="row.status === 'Active' ? 'active' : (row.status === 'Pending' ? 'pending' : 'error')">
-                    {{ getStatusLabel(row.status) }}
-                </app-badge>
-            </ng-template>
-
-            <!-- Actions Template -->
-            <ng-template #actionsInfo let-row="row">
-                <div class="flex items-center justify-center gap-2">
-                    <!-- Approve/Activate (Pending or Suspended users) -->
-                    <app-button *ngIf="row.status === 'Pending' || row.status === 'Suspended'"
-                        (click)="approveUser(row)" variant="ghost" size="sm" icon="check_circle" class="text-success"
-                        [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'">
-                    </app-button>
-
-                    <!-- View -->
-                    <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility"
-                        class="text-info">
-                    </app-button>
+            <!-- View -->
+            <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility" class="text-info">
+            </app-button>
 
 
 
-                    <!-- Suspend (with last admin protection) -->
-                    <ng-container *ngIf="row.status !== 'Suspended'">
-                        <app-button *ngIf="!isLastAdmin(row)" (click)="suspendUser(row)" variant="ghost" size="sm"
-                            icon="block" class="text-gold">
-                        </app-button>
-                        <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
-                            <span class="material-symbols-outlined text-muted">lock</span>
-                        </span>
-                    </ng-container>
+            <!-- Suspend (with last admin protection) -->
+            <ng-container *ngIf="row.status !== 'Suspended'">
+                <app-button *ngIf="!isLastAdmin(row)" (click)="suspendUser(row)" variant="ghost" size="sm" icon="block"
+                    class="text-gold">
+                </app-button>
+                <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
+                    <span class="material-symbols-outlined text-muted">lock</span>
+                </span>
+            </ng-container>
 
-                    <!-- Delete (with last admin protection) -->
-                    <ng-container>
-                        <app-button *ngIf="!isLastAdmin(row)" (click)="deleteUser(row)" variant="ghost" size="sm"
-                            icon="delete" class="text-danger">
-                        </app-button>
-                        <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن حذف آخر مشرف">
-                            <span class="material-symbols-outlined text-muted">shield</span>
-                        </span>
-                    </ng-container>
-                </div>
-            </ng-template>
+            <!-- Delete (with last admin protection) -->
+            <ng-container>
+                <app-button *ngIf="!isLastAdmin(row)" (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete"
+                    class="text-danger">
+                </app-button>
+                <span *ngIf="isLastAdmin(row)" class="last-admin-note" title="لا يمكن حذف آخر مشرف">
+                    <span class="material-symbols-outlined text-muted">shield</span>
+                </span>
+            </ng-container>
+        </div>
+    </ng-template>
 
-            <!-- Pagination -->
-            <div class="pagination">
-                <span class="pagination-info">عرض {{ filteredUsers().length }} مستخدم</span>
-                <div class="pagination-controls">
-                    <app-button variant="ghost" size="sm" icon="chevron_right"></app-button>
-                    <app-button variant="primary" size="sm">1</app-button>
-                    <app-button variant="ghost" size="sm">2</app-button>
-                    <app-button variant="ghost" size="sm" icon="chevron_left"></app-button>
-                </div>
-            </div>
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="pagination-info">عرض {{ filteredUsers().length }} مستخدم</span>
+        <div class="pagination-controls">
+            <app-button variant="ghost" size="sm" icon="chevron_right"></app-button>
+            <app-button variant="primary" size="sm">1</app-button>
+            <app-button variant="ghost" size="sm">2</app-button>
+            <app-button variant="ghost" size="sm" icon="chevron_left"></app-button>
         </div>
     </div>
 </div>

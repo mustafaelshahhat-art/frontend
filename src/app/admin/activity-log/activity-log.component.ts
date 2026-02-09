@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
@@ -26,9 +27,10 @@ import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
     templateUrl: './activity-log.component.html',
     styleUrls: ['./activity-log.component.scss']
 })
-export class ActivityLogComponent implements OnInit, AfterViewInit {
+export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly analyticsService = inject(AnalyticsService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     logs: Activity[] = [];
     isLoading = true;
@@ -59,12 +61,15 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
         this.currentFilter = value;
     }
 
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
     @ViewChild('userInfo') userInfo!: TemplateRef<any>;
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
     @ViewChild('timeInfo') timeInfo!: TemplateRef<any>;
     @ViewChild('statusInfo') statusInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('إحصائيات النشاط');
+        this.adminLayout.setSubtitle('سجل بجميع العمليات والإجراءات التي تمت في النظام');
         this.loadLogs();
     }
 
@@ -75,7 +80,17 @@ export class ActivityLogComponent implements OnInit, AfterViewInit {
             { key: 'time', label: 'الوقت', template: this.timeInfo },
             { key: 'type', label: 'التصنيف', template: this.statusInfo }
         ];
+
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+
         this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadLogs(): void {

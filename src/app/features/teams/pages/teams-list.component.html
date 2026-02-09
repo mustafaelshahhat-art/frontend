@@ -1,70 +1,67 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-md">
-        <app-page-header title="إدارة الفرق" subtitle="استعراض وإدارة الفرق المسجلة في البطولة"></app-page-header>
+<!-- Filter Section -->
+<ng-template #filtersTemplate>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
+</ng-template>
 
-        <!-- Filter Section -->
-        <div class="filter-section animate-fade-in-up">
-            <app-filter [items]="filters" [activeValue]="currentFilter()" (change)="setFilter($event)"></app-filter>
-        </div>
+<!-- Main Content -->
+<div class="flex-col gap-md">
+    <!-- Loading State -->
+    <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الفرق..."></app-inline-loading>
 
-        <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading()" message="جاري تحميل الفرق..."></app-inline-loading>
+    <!-- Empty State -->
+    <app-empty-state *ngIf="!isLoading() && filteredTeams().length === 0" icon="groups" title="لا توجد فرق"
+        description="لا توجد فرق في هذا التصنيف حالياً">
+    </app-empty-state>
 
-        <!-- Empty State -->
-        <app-empty-state *ngIf="!isLoading() && filteredTeams().length === 0" icon="groups" title="لا توجد فرق"
-            description="لا توجد فرق في هذا التصنيف حالياً">
-        </app-empty-state>
+    <!-- Desktop Table View -->
+    <div *ngIf="!isLoading() && filteredTeams().length > 0" class="table-wrapper hide-on-mobile">
+        <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
+            emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
+        </app-table>
+    </div>
 
-        <!-- Desktop Table View -->
-        <div *ngIf="!isLoading() && filteredTeams().length > 0" class="table-wrapper hide-on-mobile">
-            <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
-                emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
-            </app-table>
-        </div>
-
-        <!-- Mobile Cards View -->
-        <div *ngIf="!isLoading() && filteredTeams().length > 0" class="mobile-teams-list show-only-mobile">
-            <div *ngFor="let team of filteredTeams()" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
-                <div class="card-header-flex">
-                    <div class="flex items-center gap-3">
-                        <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">
-                        </app-smart-image>
-                        <div class="flex-col">
-                            <span class="text-primary font-bold">{{ team.name }}</span>
-                            <span class="text-muted text-xs">{{ team.city }}</span>
-                        </div>
-                    </div>
-                    <ng-container *ngIf="getTeamStatusConfig(team.isActive) as status">
-                        <app-badge [type]="status.variant">
-                            {{ status.label }}
-                        </app-badge>
-                    </ng-container>
-                </div>
-
-                <div class="card-body-details">
-                    <div class="detail-row">
-                        <span class="label">الكابتن</span>
-                        <span class="value">{{ team.captainName }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">اللاعبين</span>
-                        <span class="value text-gold font-bold">{{ team.playerCount }} / {{ team.maxPlayers }}</span>
+    <!-- Mobile Cards View -->
+    <div *ngIf="!isLoading() && filteredTeams().length > 0" class="mobile-teams-list show-only-mobile">
+        <div *ngFor="let team of filteredTeams()" class="card team-mobile-card" [class.is-disabled]="!team.isActive">
+            <div class="card-header-flex">
+                <div class="flex items-center gap-3">
+                    <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">
+                    </app-smart-image>
+                    <div class="flex-col">
+                        <span class="text-primary font-bold">{{ team.name }}</span>
+                        <span class="text-muted text-xs">{{ team.city }}</span>
                     </div>
                 </div>
+                <ng-container *ngIf="getTeamStatusConfig(team.isActive) as status">
+                    <app-badge [type]="status.variant">
+                        {{ status.label }}
+                    </app-badge>
+                </ng-container>
+            </div>
 
-                <div class="card-footer-actions">
-                    <app-button (click)="viewTeam(team)" variant="ghost" size="md" icon="visibility" class="text-info"
-                        title="عرض التفاصيل"></app-button>
-                    <div class="flex-1"></div>
-                    <div class="flex items-center gap-2">
-                        <app-button (click)="requestToggleStatus(team)" variant="ghost" size="md"
-                            [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-danger]="team.isActive"
-                            [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
-                        </app-button>
-                        <app-button (click)="requestDelete(team)" variant="ghost" size="md" icon="delete"
-                            class="text-danger" title="حذف">
-                        </app-button>
-                    </div>
+            <div class="card-body-details">
+                <div class="detail-row">
+                    <span class="label">الكابتن</span>
+                    <span class="value">{{ team.captainName }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">اللاعبين</span>
+                    <span class="value text-gold font-bold">{{ team.playerCount }} / {{ team.maxPlayers }}</span>
+                </div>
+            </div>
+
+            <div class="card-footer-actions">
+                <app-button (click)="viewTeam(team)" variant="ghost" size="md" icon="visibility" class="text-info"
+                    title="عرض التفاصيل"></app-button>
+                <div class="flex-1"></div>
+                <div class="flex items-center gap-2">
+                    <app-button (click)="requestToggleStatus(team)" variant="ghost" size="md"
+                        [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-danger]="team.isActive"
+                        [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
+                    </app-button>
+                    <app-button (click)="requestDelete(team)" variant="ghost" size="md" icon="delete"
+                        class="text-danger" title="حذف">
+                    </app-button>
                 </div>
             </div>
         </div>

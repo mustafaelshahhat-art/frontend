@@ -19,16 +19,24 @@
     /* No scrolling */
 
     @media (max-width: 640px) {
-        border-radius: var(--radius-xl);
+        flex-direction: row; // Keep horizontal
+        overflow-x: auto; // Allow scrolling
         padding: var(--space-1);
         gap: var(--space-1);
+
+        // Hide scrollbar
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 }
 
 .filter-tab {
-    flex: 1 1 0;
+    flex: 1 1 auto;
     /* Grow, Shrink, and basis 0 to distribute equally */
-    min-width: 0;
+    min-width: auto;
     /* Allow shrinking below content size */
     padding: var(--space-3) var(--space-4);
     background: transparent;

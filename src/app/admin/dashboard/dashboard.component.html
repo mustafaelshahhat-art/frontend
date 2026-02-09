@@ -1,97 +1,88 @@
-<div class="page-container animate-fade-in-up">
-    <div class="page-content">
+<div class="animate-fade-in-up">
+    <!-- Stats Grid -->
+    <div class="grid-stats mb-md">
+        <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
+            [colorClass]="stat.colorClass" (click)="stat.route && navigateTo(stat.route)">
+        </app-stat-card>
+    </div>
 
-        <!-- Welcome Header -->
-        <app-welcome-card title="منصة التحكم للمدير" subtitle="مرحباً بك، إليك ملخص النشاط الحالي"
-            icon="admin_panel_settings">
-        </app-welcome-card>
+    <!-- Quick Actions Section -->
+    <div class="card card-glass rounded-xl p-md">
+        <app-page-header title="الإجراءات السريعة" subtitle="إدارة العمليات اليومية للنظام">
+        </app-page-header>
 
-        <!-- Stats Grid -->
-        <div class="grid-stats mb-md">
-            <app-stat-card *ngFor="let stat of stats" [label]="stat.label" [value]="stat.value" [icon]="stat.icon"
-                [colorClass]="stat.colorClass" (click)="stat.route && navigateTo(stat.route)">
-            </app-stat-card>
+        <div class="grid-stats">
+            <app-action-card title="إنشاء بطولة" description="إعداد مسابقة جديدة" icon="add_circle" colorClass="primary"
+                (clicked)="navigateTo('/admin/tournaments/new')">
+            </app-action-card>
+
+            <app-action-card title="مراجعة الحسابات" description="إدارة المستخدمين" icon="person_check"
+                colorClass="info" (clicked)="navigateTo('/admin/users')">
+            </app-action-card>
+
+            <app-action-card title="الموافقات المالية" description="متابعة الرسوم" icon="payments" colorClass="gold"
+                (clicked)="navigateTo('/admin/payment-requests')">
+            </app-action-card>
         </div>
+    </div>
 
-        <!-- Quick Actions Section -->
-        <div class="card card-glass rounded-xl p-md">
-            <app-page-header title="الإجراءات السريعة" subtitle="إدارة العمليات اليومية للنظام">
-            </app-page-header>
+    <div class="grid-2-cols gap-xl mt-xl">
+        <!-- Recent Activity Widget -->
+        <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+            <div class="p-md">
+                <app-page-header title="آخر النشاطات" icon="history">
+                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/activity-log')">الكل</app-button>
+                </app-page-header>
 
-            <div class="grid-stats">
-                <app-action-card title="إنشاء بطولة" description="إعداد مسابقة جديدة" icon="add_circle"
-                    colorClass="primary" (clicked)="navigateTo('/admin/tournaments/new')">
-                </app-action-card>
+                <div class="activity-list mt-md" *ngIf="recentActivities.length > 0">
+                    <div *ngFor="let activity of recentActivities.slice(0, 5)" class="activity-item">
+                        <div class="activity-icon-container"
+                            [class.danger-style]="activity.message.includes('تعطيل') || activity.message.includes('إغلاق')">
+                            <span class="material-symbols-outlined">{{ activity.type.toLowerCase().includes('user')
+                                ? 'person' : (activity.type.toLowerCase().includes('team') ? 'groups' : 'bolt')
+                                }}</span>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-msg">{{ activity.message }}</p>
+                            <p class="activity-type">{{ activity.type }}</p>
+                        </div>
+                        <app-badge type="neutral" size="xs" class="activity-time-badge">
+                            {{ activity.time }}
+                        </app-badge>
+                    </div>
+                </div>
 
-                <app-action-card title="مراجعة الحسابات" description="إدارة المستخدمين" icon="person_check"
-                    colorClass="info" (clicked)="navigateTo('/admin/users')">
-                </app-action-card>
-
-                <app-action-card title="الموافقات المالية" description="متابعة الرسوم" icon="payments" colorClass="gold"
-                    (clicked)="navigateTo('/admin/payment-requests')">
-                </app-action-card>
+                <app-empty-state *ngIf="recentActivities.length === 0" icon="history" title="لا توجد نشاطات بعد"
+                    description="سيظهر سجل العمليات هنا فور حدوث أي نشاط">
+                </app-empty-state>
             </div>
-        </div>
+        </app-card>
 
-        <div class="grid-2-cols gap-xl mt-xl">
-            <!-- Recent Activity Widget -->
-            <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
-                <div class="p-md">
-                    <app-page-header title="آخر النشاطات" icon="history">
-                        <app-button variant="ghost" size="sm"
-                            (click)="navigateTo('/admin/activity-log')">الكل</app-button>
-                    </app-page-header>
+        <!-- Live Matches Widget -->
+        <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+            <div class="p-md">
+                <app-page-header title="مباريات اليوم" icon="live_tv">
+                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/matches')">الكل</app-button>
+                </app-page-header>
 
-                    <div class="activity-list mt-md" *ngIf="recentActivities.length > 0">
-                        <div *ngFor="let activity of recentActivities.slice(0, 5)" class="activity-item">
-                            <div class="activity-icon-container"
-                                [class.danger-style]="activity.message.includes('تعطيل') || activity.message.includes('إغلاق')">
-                                <span class="material-symbols-outlined">{{ activity.type.toLowerCase().includes('user')
-                                    ? 'person' : (activity.type.toLowerCase().includes('team') ? 'groups' : 'bolt')
-                                    }}</span>
-                            </div>
-                            <div class="activity-content">
-                                <p class="activity-msg">{{ activity.message }}</p>
-                                <p class="activity-type">{{ activity.type }}</p>
-                            </div>
-                            <app-badge type="neutral" size="xs" class="activity-time-badge">
-                                {{ activity.time }}
-                            </app-badge>
+                <div class="live-matches-mini mt-md" *ngIf="liveMatches.length > 0">
+                    <div *ngFor="let match of liveMatches.slice(0, 3)" class="match-mini-row">
+                        <div class="team-side home">
+                            <span class="team-name">{{ match.homeTeamName }}</span>
+                        </div>
+                        <div class="score-center">
+                            <span class="score-pill">{{ match.homeScore }} - {{ match.awayScore }}</span>
+                        </div>
+                        <div class="team-side away">
+                            <span class="team-name">{{ match.awayTeamName }}</span>
                         </div>
                     </div>
-
-                    <app-empty-state *ngIf="recentActivities.length === 0" icon="history" title="لا توجد نشاطات بعد"
-                        description="سيظهر سجل العمليات هنا فور حدوث أي نشاط">
-                    </app-empty-state>
                 </div>
-            </app-card>
 
-            <!-- Live Matches Widget -->
-            <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
-                <div class="p-md">
-                    <app-page-header title="مباريات اليوم" icon="live_tv">
-                        <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/matches')">الكل</app-button>
-                    </app-page-header>
-
-                    <div class="live-matches-mini mt-md" *ngIf="liveMatches.length > 0">
-                        <div *ngFor="let match of liveMatches.slice(0, 3)" class="match-mini-row">
-                            <div class="team-side home">
-                                <span class="team-name">{{ match.homeTeamName }}</span>
-                            </div>
-                            <div class="score-center">
-                                <span class="score-pill">{{ match.homeScore }} - {{ match.awayScore }}</span>
-                            </div>
-                            <div class="team-side away">
-                                <span class="team-name">{{ match.awayTeamName }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <app-empty-state *ngIf="liveMatches.length === 0" icon="sports_soccer"
-                        title="لا توجد مباريات مجدولة اليوم" description="سيتم عرض المباريات المباشرة واليومية هنا">
-                    </app-empty-state>
-                </div>
-            </app-card>
-        </div>
+                <app-empty-state *ngIf="liveMatches.length === 0" icon="sports_soccer"
+                    title="لا توجد مباريات مجدولة اليوم" description="سيتم عرض المباريات المباشرة واليومية هنا">
+                </app-empty-state>
+            </div>
+        </app-card>
     </div>
 </div>

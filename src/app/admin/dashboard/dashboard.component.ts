@@ -1,5 +1,6 @@
-import { Component, OnInit, inject, ChangeDetectorRef, effect, signal } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, effect, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { Router } from '@angular/router';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { ActionCardComponent } from '../../shared/components/action-card/action-card.component';
@@ -34,7 +35,7 @@ import { ActivityStore } from '../../core/stores/activity.store';
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly analyticsService = inject(AnalyticsService);
     private readonly matchService = inject(MatchService);
@@ -43,6 +44,7 @@ export class AdminDashboardComponent implements OnInit {
     private readonly tournamentStore = inject(TournamentStore);
     private readonly userStore = inject(UserStore);
     private readonly activityStore = inject(ActivityStore);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     stats: { label: string, value: string, icon: string, colorClass: string, route?: string }[] = [];
     recentActivities: Activity[] = [];
@@ -60,7 +62,13 @@ export class AdminDashboardComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('منصة التحكم للمدير');
+        this.adminLayout.setSubtitle('مرحباً بك، إليك ملخص النشاط الحالي');
         this.loadInitialData();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     private loadInitialData(): void {

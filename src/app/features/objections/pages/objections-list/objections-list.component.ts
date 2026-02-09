@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -40,13 +41,14 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss']
 })
-export class ObjectionsListComponent implements OnInit, AfterViewInit {
+export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private objectionsService = inject(ObjectionsService);
     private authStore = inject(AuthStore);
     private objectionStore = inject(ObjectionStore);
     private uiFeedback = inject(UIFeedbackService);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     currentUser = this.authStore.currentUser;
     userRole = this.authStore.userRole;
@@ -82,6 +84,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit {
     ];
 
     columns: TableColumn[] = [];
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
     @ViewChild('matchInfo') matchInfo!: TemplateRef<any>;
     @ViewChild('captainInfo') captainInfo!: TemplateRef<any>;
     @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
@@ -102,6 +105,8 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit {
     pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as any) === 'NEW').length);
 
     ngOnInit(): void {
+        this.adminLayout.setTitle(this.pageTitle);
+        this.adminLayout.setSubtitle(this.pageSubtitle);
         this.loadObjections();
     }
 
@@ -113,7 +118,18 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit {
             { key: 'status', label: 'الحالة', template: this.statusInfo, align: 'center' },
             { key: 'action', label: 'الإجراءات', width: '110px', template: this.actionInfo }
         ];
+
+        if (this.isAdmin()) {
+            setTimeout(() => {
+                this.adminLayout.setFilters(this.filtersTemplate);
+            });
+        }
+
         this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     loadObjections(): void {

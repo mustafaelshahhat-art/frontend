@@ -78,11 +78,20 @@
 
     @media (max-width: 640px) {
         width: 100%;
+        margin-top: var(--space-4); // Add separation from header content
 
-        button,
-        app-button {
+        // Use ng-deep to target projected content
+        ::ng-deep button,
+        ::ng-deep app-button {
             width: 100%;
             flex: 1;
+            display: block; // Ensure host takes width
+
+            // Target internal button class if it exists (for app-button)
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     }
 }

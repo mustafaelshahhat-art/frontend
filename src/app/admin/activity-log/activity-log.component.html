@@ -1,60 +1,56 @@
-<div class="page-container">
-    <div class="page-content flex-col gap-xl">
-        <app-page-header title="إحصائيات النشاط" subtitle="سجل بجميع العمليات والإجراءات التي تمت في النظام">
-        </app-page-header>
+<!-- Filters Template -->
+<ng-template #filtersTemplate>
+    <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
+</ng-template>
 
-        <!-- Filters -->
-        <div class="animate-fade-in-up">
-            <app-filter [items]="filters" [activeValue]="currentFilter" (change)="setFilter($event)"></app-filter>
-        </div>
+<!-- Main Content -->
+<div class="flex-col gap-md">
+    <!-- Loading State -->
+    <app-inline-loading *ngIf="isLoading" message="جاري تحميل السجلات..."></app-inline-loading>
 
-        <!-- Loading State -->
-        <app-inline-loading *ngIf="isLoading" message="جاري تحميل السجلات..."></app-inline-loading>
+    <!-- Empty State (No Logs at all) -->
+    <app-empty-state *ngIf="!isLoading && logs.length === 0" icon="history" title="لا توجد سجلات"
+        description="لم يتم تسجيل أي نشاط بعد">
+    </app-empty-state>
 
-        <!-- Empty State (No Logs at all) -->
-        <app-empty-state *ngIf="!isLoading && logs.length === 0" icon="history" title="لا توجد سجلات"
-            description="لم يتم تسجيل أي نشاط بعد">
-        </app-empty-state>
+    <!-- Empty State (No Logs matching filter) -->
+    <app-empty-state *ngIf="!isLoading && logs.length > 0 && filteredLogs.length === 0" icon="search_off"
+        title="لا توجد نتائج" description="لا توجد سجلات تطابق الفلتر المختار">
+    </app-empty-state>
 
-        <!-- Empty State (No Logs matching filter) -->
-        <app-empty-state *ngIf="!isLoading && logs.length > 0 && filteredLogs.length === 0" icon="search_off"
-            title="لا توجد نتائج" description="لا توجد سجلات تطابق الفلتر المختار">
-        </app-empty-state>
-
-        <!-- Table -->
-        <div *ngIf="!isLoading && filteredLogs.length > 0" class="card p-0 overflow-hidden">
-            <app-table [data]="filteredLogs" [columns]="columns" [loading]="isLoading">
-            </app-table>
-        </div>
-
-        <!-- User Template -->
-        <ng-template #userInfo let-row="row">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-surface-dark flex items-center justify-center">
-                    <span class="text-primary font-bold text-sm">{{ (row.userName || 'U').charAt(0) }}</span>
-                </div>
-                <span class="text-primary font-bold text-sm">{{ row.userName || 'نظام' }}</span>
-            </div>
-        </ng-template>
-
-        <!-- Action Template -->
-        <ng-template #actionInfo let-row="row">
-            <span class="text-secondary text-sm">{{ row.action || row.message }}</span>
-        </ng-template>
-
-        <!-- Time Template -->
-        <ng-template #timeInfo let-row="row">
-            <div class="flex flex-col">
-                <span class="text-primary text-xs font-bold">{{ row.timestamp | timeAgo }}</span>
-                <span class="text-muted text-[10px] font-mono">{{ row.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</span>
-            </div>
-        </ng-template>
-
-        <!-- Status Template -->
-        <ng-template #statusInfo let-row="row">
-            <app-badge [type]="getBadgeType(row.status || row.type)">
-                {{ getStatusLabel(row.status || row.type) }}
-            </app-badge>
-        </ng-template>
+    <!-- Table -->
+    <div *ngIf="!isLoading && filteredLogs.length > 0" class="card p-0 overflow-hidden">
+        <app-table [data]="filteredLogs" [columns]="columns" [loading]="isLoading">
+        </app-table>
     </div>
 </div>
+
+<!-- User Template -->
+<ng-template #userInfo let-row="row">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-surface-dark flex items-center justify-center">
+            <span class="text-primary font-bold text-sm">{{ (row.userName || 'U').charAt(0) }}</span>
+        </div>
+        <span class="text-primary font-bold text-sm">{{ row.userName || 'نظام' }}</span>
+    </div>
+</ng-template>
+
+<!-- Action Template -->
+<ng-template #actionInfo let-row="row">
+    <span class="text-secondary text-sm">{{ row.action || row.message }}</span>
+</ng-template>
+
+<!-- Time Template -->
+<ng-template #timeInfo let-row="row">
+    <div class="flex flex-col">
+        <span class="text-primary text-xs font-bold">{{ row.timestamp | timeAgo }}</span>
+        <span class="text-muted text-[10px] font-mono">{{ row.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</span>
+    </div>
+</ng-template>
+
+<!-- Status Template -->
+<ng-template #statusInfo let-row="row">
+    <app-badge [type]="getBadgeType(row.status || row.type)">
+        {{ getStatusLabel(row.status || row.type) }}
+    </app-badge>
+</ng-template>

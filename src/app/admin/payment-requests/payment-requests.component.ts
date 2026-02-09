@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy } from '@angular/core';
+import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../shared/components/filter/filter.component';
@@ -28,12 +29,13 @@ import { TournamentStore } from '../../core/stores/tournament.store';
     templateUrl: './payment-requests.component.html',
     styleUrls: ['./payment-requests.component.scss']
 })
-export class PaymentRequestsComponent implements OnInit, AfterViewInit {
+export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestroy {
     RegistrationStatus = RegistrationStatus;
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentService = inject(TournamentService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly tournamentStore = inject(TournamentStore);
+    private readonly adminLayout = inject(AdminLayoutService);
 
     currentFilter = 'all';
     showReceiptModal = false;
@@ -68,6 +70,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
 
     columns: TableColumn[] = [];
 
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
     @ViewChild('teamInfo') teamInfo!: TemplateRef<any>;
     @ViewChild('amountInfo') amountInfo!: TemplateRef<any>;
     @ViewChild('dateInfo') dateInfo!: TemplateRef<any>;
@@ -77,6 +80,8 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
     @ViewChild('actionInfo') actionInfo!: TemplateRef<any>;
 
     ngOnInit(): void {
+        this.adminLayout.setTitle('طلبات الدفع');
+        this.adminLayout.setSubtitle('مراجعة واعتماد إيصالات الدفع للفرق المشاركة');
         this.loadInitialData();
         // ✅ FIXED: No real-time setup needed - TournamentStore auto-updates via SignalR
     }
@@ -91,7 +96,17 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
             { key: 'receipt', label: 'الإيصال', template: this.receiptInfo },
             { key: 'action', label: 'الإجراء', template: this.actionInfo }
         ];
+
+        // Defer to avoid ExpressionChangedAfterItHasCheckedError
+        setTimeout(() => {
+            this.adminLayout.setFilters(this.filtersTemplate);
+        });
+
         this.cdr.detectChanges();
+    }
+
+    ngOnDestroy(): void {
+        this.adminLayout.reset();
     }
 
     // ✅ FIXED: Load tournaments ONCE on init to populate store
@@ -165,4 +180,3 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit {
         }
     }
 }
-
