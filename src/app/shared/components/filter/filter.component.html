@@ -1,10 +1,10 @@
 <div class="filter-tabs">
-    @for (item of items; track item.value) {
-    <button (click)="onSelect(item.value)" class="filter-tab" [class.active]="activeValue === item.value">
+    @for (item of items; track getValue(item)) {
+    <button (click)="onSelect(getValue(item))" class="filter-tab" [class.active]="activeValue === getValue(item)">
         @if (item.icon) {
         <span class="material-symbols-outlined">{{ item.icon }}</span>
         }
-        {{ item.label }}
+        {{ getLabel(item) }}
         <span class="tab-indicator"></span>
     </button>
     }

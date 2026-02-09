@@ -7,9 +7,10 @@ import { CommonModule } from '@angular/common';
  * in components that implement this filter.
  */
 export interface FilterItem {
-    label: string;
-    value: unknown;
+    label?: string;
+    value?: unknown;
     icon?: string;
+    [key: string]: any;
 }
 
 @Component({
@@ -21,9 +22,19 @@ export interface FilterItem {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FilterComponent {
-    @Input() items: FilterItem[] = [];
+    @Input() items: any[] = [];
     @Input() activeValue: unknown;
+    @Input() valueKey = 'value';
+    @Input() labelKey = 'label';
     @Output() filterChange = new EventEmitter<unknown>();
+
+    getValue(item: any): unknown {
+        return item[this.valueKey] ?? item.value;
+    }
+
+    getLabel(item: any): string {
+        return item[this.labelKey] ?? item.label;
+    }
 
     onSelect(value: unknown): void {
         this.filterChange.emit(value);

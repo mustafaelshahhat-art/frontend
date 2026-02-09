@@ -7,6 +7,30 @@ export enum TournamentStatus {
     CANCELLED = 'cancelled'
 }
 
+export enum TournamentFormat {
+    RoundRobin = 'RoundRobin',
+    GroupsThenKnockout = 'GroupsThenKnockout',
+    KnockoutOnly = 'KnockoutOnly',
+    GroupsWithHomeAwayKnockout = 'GroupsWithHomeAwayKnockout'
+}
+
+export enum SeedingMode {
+    ShuffleOnly = 0,
+    Manual = 1,
+    RankBased = 2
+}
+
+export interface PaymentMethodConfig {
+    type: 'E_WALLET' | 'INSTAPAY';
+    label: string;
+    accountNumber: string;
+}
+
+export enum TournamentLegType {
+    SingleLeg = 'SingleLeg',
+    HomeAndAway = 'HomeAndAway'
+}
+
 export enum RegistrationStatus {
     PENDING_PAYMENT_REVIEW = 'PendingPaymentReview',
     APPROVED = 'Approved',
@@ -23,6 +47,7 @@ export interface TeamRegistration {
     status: RegistrationStatus;
     paymentReceiptUrl?: string;  // URL to payment receipt image
     senderNumber?: string;
+    paymentMethod?: string; // "E_WALLET" | "INSTAPAY"
     paymentDate?: Date;
     approvedBy?: string;         // Admin who approved/rejected
     approvalDate?: Date;
@@ -55,6 +80,20 @@ export interface Tournament {
     rules: string;
     adminId: string;
     imageUrl?: string;
+
+    // New Fields
+    format?: string;
+    matchType?: string;
+    numberOfGroups?: number;
+    qualifiedTeamsPerGroup?: number;
+    walletNumber?: string;
+    instaPayNumber?: string;
+    isHomeAwayEnabled?: boolean;
+    seedingMode?: SeedingMode;
+    paymentMethodsJson?: string;
+    paymentMethods?: PaymentMethodConfig[]; // Parsed helper
+
+
     winnerTeamId?: string;
     winnerTeamName?: string;
     createdAt: Date;
@@ -97,6 +136,9 @@ export interface Match {
     updatedAt?: Date;
     scheduledDate?: string;
     scheduledTime?: string;
+    groupId?: number;
+    roundNumber?: number;
+    stageName?: string;
 }
 
 export interface MatchReport {
@@ -202,6 +244,22 @@ export interface TournamentStanding {
     goalDifference: number;
     points: number;
     form: string[];
+    groupId?: number;
+}
+
+export interface Group {
+    id: number;
+    name: string;
+}
+
+export interface BracketDto {
+    rounds: BracketRound[];
+}
+
+export interface BracketRound {
+    roundNumber: number;
+    name: string;
+    matches: Match[];
 }
 
 export interface GenerateMatchesResponse {

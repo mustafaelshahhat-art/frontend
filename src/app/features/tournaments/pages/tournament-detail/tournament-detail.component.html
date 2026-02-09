@@ -72,10 +72,10 @@
                         </app-button>
 
                         <!-- Generate Matches Button -->
-                        @if (canGenerateMatches) {
+                        @if (canGenerateMatches()) {
                         <app-button variant="outline" size="md" icon="calendar_month" (click)="generateMatches()"
-                            [disabled]="isGeneratingMatches">
-                            {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
+                            [disabled]="isGeneratingMatches()">
+                            {{ isGeneratingMatches() ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
                         </app-button>
                         }
 
@@ -89,24 +89,24 @@
                         <!-- Captain Actions -->
                         @if (isCaptain() && t.status === TournamentStatus.REGISTRATION_OPEN) {
                         <div class="captain-actions-container">
-                            @if (!isRegistered) {
+                            @if (!isRegistered()) {
                             <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
-                                (click)="registerTeam()" [disabled]="isUserPending || isBusyElsewhere"
-                                [title]="isUserPending ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
-                                {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration?.status ===
+                                (click)="registerTeam()" [disabled]="isUserPending() || isBusyElsewhere"
+                                [title]="isUserPending() ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
+                                {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration()?.status ===
                                 RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
                             </app-button>
                             }
 
-                            @if (isRegistered) {
+                            @if (isRegistered()) {
                             <div class="registration-status-wrapper">
                                 <div class="registration-status-info">
                                     <span class="material-symbols-outlined text-success">check_circle</span>
-                                    <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration?.status || '') }})</span>
+                                    <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration()?.status || '') }})</span>
                                 </div>
 
                                 <!-- Temporary Registration Banner -->
-                                @if (myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+                                @if (myRegistration()?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
                                 <div class="review-banner animate-pulse-subtle">
                                     <span class="material-symbols-outlined">info</span>
                                     <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
@@ -115,13 +115,13 @@
                             </div>
                             }
 
-                            @if (isUserPending) {
+                            @if (isUserPending()) {
                             <p class="pending-hint">
                                 <span class="material-symbols-outlined">info</span>
                                 يجب تفعيل حسابك لتتمكن من التسجيل
                             </p>
                             }
-                            @if (isBusyElsewhere && !isRegistered) {
+                            @if (isBusyElsewhere && !isRegistered()) {
                             <p class="pending-hint">
                                 <span class="material-symbols-outlined">info</span>
                                 لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت
@@ -153,11 +153,12 @@
         </app-card>
 
         <!-- Navigation Tabs -->
-        <app-filter [items]="tabs" [activeValue]="activeTab" (filterChange)="onTabChange($event)" class="tab-filter" />
+        <app-filter [items]="tabs()" [activeValue]="activeTab()" (filterChange)="onTabChange($event)"
+            class="tab-filter" />
 
         <!-- Navigation Tabs Content -->
         <div class="tab-content">
-            @switch (activeTab) {
+            @switch (activeTab()) {
             @case ('info') {
             <div class="info-grid">
                 <app-card class="scorers-card">
@@ -166,7 +167,7 @@
                         <h3>هدافو البطولة</h3>
                     </div>
                     <div class="scorers-list">
-                        @for (s of scorers(); track s.id; let i = $index) {
+                        @for (s of scorers(); track s.teamId; let i = $index) {
                         <div class="scorer-item">
                             <span class="rank">{{ i + 1 }}</span>
                             <div class="info items-start">
@@ -191,7 +192,7 @@
                         <h3>قواعد البطولة</h3>
                     </div>
                     <div class="rules-list">
-                        @for (rule of rulesList; track rule) {
+                        @for (rule of rulesList(); track rule) {
                         <div class="rule-item">
                             <span class="material-symbols-outlined check">check_circle</span>
                             <p>{{ rule }}</p>
@@ -224,6 +225,11 @@
 
             @case ('standings') {
             <div class="standings-wrapper">
+                @if (groups().length > 0) {
+                <app-filter [items]="groups()" [activeValue]="activeGroup()" valueKey="id" labelKey="name"
+                    (filterChange)="onGroupChange($event)" class="group-filter mb-4" />
+                }
+
                 <!-- Desktop Table -->
                 <div class="desktop-only">
                     <ng-template #rankTemplate let-row>
@@ -238,8 +244,8 @@
                     <ng-template #teamTemplate let-row>
                         <div class="flex items-center gap-2">
                             <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
-                                [initials]="row.team.charAt(0)" />
-                            <span>{{ row.team }}</span>
+                                [initials]="row.teamName.charAt(0)" />
+                            <span>{{ row.teamName }}</span>
                         </div>
                     </ng-template>
 
@@ -252,12 +258,12 @@
                         </div>
                     </ng-template>
 
-                    <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()" />
+                    <app-table [columns]="tableColumns" [data]="groupedStandings()" [loading]="isLoading()" />
                 </div>
 
                 <!-- Mobile Shared Grid Design -->
                 <div class="mobile-data-grid">
-                    @for (s of standings(); track s.teamId; let i = $index) {
+                    @for (s of groupedStandings(); track s.teamId; let i = $index) {
                     <div class="mobile-data-card" [class.is-winner]="t.winnerTeamId === s.teamId">
                         <div class="card-mobile-header">
                             <div class="title-group items-center">
@@ -268,8 +274,8 @@
                                     {{ i + 1 }}
                                 </div>
                                 <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                    [initials]="s.team.charAt(0)" />
-                                <h4>{{ s.team }}</h4>
+                                    [initials]="s.teamName.charAt(0)" />
+                                <h4>{{ s.teamName }}</h4>
                             </div>
                             <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">
                                 {{ s.points }} نقطة
@@ -281,15 +287,18 @@
                                     }}</span></div>
                             <div class="stat-box highlight"><span class="label">فاز</span><span class="value">{{ s.won
                                     }}</span></div>
-                            <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.draw
+                            <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.drawn
                                     }}</span></div>
                             <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost }}</span>
                             </div>
-                            <div class="stat-box"><span class="label">له</span><span class="value">{{ s.gf }}</span>
+                            <div class="stat-box"><span class="label">له</span><span class="value">{{ s.goalsFor
+                                    }}</span>
                             </div>
-                            <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.ga }}</span>
+                            <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.goalsAgainst
+                                    }}</span>
                             </div>
-                            <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.gd }}</span>
+                            <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.goalDifference
+                                    }}</span>
                             </div>
                             <div class="stat-box highlight"><span class="label">نقاط</span><span class="value">{{
                                     s.points }}</span></div>
@@ -308,6 +317,10 @@
                     }
                 </div>
             </div>
+            }
+
+            @case ('bracket') {
+            <app-knockout-bracket [rounds]="liveBracket()?.rounds || []"></app-knockout-bracket>
             }
 
             @case ('matches') {

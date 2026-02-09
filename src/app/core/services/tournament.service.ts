@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse } from '../models/tournament.model';
+import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -79,8 +79,18 @@ export class TournamentService {
         return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
     }
 
-    getStandings(tournamentId: string): Observable<TournamentStanding[]> {
-        return this.http.get<TournamentStanding[]>(`${this.apiUrl}/${tournamentId}/standings`);
+    getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
+        const params: any = {};
+        if (groupId) params.groupId = groupId;
+        return this.http.get<TournamentStanding[]>(`${this.apiUrl}/${tournamentId}/standings`, { params });
+    }
+
+    getGroups(tournamentId: string): Observable<Group[]> {
+        return this.http.get<Group[]>(`${this.apiUrl}/${tournamentId}/groups`);
+    }
+
+    getBracket(tournamentId: string): Observable<BracketDto> {
+        return this.http.get<BracketDto>(`${this.apiUrl}/${tournamentId}/bracket`);
     }
 
     // Helper methods (mock replacement)

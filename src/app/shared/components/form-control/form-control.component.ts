@@ -37,6 +37,7 @@ export class FormControlComponent implements ControlValueAccessor {
     @Input() control?: AbstractControl | null;
     @Input() disabled = false;
     @Input() min?: number | string;
+    @Input() options?: { value: any, label: string }[] = [];
 
     // Password visibility toggle state
     passwordVisible = false;

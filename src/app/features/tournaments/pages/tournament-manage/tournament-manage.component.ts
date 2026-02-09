@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
-import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, SeedingMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -27,6 +27,7 @@ import { AdminLayoutService } from '../../../../core/services/admin-layout.servi
 })
 export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
+    // ... (rest of injects same)
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly tournamentService = inject(TournamentService);
@@ -47,10 +48,41 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         location: ['', [Validators.required]],
         entryFee: [0, [Validators.required, Validators.min(0)]],
         rules: ['', [Validators.required]],
-        prizes: ['', [Validators.required]]
+        prizes: ['', [Validators.required]],
+        format: [TournamentFormat.RoundRobin, [Validators.required]],
+        matchType: [TournamentLegType.SingleLeg, [Validators.required]],
+        isHomeAwayEnabled: [false],
+        seedingMode: [SeedingMode.ShuffleOnly],
+        numberOfGroups: [0],
+        qualifiedTeamsPerGroup: [0],
+
+        // Payment
+        walletNumber: [''],
+        walletLabel: ['محفظة إلكترونية'],
+        instaPayNumber: [''],
+        instaPayLabel: ['InstaPay']
     });
 
+    formats = [
+        { value: TournamentFormat.RoundRobin, label: 'دوري كامل (Round Robin)' },
+        { value: TournamentFormat.GroupsThenKnockout, label: 'مجموعات ثم إقصائيات' },
+        { value: TournamentFormat.KnockoutOnly, label: 'خروج المغلوب (Knockout)' },
+        { value: TournamentFormat.GroupsWithHomeAwayKnockout, label: 'مجموعات + إقصائيات ذهاب وعودة' }
+    ];
+
+    matchTypes = [
+        { value: TournamentLegType.SingleLeg, label: 'مباراة واحدة' },
+        { value: TournamentLegType.HomeAndAway, label: 'ذهاب وعودة' }
+    ];
+
+    seedingModes = [
+        { value: SeedingMode.ShuffleOnly, label: 'عشوائي بالكامل (Shuffle)' },
+        { value: SeedingMode.Manual, label: 'يدوي (قريباً)' }, // Placeholder
+        { value: SeedingMode.RankBased, label: 'حسب التصنيف' }
+    ];
+
     ngOnInit(): void {
+        this.setupValidators();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.isEditMode.set(true);
@@ -60,6 +92,26 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         this.updateLayout();
     }
 
+    private setupValidators() {
+        this.tournamentForm.get('format')?.valueChanges.subscribe(format => {
+            const groupsControl = this.tournamentForm.get('numberOfGroups');
+            const qualifiedControl = this.tournamentForm.get('qualifiedTeamsPerGroup');
+
+            const needsGroups = (format === TournamentFormat.GroupsThenKnockout || format === TournamentFormat.GroupsWithHomeAwayKnockout);
+
+            if (needsGroups) {
+                groupsControl?.setValidators([Validators.required, Validators.min(1)]);
+                qualifiedControl?.setValidators([Validators.required, Validators.min(1), Validators.max(3)]);
+            } else {
+                groupsControl?.clearValidators();
+                qualifiedControl?.clearValidators();
+            }
+            groupsControl?.updateValueAndValidity();
+            qualifiedControl?.updateValueAndValidity();
+        });
+    }
+
+    // ... (updateLayout same)
     private updateLayout(): void {
         this.adminLayout.setTitle(this.isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة');
         this.adminLayout.setSubtitle(this.isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل');
@@ -73,6 +125,20 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     loadTournament(id: string): void {
         this.tournamentService.getTournamentById(id).subscribe(tournament => {
             if (tournament) {
+                // Parse Payment JSON if exists to fill legacy/new fields
+                let walletLabel = 'محفظة إلكترونية';
+                let instaLabel = 'InstaPay';
+
+                if (tournament.paymentMethodsJson) {
+                    try {
+                        const methods: PaymentMethodConfig[] = JSON.parse(tournament.paymentMethodsJson);
+                        const wallet = methods.find(m => m.type === 'E_WALLET');
+                        const insta = methods.find(m => m.type === 'INSTAPAY');
+                        if (wallet) walletLabel = wallet.label;
+                        if (insta) instaLabel = insta.label;
+                    } catch (e) { console.error('Error parsing payment json', e); }
+                }
+
                 this.tournamentForm.patchValue({
                     name: tournament.name,
                     description: tournament.description,
@@ -83,7 +149,17 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                     location: tournament.location,
                     entryFee: tournament.entryFee,
                     rules: tournament.rules,
-                    prizes: tournament.prizes
+                    prizes: tournament.prizes,
+                    format: tournament.format || TournamentFormat.RoundRobin,
+                    matchType: tournament.matchType || TournamentLegType.SingleLeg,
+                    isHomeAwayEnabled: tournament.isHomeAwayEnabled || false,
+                    seedingMode: tournament.seedingMode || SeedingMode.ShuffleOnly,
+                    numberOfGroups: tournament.numberOfGroups || 0,
+                    qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
+                    walletNumber: tournament.walletNumber || '',
+                    walletLabel: walletLabel,
+                    instaPayNumber: tournament.instaPayNumber || '',
+                    instaPayLabel: instaLabel
                 });
             }
         });
@@ -102,6 +178,16 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
 
         this.isSubmitting.set(true);
         const formValue = this.tournamentForm.value;
+
+        // Construct Payment JSON
+        const paymentMethods: PaymentMethodConfig[] = [];
+        if (formValue.walletNumber) {
+            paymentMethods.push({ type: 'E_WALLET', label: formValue.walletLabel || 'محفظة', accountNumber: formValue.walletNumber });
+        }
+        if (formValue.instaPayNumber) {
+            paymentMethods.push({ type: 'INSTAPAY', label: formValue.instaPayLabel || 'InstaPay', accountNumber: formValue.instaPayNumber });
+        }
+
         const tournamentData: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'> = {
             name: formValue.name,
             description: formValue.description,
@@ -113,10 +199,19 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             entryFee: formValue.entryFee,
             rules: formValue.rules,
             prizes: formValue.prizes,
-            status: TournamentStatus.DRAFT, // Default for new, will be ignored/overridden by backend if updating
+            format: formValue.format,
+            matchType: formValue.matchType,
+            numberOfGroups: formValue.numberOfGroups || 0,
+            qualifiedTeamsPerGroup: formValue.qualifiedTeamsPerGroup || 0,
+            walletNumber: formValue.walletNumber,
+            instaPayNumber: formValue.instaPayNumber,
+            isHomeAwayEnabled: formValue.isHomeAwayEnabled,
+            seedingMode: formValue.seedingMode,
+            paymentMethodsJson: JSON.stringify(paymentMethods),
+            status: TournamentStatus.DRAFT,
             currentTeams: 0,
             registrations: [],
-            adminId: '' // Will be set by backend from auth context
+            adminId: ''
         };
 
         if (this.isEditMode()) {

@@ -1,0 +1,78 @@
+<div class="bracket-container" *ngIf="processedRounds.length > 0; else emptyState">
+    <div class="bracket-scroll-view">
+        <div class="bracket-tree">
+            <div class="bracket-round" *ngFor="let round of processedRounds; let i = index; let last = last">
+                <div class="round-header" [class.is-final]="last">
+                    <h3>{{ round.name }}</h3>
+                    <span class="pairing-count" *ngIf="!last">{{ round.pairings.length }} مباريات</span>
+                    <span class="pairing-count" *ngIf="last">مباراة التتويج</span>
+                </div>
+
+                <div class="pairings-container">
+                    <div class="pairing-node" *ngFor="let pair of round.pairings; let pIdx = index"
+                        [class.has-next]="!last" [class.is-even]="pIdx % 2 === 0" [class.is-odd]="pIdx % 2 !== 0">
+
+                        <div class="match-card" (click)="viewMatch(pair)" [class.is-live]="pair.status === 'Live'"
+                            [class.is-finished]="pair.status === 'Finished'">
+
+                            <!-- Team Home -->
+                            <div class="team-row" [class.is-winner]="isWinner(pair, pair.homeTeamId)">
+                                <div class="team-info">
+                                    <app-smart-image [src]="pair.homeLogo" type="team" size="xs"
+                                        [initials]="(pair.homeTeamName || 'T').charAt(0)"></app-smart-image>
+                                    <div class="labels">
+                                        <span class="name">{{ pair.homeTeamName || 'بانتظار المتأهل' }}</span>
+                                    </div>
+                                </div>
+                                <div class="score-box">
+                                    <span class="score">{{ getScore(pair, pair.homeTeamId) }}</span>
+                                    <span class="winner-indicator" *ngIf="isWinner(pair, pair.homeTeamId)">
+                                        <span class="material-symbols-outlined">star</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="card-divider"></div>
+
+                            <!-- Team Away -->
+                            <div class="team-row" [class.is-winner]="isWinner(pair, pair.awayTeamId)">
+                                <div class="team-info">
+                                    <app-smart-image [src]="pair.awayLogo" type="team" size="xs"
+                                        [initials]="(pair.awayTeamName || 'T').charAt(0)"></app-smart-image>
+                                    <div class="labels">
+                                        <span class="name">{{ pair.awayTeamName || 'بانتظار المتأهل' }}</span>
+                                    </div>
+                                </div>
+                                <div class="score-box">
+                                    <span class="score">{{ getScore(pair, pair.awayTeamId) }}</span>
+                                    <span class="winner-indicator" *ngIf="isWinner(pair, pair.awayTeamId)">
+                                        <span class="material-symbols-outlined">star</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Live Indicator Overlay -->
+                            <div class="live-status" *ngIf="pair.status === 'Live'">
+                                <span class="pulse-dot"></span>
+                                بث مباشر
+                            </div>
+                        </div>
+
+                        <!-- Connector Lines (Visual Only) -->
+                        <div class="connector-out" *ngIf="!last"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #emptyState>
+    <div class="empty-bracket-state">
+        <div class="icon-wrapper">
+            <span class="material-symbols-outlined">account_tree</span>
+        </div>
+        <h3>لا يوجد جدول حالياً</h3>
+        <p>سيتم عرض مواجهات الأدوار الإقصائية هنا فور اكتمال دور المجموعات وإجراء القرعة.</p>
+    </div>
+</ng-template>

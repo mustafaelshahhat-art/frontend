@@ -111,7 +111,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             next: (data) => {
                 // Transform analytics activities to store format
                 const storeActivities: StoreActivity[] = data.map(activity => ({
-                    id: crypto.randomUUID(),
+                    id: this.generateUUID(),
                     userId: '',
                     userName: activity.userName || 'System',
                     action: activity.action || activity.type,
@@ -156,6 +156,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     private updateLiveMatchesFromStore(): void {
         this.liveMatches = this.matchStore.ongoingMatches();
+    }
+
+    private generateUUID(): string {
+        try {
+            if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                return crypto.randomUUID();
+            }
+        } catch (e) {
+            // Fallback for secure context restrictions
+        }
+
+        // Fallback for non-secure contexts (e.g. http://0.0.0.0)
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
     }
 
     navigateTo(path: string): void {

@@ -44,11 +44,26 @@ export class TeamRegistrationModalComponent {
         receipt: null as File | null
     };
 
-    transferOptions: SelectOption[] = [
-        { label: 'STC Pay', value: 'STC Pay', icon: 'payments' },
-        { label: 'Urpay', value: 'Urpay', icon: 'credit_card' },
-        { label: 'تحويل بنكي', value: 'Bank Transfer', icon: 'account_balance' }
-    ];
+    get transferOptions(): SelectOption[] {
+        if (!this.tournament) return [];
+        const options: SelectOption[] = [];
+
+        if (this.tournament.walletNumber) {
+            options.push({ label: `محفظة إلكترونية (${this.tournament.walletNumber})`, value: 'Wallet', icon: 'account_balance_wallet' });
+        }
+
+        if (this.tournament.instaPayNumber) {
+            options.push({ label: `InstaPay (${this.tournament.instaPayNumber})`, value: 'InstaPay', icon: 'currency_exchange' });
+        }
+
+        if (options.length === 0) {
+            options.push({ label: 'تحويل بنكي', value: 'Bank Transfer', icon: 'account_balance' });
+        } else {
+            options.push({ label: 'أخرى', value: 'Other', icon: 'payments' });
+        }
+
+        return options;
+    }
 
     close(): void {
         this.isVisible = false;

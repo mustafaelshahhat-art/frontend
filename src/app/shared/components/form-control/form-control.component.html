@@ -18,6 +18,12 @@
         <textarea [id]="id" [rows]="rows" [placeholder]="placeholder" [value]="value" [disabled]="disabled"
             (input)="onInput($event)" (blur)="onBlur()" class="form-input textarea-control">
             </textarea>
+        } @else if (type === 'select') {
+            <select [id]="id" [value]="value" [disabled]="disabled" (change)="onInput($event)" (blur)="onBlur()" class="form-input form-select">
+                @for (option of options; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                }
+            </select>
         } @else {
         <input [id]="id" [type]="inputType" [placeholder]="placeholder" [value]="value" [disabled]="disabled"
             [attr.min]="min" (input)="onInput($event)" (blur)="onBlur()" class="form-input"

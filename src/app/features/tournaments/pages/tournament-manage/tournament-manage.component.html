@@ -36,11 +36,66 @@
                     </div>
                 </app-card>
 
+                <!-- Tournament System -->
+                <app-card title="نظام البطولة" class="form-section">
+                    <div class="fields-grid">
+                        <app-form-control label="نظام البطولة" iconLeft="settings" type="select" [options]="formats"
+                            formControlName="format" [control]="tournamentForm.get('format')" />
+
+                        <app-form-control label="نظام القرعة والتصنيف" iconLeft="shuffle" type="select"
+                            [options]="seedingModes" formControlName="seedingMode"
+                            [control]="tournamentForm.get('seedingMode')" />
+
+                        <div class="checkbox-wrapper"
+                            style="display: flex; align-items: center; gap: 10px; margin-top: 28px;">
+                            <input type="checkbox" id="isHomeAwayEnabled" formControlName="isHomeAwayEnabled">
+                            <label for="isHomeAwayEnabled">تفعيل الذهاب والعودة (للمجموعات)</label>
+                        </div>
+
+                        <!-- Legacy MatchType kept if needed or can be hidden if IsHomeAwayEnabled replaces it for groups -->
+                        <app-form-control label="نوع المباريات (الافتراضي)" iconLeft="sports_soccer" type="select"
+                            [options]="matchTypes" formControlName="matchType"
+                            [control]="tournamentForm.get('matchType')" />
+
+                        @if (tournamentForm.get('format')?.value === 'GroupsThenKnockout' ||
+                        tournamentForm.get('format')?.value === 'GroupsWithHomeAwayKnockout') {
+                        <app-form-control label="عدد المجموعات" iconLeft="grid_view" type="number"
+                            formControlName="numberOfGroups" [control]="tournamentForm.get('numberOfGroups')" />
+
+                        <app-form-control label="المتأهلين من كل مجموعة" iconLeft="filter_1" type="number"
+                            formControlName="qualifiedTeamsPerGroup"
+                            [control]="tournamentForm.get('qualifiedTeamsPerGroup')" placeholder="1, 2, أو 3" />
+                        }
+                    </div>
+                </app-card>
+
                 <!-- Financials & Rules -->
                 <app-card title="الرسوم والقوانين" class="form-section">
                     <div class="fields-grid">
                         <app-form-control label="رسوم الاشتراك (ريال)" iconLeft="payments" type="number"
                             formControlName="entryFee" [control]="tournamentForm.get('entryFee')" />
+
+                        <!-- Wallet -->
+                        <div class="payment-group" style="display: contents;">
+                            <app-form-control label="اسم وسيلة الدفع 1 (محفظة)" iconLeft="label"
+                                formControlName="walletLabel" [control]="tournamentForm.get('walletLabel')"
+                                placeholder="فودافون كاش" />
+
+                            <app-form-control label="رقم المحفظة" iconLeft="account_balance_wallet"
+                                formControlName="walletNumber" [control]="tournamentForm.get('walletNumber')"
+                                placeholder="01xxxxxxxxx" />
+                        </div>
+
+                        <!-- InstaPay -->
+                        <div class="payment-group" style="display: contents;">
+                            <app-form-control label="اسم وسيلة الدفع 2 (InstaPay)" iconLeft="label"
+                                formControlName="instaPayLabel" [control]="tournamentForm.get('instaPayLabel')"
+                                placeholder="InstaPay" />
+
+                            <app-form-control label="عنوان الدفع (VPA)" iconLeft="currency_exchange"
+                                formControlName="instaPayNumber" [control]="tournamentForm.get('instaPayNumber')"
+                                placeholder="user@instapay" />
+                        </div>
 
                         <app-form-control label="قوانين البطولة" iconLeft="gavel" type="textarea" class="full-width"
                             formControlName="rules" [control]="tournamentForm.get('rules')" [rows]="4"
