@@ -4,13 +4,14 @@
     margin-inline: auto;
     min-height: 100%;
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-1) var(--space-4);
     }
 }
 
-.page-content {
-    gap: var(--space-2) !important; // Tighten everything
+// Increase specificity to override shared layout defaults
+:host .page-content {
+    gap: var(--space-2);
 }
 
 .filter-section {
@@ -91,13 +92,13 @@
             justify-content: space-between;
             align-items: center;
 
-            .label {
+            .detail-row .label {
                 font-size: var(--text-xs);
                 color: var(--text-muted);
                 font-weight: var(--font-bold);
             }
 
-            .value {
+            .detail-row .value {
                 font-size: var(--text-sm);
                 font-weight: var(--font-bold);
                 color: var(--text-primary);
@@ -127,17 +128,18 @@
     display: none;
 }
 
-@media (max-width: 768px) {
+@media (width <=768px) {
     .page-container {
         padding: var(--space-4);
     }
 
-    .hide-on-mobile {
-        display: none !important;
+    // Higher specificity for visibility helpers
+    .page-container .hide-on-mobile {
+        display: none;
     }
 
-    .show-only-mobile {
-        display: block !important;
+    .page-container .show-only-mobile {
+        display: block;
     }
 
     .mobile-teams-list {

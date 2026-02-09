@@ -29,6 +29,7 @@
   --color-gold: #f59e0b;
   --color-gold-light: #fbbf24;
   --color-gold-lighter: #fcd34d;
+  --color-gold-vibrant: #faab1a;
   --color-gold-dark: #d97706;
   --color-gold-darker: #b45309;
   --color-gold-5: rgba(245, 158, 11, 0.05);
@@ -44,6 +45,12 @@
   --color-secondary-dark: #4f46e5;
   --color-secondary-10: rgba(99, 102, 241, 0.1);
   --color-secondary-20: rgba(99, 102, 241, 0.2);
+  --color-white: #ffffff;
+  --color-white-rgb: 255, 255, 255;
+  --color-white-5: rgba(255, 255, 255, 0.05);
+  --color-white-10: rgba(255, 255, 255, 0.1);
+  --color-white-20: rgba(255, 255, 255, 0.2);
+  --shadow-none: none;
 
   // Info - Blue - Improved clarity
   --color-info: #3b82f6;
@@ -111,6 +118,7 @@
   --text-primary: #f8fafc;
   --text-secondary: #b0bec5;
   --text-muted: #8b9aab;
+  --text-dark-muted: #64748b;
   --text-disabled: #5a6a7a;
   --text-inverse: #0f172a;
   --text-accent: var(--color-primary-light);
@@ -177,6 +185,7 @@
   --text-xl: 1.25rem;
   --text-xl-plus: 1.375rem;
   --text-2xl: 1.5rem;
+  --text-2xl-lg: 1.75rem;
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
@@ -184,6 +193,7 @@
   --text-hero: 2.5rem;
   --text-subtitle: 1.125rem;
   --text-brand: 1.25rem;
+  --text-tiny: 0.6875rem;
 
   // Line Heights - Better readability
   --leading-none: 1;
@@ -224,7 +234,9 @@
   --space-11: 2.75rem;
   --space-12: 3rem;
   --space-14: 3.5rem;
+  --space-15: 3.75rem;
   --space-16: 4rem;
+  --space-18: 4.5rem;
   --space-20: 5rem;
   --space-24: 6rem;
   --space-28: 7rem;
@@ -268,6 +280,9 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.28), 0 6px 12px rgba(0, 0, 0, 0.14);
   --shadow-2xl: 0 24px 56px rgba(0, 0, 0, 0.32), 0 8px 16px rgba(0, 0, 0, 0.16);
+  --shadow-header: 0 4px 30px rgba(0, 0, 0, 0.1);
+  --shadow-glow-emerald: 0 0 10px var(--color-primary);
+  --shadow-glow-gold-soft: 0 0 20px rgb(255 215 0 / 10%);
 
   // Glow shadows - More vibrant
   --shadow-glow: 0 0 20px var(--color-primary-20), 0 0 6px var(--color-primary-30);
@@ -277,6 +292,8 @@
   --shadow-glow-gold: 0 0 24px var(--color-gold-10), 0 0 8px var(--color-gold-20);
   --shadow-glow-danger: 0 0 24px var(--color-danger-10), 0 0 8px var(--color-danger-20);
   --shadow-glow-info: 0 0 24px var(--color-info-10), 0 0 8px var(--color-info-20);
+  --shadow-outline-primary: 0 0 0 1px var(--color-primary);
+  --shadow-glow-soft: 0 0 10px var(--color-primary-20);
 
   // Component shadows
   --shadow-input-focus: 0 0 0 3px var(--color-primary-10), 0 0 0 1px var(--color-primary-30);
@@ -287,6 +304,20 @@
   --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.28), 0 6px 12px rgba(0, 0, 0, 0.16);
   --shadow-card-premium: 0 20px 40px rgba(0, 0, 0, 0.35), 0 8px 16px rgba(0, 0, 0, 0.2);
   --shadow-dropdown: 0 16px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-inset-sm: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-inset-lg: inset 0 0 50px rgba(0, 0, 0, 0.25);
+  --shadow-inset-badge: inset 0 0 20px var(--bg-overlay-dark);
+  --shadow-winner-glow: inset 0 0 50px rgb(0 0 0 / 30%), 0 0 30px rgb(255 215 0 / 30%);
+  --shadow-glow-success-tiny: 0 0 8px var(--color-success);
+  --shadow-glow-info-tiny: 0 0 8px var(--color-info);
+  --shadow-glow-gold-tiny: 0 0 8px var(--color-gold);
+  --shadow-glow-warning-tiny: 0 0 8px var(--color-warning);
+  --shadow-glow-success-soft: 0 4px 12px rgba(16, 185, 129, 0.4);
+  --shadow-glow-info-soft: 0 4px 12px rgba(59, 130, 246, 0.4);
+  --shadow-glow-warning-soft: 0 4px 12px rgba(245, 158, 11, 0.4);
+  --shadow-glow-danger-soft: 0 0 15px rgba(239, 68, 68, 0.3);
+  --shadow-glow-primary-sharp: 0 0 15px var(--color-primary-20);
+  --shadow-glow-primary-tiny: 0 0 10px var(--color-primary-20);
 
   --text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   --text-shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -348,6 +379,7 @@
   --container-max: 1400px;
   --width-content-max: 1400px;
   --width-form-max: 640px;
+  --width-form-md: 500px;
   --width-sidebar: 280px;
   --width-sidebar-collapsed: 80px;
   --height-header: 64px;
@@ -364,6 +396,8 @@
   --height-avatar-sm: 32px;
   --height-avatar-md: 40px;
   --height-avatar-lg: 56px;
+  --width-sidebar-wide: 380px;
+  --height-avatar-2xl: 120px;
   --height-avatar-xl: 80px;
 
   --height-icon-sm: 32px;

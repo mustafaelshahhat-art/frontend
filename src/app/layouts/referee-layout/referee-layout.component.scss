@@ -7,7 +7,7 @@
 // ==========================================================================
 
 .referee-page-container {
-    padding: var(--space-xl, 24px);
+    padding: var(--space-6);
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -15,8 +15,8 @@
 .referee-page-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl, 24px);
-    margin-top: -24px; // Pull content closer to header
+    gap: var(--space-6);
+    margin-top: calc(var(--space-6) * -1); // Pull content closer to header
 }
 
 .referee-toolbar {
@@ -36,27 +36,27 @@
 // ==========================================================================
 
 .pending-banner {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: 16px;
-    margin: 1.5rem 1.5rem 0 1.5rem;
+    background: linear-gradient(135deg, rgb(245 158 11 / 10%), rgb(245 158 11 / 5%));
+    border: 1px solid var(--color-warning-20);
+    border-radius: var(--radius-xl);
+    margin: 1.5rem 1.5rem 0;
     padding: 1rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     backdrop-filter: blur(8px);
-    color: #92400e;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.05);
+    color: var(--color-warning-dark);
+    box-shadow: var(--shadow-sm);
 
     .pending-badge {
-        background: #fef3c7;
-        color: #d97706;
-        padding: 0.25rem 0.75rem;
-        border-radius: 100px;
+        background: var(--color-warning-10);
+        color: var(--color-warning);
+        padding: var(--space-1) var(--space-3);
+        border-radius: var(--radius-full);
         font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
-        border: 1px solid rgba(217, 119, 6, 0.1);
+        border: 1px solid rgb(217 119 6 / 10%);
     }
 
     // ... other button styles ...
@@ -66,7 +66,7 @@
 // RESPONSIVE ADJUSTMENTS
 // ==========================================================================
 
-@media (max-width: 991.98px) {
+@media (width <=991.98px) {
     .pending-banner {
         margin: 1rem;
         flex-direction: column;
@@ -79,29 +79,29 @@
     }
 
     .referee-page-container {
-        padding: var(--space-lg, 20px) var(--space-md, 16px);
+        padding: var(--space-5) var(--space-4);
     }
 }
 
-@media (max-width: 768px) {
+@media (width <=768px) {
     .referee-page-container {
-        padding: var(--space-md, 16px);
+        padding: var(--space-4);
     }
 
     .referee-page-content {
-        gap: var(--space-lg, 20px);
-        margin-top: -16px;
+        gap: var(--space-5);
+        margin-top: calc(var(--space-4) * -1);
     }
 }
 
-@media (max-width: 480px) {
+@media (width <=480px) {
     .referee-page-container {
-        padding: var(--space-sm, 12px);
+        padding: var(--space-3);
     }
 
     .referee-page-content {
-        gap: var(--space-md, 16px);
-        margin-top: -12px;
+        gap: var(--space-4);
+        margin-top: calc(var(--space-3) * -1);
     }
 
     .referee-toolbar {

@@ -54,7 +54,7 @@
     transition: var(--transition-base);
 
     .material-symbols-outlined {
-        font-size: 22px;
+        font-size: var(--text-xl);
     }
 
     &.primary {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
+import { Observable, BehaviorSubject, debounceTime, distinctUntilChanged, switchMap, of, map, shareReplay, finalize, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface SearchResult {
@@ -24,39 +24,34 @@ export class SearchService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/search`;
 
-    private searchQuery$ = new BehaviorSubject<string>('');
-    private isSearching$ = new BehaviorSubject<boolean>(false);
-    private searchResults$ = new BehaviorSubject<SearchResult[]>([]);
+    private readonly searchQuery$ = new BehaviorSubject<string>('');
+    private readonly isSearchingSubject$ = new BehaviorSubject<boolean>(false);
+
+    public readonly isSearching$: Observable<boolean> = this.isSearchingSubject$.asObservable();
+
+    public readonly searchResults$: Observable<SearchResult[]> = this.searchQuery$.pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(query => {
+            if (!query || query.trim().length < 2) {
+                return of({ results: [], totalCount: 0 } as SearchResponse);
+            }
+            this.isSearchingSubject$.next(true);
+            return this.performSearch(query).pipe(
+                catchError(() => of({ results: [], totalCount: 0 } as SearchResponse)),
+                finalize(() => this.isSearchingSubject$.next(false))
+            );
+        }),
+        map(response => response.results),
+        shareReplay(1)
+    );
 
     get isSearching(): Observable<boolean> {
-        return this.isSearching$.asObservable();
+        return this.isSearching$;
     }
 
     get searchResults(): Observable<SearchResult[]> {
-        return this.searchResults$.asObservable();
-    }
-
-    constructor() {
-        this.searchQuery$.pipe(
-            debounceTime(300),
-            distinctUntilChanged(),
-            switchMap(query => {
-                if (!query || query.trim().length < 2) {
-                    return of({ results: [], totalCount: 0 } as SearchResponse);
-                }
-                this.isSearching$.next(true);
-                return this.performSearch(query);
-            })
-        ).subscribe({
-            next: (response) => {
-                this.searchResults$.next(response.results);
-                this.isSearching$.next(false);
-            },
-            error: () => {
-                this.searchResults$.next([]);
-                this.isSearching$.next(false);
-            }
-        });
+        return this.searchResults$;
     }
 
     search(query: string): void {
@@ -65,7 +60,6 @@ export class SearchService {
 
     clearSearch(): void {
         this.searchQuery$.next('');
-        this.searchResults$.next([]);
     }
 
     private performSearch(query: string): Observable<SearchResponse> {

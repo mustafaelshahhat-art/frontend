@@ -67,8 +67,7 @@ interface ExtendedTeam extends Team {
             (addPlayer)="onAddPlayerClick($event)"
             (tabChanged)="handleTabChange($event)"
             (respondRequest)="handleRespondRequest($event)"
-            (deleteTeam)="handleDeleteTeam()">
-        </app-team-detail>
+            (deleteTeam)="handleDeleteTeam()" />
     </div>
 }
 

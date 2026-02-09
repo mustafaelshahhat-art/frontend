@@ -15,15 +15,13 @@
     @if (isPending()) {
     <app-pending-status-card title="حسابك قيد المراجعة"
         message="عذراً، لا يمكنك الوصول لإعدادات الحساب حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-        (refreshRequest)="refreshStatus()">
-    </app-pending-status-card>
+        (refreshRequest)="refreshStatus()" />
     } @else {
     <!-- Main Content (only when not pending) -->
     <div class="profile-nav-wrapper">
         <app-filter
             [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
-            [activeValue]="activeSection" (filterChange)="setActiveSection($event)">
-        </app-filter>
+            [activeValue]="activeSection" (filterChange)="setActiveSection($event)" />
     </div>
 
     <div class="profile-container">
@@ -36,12 +34,11 @@
                     [tabindex]="isEditing ? 0 : -1" [attr.role]="isEditing ? 'button' : undefined"
                     aria-label="تغيير الصورة الشخصية">
                     <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
-                        class="avatar-image" [initials]="userInitial">
-                    </app-smart-image>
+                        class="avatar-image" [initials]="userInitial" />
 
                     @if (isUploadingPicture) {
                     <div class="uploading-overlay">
-                        <app-inline-loading></app-inline-loading>
+                        <app-inline-loading />
                     </div>
                     }
 
@@ -84,56 +81,48 @@
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <app-form-control formControlName="name" label="الاسم الكامل"
-                                [control]="profileForm.get('name')" [disabled]="isFormDisabled">
-                            </app-form-control>
+                                [control]="profileForm.get('name')" [disabled]="isFormDisabled" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
-                                [control]="profileForm.get('email')" [disabled]="isFormDisabled">
-                            </app-form-control>
+                                [control]="profileForm.get('email')" [disabled]="isFormDisabled" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
-                                type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled">
-                            </app-form-control>
+                                type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
-                                [control]="profileForm.get('username')">
-                            </app-form-control>
+                                [control]="profileForm.get('username')" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)" [disabled]="true"
-                                [control]="profileForm.get('nationalId')">
-                            </app-form-control>
+                                [control]="profileForm.get('nationalId')" />
                         </div>
 
                         <div class="form-group">
                             <app-select [options]="governorateOptions" [ngModel]="profileForm.get('governorate')?.value"
                                 (ngModelChange)="onGovernorateChange($event)" label="المحافظة"
                                 placeholder="اختر المحافظة" [disabled]="isFormDisabled"
-                                [ngModelOptions]="{standalone: true}">
-                            </app-select>
+                                [ngModelOptions]="{standalone: true}" />
                         </div>
 
                         <div class="form-group">
                             <app-select [options]="cityOptions" [ngModel]="profileForm.get('city')?.value"
                                 (ngModelChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
                                 [disabled]="isFormDisabled || !profileForm.get('governorate')?.value"
-                                [ngModelOptions]="{standalone: true}">
-                            </app-select>
+                                [ngModelOptions]="{standalone: true}" />
                         </div>
 
                         <div class="form-group">
                             <app-select [options]="districtOptions" [ngModel]="profileForm.get('neighborhood')?.value"
                                 (ngModelChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
                                 [disabled]="isFormDisabled || !profileForm.get('city')?.value"
-                                [ngModelOptions]="{standalone: true}">
-                            </app-select>
+                                [ngModelOptions]="{standalone: true}" />
                         </div>
                     </div>
 
@@ -157,21 +146,18 @@
                         <div class="form-group">
                             <app-form-control formControlName="currentPassword" label="كلمة المرور الحالية"
                                 type="password" placeholder="أدخل كلمة المرور الحالية"
-                                [control]="passwordForm.get('currentPassword')">
-                            </app-form-control>
+                                [control]="passwordForm.get('currentPassword')" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="newPassword" label="كلمة المرور الجديدة" type="password"
-                                placeholder="6 أحرف على الأقل" [control]="passwordForm.get('newPassword')">
-                            </app-form-control>
+                                placeholder="6 أحرف على الأقل" [control]="passwordForm.get('newPassword')" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="confirmPassword" label="تأكيد كلمة المرور الجديدة"
                                 type="password" placeholder="أعد إدخال كلمة المرور"
-                                [control]="passwordForm.get('confirmPassword')">
-                            </app-form-control>
+                                [control]="passwordForm.get('confirmPassword')" />
                         </div>
                     </div>
 

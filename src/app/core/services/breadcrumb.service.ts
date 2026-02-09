@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, Observable, filter } from 'rxjs';
+import { Observable, filter, map, startWith, shareReplay } from 'rxjs';
 
 export interface Breadcrumb {
     label: string;
@@ -15,19 +15,15 @@ export class BreadcrumbService {
     private readonly router = inject(Router);
     private readonly activatedRoute = inject(ActivatedRoute);
 
-    private breadcrumbs$ = new BehaviorSubject<Breadcrumb[]>([]);
+    public readonly breadcrumbs$: Observable<Breadcrumb[]> = this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd),
+        startWith(null), // Trigger initially
+        map(() => this.buildBreadcrumbs(this.activatedRoute.root)),
+        shareReplay(1)
+    );
 
     get breadcrumbs(): Observable<Breadcrumb[]> {
-        return this.breadcrumbs$.asObservable();
-    }
-
-    constructor() {
-        this.router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
-        ).subscribe(() => {
-            const breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
-            this.breadcrumbs$.next(breadcrumbs);
-        });
+        return this.breadcrumbs$;
     }
 
     private buildBreadcrumbs(route: ActivatedRoute, url = '', breadcrumbs: Breadcrumb[] = []): Breadcrumb[] {
@@ -38,6 +34,9 @@ export class BreadcrumbService {
         }
 
         for (const child of children) {
+            if (!child || !child.snapshot) {
+                continue;
+            }
             const routeURL = child.snapshot.url.map(segment => segment.path).join('/');
             if (routeURL !== '') {
                 url += `/${routeURL}`;

@@ -6,20 +6,19 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-3) var(--space-lg);
-    background: rgba(19, 27, 46, 0.85); // slightly more transparent for glass
-    backdrop-filter: blur(12px); // stronger blur
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    background: rgb(19 27 46 / 85%); // slightly more transparent for glass // stronger blur
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgb(255 255 255 / 8%);
+    box-shadow: var(--shadow-header);
     min-height: var(--height-header);
     flex-shrink: 0;
     width: 100%;
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-2) var(--space-md);
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-2) var(--space-sm);
         min-height: 56px;
     }
@@ -31,7 +30,7 @@
         gap: var(--space-4);
         min-width: 0;
 
-        @media (max-width: 768px) {
+        @media (width <=768px) {
             gap: var(--space-2);
         }
     }
@@ -42,11 +41,11 @@
     font-weight: var(--font-bold);
     color: var(--text-primary);
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         font-size: var(--text-sm);
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         font-size: var(--text-xs);
     }
 }
@@ -56,7 +55,7 @@
     align-items: center;
     gap: var(--space-2);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         gap: var(--space-1);
     }
 }
@@ -75,13 +74,13 @@
     transition: var(--transition-base);
     position: relative;
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         width: 34px;
         height: 34px;
         border-radius: var(--radius-lg);
 
         .material-symbols-outlined {
-            font-size: 18px;
+            font-size: var(--text-lg);
             transition: transform 0.3s ease;
         }
 
@@ -130,12 +129,12 @@
     flex-shrink: 0;
     transition: var(--transition-base);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         width: 34px;
         height: 34px;
 
         .material-symbols-outlined {
-            font-size: 20px;
+            font-size: var(--text-xl);
         }
     }
 

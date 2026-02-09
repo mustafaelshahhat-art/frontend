@@ -191,7 +191,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         return this.notificationStore.notifications().filter(n => !n.isRead).length;
     }
 
-    trackByNotification(index: number, item: Notification): string {
+    trackByNotification(_index: number, item: Notification): string {
         return item.id;
     }
 }

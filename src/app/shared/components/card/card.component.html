@@ -9,20 +9,20 @@
             }
         </div>
         <div class="card-extra">
-            <ng-content select="[card-extra]"></ng-content>
+            <ng-content select="[card-extra]" />
         </div>
     </div>
     }
 
     <!-- Card Body -->
     <div class="card-body">
-        <ng-content></ng-content>
+        <ng-content />
     </div>
 
     <!-- Card Footer -->
     @if (hasFooter) {
     <div class="card-footer">
-        <ng-content select="[card-footer]"></ng-content>
+        <ng-content select="[card-footer]" />
     </div>
     }
 </div>

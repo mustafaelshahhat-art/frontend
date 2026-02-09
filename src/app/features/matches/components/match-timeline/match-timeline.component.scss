@@ -7,7 +7,7 @@
     position: relative;
     padding: var(--space-4) 0;
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         gap: var(--space-4);
     }
 }
@@ -22,7 +22,7 @@
     transform: translateX(1px);
     z-index: var(--z-base);
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         inset-inline-end: var(--space-6);
     }
 }
@@ -35,7 +35,7 @@
     width: 100%;
     z-index: var(--z-above); // Ensure events sit on top of the line
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         justify-content: flex-start;
         padding-right: var(--space-12); // Make space for the line on the right
     }
@@ -51,7 +51,7 @@
 
     flex-direction: row; // Standard
 
-    @media (min-width: 769px) {
+    @media (width >=769px) {
         justify-content: flex-end;
         padding-left: 50%;
 
@@ -71,7 +71,7 @@
 .event-row.event-away {
     flex-direction: row-reverse;
 
-    @media (min-width: 769px) {
+    @media (width >=769px) {
         justify-content: flex-end;
         padding-right: 50%; // Start from center
 
@@ -96,9 +96,9 @@
     border: 2px solid var(--bg-surface-secondary);
     position: absolute;
     right: var(--space-6); // Mobile position
-    margin-right: -4px; // Center on line
+    margin-right: calc(var(--space-1) * -1); // Center on line
 
-    @media (min-width: 769px) {
+    @media (width >=769px) {
         // Handled in specific event rows
     }
 }
@@ -112,7 +112,7 @@
     align-items: center;
     gap: var(--space-5);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
     min-width: 280px;
     max-width: 100%;
     position: relative;
@@ -121,14 +121,14 @@
     &:hover {
         transform: translateY(-3px) scale(1.01);
         border-color: var(--color-primary-40);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-lg);
 
         .card-side-indicator {
             width: 8px;
         }
     }
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-3) var(--space-4);
         gap: var(--space-4);
         width: 100%;
@@ -163,37 +163,37 @@
 .event-icon-box {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--bg-surface-light);
     color: var(--text-secondary);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-inset-sm);
     flex-shrink: 0;
 
     .material-symbols-outlined {
-        font-size: 24px;
+        font-size: var(--text-2xl);
     }
 
     &[data-type="Goal"] {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
+        background: rgb(16 185 129 / 15%);
+        color: var(--color-success);
     }
 
     &[data-type="YellowCard"] {
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
+        background: rgb(245 158 11 / 15%);
+        color: var(--color-warning);
     }
 
     &[data-type="RedCard"] {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
+        background: rgb(239 68 68 / 15%);
+        color: var(--color-danger);
     }
 
     &[data-type="Penalty"] {
-        background: rgba(59, 130, 246, 0.15);
-        color: #3b82f6;
+        background: rgb(59 130 246 / 15%);
+        color: var(--color-info);
     }
 }
 
@@ -201,21 +201,21 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
 }
 
 .event-top-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2px;
+    margin-bottom: var(--space-0-5);
 }
 
 .event-type-label {
-    font-size: 10px;
-    font-weight: 800;
+    font-size: var(--text-2xs);
+    font-weight: var(--font-black);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--tracking-wide);
     color: var(--text-muted);
 }
 
@@ -228,22 +228,22 @@
 }
 
 .team-meta {
-    margin-top: 4px;
+    margin-top: var(--space-1);
 }
 
 .team-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
+    gap: var(--space-1);
+    font-size: var(--text-2xs);
+    font-weight: var(--font-semibold);
     color: var(--text-secondary);
-    padding: 2px 8px;
+    padding: var(--space-0-5) var(--space-2);
     background: var(--bg-surface-light);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
 
     .material-symbols-outlined {
-        font-size: 14px;
+        font-size: var(--text-sm);
         opacity: 0.7;
     }
 
@@ -259,12 +259,12 @@
 }
 
 .event-time {
-    font-size: 11px;
-    font-weight: 900;
+    font-size: var(--text-2xs);
+    font-weight: var(--font-black);
     color: var(--text-secondary);
-    padding: 2px 6px;
+    padding: var(--space-0-5) var(--space-1-5);
     background: var(--bg-surface-light);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border-visible);
 }
 
@@ -278,10 +278,10 @@
 }
 
 /* Responsive Overrides */
-@media (max-width: 768px) {
+@media (width <=768px) {
     .event-card {
-        padding: 12px;
-        gap: 12px;
+        padding: var(--space-3);
+        gap: var(--space-3);
     }
 
     .event-icon-box {
@@ -289,7 +289,7 @@
         height: 40px;
 
         .material-symbols-outlined {
-            font-size: 20px;
+            font-size: var(--text-xl);
         }
     }
 }

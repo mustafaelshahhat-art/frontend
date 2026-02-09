@@ -1,7 +1,6 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)">
-    </app-filter>
+    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Actions Template -->
@@ -20,14 +19,13 @@
 <div class="flex-col gap-md">
     <!-- Loading State -->
     @if (isLoading()) {
-    <app-inline-loading message="جاري تحميل التنبيهات..."></app-inline-loading>
+    <app-inline-loading message="جاري تحميل التنبيهات..." />
     }
 
     <!-- Empty State -->
     @if (!isLoading() && notifications.length === 0) {
     <app-empty-state icon="notifications_off" title="لا توجد تنبيهات"
-        description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا.">
-    </app-empty-state>
+        description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا." />
     }
 
     <!-- Notifications List -->

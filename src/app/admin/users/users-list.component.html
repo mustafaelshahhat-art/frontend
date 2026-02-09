@@ -10,16 +10,15 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
     <div class="flex flex-col gap-md w-full items-start">
-        <app-filter [items]="userTypeTabs" [activeValue]="userType()" (filterChange)="setUserType($event)"></app-filter>
-        <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
+        <app-filter [items]="userTypeTabs" [activeValue]="userType()" (filterChange)="setUserType($event)" />
+        <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
     </div>
 </ng-template>
 
 <!-- Main Content -->
 <div class="card p-0 overflow-hidden">
     <app-table [data]="filteredUsers()" [columns]="columns" [loading]="isLoading()"
-        emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً">
-    </app-table>
+        emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً" />
 
     <!-- Index Template -->
     <ng-template #indexInfo let-index="index">
@@ -30,8 +29,7 @@
     <ng-template #userInfo let-row="row">
         <div class="flex items-center gap-3">
             <app-smart-image [src]="row.avatar" [type]="row.role === 'Referee' ? 'referee' : 'avatar'" size="sm"
-                [initials]="row.name.charAt(0)">
-            </app-smart-image>
+                [initials]="row.name.charAt(0)" />
             <div class="flex-col">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-sm">{{ row.name }}</span>
@@ -68,19 +66,16 @@
             <!-- Approve/Activate (Pending or Suspended users) -->
             @if (row.status === 'Pending' || row.status === 'Suspended') {
             <app-button (click)="approveUser(row)" variant="ghost" size="sm" icon="check_circle" class="text-success"
-                [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'">
-            </app-button>
+                [title]="row.status === 'Pending' ? 'قبول وانضمام' : 'إعادة تفعيل الحساب'" />
             }
 
             <!-- View -->
-            <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility" class="text-info">
-            </app-button>
+            <app-button (click)="viewUser(row.id)" variant="ghost" size="sm" icon="visibility" class="text-info" />
 
             <!-- Suspend (with last admin protection) -->
             @if (row.status !== 'Suspended') {
             @if (!isLastAdmin(row)) {
-            <app-button (click)="suspendUser(row)" variant="ghost" size="sm" icon="block" class="text-gold">
-            </app-button>
+            <app-button (click)="suspendUser(row)" variant="ghost" size="sm" icon="block" class="text-gold" />
             } @else {
             <span class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
                 <span class="material-symbols-outlined text-muted">lock</span>
@@ -90,8 +85,7 @@
 
             <!-- Delete (with last admin protection) -->
             @if (!isLastAdmin(row)) {
-            <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger">
-            </app-button>
+            <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger" />
             } @else {
             <span class="last-admin-note" title="لا يمكن حذف آخر مشرف">
                 <span class="material-symbols-outlined text-muted">shield</span>
@@ -104,10 +98,10 @@
     <div class="pagination">
         <span class="pagination-info">عرض {{ filteredUsers().length }} مستخدم</span>
         <div class="pagination-controls">
-            <app-button variant="ghost" size="sm" icon="chevron_right"></app-button>
+            <app-button variant="ghost" size="sm" icon="chevron_right" />
             <app-button variant="primary" size="sm">1</app-button>
             <app-button variant="ghost" size="sm">2</app-button>
-            <app-button variant="ghost" size="sm" icon="chevron_left"></app-button>
+            <app-button variant="ghost" size="sm" icon="chevron_left" />
         </div>
     </div>
 </div>
@@ -119,18 +113,15 @@
     <form [formGroup]="adminForm" class="flex-col gap-lg">
         <!-- Full Name -->
         <app-form-control label="الاسم الكامل" placeholder="أدخل اسم المشرف" iconLeft="person" formControlName="name"
-            [control]="adminForm.get('name')">
-        </app-form-control>
+            [control]="adminForm.get('name')" />
 
         <!-- Email -->
         <app-form-control label="البريد الإلكتروني" placeholder="example@domain.com" iconLeft="email"
-            formControlName="email" [control]="adminForm.get('email')" dir="ltr">
-        </app-form-control>
+            formControlName="email" [control]="adminForm.get('email')" dir="ltr" />
 
         <!-- Password -->
         <app-form-control label="كلمة المرور" type="password" placeholder="6 أحرف على الأقل" formControlName="password"
-            iconLeft="lock" [control]="adminForm.get('password')">
-        </app-form-control>
+            iconLeft="lock" [control]="adminForm.get('password')" />
 
         <!-- Status -->
         <div class="form-group">

@@ -61,7 +61,7 @@
     transition: all var(--duration-fast) ease;
 
     .material-symbols-outlined {
-        font-size: 24px;
+        font-size: var(--text-2xl);
     }
 }
 
@@ -156,7 +156,7 @@
     }
 
     .material-symbols-outlined {
-        font-size: 18px;
+        font-size: var(--text-lg);
     }
 }
 
@@ -169,6 +169,6 @@
     margin-top: var(--space-xs);
 
     .material-symbols-outlined {
-        font-size: 16px;
+        font-size: var(--text-base);
     }
 }

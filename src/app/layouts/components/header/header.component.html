@@ -12,14 +12,13 @@
     @if (windowSize >= 768) {
     <div class="flex items-center gap-3">
       <h2 class="header-title">{{ title }}</h2>
-      <ng-content select="[breadcrumbs]"></ng-content>
+      <ng-content select="[breadcrumbs]" />
     </div>
     }
 
     <!-- Search Bar (Responsive) -->
     @if (windowSize >= 640) {
-    <app-search placeholder="البحث...">
-    </app-search>
+    <app-search placeholder="البحث..." />
     }
   </div>
 
@@ -36,8 +35,7 @@
       <!-- Notifications Dropdown -->
       <app-notifications-dropdown [isOpen]="showNotifications" [isMobile]="isMobile" [unreadCount]="unreadCount"
         [notifications]="notifications" (dropdownClosed)="showNotifications = false"
-        (viewNotification)="handleViewNotification($event)" (viewAll)="handleViewAllNotifications()">
-      </app-notifications-dropdown>
+        (viewNotification)="handleViewNotification($event)" (viewAll)="handleViewAllNotifications()" />
     </div>
 
   </div>

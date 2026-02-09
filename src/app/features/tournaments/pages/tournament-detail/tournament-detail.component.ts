@@ -225,7 +225,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             .filter(r => r.length > 0);
     }
 
-    onTabChange(tab: string | number | null): void {
+    onTabChange(tab: unknown): void {
         if (typeof tab === 'string') {
             this.activeTab = tab;
             this.cdr.markForCheck();

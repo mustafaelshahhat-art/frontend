@@ -1,8 +1,7 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
     @if (!isPending()) {
-    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)">
-    </app-filter>
+    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)" />
     }
 </ng-template>
 
@@ -10,21 +9,18 @@
 @if (isPending() && !isAdmin()) {
 <app-pending-status-card title="حسابك قيد المراجعة"
     message="عذراً، لا يمكنك استعراض أو إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
-    (onRefresh)="refreshStatus()">
-</app-pending-status-card>
+    (onRefresh)="refreshStatus()" />
 } @else {
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
     @if (isLoading()) {
-    <app-inline-loading message="جاري تحميل المباريات...">
-    </app-inline-loading>
+    <app-inline-loading message="جاري تحميل المباريات..." />
     }
 
     <!-- Empty State -->
     @if (!isLoading() && filteredMatches().length === 0) {
-    <app-empty-state icon="event_busy" title="لا توجد مباريات" [description]="emptyStateDescription">
-    </app-empty-state>
+    <app-empty-state icon="event_busy" title="لا توجد مباريات" [description]="emptyStateDescription" />
     }
 
     <!-- Matches Grid -->
@@ -112,11 +108,8 @@
 
 <!-- Modals -->
 <app-end-match-confirm [matchId]="activeMatchId || ''" [(visible)]="showEndMatchConfirm"
-    (matchEnded)="onMatchEnded($event)">
-</app-end-match-confirm>
+    (matchEnded)="onMatchEnded($event)" />
 
-<app-match-event-modal [match]="activeMatch" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)">
-</app-match-event-modal>
+<app-match-event-modal [match]="activeMatch" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)" />
 
-<app-objection-modal [match]="activeMatch" [(visible)]="showObjectionModal">
-</app-objection-modal>
+<app-objection-modal [match]="activeMatch" [(visible)]="showObjectionModal" />

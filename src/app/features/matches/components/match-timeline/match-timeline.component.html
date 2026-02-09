@@ -35,8 +35,7 @@
                 [class.away]="event.teamId !== homeTeamId"></div>
 
             <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (trigger)="onDelete(event.id)" icon="delete"
-                variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn">
-            </app-icon-button>
+                variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn" />
         </div>
     </div>
     }

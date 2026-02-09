@@ -1,21 +1,21 @@
 .matches-page {
-    padding: var(--space-xl, 24px);
-    max-width: 1400px;
+    padding: var(--space-xl);
+    max-width: var(--width-content-max);
     margin: 0 auto;
 }
 
 .matches-container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl, 24px);
+    gap: var(--space-xl);
 }
 
 .matches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-xl, 24px);
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: var(--space-xl);
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         grid-template-columns: 1fr;
     }
 }
@@ -32,8 +32,8 @@
 .match-card-actions {
     width: 100%;
     display: flex;
-    gap: var(--space-2, 8px);
-    margin-top: var(--space-3, 12px);
+    gap: var(--space-2);
+    margin-top: var(--space-3);
 
     app-button {
         flex: 1;
@@ -42,14 +42,14 @@
     .live-actions {
         flex: 1;
         display: flex;
-        gap: var(--space-2, 8px);
+        gap: var(--space-2);
     }
 }
 
 /* Player Actions Container */
 .player-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     width: 100%;
 }
 
@@ -58,12 +58,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     flex: 1;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    padding: var(--space-2-5) var(--space-3-5);
+    border-radius: var(--radius-xl);
+    font-size: var(--text-base);
+    font-weight: var(--font-semibold);
     font-family: inherit;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -71,100 +71,100 @@
     background: transparent;
 
     .material-symbols-outlined {
-        font-size: 18px;
+        font-size: var(--height-icon-sm);
     }
 }
 
 /* Details Button - Neutral/Info */
 .details-btn {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-color: #3b82f6;
-    color: #ffffff;
+    background: var(--gradient-info);
+    border-color: var(--color-info);
+    color: var(--text-primary);
 
     &:hover {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-        border-color: #60a5fa;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        background: var(--gradient-info);
+        border-color: var(--color-info-light);
+        box-shadow: var(--shadow-glow-info);
         transform: translateY(-2px);
     }
 }
 
 /* Chat Button - Primary/Green */
 .chat-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-color: #10b981;
-    color: #ffffff;
+    background: var(--gradient-success);
+    border-color: var(--color-success);
+    color: var(--text-primary);
 
     &:hover {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-        border-color: #34d399;
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        background: var(--gradient-success);
+        border-color: var(--color-success-light);
+        box-shadow: var(--shadow-glow-success);
         transform: translateY(-2px);
     }
 
     &.chat-live {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-        border-color: #10b981;
+        background: var(--gradient-success);
+        border-color: var(--color-success);
         animation: pulse-glow 2s infinite;
     }
 }
 
 /* Objection Button - Warning/Orange */
 .objection-btn {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border-color: #f59e0b;
-    color: #ffffff;
+    background: var(--gradient-warning);
+    border-color: var(--color-warning);
+    color: var(--text-primary);
 
     &:hover {
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        border-color: #fbbf24;
-        box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+        background: var(--gradient-warning);
+        border-color: var(--color-warning-light);
+        box-shadow: var(--shadow-glow-warning);
         transform: translateY(-2px);
     }
 }
 
 /* Pulse Animation for Live Chat */
 @keyframes pulse-glow {
-
     0%,
     100% {
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+        box-shadow: var(--shadow-glow-success-sm);
     }
 
     50% {
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        box-shadow: var(--shadow-glow-success);
     }
 }
 
 /* Improve visibility of end match button on live matches in general list */
 ::ng-deep .match-card-compact.is-live {
     .danger-btn {
-        background: #fff !important;
-        color: #dc2626 !important;
+        background: var(--text-primary);
+        color: var(--color-danger);
+
         /* Proper danger red */
-        font-weight: 800 !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        font-weight: var(--font-black);
+        box-shadow: var(--shadow-md);
 
         &:hover {
-            background: #f8fafc !important;
+            background: var(--bg-surface-light);
             transform: translateY(-2px);
         }
 
         .material-symbols-outlined {
-            color: #dc2626 !important;
+            color: var(--color-danger);
         }
     }
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (width <=480px) {
     .player-actions {
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
     }
 
     .action-btn {
-        padding: 12px 16px;
-        font-size: 0.9rem;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-sm);
     }
 }

@@ -56,8 +56,7 @@
             <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
                 <div class="team-logo-container">
                     <app-smart-image [src]="matchData.homeTeamLogoUrl" type="team" size="md"
-                        [initials]="matchData.homeTeamName.charAt(0)">
-                    </app-smart-image>
+                        [initials]="matchData.homeTeamName.charAt(0)" />
                 </div>
                 <h2>{{ matchData.homeTeamName }}</h2>
                 <span class="team-tag">صاحب الأرض</span>
@@ -88,8 +87,7 @@
             <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
                 <div class="team-logo-container">
                     <app-smart-image [src]="matchData.awayTeamLogoUrl" type="team" size="md"
-                        [initials]="matchData.awayTeamName.charAt(0)">
-                    </app-smart-image>
+                        [initials]="matchData.awayTeamName.charAt(0)" />
                 </div>
                 <h2>{{ matchData.awayTeamName }}</h2>
                 <span class="team-tag">الضيف</span>
@@ -112,16 +110,14 @@
 
                 <!-- Empty State -->
                 @if (!matchData.events || matchData.events.length === 0) {
-                <app-empty-state icon="sports_soccer" title="لا توجد أحداث" description="لا توجد أحداث حتى الآن">
-                </app-empty-state>
+                <app-empty-state icon="sports_soccer" title="لا توجد أحداث" description="لا توجد أحداث حتى الآن" />
                 }
 
                 <!-- Events List -->
                 @if (matchData.events && matchData.events.length > 0) {
                 <app-match-timeline [events]="matchData.events" [homeTeamId]="matchData.homeTeamId"
                     [homeTeamName]="matchData.homeTeamName" [awayTeamName]="matchData.awayTeamName"
-                    (deleteEvent)="deleteEvent($event)">
-                </app-match-timeline>
+                    (deleteEvent)="deleteEvent($event)" />
                 }
             </div>
         </div>
@@ -269,12 +265,12 @@
     <div class="score-form">
         <div class="score-team-input">
             <span class="form-label mb-2 block">{{ match()?.homeTeamName }}</span>
-            <app-form-control type="number" [(ngModel)]="scoreForm.homeScore" [min]="0"></app-form-control>
+            <app-form-control type="number" [(ngModel)]="scoreForm.homeScore" [min]="0" />
         </div>
         <span class="score-colon">:</span>
         <div class="score-team-input">
             <span class="form-label mb-2 block">{{ match()?.awayTeamName }}</span>
-            <app-form-control type="number" [(ngModel)]="scoreForm.awayScore" [min]="0"></app-form-control>
+            <app-form-control type="number" [(ngModel)]="scoreForm.awayScore" [min]="0" />
         </div>
     </div>
     <div modal-footer class="flex justify-end gap-3 w-full">
@@ -285,17 +281,14 @@
 
 <!-- Centralized End Match Confirmation Dialog -->
 <app-end-match-confirm [matchId]="match()?.id || ''" [visible]="showEndMatchConfirm()"
-    (visibleChange)="showEndMatchConfirm.set($event)" (matchEnded)="onMatchEnded($event)">
-</app-end-match-confirm>
+    (visibleChange)="showEndMatchConfirm.set($event)" (matchEnded)="onMatchEnded($event)" />
 
 <!-- Centralized Event Recording Modal -->
 <app-match-event-modal [match]="match()" [visible]="showEventModal()" (visibleChange)="showEventModal.set($event)"
-    (eventAdded)="onEventAdded($event)">
-</app-match-event-modal>
+    (eventAdded)="onEventAdded($event)" />
 
 <!-- Objection Modal -->
-<app-objection-modal [match]="match()" [(visible)]="showObjectionModal">
-</app-objection-modal>
+<app-objection-modal [match]="match()" [(visible)]="showObjectionModal" />
 
 <!-- Referee Selection Modal -->
 <app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin"
@@ -305,16 +298,14 @@
         <div class="form-field">
             <app-select [options]="governorateOptions()" [ngModel]="selectedGovernorate()"
                 (ngModelChange)="onGovernorateChange($event)" label="المحافظة" placeholder="اختر المحافظة"
-                [loading]="isLocationsLoading() && !selectedGovernorate()">
-            </app-select>
+                [loading]="isLocationsLoading() && !selectedGovernorate()" />
         </div>
 
         <!-- City -->
         <div class="form-field">
             <app-select [options]="cityOptions()" [ngModel]="selectedCity()" (ngModelChange)="onCityChange($event)"
                 label="المدينة" placeholder="اختر المدينة" [disabled]="!selectedGovernorate()"
-                [loading]="isLocationsLoading() && !!selectedGovernorate() && !selectedCity()">
-            </app-select>
+                [loading]="isLocationsLoading() && !!selectedGovernorate() && !selectedCity()" />
         </div>
 
         <!-- District -->
@@ -322,16 +313,14 @@
             <app-select [options]="districtOptions()" [ngModel]="selectedDistrict()"
                 (ngModelChange)="onDistrictChange($event)" label="الحي / منطقة السكن" placeholder="اختر الحي"
                 [disabled]="!selectedCity()"
-                [loading]="isLocationsLoading() && !!selectedCity() && !selectedDistrict()">
-            </app-select>
+                [loading]="isLocationsLoading() && !!selectedCity() && !selectedDistrict()" />
         </div>
 
         <!-- Referee -->
         <div class="form-field">
             <app-select [options]="refereeOptions" [(ngModel)]="selectedRefereeId" label="الحكم المتاح"
                 placeholder="اختر الحكم" [disabled]="!selectedDistrict()"
-                [loading]="isLocationsLoading() && !!selectedDistrict()">
-            </app-select>
+                [loading]="isLocationsLoading() && !!selectedDistrict()" />
         </div>
     </div>
     <div modal-footer class="flex justify-end gap-3 w-full">
@@ -350,11 +339,11 @@
     <div class="form-grid">
         <div class="form-field">
             <span class="form-label">تاريخ اللقاء الجديد</span>
-            <app-form-control type="date" [(ngModel)]="scheduleForm.date" iconLeft="calendar_today"></app-form-control>
+            <app-form-control type="date" [(ngModel)]="scheduleForm.date" iconLeft="calendar_today" />
         </div>
         <div class="form-field">
             <span class="form-label">وقت اللقاء</span>
-            <app-form-control type="time" [(ngModel)]="scheduleForm.time" iconLeft="schedule"></app-form-control>
+            <app-form-control type="time" [(ngModel)]="scheduleForm.time" iconLeft="schedule" />
         </div>
     </div>
 
@@ -376,8 +365,7 @@
     <div class="form-field full-width">
         <span class="form-label">سبب الإلغاء</span>
         <app-form-control type="textarea" [(ngModel)]="cancelReason" [rows]="4"
-            placeholder="اكتب سبب الإلغاء هنا ليظهر للجميع...">
-        </app-form-control>
+            placeholder="اكتب سبب الإلغاء هنا ليظهر للجميع..." />
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">

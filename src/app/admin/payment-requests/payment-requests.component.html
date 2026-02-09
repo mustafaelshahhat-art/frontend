@@ -1,6 +1,6 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter" (filterChange)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Main Content -->
@@ -8,20 +8,18 @@
     <!-- Loading State -->
     <!-- Loading State -->
     @if (isLoading()) {
-    <app-inline-loading message="جاري تحميل الطلبات..."></app-inline-loading>
+    <app-inline-loading message="جاري تحميل الطلبات..." />
     }
 
     <!-- Empty State -->
     @if (!isLoading() && filteredRequests.length === 0) {
-    <app-empty-state icon="payments" title="لا توجد طلبات دفع" description="لا توجد طلبات دفع في هذا التصنيف حالياً">
-    </app-empty-state>
+    <app-empty-state icon="payments" title="لا توجد طلبات دفع" description="لا توجد طلبات دفع في هذا التصنيف حالياً" />
     }
 
     <!-- Table -->
     @if (!isLoading() && filteredRequests.length > 0) {
     <div class="card p-0 overflow-hidden">
-        <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()">
-        </app-table>
+        <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()" />
     </div>
     }
 </div>
@@ -67,10 +65,8 @@
 <ng-template #actionInfo let-row="row">
     @if (row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
     <div class="action-buttons">
-        <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary">
-        </app-button>
-        <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger">
-        </app-button>
+        <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary" />
+        <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger" />
     </div>
     }
     @if (row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW) {

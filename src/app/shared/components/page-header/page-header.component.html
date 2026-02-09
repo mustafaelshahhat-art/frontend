@@ -1,7 +1,7 @@
 <div class="page-header" [class.page-glow-top]="showGradient">
     <div class="header-content">
         @if (showBack) {
-        <app-button variant="ghost" size="sm" icon="arrow_forward" (click)="back.emit()" class="back-btn"></app-button>
+        <app-button variant="ghost" size="sm" icon="arrow_forward" (click)="back.emit()" class="back-btn" />
         }
 
         <div class="title-wrapper">
@@ -11,10 +11,10 @@
             }
         </div>
 
-        <ng-content select="[breadcrumbs]"></ng-content>
+        <ng-content select="[breadcrumbs]" />
     </div>
 
     <div class="header-actions">
-        <ng-content></ng-content>
+        <ng-content />
     </div>
 </div>

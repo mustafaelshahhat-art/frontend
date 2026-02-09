@@ -66,10 +66,10 @@
     &[type="date"] {
         &::-webkit-calendar-picker-indicator {
             position: absolute;
-            inset-inline-start: 1rem;
+            inset-inline-start: var(--space-4);
             opacity: 0;
-            width: 24px;
-            height: 24px;
+            width: var(--space-6);
+            height: var(--space-6);
             cursor: pointer;
         }
 
@@ -82,18 +82,18 @@
 
 /* Padding for icons - icons are visually on the LEFT, text on the RIGHT */
 .has-icon-left .form-input {
-    padding-left: 3.25rem !important;
-    padding-right: var(--space-4) !important;
+    padding-left: var(--space-13);
+    padding-right: var(--space-4);
 }
 
 .has-icon-right .form-input {
-    padding-left: 3.25rem !important;
+    padding-left: var(--space-13);
 }
 
 /* Password fields may show icons on the left side. */
 .has-icon-left.has-icon-right .form-input {
-    padding-left: 3.25rem !important;
-    padding-right: var(--space-4) !important;
+    padding-left: var(--space-13);
+    padding-right: var(--space-4);
 }
 
 .form-icon {
@@ -105,17 +105,17 @@
     z-index: var(--z-above);
     opacity: 0.8;
     transition: var(--transition-base);
-    font-size: 22px;
+    font-size: var(--text-xl);
 
     /* In RTL: inline-start = LEFT visually */
     &.icon-left {
-        left: 1rem;
+        left: var(--space-4);
         right: auto;
     }
 
     /* icon-right also on the left for password fields */
     &.icon-right {
-        left: 1rem;
+        left: var(--space-4);
         right: auto;
     }
 
@@ -180,16 +180,16 @@
     }
 
     .material-symbols-outlined {
-        font-size: 22px;
+        font-size: var(--text-xl);
     }
 }
 
 .textarea-control {
     height: auto;
-    min-height: 100px;
+    min-height: var(--space-25);
     resize: vertical;
 }
 
 .error-icon {
-    font-size: 14px;
+    font-size: var(--text-sm);
 }

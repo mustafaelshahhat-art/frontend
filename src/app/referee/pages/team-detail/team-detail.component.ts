@@ -24,8 +24,7 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
                 [canEditName]="false"
                 [canAddPlayers]="false"
                 [canRemovePlayers]="false"
-                [canManageStatus]="false">
-            </app-team-detail>
+                [canManageStatus]="false" />
         }
 
         @if (loading()) {

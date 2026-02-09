@@ -83,38 +83,33 @@
                     <div class="form-group grid-col-span-2">
                         <app-form-control label="الاسم رباعي" name="name" [ngModel]="form.name()"
                             (ngModelChange)="form.name.set($event)" required
-                            placeholder="أدخل اسمك بالكامل كما في البطاقة">
-                        </app-form-control>
+                            placeholder="أدخل اسمك بالكامل كما في البطاقة" />
                     </div>
 
                     <!-- Email -->
                     <div class="form-group">
                         <app-form-control label="البريد الإلكتروني" type="email" name="email" [ngModel]="form.email()"
                             (ngModelChange)="form.email.set($event)" required placeholder="example@mail.com"
-                            iconLeft="mail">
-                        </app-form-control>
+                            iconLeft="mail" />
                     </div>
 
                     <!-- Phone -->
                     <div class="form-group">
                         <app-form-control label="رقم الهاتف" type="tel" name="phone" [ngModel]="form.phone()"
-                            (ngModelChange)="form.phone.set($event)" required placeholder="05xxxxxxxx" iconLeft="phone">
-                        </app-form-control>
+                            (ngModelChange)="form.phone.set($event)" required placeholder="05xxxxxxxx" iconLeft="phone" />
                     </div>
 
                     <!-- Age -->
                     <div class="form-group">
                         <app-form-control label="العمر" type="number" name="age" [ngModel]="form.age()"
-                            (ngModelChange)="form.age.set($event)" required placeholder="سنوات">
-                        </app-form-control>
+                            (ngModelChange)="form.age.set($event)" required placeholder="سنوات" />
                     </div>
 
                     <!-- National ID -->
                     <div class="form-group">
                         <app-form-control label="الرقم القومي" type="text" name="nationalId"
                             [ngModel]="form.nationalId()" (ngModelChange)="form.nationalId.set($event)" required
-                            placeholder="14 رقم" iconLeft="badge">
-                        </app-form-control>
+                            placeholder="14 رقم" iconLeft="badge" />
                     </div>
 
                     <!-- Governorate -->
@@ -122,8 +117,7 @@
                         <label class="form-label" for="governorate">المحافظة</label>
                         <app-select id="governorate" name="governorate" [options]="governorateOptions()"
                             [ngModel]="form.governorate()" (ngModelChange)="onGovChange($event)"
-                            placeholder="اختر المحافظة">
-                        </app-select>
+                            placeholder="اختر المحافظة" />
                     </div>
 
                     <!-- City -->
@@ -131,8 +125,7 @@
                         <label class="form-label" for="city">المدينة</label>
                         <app-select id="city" name="city" [options]="cityOptions()" [ngModel]="form.city()"
                             (ngModelChange)="onCityChange($event)" [disabled]="!form.governorate()"
-                            placeholder="اختر المدينة">
-                        </app-select>
+                            placeholder="اختر المدينة" />
                     </div>
 
                     <!-- Neighborhood -->
@@ -140,24 +133,21 @@
                         <label class="form-label" for="neighborhood">الحي / المنطقة</label>
                         <app-select id="neighborhood" name="neighborhood" [options]="neighborhoodOptions()"
                             [ngModel]="form.neighborhood()" (ngModelChange)="form.neighborhood.set($event)"
-                            [disabled]="!form.city()" placeholder="اختر الحي">
-                        </app-select>
+                            [disabled]="!form.city()" placeholder="اختر الحي" />
                     </div>
 
                     <!-- Password -->
                     <div class="form-group">
                         <app-form-control label="كلمة المرور" type="password" name="password"
                             [ngModel]="form.password()" (ngModelChange)="form.password.set($event)"
-                            placeholder="••••••••" iconLeft="lock" required>
-                        </app-form-control>
+                            placeholder="••••••••" iconLeft="lock" required />
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="form-group">
                         <app-form-control label="تأكيد كلمة المرور" type="password" name="confirmPassword"
                             [ngModel]="form.confirmPassword()" (ngModelChange)="form.confirmPassword.set($event)"
-                            placeholder="••••••••" iconLeft="lock" required>
-                        </app-form-control>
+                            placeholder="••••••••" iconLeft="lock" required />
                     </div>
                 </div>
 

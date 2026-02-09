@@ -10,8 +10,7 @@
             <div class="flex items-center gap-xl p-lg flex-wrap mobile-center relative">
                 <!-- Team Logo Square (Premium) -->
                 <div class="shadow-glow-sm border-4 border-surface-light rounded-xl overflow-hidden">
-                    <app-smart-image [src]="team.logo" type="team" size="lg" [initials]="team.name.charAt(0)">
-                    </app-smart-image>
+                    <app-smart-image [src]="team.logo" type="team" size="lg" [initials]="team.name.charAt(0)" />
                 </div>
 
                 <!-- Identity Details -->
@@ -22,11 +21,11 @@
                         </h1>
                         @if (canEditName) {
                         <app-button (click)="startEditName()" variant="ghost" size="sm" icon="edit"
-                            class="text-primary-light"></app-button>
+                            class="text-primary-light" />
                         }
                         @if (canDeleteTeam) {
                         <app-button (click)="onDeleteTeamClick()" variant="danger-ghost" size="sm" icon="delete"
-                            title="حذف الفريق"></app-button>
+                            title="حذف الفريق" />
                         }
                         }
 
@@ -36,8 +35,8 @@
                             <input [(ngModel)]="tempName"
                                 class="text-4xl font-super-black text-primary bg-surface border-primary rounded-xl px-3 outline-none"
                                 [style.width]="'auto'" [style.max-width.px]="300">
-                            <app-button (click)="saveName()" variant="primary" size="sm" icon="check"></app-button>
-                            <app-button (click)="cancelEdit()" variant="ghost" size="sm" icon="close"></app-button>
+                            <app-button (click)="saveName()" variant="primary" size="sm" icon="check" />
+                            <app-button (click)="cancelEdit()" variant="ghost" size="sm" icon="close" />
                         </div>
                         }
 
@@ -83,7 +82,7 @@
         <!-- Tabbed Content Section -->
         <div class="tabs-scroll-container">
             <app-filter [items]="filteredTabs" [activeValue]="activeTab"
-                (filterChange)="onTabChange($event)"></app-filter>
+                (filterChange)="onTabChange($event)" />
         </div>
 
         <!-- Dynamic Content Area -->
@@ -163,8 +162,7 @@
                         <div class="flex items-center gap-4">
                             <div class="player-avatar-pill">
                                 <app-smart-image [src]="null" type="avatar" size="sm"
-                                    [initials]="player.name.charAt(0)">
-                                </app-smart-image>
+                                    [initials]="player.name.charAt(0)" />
                             </div>
                             <div class="flex-1">
                                 <div class="flex-between items-center">
@@ -186,19 +184,19 @@
                                         @if (canManageStatus) {
                                         @if (player.status !== 'active') {
                                         <app-button (click)="requestPlayerAction(player, 'activate')" variant="ghost"
-                                            size="sm" icon="check_circle" class="text-success"></app-button>
+                                            size="sm" icon="check_circle" class="text-success" />
                                         }
                                         @if (player.status === 'active') {
                                         <app-button (click)="requestPlayerAction(player, 'deactivate')" variant="ghost"
-                                            size="sm" icon="block" class="text-warning"></app-button>
+                                            size="sm" icon="block" class="text-warning" />
                                         }
                                         <app-button (click)="requestPlayerAction(player, 'ban')" variant="ghost"
-                                            size="sm" icon="person_off" class="text-danger"></app-button>
+                                            size="sm" icon="person_off" class="text-danger" />
                                         }
 
                                         @if (canRemovePlayers && player.id !== team.captainId) {
                                         <app-button (click)="requestPlayerAction(player, 'remove')" variant="ghost"
-                                            size="sm" icon="delete" class="text-danger"></app-button>
+                                            size="sm" icon="delete" class="text-danger" />
                                         }
                                     </div>
                                 </div>
@@ -233,8 +231,7 @@
 
                     <div class="p-lg flex items-center justify-between gap-xl mobile-center">
                         <div class="flex-1 flex flex-col items-center gap-3">
-                            <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)">
-                            </app-smart-image>
+                            <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
                             <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
                         </div>
 
@@ -256,8 +253,7 @@
 
                         <div class="flex-1 flex flex-col items-center gap-3">
                             <app-smart-image [src]="match.opponentLogo" type="team" size="md"
-                                [initials]="match.opponent.charAt(0)">
-                            </app-smart-image>
+                                [initials]="match.opponent.charAt(0)" />
                             <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
                         </div>
                     </div>
@@ -315,8 +311,7 @@
                 <div class="card p-md flex-between items-center animate-fade-in">
                     <div class="flex items-center gap-3">
                         <app-smart-image [src]="null" type="avatar" size="sm"
-                            [initials]="request.playerName.charAt(0) || 'P'">
-                        </app-smart-image>
+                            [initials]="request.playerName.charAt(0) || 'P'" />
                         <div class="flex-col">
                             <span class="font-bold">{{ request.playerName }}</span>
                             <span class="text-xs text-muted">أرسلت في: {{ request.requestDate | date:'y/MM/dd'
@@ -331,9 +326,9 @@
                         @if (canManageInvitations && request.status === 'pending') {
                         <div class="flex gap-1">
                             <app-button (click)="onRespondRequest(request, true)" variant="ghost" size="sm" icon="check"
-                                class="text-success"></app-button>
+                                class="text-success" />
                             <app-button (click)="onRespondRequest(request, false)" variant="ghost" size="sm"
-                                icon="close" class="text-danger"></app-button>
+                                icon="close" class="text-danger" />
                         </div>
                         }
                     </div>
@@ -355,8 +350,7 @@
             </p>
 
             <app-form-control label="الرقم التعريفي للاعب" [formControl]="displayIdControl" placeholder="مثال: #123456"
-                iconLeft="badge">
-            </app-form-control>
+                iconLeft="badge" />
         </div>
 
         <div footer class="flex gap-3 w-full">

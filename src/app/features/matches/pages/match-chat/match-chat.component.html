@@ -3,8 +3,7 @@
     <app-chat-box [title]="match.homeTeamName + ' vs ' + match.awayTeamName" [match]="match" [messages]="mappedMessages"
         [currentUserId]="currentUser?.id || ''" [participants]="participants" [referee]="getReferee() || null"
         [readOnly]="isMatchFinished" [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
-        (schedule)="openScheduleModal()">
-    </app-chat-box>
+        (schedule)="openScheduleModal()" />
     }
 
     <!-- Schedule Modal -->
@@ -13,11 +12,11 @@
         <div class="form-grid">
             <div class="form-field">
                 <span class="form-label">تاريخ اللقاء الجديد</span>
-                <app-form-control type="date" [(ngModel)]="scheduleDate" iconLeft="calendar_today"></app-form-control>
+                <app-form-control type="date" [(ngModel)]="scheduleDate" iconLeft="calendar_today" />
             </div>
             <div class="form-field">
                 <span class="form-label">وقت اللقاء</span>
-                <app-form-control type="time" [(ngModel)]="scheduleTime" iconLeft="schedule"></app-form-control>
+                <app-form-control type="time" [(ngModel)]="scheduleTime" iconLeft="schedule" />
             </div>
         </div>
 

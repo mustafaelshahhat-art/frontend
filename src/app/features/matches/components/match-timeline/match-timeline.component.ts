@@ -66,7 +66,7 @@ export class MatchTimelineComponent {
         }
     }
 
-    trackById(index: number, item: TimelineEvent): string {
+    trackById(_index: number, item: TimelineEvent): string {
         return item.id;
     }
 }

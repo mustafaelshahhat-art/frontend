@@ -36,8 +36,7 @@
             <div class="match-card-team">
                 <div class="match-card-team-avatar">
                     <app-smart-image [src]="match.homeTeamLogoUrl" type="team" size="xs"
-                        [initials]="match.homeTeamName.charAt(0) || '؟'">
-                    </app-smart-image>
+                        [initials]="match.homeTeamName.charAt(0) || '؟'" />
                 </div>
                 <span class="match-card-team-name">{{ match.homeTeamName || 'فريق' }}</span>
             </div>
@@ -58,8 +57,7 @@
             <div class="match-card-team">
                 <div class="match-card-team-avatar">
                     <app-smart-image [src]="match.awayTeamLogoUrl" type="team" size="xs"
-                        [initials]="match.awayTeamName.charAt(0) || '؟'">
-                    </app-smart-image>
+                        [initials]="match.awayTeamName.charAt(0) || '؟'" />
                 </div>
                 <span class="match-card-team-name">{{ match.awayTeamName || 'فريق' }}</span>
             </div>
@@ -68,6 +66,6 @@
 
     <!-- Actions (Projected) -->
     <div class="match-card-actions-wrapper">
-        <ng-content></ng-content>
+        <ng-content />
     </div>
 </div>

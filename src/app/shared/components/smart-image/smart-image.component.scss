@@ -24,11 +24,11 @@
 
     // Sizes
     &.xs {
-        width: 24px;
-        height: 24px;
+        width: var(--space-6);
+        height: var(--space-6);
 
         .material-symbols-outlined {
-            font-size: 16px;
+            font-size: var(--text-base);
         }
 
         .initials {
@@ -37,11 +37,11 @@
     }
 
     &.sm {
-        width: 40px;
-        height: 40px;
+        width: var(--space-10);
+        height: var(--space-10);
 
         .material-symbols-outlined {
-            font-size: 20px;
+            font-size: var(--text-xl);
         }
 
         .initials {
@@ -50,11 +50,11 @@
     }
 
     &.md {
-        width: 64px;
-        height: 64px;
+        width: var(--space-16);
+        height: var(--space-16);
 
         .material-symbols-outlined {
-            font-size: 32px;
+            font-size: var(--text-3xl);
         }
 
         .initials {
@@ -63,11 +63,11 @@
     }
 
     &.lg {
-        width: 120px;
-        height: 120px;
+        width: var(--space-30);
+        height: var(--space-30);
 
         .material-symbols-outlined {
-            font-size: 48px;
+            font-size: var(--text-5xl);
         }
 
         .initials {
@@ -76,11 +76,11 @@
     }
 
     &.xl {
-        width: 200px;
-        height: 200px;
+        width: var(--space-50);
+        height: var(--space-50);
 
         .material-symbols-outlined {
-            font-size: 64px;
+            font-size: var(--text-6xl);
         }
 
         .initials {

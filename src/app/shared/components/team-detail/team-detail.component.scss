@@ -26,7 +26,7 @@
         pointer-events: none;
     }
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-2) var(--space-4);
     }
 }
@@ -59,7 +59,7 @@
         border-color: var(--border-strong);
     }
 
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         &.p-lg {
             padding: var(--space-5);
         }
@@ -71,8 +71,8 @@
 // ==========================================================================
 
 .avatar-xl {
-    width: 120px;
-    height: 120px;
+    width: var(--height-avatar-2xl);
+    height: var(--height-avatar-2xl);
     border-radius: var(--radius-3xl);
     background: var(--bg-surface-light);
     display: flex;
@@ -93,15 +93,15 @@
         border-width: 4px;
     }
 
-    @media (max-width: 640px) {
-        width: 100px;
-        height: 100px;
+    @media (width <=640px) {
+        width: var(--width-100, 100px);
+        height: var(--width-100, 100px);
         border-radius: var(--radius-2xl);
     }
 }
 
 .mobile-center {
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         flex-direction: column;
         text-align: center;
         justify-content: center;
@@ -130,7 +130,7 @@
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    padding-bottom: var(--space-1);
 
     &::-webkit-scrollbar {
         display: none;
@@ -155,7 +155,7 @@
     gap: var(--space-4);
     margin-bottom: var(--space-6);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         grid-template-columns: 1fr 1fr;
         gap: var(--space-3);
     }
@@ -179,8 +179,8 @@
     }
 
     &-decoration {
-        width: 44px;
-        height: 44px;
+        width: var(--height-input);
+        height: var(--height-input);
         border-radius: var(--radius-xl);
         background: var(--bg-input);
         display: flex;
@@ -189,7 +189,7 @@
         margin-bottom: var(--space-3);
 
         .material-symbols-outlined {
-            font-size: 24px;
+            font-size: var(--text-2xl);
             color: var(--color-primary-light);
         }
     }
@@ -209,7 +209,7 @@
         color: var(--text-primary);
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-3);
 
         &-decoration {
@@ -217,7 +217,7 @@
             height: 36px;
 
             .material-symbols-outlined {
-                font-size: 20px;
+                font-size: var(--text-xl);
             }
         }
 
@@ -232,7 +232,7 @@
     grid-template-columns: 1fr 1fr;
     gap: var(--space-6);
 
-    @media (max-width: 992px) {
+    @media (width <=992px) {
         grid-template-columns: 1fr;
     }
 }
@@ -268,8 +268,8 @@
         flex-shrink: 0;
 
         .avatar {
-            width: 52px;
-            height: 52px;
+            width: var(--height-input-lg);
+            height: var(--height-input-lg);
             border-radius: var(--radius-xl);
             background: var(--bg-input);
             border: 1px solid var(--border-visible);
@@ -351,12 +351,12 @@
         }
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-3) var(--space-4);
 
         .player-avatar-pill .avatar {
-            width: 44px;
-            height: 44px;
+            width: var(--height-input);
+            height: var(--height-input);
             font-size: var(--text-lg);
         }
 
@@ -365,64 +365,49 @@
         }
     }
 
-    // Card Actions
+    // Card Actions (Flattened)
     .flex.items-center.gap-1 {
-        app-button {
-            ::ng-deep .btn {
-                width: 38px;
-                height: 38px;
-                min-width: 38px;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: var(--radius-xl);
-                background: var(--bg-input);
-                border: 1px solid var(--border-subtle);
-                transition: var(--transition-base);
+        app-button ::ng-deep .btn {
+            width: var(--space-9); // close to 38px
+            height: var(--space-9);
+            min-width: var(--space-9);
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-xl);
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            transition: var(--transition-base);
+
+            .material-symbols-outlined {
+                font-size: var(--text-lg);
+                transition: transform var(--transition-fast);
+            }
+
+            .btn-text {
+                display: none;
+            }
+
+            &:hover {
+                background: var(--bg-surface-light);
+                border-color: var(--border-visible);
+                transform: scale(1.1);
 
                 .material-symbols-outlined {
-                    font-size: 18px;
-                    transition: transform var(--transition-fast);
+                    transform: scale(1.15);
                 }
-
-                .btn-text {
-                    display: none;
-                }
-
-                &:hover {
-                    background: var(--bg-surface-light);
-                    border-color: var(--border-visible);
-                    transform: scale(1.1);
-
-                    .material-symbols-outlined {
-                        transform: scale(1.15);
-                    }
-                }
-            }
-
-            // Icon Colors using theme variables
-            &.text-success ::ng-deep .material-symbols-outlined {
-                color: var(--color-primary);
-            }
-
-            &.text-warning ::ng-deep .material-symbols-outlined {
-                color: var(--color-warning);
-            }
-
-            &.text-danger ::ng-deep .material-symbols-outlined {
-                color: var(--color-danger);
             }
         }
 
-        @media (max-width: 480px) {
+        @media (width <=480px) {
             app-button ::ng-deep .btn {
-                width: 32px;
-                height: 32px;
-                min-width: 32px;
+                width: var(--height-avatar-sm);
+                height: var(--height-avatar-sm);
+                min-width: var(--height-avatar-sm);
 
                 .material-symbols-outlined {
-                    font-size: 16px;
+                    font-size: var(--text-base);
                 }
             }
         }
@@ -482,13 +467,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: inset 0 0 20px var(--bg-overlay-dark);
+        box-shadow: var(--shadow-inset-badge);
 
         .avatar-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            filter: drop-shadow(0 4px 8px rgb(0 0 0 / 30%));
         }
     }
 
@@ -497,10 +482,10 @@
         font-size: var(--text-5xl);
         font-weight: var(--font-black);
         background: linear-gradient(to bottom, var(--text-primary), var(--text-secondary));
-        -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         text-shadow: var(--text-shadow-lg);
-        letter-spacing: -2px;
+        letter-spacing: var(--tracking-tighter);
     }
 
     .font-super-black {
@@ -541,7 +526,7 @@
         }
     }
 
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         .mobile-center {
             flex-direction: row;
             padding: var(--space-4) var(--space-3);
@@ -600,7 +585,7 @@
         background: var(--bg-surface-light);
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         .text-xl {
             font-size: var(--text-lg);
         }
@@ -651,7 +636,7 @@
     gap: var(--space-12);
 }
 
-@media (max-width: 640px) {
+@media (width <=640px) {
     .text-4xl {
         font-size: var(--text-2xl);
     }

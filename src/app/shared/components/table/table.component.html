@@ -20,7 +20,7 @@
                     <td>
                         @if (col.template) {
                         <ng-container
-                            *ngTemplateOutlet="col.template; context: { $implicit: row, row: row, index: i }"></ng-container>
+                            *ngTemplateOutlet="col.template; context: { $implicit: row, row: row, index: i }" />
                         } @else {
                         {{ getCellValue(row, col.key) }}
                         }

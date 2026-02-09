@@ -1,7 +1,7 @@
 .confirm-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgb(0 0 0 / 70%);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -11,62 +11,62 @@
 }
 
 .confirm-modal {
-    background: var(--bg-surface, #111827);
-    border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
-    border-radius: var(--radius-4xl, 24px);
-    padding: var(--space-3xl, 32px);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-4xl);
+    padding: var(--space-xl);
     text-align: center;
-    max-width: 400px;
+    max-width: var(--width-modal-sm, 25rem);
     width: 90%;
     animation: scaleIn 0.2s ease-out;
 }
 
 .confirm-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: var(--radius-full, 50%);
+    width: var(--space-16);
+    height: var(--space-16);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto var(--space-xl, 20px);
+    margin: 0 auto var(--space-5);
 }
 
 .confirm-icon[data-type="danger"] {
-    background: var(--color-danger-10, rgba(239, 68, 68, 0.1));
-    color: var(--color-danger, #EF4444);
+    background: var(--color-danger-10);
+    color: var(--color-danger);
 }
 
 .confirm-icon[data-type="warning"] {
-    background: var(--color-warning-10, rgba(245, 158, 11, 0.1));
-    color: var(--color-warning, #F59E0B);
+    background: var(--color-warning-10);
+    color: var(--color-warning);
 }
 
 .confirm-icon[data-type="info"] {
-    background: var(--color-info-10, rgba(59, 130, 246, 0.1));
-    color: var(--color-info, #3B82F6);
+    background: var(--color-info-10);
+    color: var(--color-info);
 }
 
 .confirm-icon .material-symbols-outlined {
-    font-size: 32px;
+    font-size: var(--text-3xl);
 }
 
 .confirm-title {
-    font-size: var(--text-xl, 20px);
-    font-weight: var(--font-bold, 700);
-    color: var(--text-primary, #f1f5f9);
-    margin-bottom: var(--space-3, 12px);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
 }
 
 .confirm-message {
-    font-size: var(--text-sm, 14px);
-    color: var(--text-secondary, #94a3b8);
-    margin-bottom: var(--space-2xl, 24px);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
     line-height: 1.6;
 }
 
 .confirm-actions {
     display: flex;
-    gap: var(--space-3, 12px);
+    gap: var(--space-3);
     justify-content: center;
 }
 

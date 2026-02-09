@@ -4,11 +4,11 @@
 
 .profile-container {
     display: grid;
-    grid-template-columns: 380px 1fr; // Increased width from 300px to 380px
-    gap: var(--space-xl, 24px);
-    align-items: stretch; // Ensures both columns have equal height
+    grid-template-columns: var(--width-sidebar-wide) 1fr;
+    gap: var(--space-xl);
+    align-items: stretch;
 
-    @media (max-width: 1024px) {
+    @media (width <=1024px) {
         grid-template-columns: 1fr;
     }
 }
@@ -90,23 +90,23 @@
     }
 
     .avatar-wrapper {
-        width: 120px;
-        height: 120px;
-        margin: 0 auto var(--space-4, 16px);
+        width: var(--height-avatar-2xl);
+        height: var(--height-avatar-2xl);
+        margin: 0 auto var(--space-4);
         position: relative;
-        border-radius: 50%;
+        border-radius: var(--radius-full);
         overflow: hidden;
-        background: var(--bg-surface-dark, #1f2937);
-        border: 3px solid var(--color-primary, #10B981);
+        background: var(--bg-surface-light);
+        border: 3px solid var(--color-primary);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all var(--transition-base);
 
         &:hover {
             transform: scale(1.05);
-            border-color: var(--color-primary-hover, #059669);
+            border-color: var(--color-primary-dark);
         }
 
         img {
@@ -116,35 +116,35 @@
         }
 
         .initial {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--color-primary, #10B981);
+            font-size: var(--text-5xl);
+            font-weight: var(--font-extrabold);
+            color: var(--color-primary);
         }
     }
 
     .edit-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.8);
+        background: var(--bg-overlay);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: white;
-        gap: var(--space-2, 8px);
+        color: var(--text-primary);
+        gap: var(--space-2);
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity var(--transition-slow) ease;
         pointer-events: none;
-        border-radius: 50%;
+        border-radius: var(--radius-full);
 
         .material-symbols-outlined {
-            font-size: 32px;
-            color: var(--color-primary, #10B981);
+            font-size: var(--height-icon-sm);
+            color: var(--color-primary);
         }
 
         span {
-            font-size: var(--text-sm, 14px);
-            font-weight: var(--font-semibold, 600);
+            font-size: var(--text-sm);
+            font-weight: var(--font-semibold);
             text-align: center;
         }
     }
@@ -155,15 +155,15 @@
     }
 
     h2 {
-        font-size: var(--text-xl, 20px);
-        font-weight: var(--font-bold, 700);
-        color: var(--text-primary, #f1f5f9);
-        margin-bottom: var(--space-1, 4px);
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--space-1);
     }
 
     .username {
-        font-size: var(--text-sm, 14px);
-        color: var(--text-muted, #64748b);
+        font-size: var(--text-sm);
+        color: var(--text-muted);
     }
 
     .avatar-image {
@@ -176,67 +176,67 @@
     }
 
     .avatar-actions {
-        margin-top: 1.5rem;
+        margin-top: var(--space-6);
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-2);
     }
 
     .membership-card {
-        margin-top: 2rem;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 12px;
+        margin-top: var(--space-8);
+        padding: var(--space-4);
+        background: rgb(255 255 255 / 3%);
+        border-radius: var(--radius-lg);
     }
 
     .membership-label {
-        font-size: 10px;
-        color: #64748b;
+        font-size: var(--text-2xs);
+        color: var(--text-muted);
         text-transform: uppercase;
-        margin-bottom: 4px;
+        margin-bottom: var(--space-1);
     }
 
     .membership-id {
-        font-family: monospace;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #10B981;
-        letter-spacing: 1px;
+        font-family: var(--font-mono);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--color-primary);
+        letter-spacing: var(--space-px);
     }
 }
 
 .profile-nav-wrapper {
-    margin-top: 0.75rem;
-    margin-bottom: 1.5rem;
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-6);
 }
 
 .profile-nav {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1, 4px);
+    gap: var(--space-1);
 
     .nav-btn {
         display: flex;
         align-items: center;
-        gap: var(--space-3, 12px);
-        padding: var(--space-3, 12px) var(--space-4, 16px);
-        border-radius: var(--radius-xl, 12px);
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-lg);
         border: none;
         background: transparent;
-        color: var(--text-secondary, #94a3b8);
-        font-weight: var(--font-medium, 500);
+        color: var(--text-secondary);
+        font-weight: var(--font-medium);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all var(--transition-base);
         text-align: right;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary, #f1f5f9);
+            background: rgb(255 255 255 / 5%);
+            color: var(--text-primary);
         }
 
         &.active {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--color-primary, #10B981);
+            background: var(--color-primary-10);
+            color: var(--color-primary);
         }
     }
 }
@@ -244,9 +244,9 @@
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-4, 16px);
+    gap: var(--space-4);
 
-    @media (max-width: 600px) {
+    @media (width <=600px) {
         grid-template-columns: 1fr;
     }
 }
@@ -258,28 +258,28 @@
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1, 4px);
+    gap: var(--space-1);
 
     label {
-        font-size: var(--text-xs, 12px);
-        font-weight: var(--font-medium, 600);
-        color: var(--text-muted, #64748b);
+        font-size: var(--text-xs);
+        font-weight: var(--font-medium);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 }
 
 .premium-input {
-    background: var(--bg-input, rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
-    border-radius: var(--radius-xl, 12px);
-    padding: var(--space-3, 12px);
-    color: white;
-    font-size: var(--text-sm, 14px);
+    background: var(--bg-input);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-xl);
+    padding: var(--space-3);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
 
     &:focus {
         outline: none;
-        border-color: var(--color-primary, #10B981);
+        border-color: var(--color-primary);
     }
 
     &:disabled {
@@ -290,25 +290,25 @@
 
 // Header Actions Styling (In Layout Header)
 ::ng-deep .action-buttons-wrapper {
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         width: 100%; // Ensure container spans full width
 
         // Force the app-button component and its inner button to expand
         app-button {
             width: 100%;
-            display: block; // If custom element
+            display: block;
 
-            // Assuming inner button needs width 100%
-            button {
-                width: 100% !important;
-                justify-content: center; // Ensure content is centered
+            // Use higher specificity for the inner button
+            .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     }
 }
 
 .form-actions {
-    margin-top: 2rem;
+    margin-top: var(--space-8);
     display: flex;
     justify-content: flex-end;
 }
@@ -316,6 +316,6 @@
 .password-form-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    max-width: 500px;
+    gap: var(--space-6);
+    max-width: var(--width-form-md);
 }

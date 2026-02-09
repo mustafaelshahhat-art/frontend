@@ -1,6 +1,5 @@
 /* Pending Status Card - Compact Design (Matching Screenshot) */
 :host {
-    display: block;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -8,12 +7,12 @@
 }
 
 .pending-status-card {
-    background: rgba(26, 31, 53, 0.95);
+    background: rgb(26 31 53 / 95%);
     backdrop-filter: blur(16px);
-    border-radius: 24px;
-    padding: 2.5rem 3rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.35);
+    border-radius: var(--radius-3xl);
+    padding: var(--space-10) var(--space-12);
+    border: 1px solid rgb(255 255 255 / 8%);
+    box-shadow: var(--shadow-xl);
     text-align: center;
     max-width: 480px;
     width: 100%;
@@ -30,8 +29,8 @@
 .icon-pulse {
     position: absolute;
     inset: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-full);
+    border: 2px solid rgb(245 158 11 / 30%);
     animation: pulse 2s ease-out infinite;
 }
 
@@ -50,17 +49,17 @@
 .icon-bg {
     position: absolute;
     inset: 8px;
-    background: rgba(245, 158, 11, 0.15);
-    border-radius: 50%;
+    background: rgb(245 158 11 / 15%);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    border: 1px solid rgb(245 158 11 / 25%);
 }
 
 .icon-bg .material-symbols-outlined {
-    font-size: 32px;
-    color: #f59e0b;
+    font-size: var(--text-3xl);
+    color: var(--color-warning);
 }
 
 /* Content */
@@ -69,22 +68,22 @@
 }
 
 .title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0 0 0.75rem;
+    font-size: var(--text-xl);
+    font-weight: var(--font-black);
+    color: rgb(255 255 255);
+    margin: 0 0 var(--space-3);
 }
 
 .message {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgb(255 255 255 / 60%);
     margin: 0;
     line-height: 1.7;
 }
 
 .sub-message {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgb(255 255 255 / 40%);
     margin: 0.5rem 0 0;
 }
 
@@ -94,28 +93,28 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: var(--space-3) var(--space-6);
     background: transparent;
-    border: 2px solid #10B981;
-    border-radius: 10px;
-    color: #10B981;
-    font-size: 0.9rem;
-    font-weight: 600;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    color: var(--color-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--font-bold);
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: inherit;
 }
 
 .refresh-btn .material-symbols-outlined {
-    font-size: 18px;
+    font-size: var(--text-sm);
     transition: transform 0.3s ease;
 }
 
 .refresh-btn:hover {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: #10B981;
-    color: #10B981;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    background: rgb(16 185 129 / 10%);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-glow-sm);
 }
 
 .refresh-btn:hover .material-symbols-outlined {
@@ -123,14 +122,14 @@
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (width <=480px) {
     :host {
         padding: 1.5rem 1rem;
     }
 
     .pending-status-card {
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
+        padding: var(--space-8) var(--space-6);
+        border-radius: var(--radius-2xl);
     }
 
     .icon-container {
@@ -139,7 +138,7 @@
     }
 
     .icon-bg .material-symbols-outlined {
-        font-size: 28px;
+        font-size: var(--text-2xl);
     }
 
     .title {

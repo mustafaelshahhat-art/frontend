@@ -1,4 +1,5 @@
-<div class="select-wrapper" #selectRef [class.isOpen]="isOpen" [class.disabled]="disabled" [class.has-error]="error">
+<div class="select-wrapper" #selectRef [class.select-wrapper--open]="isOpen" [class.select-wrapper--disabled]="disabled"
+    [class.select-wrapper--error]="error">
     <div class="select-trigger" (click)="toggle()" (keyup.enter)="toggle()" tabindex="0"
         [class.has-value]="selectedValue !== null">
         <div class="select-content">

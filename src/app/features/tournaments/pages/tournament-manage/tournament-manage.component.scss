@@ -4,7 +4,7 @@
     margin: 0 auto;
     animation: fadeIn var(--duration-normal) ease-out;
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-md);
     }
 }
@@ -30,22 +30,22 @@
         padding: var(--space-xl);
         box-shadow: var(--shadow-lg);
 
-        .card-header {
-            margin-bottom: var(--space-xl);
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: var(--space-4);
-
-            .card-title {
-                font-size: var(--text-lg);
-                font-weight: var(--font-black);
-                color: var(--color-primary-light);
-                letter-spacing: var(--tracking-wide);
-            }
-        }
-
-        @media (max-width: 640px) {
+        @media (width <=640px) {
             padding: var(--space-lg);
         }
+    }
+
+    ::ng-deep .card .card-header {
+        margin-bottom: var(--space-xl);
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: var(--space-4);
+    }
+
+    ::ng-deep .card .card-header .card-title {
+        font-size: var(--text-lg);
+        font-weight: var(--font-black);
+        color: var(--color-primary-light);
+        letter-spacing: var(--tracking-wide);
     }
 }
 
@@ -58,7 +58,7 @@
         grid-column: span 2;
     }
 
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         grid-template-columns: 1fr;
         gap: var(--space-lg);
 
@@ -76,7 +76,7 @@
     margin-top: var(--space-lg);
     border-top: 1px solid var(--border-subtle);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         flex-direction: column-reverse;
 
         button,
@@ -96,14 +96,11 @@ input[type="date"] {
 
     &::-webkit-calendar-picker-indicator {
         background: transparent;
-        bottom: 0;
+        inset: 0;
         color: transparent;
         cursor: pointer;
         height: auto;
-        left: 0;
         position: absolute;
-        right: 0;
-        top: 0;
         width: auto;
     }
 }

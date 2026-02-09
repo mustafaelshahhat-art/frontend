@@ -15,7 +15,7 @@
     overflow: hidden;
     transition: transform 0.3s var(--transition-premium);
 
-    @media (max-width: 991px) {
+    @media (width <=991px) {
         transform: translateX(100%);
 
         &.open {
@@ -79,7 +79,7 @@
         transform: none;
     }
 
-    @media (min-width: 992px) {
+    @media (width >=992px) {
         display: none;
     }
 }
@@ -89,8 +89,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
     min-height: 0;
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary-20) transparent;
@@ -159,7 +158,7 @@
             bottom: 0;
             width: 3px;
             background: var(--color-primary);
-            box-shadow: 0 0 10px var(--color-primary);
+            box-shadow: var(--shadow-glow-emerald);
             border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
         }
 
@@ -238,7 +237,7 @@
     border-radius: var(--radius-full);
     flex-shrink: 0;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    box-shadow: var(--shadow-glow-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -249,7 +248,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .sidebar-profile-name {
@@ -267,7 +266,7 @@
 }
 
 .sidebar-profile-role {
-    font-size: 11px;
+    font-size: var(--text-tiny);
     color: var(--text-muted);
     font-weight: var(--font-medium);
 }

@@ -13,23 +13,20 @@
             <div class="form-field full-width">
                 <span class="form-label">نوع الاعتراض</span>
                 <app-select [options]="objectionTypeOptions" [(ngModel)]="objectionForm.type"
-                    placeholder="اختر نوع الاعتراض">
-                </app-select>
+                    placeholder="اختر نوع الاعتراض" />
             </div>
 
             <!-- Description -->
             <div class="form-field full-width">
                 <span class="form-label">شرح الاعتراض</span>
                 <app-form-control type="textarea" [(ngModel)]="objectionForm.description" [rows]="4"
-                    placeholder="اشرح سبب الاعتراض بالتفصيل...">
-                </app-form-control>
+                    placeholder="اشرح سبب الاعتراض بالتفصيل..." />
             </div>
 
             <!-- File Upload -->
             <div class="form-field full-width">
                 <app-file-upload label="المرفقات (صور أو فيديوهات توضيحية)" [multiple]="true" accept="image/*,video/*"
-                    (filesSelected)="onFilesSelected($event)">
-                </app-file-upload>
+                    (filesSelected)="onFilesSelected($event)" />
             </div>
         </div>
     </div>

@@ -63,34 +63,34 @@
         color: var(--color-danger);
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        box-shadow: 0 0 12px var(--color-danger-20);
+        box-shadow: var(--shadow-glow-danger);
     }
 }
 
 .status-dot {
-    width: 6px;
-    height: 6px;
+    width: var(--space-1-5);
+    height: var(--space-1-5);
     border-radius: var(--radius-full);
     background: var(--text-muted);
 
     &.active {
         background: var(--color-primary);
-        box-shadow: 0 0 6px var(--color-primary);
+        box-shadow: var(--shadow-glow-sm);
     }
 
     &.pending {
         background: var(--color-warning);
-        box-shadow: 0 0 6px var(--color-warning);
+        box-shadow: var(--shadow-glow-sm);
     }
 
     &.error {
         background: var(--color-danger);
-        box-shadow: 0 0 6px var(--color-danger);
+        box-shadow: var(--shadow-glow-danger);
     }
 
     &.live {
         background: var(--color-danger);
-        box-shadow: 0 0 8px var(--color-danger);
+        box-shadow: var(--shadow-glow-danger);
     }
 }
 

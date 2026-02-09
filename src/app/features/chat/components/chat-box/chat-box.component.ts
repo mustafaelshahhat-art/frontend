@@ -85,7 +85,7 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
         return msg.senderId === this.currentUserId;
     }
 
-    trackByMessage(index: number, message: ChatMessage): string {
+    trackByMessage(_index: number, message: ChatMessage): string {
         return message.id;
     }
 }

@@ -249,7 +249,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // List Optimization
-    trackById(index: number, match: Match): string {
+    trackById(_index: number, match: Match): string {
         return match.id;
     }
 

@@ -9,15 +9,13 @@
 
 <!-- Filters Template -->
 <ng-template #filtersRef>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)">
-    </app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Main Content -->
 <!-- Loading State -->
 @if (isLoading()) {
-<app-inline-loading message="جاري تحميل البطولات...">
-</app-inline-loading>
+<app-inline-loading message="جاري تحميل البطولات..." />
 }
 
 <!-- Empty States Based on Context -->
@@ -25,14 +23,12 @@
 <!-- No tournaments at all -->
 @if (tournaments().length === 0) {
 <app-empty-state icon="emoji_events" title="لا توجد بطولات حالياً"
-    description="ترقبوا الإعلانات القادمة! سيتم الإعلان عن بطولات جديدة قريباً.">
-</app-empty-state>
+    description="ترقبوا الإعلانات القادمة! سيتم الإعلان عن بطولات جديدة قريباً." />
 }
 
 <!-- Filter returned no results -->
 @if (tournaments().length > 0) {
-<app-empty-state icon="filter_alt_off" title="لا توجد نتائج" [description]="getEmptyFilterMessage()">
-</app-empty-state>
+<app-empty-state icon="filter_alt_off" title="لا توجد نتائج" [description]="getEmptyFilterMessage()" />
 }
 }
 
@@ -42,8 +38,7 @@
     @for (tournament of filteredTournaments(); track tournament.id) {
     <app-tournament-card [tournament]="tournament" [showRegisterButton]="isCaptain()"
         [showNonOwnerHint]="!isCaptain() && hasTeam()" [isBusy]="isTeamBusy()" [isTeamDisabled]="isTeamDisabled()"
-        (viewDetails)="viewDetails($event)" (register)="registerTeam($event)">
-    </app-tournament-card>
+        (viewDetails)="viewDetails($event)" (register)="registerTeam($event)" />
     }
 </div>
 }
@@ -58,5 +53,4 @@
 
 <!-- Full Registration Modal (Shared) -->
 <app-team-registration-modal [tournament]="selectedTournamentForRegistration" [isVisible]="isRegistrationModalVisible"
-    (closeEvent)="closeRegistrationModal()" (successEvent)="onRegistrationSuccess()">
-</app-team-registration-modal>
+    (closeEvent)="closeRegistrationModal()" (successEvent)="onRegistrationSuccess()" />

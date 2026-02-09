@@ -3,8 +3,7 @@
     (keydown)="onKeyDown($event)" [tabindex]="isClickable ? 0 : -1" [attr.role]="isClickable ? 'button' : 'article'">
     <!-- Banner with Icon and Status Badge -->
     <div class="tournament-banner" [class.winner-glow]="tournament.winnerTeamId">
-        <app-smart-image [src]="tournament.imageUrl" type="tournament" size="custom" class="banner-image">
-        </app-smart-image>
+        <app-smart-image [src]="tournament.imageUrl" type="tournament" size="custom" class="banner-image" />
 
         <!-- Winner Trophy Overlay -->
         @if (tournament.winnerTeamId) {
@@ -14,7 +13,7 @@
         <!-- Status Badge -->
         <div class="status-badge-overlay">
             <app-badge [type]="badgeType">
-                <span class="status-dot" [class]="'dot-' + tournament.status"></span>
+                <span class="status-dot" [class]="'dot-' + (tournament.status | kebabCase)"></span>
                 {{ tournament.status | statusLabel }}
             </app-badge>
         </div>

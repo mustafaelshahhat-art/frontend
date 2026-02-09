@@ -4,16 +4,14 @@
         <div class="form-field">
             <span class="form-label">نوع الحدث</span>
             <app-select [options]="eventTypeOptions" [ngModel]="eventForm.type" (ngModelChange)="onTypeChange($event)"
-                placeholder="اختر الحدث">
-            </app-select>
+                placeholder="اختر الحدث" />
         </div>
 
         <!-- Team Selection -->
         <div class="form-field">
             <span class="form-label">الفريق</span>
             <app-select [options]="teamOptions" [ngModel]="eventForm.teamId" (ngModelChange)="onTeamChange($event)"
-                placeholder="اختر الفريق">
-            </app-select>
+                placeholder="اختر الفريق" />
         </div>
     </div>
 
@@ -23,8 +21,7 @@
         <div class="form-field flex-2">
             <span class="form-label">اسم اللاعب</span>
             <app-select [options]="playerOptions" [ngModel]="eventForm.playerId"
-                (ngModelChange)="onPlayerChange($event)" placeholder="اختر اللاعب" [disabled]="isPlayersLoading">
-            </app-select>
+                (ngModelChange)="onPlayerChange($event)" placeholder="اختر اللاعب" [disabled]="isPlayersLoading" />
         </div>
 
         <!-- Minute -->

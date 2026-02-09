@@ -55,7 +55,7 @@
     display: flex;
     gap: var(--space-6);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         gap: var(--space-3);
     }
 }
@@ -70,7 +70,7 @@
     flex-shrink: 0;
 
     .material-symbols-outlined {
-        font-size: 24px;
+        font-size: var(--text-2xl);
     }
 
     // Dynamic types handled via data attribute in SCSS
@@ -95,8 +95,8 @@
     }
 
     &[data-type="team"] {
-        background: rgba(139, 92, 246, 0.15);
-        color: #8B5CF6;
+        background: var(--color-secondary-10);
+        color: var(--color-secondary);
     }
 
     &[data-type="system"] {

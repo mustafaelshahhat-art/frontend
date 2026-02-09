@@ -1,7 +1,7 @@
 import { Injectable, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, throwError, combineLatest } from 'rxjs';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable, BehaviorSubject, catchError, throwError } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
 
@@ -28,6 +28,8 @@ export class NotificationService {
     private listenersBound = false;
     private currentSubscribedRole: string | null = null;
 
+    private isConnected = toSignal(this.signalRService.isConnected$, { initialValue: false });
+
     // Expose store signals as observables for backward compatibility
     get notifications(): Observable<Notification[]> {
         return toObservable(this.notificationStore.notifications);
@@ -46,18 +48,14 @@ export class NotificationService {
         return this.removedFromTeam$.asObservable();
     }
 
-    constructor() {
-        // Load notifications initially if user already present
-        if (this.authService.getCurrentUser()) {
-            this.loadNotifications();
-        }
 
+    constructor() {
         // Reactive subscription management
-        combineLatest([
-            toObservable(this.authStore.currentUser),
-            this.signalRService.isConnected$
-        ]).subscribe(([user, isConnected]) => {
-            if (user && isConnected) {
+        effect(() => {
+            const user = this.authStore.currentUser();
+            const connected = this.isConnected();
+
+            if (user && connected) {
                 this.syncRoleSubscription(user.role);
             } else if (!user) {
                 this.currentSubscribedRole = null;

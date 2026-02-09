@@ -8,6 +8,7 @@ import { SmartImageComponent } from '../../../../shared/components/smart-image/s
 import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { AuthService } from '../../../../core/services/auth.service';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
+import { KebabCasePipe } from '../../../../shared/pipes/kebab-case.pipe';
 
 /**
  * TournamentCardComponent - Displays a tournament in a premium card format.
@@ -22,6 +23,7 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
         BadgeComponent,
         ButtonComponent,
         StatusLabelPipe,
+        KebabCasePipe,
         SmartImageComponent
     ],
     templateUrl: './tournament-card.component.html',

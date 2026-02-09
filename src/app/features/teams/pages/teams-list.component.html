@@ -1,27 +1,25 @@
 <!-- Filter Section -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Main Content -->
 <div class="flex-col gap-md">
     <!-- Loading State -->
     @if (isLoading()) {
-    <app-inline-loading message="جاري تحميل الفرق..."></app-inline-loading>
+    <app-inline-loading message="جاري تحميل الفرق..." />
     }
 
     <!-- Empty State -->
     @if (!isLoading() && filteredTeams().length === 0) {
-    <app-empty-state icon="groups" title="لا توجد فرق" description="لا توجد فرق في هذا التصنيف حالياً">
-    </app-empty-state>
+    <app-empty-state icon="groups" title="لا توجد فرق" description="لا توجد فرق في هذا التصنيف حالياً" />
     }
 
     <!-- Desktop Table View -->
     @if (!isLoading() && filteredTeams().length > 0) {
     <div class="table-wrapper hide-on-mobile">
         <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
-            emptyMessage="لا توجد فرق في هذا التصنيف حالياً">
-        </app-table>
+            emptyMessage="لا توجد فرق في هذا التصنيف حالياً" />
     </div>
     }
 
@@ -32,8 +30,7 @@
         <div class="card team-mobile-card" [class.is-disabled]="!team.isActive">
             <div class="card-header-flex">
                 <div class="flex items-center gap-3">
-                    <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)">
-                    </app-smart-image>
+                    <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)" />
                     <div class="flex-col">
                         <span class="text-primary font-bold">{{ team.name }}</span>
                         <span class="text-muted text-xs">{{ team.city }}</span>
@@ -59,16 +56,14 @@
 
             <div class="card-footer-actions">
                 <app-button (click)="viewTeam(team)" variant="ghost" size="md" icon="visibility" class="text-info"
-                    title="عرض التفاصيل"></app-button>
+                    title="عرض التفاصيل" />
                 <div class="flex-1"></div>
                 <div class="flex items-center gap-2">
                     <app-button (click)="requestToggleStatus(team)" variant="ghost" size="md"
                         [icon]="team.isActive ? 'block' : 'check_circle'" [class.text-danger]="team.isActive"
-                        [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'">
-                    </app-button>
+                        [class.text-success]="!team.isActive" [title]="team.isActive ? 'تعطيل' : 'تفعيل'" />
                     <app-button (click)="requestDelete(team)" variant="ghost" size="md" icon="delete"
-                        class="text-danger" title="حذف">
-                    </app-button>
+                        class="text-danger" title="حذف" />
                 </div>
             </div>
         </div>
@@ -80,8 +75,7 @@
 <!-- Team Info Template -->
 <ng-template #teamInfo let-row="row">
     <div class="flex items-center gap-3">
-        <app-smart-image [src]="row.logo" type="team" size="sm" [initials]="row.name.charAt(0)">
-        </app-smart-image>
+        <app-smart-image [src]="row.logo" type="team" size="sm" [initials]="row.name.charAt(0)" />
         <div class="flex-col">
             <span class="text-primary font-bold text-sm">{{ row.name }}</span>
             <span class="text-muted text-xs">{{ row.city }}</span>
@@ -112,14 +106,11 @@
 <ng-template #actionsInfo let-row="row">
     <div class="flex items-center justify-end gap-2">
         <app-button (click)="viewTeam(row)" variant="ghost" size="sm" icon="visibility" class="text-info"
-            title="عرض التفاصيل">
-        </app-button>
+            title="عرض التفاصيل" />
         <app-button (click)="requestDelete(row)" variant="ghost" size="sm" icon="delete" class="text-danger"
-            title="حذف">
-        </app-button>
+            title="حذف" />
         <app-button (click)="requestToggleStatus(row)" variant="ghost" size="sm"
             [icon]="row.isActive ? 'block' : 'check_circle'" [class.text-danger]="row.isActive"
-            [class.text-success]="!row.isActive" [title]="row.isActive ? 'تعطيل' : 'تفعيل'">
-        </app-button>
+            [class.text-success]="!row.isActive" [title]="row.isActive ? 'تعطيل' : 'تفعيل'" />
     </div>
 </ng-template>

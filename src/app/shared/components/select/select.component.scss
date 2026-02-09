@@ -4,7 +4,7 @@
     user-select: none;
     font-family: var(--font-body);
 
-    &.disabled {
+    &--disabled {
         opacity: 0.5;
         pointer-events: none;
     }
@@ -27,17 +27,17 @@
         border-color: var(--color-primary-30);
     }
 
-    .isOpen & {
+    .select-wrapper--open & {
         border-color: var(--color-primary);
         background: var(--border-color-strong);
         box-shadow: var(--shadow-glow-sm);
     }
 
-    .has-error & {
-        border-color: var(--color-danger-40, var(--color-danger));
+    .select-wrapper--error & {
+        border-color: var(--color-danger);
 
         &:hover {
-            border-color: var(--color-danger);
+            border-color: var(--color-danger-active);
         }
     }
 }
@@ -66,7 +66,7 @@
     color: var(--text-muted);
 
     .chevron {
-        font-size: 20px;
+        font-size: var(--text-xl);
         transition: var(--transition-bounce);
 
         &.rotated {
@@ -95,7 +95,7 @@
 @keyframes dropdownEnter {
     from {
         opacity: 0;
-        transform: translateY(-8px) scale(0.98);
+        transform: translateY(calc(var(--space-2) * -1)) scale(0.98);
     }
 
     to {
@@ -105,7 +105,7 @@
 }
 
 .options-list {
-    max-height: 240px;
+    max-height: 15rem;
     overflow-y: auto;
     padding: var(--space-2);
 }
@@ -119,7 +119,7 @@
     color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition-fast);
-    margin-bottom: 2px;
+    margin-bottom: var(--space-0-5);
 
     &:last-child {
         margin-bottom: 0;
@@ -138,13 +138,13 @@
     }
 
     .option-icon {
-        font-size: 20px;
+        font-size: var(--text-xl);
         color: var(--color-primary);
         opacity: 0.9;
     }
 
     .check-icon {
-        font-size: 18px;
+        font-size: var(--text-lg);
         margin-right: auto;
         color: var(--color-primary);
         animation: checkBounce var(--duration-normal) var(--transition-bounce) forwards;
@@ -172,7 +172,7 @@
 /* Custom Scrollbar */
 .custom-scrollbar {
     &::-webkit-scrollbar {
-        width: 6px;
+        width: var(--space-1-5);
     }
 
     &::-webkit-scrollbar-track {

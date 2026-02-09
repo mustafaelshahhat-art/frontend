@@ -209,7 +209,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     // List Optimization
-    trackById(index: number, item: Tournament): string {
+    trackById(_index: number, item: Tournament): string {
         return item.id;
     }
 

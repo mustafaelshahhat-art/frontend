@@ -35,8 +35,7 @@ import { UserRole } from '../../../../core/models/user.model';
                 [canDeleteTeam]="isCaptainOrAdmin"
                 (playerAction)="handlePlayerAction($event)"
                 (deleteTeam)="handleDeleteTeam()"
-                (disableTeam)="handleDisableTeam()">
-            </app-team-detail>
+                (disableTeam)="handleDisableTeam()" />
         }
 
         <!-- Only show centering spinner if we have NO data yet -->

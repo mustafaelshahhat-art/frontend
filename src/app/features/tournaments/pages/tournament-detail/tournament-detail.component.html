@@ -41,22 +41,22 @@
                     <div class="tournament-meta">
                         <div class="meta-item">
                             <span class="material-symbols-outlined">calendar_today</span>
-                            <div class="flex-col items-start">
-                                <span>البداية</span>
+                            <div class="meta-text-wrapper">
+                                <span class="label">البداية</span>
                                 <span>{{ t.startDate | date:'yyyy/MM/dd' }}</span>
                             </div>
                         </div>
                         <div class="meta-item">
                             <span class="material-symbols-outlined">location_on</span>
-                            <div class="flex-col items-start">
-                                <span>الموقع</span>
+                            <div class="meta-text-wrapper">
+                                <span class="label">الموقع</span>
                                 <span>{{ t.location || 'غير محدد' }}</span>
                             </div>
                         </div>
                         <div class="meta-item">
                             <span class="material-symbols-outlined">payments</span>
-                            <div class="flex-col items-start">
-                                <span>الاشتراك</span>
+                            <div class="meta-text-wrapper">
+                                <span class="label">الاشتراك</span>
                                 <span>{{ t.entryFee }} ريال</span>
                             </div>
                         </div>
@@ -139,8 +139,8 @@
                             <span class="stat-label">فريق</span>
                         </div>
                         <svg viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" class="bg"></circle>
-                            <circle cx="50" cy="50" r="45" class="fg"></circle>
+                            <circle cx="50" cy="50" r="45" class="bg" />
+                            <circle cx="50" cy="50" r="45" class="fg" />
                         </svg>
                     </div>
                     <div class="stat-pill">
@@ -153,8 +153,7 @@
         </app-card>
 
         <!-- Navigation Tabs -->
-        <app-filter [items]="tabs" [activeValue]="activeTab" (filterChange)="onTabChange($any($event))"
-            class="tab-filter"></app-filter>
+        <app-filter [items]="tabs" [activeValue]="activeTab" (filterChange)="onTabChange($event)" class="tab-filter" />
 
         <!-- Navigation Tabs Content -->
         <div class="tab-content">
@@ -181,8 +180,7 @@
                         </div>
                         } @empty {
                         <app-empty-state icon="sports_soccer" title="لا يوجد هدافين"
-                            description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن.">
-                        </app-empty-state>
+                            description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن." />
                         }
                     </div>
                 </app-card>
@@ -200,8 +198,7 @@
                         </div>
                         } @empty {
                         <app-empty-state icon="gavel" title="لا يوجد قواعد"
-                            description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد.">
-                        </app-empty-state>
+                            description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد." />
                         }
                     </div>
                 </app-card>
@@ -218,8 +215,7 @@
                         </p>
                         } @else {
                         <app-empty-state icon="military_tech" title="لا يوجد جوائز"
-                            description="لم يتم تحديد الجوائز لهذه البطولة بعد.">
-                        </app-empty-state>
+                            description="لم يتم تحديد الجوائز لهذه البطولة بعد." />
                         }
                     </div>
                 </app-card>
@@ -242,7 +238,7 @@
                     <ng-template #teamTemplate let-row>
                         <div class="flex items-center gap-2">
                             <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
-                                [initials]="row.team.charAt(0)"></app-smart-image>
+                                [initials]="row.team.charAt(0)" />
                             <span>{{ row.team }}</span>
                         </div>
                     </ng-template>
@@ -250,13 +246,13 @@
                     <ng-template #formTemplate let-row>
                         <div class="form-dots-container">
                             @for (r of row.form; track $index) {
-                            <span class="form-dot" [class]="r">{{ r }}</span>
+                            <span class="form-dot"
+                                [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')">{{ r }}</span>
                             }
                         </div>
                     </ng-template>
 
-                    <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()">
-                    </app-table>
+                    <app-table [columns]="tableColumns" [data]="standings()" [loading]="isLoading()" />
                 </div>
 
                 <!-- Mobile Shared Grid Design -->
@@ -272,8 +268,7 @@
                                     {{ i + 1 }}
                                 </div>
                                 <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                    [initials]="s.team.charAt(0)">
-                                </app-smart-image>
+                                    [initials]="s.team.charAt(0)" />
                                 <h4>{{ s.team }}</h4>
                             </div>
                             <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">
@@ -304,7 +299,8 @@
                             <span class="footer-label">آخر 5 مباريات:</span>
                             <div class="footer-content">
                                 @for (r of s.form; track $index) {
-                                <span class="form-dot" [class]="r">{{ r }}</span>
+                                <span class="form-dot"
+                                    [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')">{{ r }}</span>
                                 }
                             </div>
                         </div>
@@ -367,8 +363,7 @@
                 </div>
                 } @else {
                 <app-empty-state icon="event_busy" title="لا توجد مباريات"
-                    description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن.">
-                </app-empty-state>
+                    description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن." />
                 }
             </div>
             }
@@ -379,8 +374,7 @@
                 <div class="team-card">
                     <div class="team-logo items-center justify-center">
                         <app-smart-image [src]="reg.teamLogoUrl" type="team" size="sm"
-                            [initials]="reg.teamName.charAt(0)">
-                        </app-smart-image>
+                            [initials]="reg.teamName.charAt(0)" />
                     </div>
                     <div class="team-info">
                         <h3>{{ reg.teamName }}</h3>
@@ -410,8 +404,7 @@
                 </div>
                 } @empty {
                 <app-empty-state icon="groups" title="لا يوجد فرق"
-                    description="لم يتم تسجيل أي فرق في هذه البطولة حالياً.">
-                </app-empty-state>
+                    description="لم يتم تسجيل أي فرق في هذه البطولة حالياً." />
                 }
             </div>
             }
@@ -423,8 +416,6 @@
 
 <!-- Registration Modal (Shared) -->
 <app-team-registration-modal [tournament]="tournament()" [isVisible]="isRegisterModalVisible"
-    (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()">
-</app-team-registration-modal>
+    (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()" />
 
-<app-objection-modal [match]="activeMatch()" [(visible)]="showObjectionModal">
-</app-objection-modal>
+<app-objection-modal [match]="activeMatch()" [(visible)]="showObjectionModal" />

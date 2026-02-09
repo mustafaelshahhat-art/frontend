@@ -3,53 +3,53 @@
     top: 100px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: var(--z-toast, 70);
+    z-index: var(--z-toast);
     display: flex;
     flex-direction: column;
-    gap: var(--space-3, 12px);
+    gap: var(--space-3);
     width: 100%;
     max-width: 480px;
-    padding: 0 var(--space-4, 16px);
+    padding: 0 var(--space-4);
     pointer-events: none;
 }
 
 .global-alert {
     display: flex;
     align-items: flex-start;
-    gap: var(--space-3, 12px);
-    padding: var(--space-4, 16px);
-    border-radius: var(--radius-xl, 12px);
-    background: var(--bg-surface, #111827);
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-xl);
+    background: var(--bg-surface);
     border: 1px solid;
-    box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.3));
+    box-shadow: var(--shadow-xl);
     animation: slideInDown 0.3s ease-out;
     pointer-events: all;
 }
 
 .global-alert[data-type="success"] {
-    border-color: var(--color-primary-20, rgba(16, 185, 129, 0.2));
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), var(--bg-surface, #111827));
+    border-color: var(--color-primary-20);
+    background: linear-gradient(135deg, rgb(16 185 129 / 10%), var(--bg-surface));
 }
 
 .global-alert[data-type="error"] {
-    border-color: var(--color-danger-20, rgba(239, 68, 68, 0.2));
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), var(--bg-surface, #111827));
+    border-color: var(--color-danger-20);
+    background: linear-gradient(135deg, rgb(239 68 68 / 10%), var(--bg-surface));
 }
 
 .global-alert[data-type="warning"] {
-    border-color: var(--color-warning-20, rgba(245, 158, 11, 0.2));
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), var(--bg-surface, #111827));
+    border-color: var(--color-warning-20);
+    background: linear-gradient(135deg, rgb(245 158 11 / 10%), var(--bg-surface));
 }
 
 .global-alert[data-type="info"] {
-    border-color: var(--color-info-20, rgba(59, 130, 246, 0.2));
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), var(--bg-surface, #111827));
+    border-color: var(--color-info-20);
+    background: linear-gradient(135deg, rgb(59 130 246 / 10%), var(--bg-surface));
 }
 
 .global-alert-icon {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-lg, 8px);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -57,23 +57,23 @@
 }
 
 .global-alert-icon[data-type="success"] {
-    background: var(--color-primary-10, rgba(16, 185, 129, 0.1));
-    color: var(--color-primary, #10B981);
+    background: var(--color-primary-10);
+    color: var(--color-primary);
 }
 
 .global-alert-icon[data-type="error"] {
-    background: var(--color-danger-10, rgba(239, 68, 68, 0.1));
-    color: var(--color-danger, #EF4444);
+    background: var(--color-danger-10);
+    color: var(--color-danger);
 }
 
 .global-alert-icon[data-type="warning"] {
-    background: var(--color-warning-10, rgba(245, 158, 11, 0.1));
-    color: var(--color-warning, #F59E0B);
+    background: var(--color-warning-10);
+    color: var(--color-warning);
 }
 
 .global-alert-icon[data-type="info"] {
-    background: var(--color-info-10, rgba(59, 130, 246, 0.1));
-    color: var(--color-info, #3B82F6);
+    background: var(--color-info-10);
+    color: var(--color-info);
 }
 
 .global-alert-content {
@@ -82,30 +82,30 @@
 }
 
 .global-alert-title {
-    font-size: var(--text-sm, 14px);
-    font-weight: var(--font-semibold, 600);
-    color: var(--text-primary, #f1f5f9);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
 }
 
 .global-alert-message {
-    font-size: var(--text-xs, 12px);
-    color: var(--text-secondary, #94a3b8);
-    margin-top: var(--space-1, 4px);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
 }
 
 .global-alert-dismiss {
     background: transparent;
     border: none;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted);
     cursor: pointer;
-    padding: var(--space-1, 4px);
-    border-radius: var(--radius-sm, 4px);
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
     transition: all 0.2s;
 }
 
 .global-alert-dismiss:hover {
-    background: var(--bg-input, rgba(255, 255, 255, 0.05));
-    color: var(--text-primary, #f1f5f9);
+    background: var(--bg-input, rgb(255 255 255 / 5%));
+    color: var(--text-primary);
 }
 
 @keyframes slideInDown {

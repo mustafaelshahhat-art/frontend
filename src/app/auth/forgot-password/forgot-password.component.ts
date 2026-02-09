@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
+import { Component, inject, DestroyRef, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,7 +16,7 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
     styleUrls: ['./forgot-password.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ForgotPasswordComponent implements OnInit, AfterViewInit {
+export class ForgotPasswordComponent implements AfterViewInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private destroyRef = inject(DestroyRef);
@@ -29,8 +29,6 @@ export class ForgotPasswordComponent implements OnInit, AfterViewInit {
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
     isPageReady = signal(false);
-
-    ngOnInit(): void { }
 
     ngAfterViewInit(): void {
         requestAnimationFrame(() => {

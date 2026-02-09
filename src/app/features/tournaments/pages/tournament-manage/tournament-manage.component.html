@@ -7,17 +7,14 @@
                 <app-card title="المعلومات الأساسية" class="form-section">
                     <div class="fields-grid">
                         <app-form-control label="اسم البطولة" iconLeft="emoji_events" formControlName="name"
-                            [control]="tournamentForm.get('name')" placeholder="مثلاً: بطولة رمضان الكبرى">
-                        </app-form-control>
+                            [control]="tournamentForm.get('name')" placeholder="مثلاً: بطولة رمضان الكبرى" />
 
                         <app-form-control label="الموقع" iconLeft="location_on" formControlName="location"
-                            [control]="tournamentForm.get('location')" placeholder="مثلاً: الرياض، ملعب الربوة">
-                        </app-form-control>
+                            [control]="tournamentForm.get('location')" placeholder="مثلاً: الرياض، ملعب الربوة" />
 
                         <app-form-control label="وصف البطولة" iconLeft="description" type="textarea" class="full-width"
                             formControlName="description" [control]="tournamentForm.get('description')" [rows]="3"
-                            placeholder="اكتب وصفاً مختصراً للبطولة...">
-                        </app-form-control>
+                            placeholder="اكتب وصفاً مختصراً للبطولة..." />
                     </div>
                 </app-card>
 
@@ -25,21 +22,17 @@
                 <app-card title="التواريخ والسعة" class="form-section">
                     <div class="fields-grid">
                         <app-form-control label="تاريخ البدء" iconLeft="calendar_today" type="date"
-                            formControlName="startDate" [control]="tournamentForm.get('startDate')">
-                        </app-form-control>
+                            formControlName="startDate" [control]="tournamentForm.get('startDate')" />
 
                         <app-form-control label="تاريخ الانتهاء" iconLeft="event_busy" type="date"
-                            formControlName="endDate" [control]="tournamentForm.get('endDate')">
-                        </app-form-control>
+                            formControlName="endDate" [control]="tournamentForm.get('endDate')" />
 
                         <app-form-control label="أخر موعد للتسجيل" iconLeft="timer" type="date"
                             formControlName="registrationDeadline"
-                            [control]="tournamentForm.get('registrationDeadline')">
-                        </app-form-control>
+                            [control]="tournamentForm.get('registrationDeadline')" />
 
                         <app-form-control label="عدد الفرق الأقصى" iconLeft="groups" type="number"
-                            formControlName="maxTeams" [control]="tournamentForm.get('maxTeams')">
-                        </app-form-control>
+                            formControlName="maxTeams" [control]="tournamentForm.get('maxTeams')" />
                     </div>
                 </app-card>
 
@@ -47,18 +40,15 @@
                 <app-card title="الرسوم والقوانين" class="form-section">
                     <div class="fields-grid">
                         <app-form-control label="رسوم الاشتراك (ريال)" iconLeft="payments" type="number"
-                            formControlName="entryFee" [control]="tournamentForm.get('entryFee')">
-                        </app-form-control>
+                            formControlName="entryFee" [control]="tournamentForm.get('entryFee')" />
 
                         <app-form-control label="قوانين البطولة" iconLeft="gavel" type="textarea" class="full-width"
                             formControlName="rules" [control]="tournamentForm.get('rules')" [rows]="4"
-                            placeholder="اكتب شروط وقوانين البطولة هنا...">
-                        </app-form-control>
+                            placeholder="اكتب شروط وقوانين البطولة هنا..." />
 
                         <app-form-control label="جوائز البطولة" iconLeft="workspace_premium" type="textarea"
                             class="full-width" formControlName="prizes" [control]="tournamentForm.get('prizes')"
-                            [rows]="3" placeholder="مثلاً: المركز الأول: 5000 ريال، المركز الثاني: 3000 ريال...">
-                        </app-form-control>
+                            [rows]="3" placeholder="مثلاً: المركز الأول: 5000 ريال، المركز الثاني: 3000 ريال..." />
                     </div>
                 </app-card>
 

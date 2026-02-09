@@ -26,9 +26,9 @@
                 </div>
                 @if (canSchedule) {
                 <app-icon-button (trigger)="schedule.emit()" icon="calendar_month" variant="ghost"
-                    title="تحديد موعد اللقاء"></app-icon-button>
+                    title="تحديد موعد اللقاء" />
                 }
-                <app-icon-button (trigger)="navigateBack()" icon="arrow_forward" variant="ghost"></app-icon-button>
+                <app-icon-button (trigger)="navigateBack()" icon="arrow_forward" variant="ghost" />
             </div>
         </div>
 
@@ -72,12 +72,10 @@
             <div class="chat-input-wrapper">
                 <app-form-control type="text" [(ngModel)]="newMessage"
                     [placeholder]="readOnly ? 'هذه المباراة انتهت، المحادثة للقراءة فقط' : 'اكتب رسالتك هنا...'"
-                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" class="chat-input-control">
-                </app-form-control>
+                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" class="chat-input-control" />
 
                 <app-icon-button (trigger)="sendMessage()" icon="send" variant="primary"
-                    [disabled]="!newMessage.trim() || isLoading || readOnly" [isLoading]="isLoading">
-                </app-icon-button>
+                    [disabled]="!newMessage.trim() || isLoading || readOnly" [isLoading]="isLoading" />
             </div>
         </div>
     </div>

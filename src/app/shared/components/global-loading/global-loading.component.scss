@@ -1,7 +1,7 @@
 .loading-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgb(0 0 0 / 70%);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -13,22 +13,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-xl, 20px);
+    gap: var(--space-5);
 }
 
 .loading-spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid var(--border-visible, rgba(255, 255, 255, 0.1));
-    border-top-color: var(--color-primary, #10B981);
-    border-radius: 50%;
+    border: 3px solid var(--border-visible, rgb(255 255 255 / 10%));
+    border-top-color: var(--color-primary);
+    border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
 }
 
 .loading-message {
-    font-size: var(--text-sm, 14px);
-    color: var(--text-primary, #f1f5f9);
-    font-weight: var(--font-medium, 500);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
 }
 
 @keyframes spin {

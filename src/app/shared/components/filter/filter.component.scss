@@ -14,9 +14,10 @@
     width: 100%;
     box-shadow: var(--shadow-md);
     overflow: hidden;
+
     /* No scrolling */
 
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         flex-direction: row; // Keep horizontal
         overflow-x: auto; // Allow scrolling
         padding: var(--space-1);
@@ -33,13 +34,16 @@
 
 .filter-tab {
     flex: 1 1 auto;
+
     /* Grow, Shrink, and basis 0 to distribute equally */
     min-width: auto;
+
     /* Allow shrinking below content size */
     padding: var(--space-3) var(--space-4);
     background: transparent;
     border: none;
     border-radius: var(--radius-xl);
+
     /* Fluid font size: scales between 14px and 16px usually, but we'll override on mobile */
     font-size: var(--text-sm);
     font-weight: var(--font-black);
@@ -55,16 +59,17 @@
     letter-spacing: var(--tracking-wide);
 
     .material-symbols-outlined {
-        font-size: 20px;
+        font-size: var(--text-xl);
         flex-shrink: 0;
         transition: transform var(--duration-fast);
 
-        @media (max-width: 768px) {
-            font-size: 18px;
+        @media (width <=768px) {
+            font-size: var(--text-lg);
         }
 
-        @media (max-width: 500px) {
+        @media (width <=500px) {
             display: none;
+
             /* Hide icons earlier to give text more room */
         }
     }
@@ -94,17 +99,17 @@
         }
     }
 
-    @media (max-width: 640px) {
+    @media (width <=640px) {
         padding: var(--space-2-5) var(--space-1-5);
-        font-size: clamp(10px, 2.5vw, 13px);
+        font-size: clamp(var(--text-3xs), 2.5vw, var(--text-2xs));
         border-radius: var(--radius-lg);
         letter-spacing: normal;
         gap: var(--space-1);
     }
 
-    @media (max-width: 400px) {
+    @media (width <=400px) {
         /* Extra small screens: highly aggressive scaling */
-        font-size: clamp(8px, 3vw, 11px);
+        font-size: clamp(0.5rem, 3vw, var(--text-3xs));
         padding: var(--space-2) var(--space-0-5);
     }
 }

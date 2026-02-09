@@ -1,32 +1,29 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)"></app-filter>
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Main Content -->
 @if (isPending() && !isAdmin()) {
 <app-pending-status-card title="حسابك قيد المراجعة"
-    message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.">
-</app-pending-status-card>
+    message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل." />
 } @else {
 <div class="flex-col gap-md">
     <!-- Loading -->
     @if (isLoading()) {
-    <app-inline-loading message="جاري تحميل الاعتراضات..."></app-inline-loading>
+    <app-inline-loading message="جاري تحميل الاعتراضات..." />
     }
 
     <!-- Empty State -->
     @if (!isLoading() && (isAdmin() ? filteredObjections().length === 0 : objections().length === 0) && !showForm) {
     <app-empty-state icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
-        [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'">
-    </app-empty-state>
+        [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'" />
     }
 
     <!-- Admin: Table View -->
     @if (!isLoading() && isAdmin() && filteredObjections().length > 0) {
     <div class="card p-0 overflow-hidden objections-table-card">
-        <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()">
-        </app-table>
+        <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()" />
     </div>
     }
 
@@ -102,17 +99,14 @@
     <div class="flex items-center gap-1">
         <!-- Details -->
         <app-button variant="icon" size="sm" icon="visibility" [routerLink]="['/admin/objections', row.id]"
-            title="عرض التفاصيل">
-        </app-button>
+            title="عرض التفاصيل" />
 
         <!-- Quick Actions (Only for pending) -->
         @if (canPerformQuickAction(row.status)) {
         <app-button variant="icon" size="sm" icon="check_circle" class="text-success"
-            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.APPROVED)" title="قبول سريع">
-        </app-button>
+            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.APPROVED)" title="قبول سريع" />
         <app-button variant="icon" size="sm" icon="cancel" class="text-danger"
-            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.REJECTED)" title="رفض سريع">
-        </app-button>
+            (click)="$event.stopPropagation(); quickDecision(row, ObjectionStatus.REJECTED)" title="رفض سريع" />
         }
     </div>
 </ng-template>

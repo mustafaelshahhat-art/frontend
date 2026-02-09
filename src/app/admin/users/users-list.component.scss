@@ -3,11 +3,11 @@
     max-width: 1400px;
     margin: 0 auto;
 
-    @media (max-width: 768px) {
+    @media (width <=768px) {
         padding: var(--space-md);
     }
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-sm);
     }
 }
@@ -19,7 +19,7 @@
     padding: var(--space-4);
     border-top: 1px solid var(--border-visible);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         flex-direction: column;
         gap: var(--space-md);
     }
@@ -48,7 +48,7 @@
     opacity: 0.6;
 
     .material-symbols-outlined {
-        font-size: 18px;
+        font-size: var(--text-lg);
     }
 }
 
@@ -78,7 +78,7 @@
     &:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--color-primary-10);
+        box-shadow: var(--shadow-input-focus);
     }
 
     &::placeholder {
@@ -126,11 +126,11 @@
 
     &.active {
         background: var(--color-success);
-        box-shadow: 0 0 8px var(--color-success);
+        box-shadow: var(--shadow-glow-sm);
     }
 
     &.suspended {
         background: var(--color-danger);
-        box-shadow: 0 0 8px var(--color-danger);
+        box-shadow: var(--shadow-glow-danger);
     }
 }

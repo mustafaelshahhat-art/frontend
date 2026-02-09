@@ -8,8 +8,7 @@
 
   <!-- Sidebar -->
   <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
-    brandSubtitle="لوحة الحكم" userRoleLabel="حكم معتمد" (closeSidebar)="closeSidebar()" (logout)="handleLogout()">
-  </app-sidebar>
+    brandSubtitle="لوحة الحكم" userRoleLabel="حكم معتمد" (closeSidebar)="closeSidebar()" (logout)="handleLogout()" />
 
   <!-- Main Content Area -->
   <div class="app-main" [class.mr-sidebar]="!isMobile">
@@ -21,7 +20,7 @@
 
       <div breadcrumbs class="flex items-center gap-2">
         <span class="text-muted text-lg">/</span>
-        <app-breadcrumb></app-breadcrumb>
+        <app-breadcrumb />
       </div>
     </app-header>
 
@@ -33,7 +32,7 @@
         <app-page-header [title]="layout.title()" [subtitle]="layout.subtitle()" [showBack]="layout.showBack()"
           (back)="layout.onBack()">
           <!-- Actions Slot -->
-          <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
+          <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null" />
         </app-page-header>
         }
 
@@ -41,12 +40,12 @@
           <!-- Filters Section -->
           @if (layout.filtersTemplate()) {
           <div class="referee-toolbar">
-            <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null"></ng-container>
+            <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null" />
           </div>
           }
 
           <!-- Content Section -->
-          <router-outlet></router-outlet>
+          <router-outlet />
         </div>
       </div>
     </main>

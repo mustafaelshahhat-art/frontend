@@ -7,11 +7,13 @@
     background: var(--gradient-login);
     position: relative;
     width: 100%;
+
     /* Ensure full width cover */
 }
 
 .auth-container {
     min-height: 100vh;
+
     /* Fallback */
     min-height: 100dvh;
     display: flex;
@@ -20,11 +22,13 @@
     justify-content: center;
     padding: var(--space-xl);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-md);
         justify-content: center;
+
         /* Center on mobile too if height allows, otherwise flex-col handles it */
         min-height: 100vh;
+
         /* Ensure full height availability */
     }
 }
@@ -35,19 +39,23 @@
     border: 1px solid var(--border-visible);
     border-radius: var(--radius-3xl);
     padding: var(--space-3xl);
-    opacity: 1; /* Ensure visibility by default */
+    opacity: 1;
+
+    /* Ensure visibility by default */
     visibility: visible;
     transform: none;
     box-shadow: var(--shadow-2xl);
+
     /* Deep shadow */
     max-width: var(--width-card-sm);
+
     /* Slightly wider standard card */
     width: 100%;
     margin: 0 auto;
     position: relative;
     overflow: hidden;
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-xl);
         border-radius: var(--radius-2xl);
         max-width: 100%;
@@ -61,10 +69,10 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
+    padding: var(--space-px);
+    background: linear-gradient(180deg, rgb(255 255 255 / 10%) 0%, rgb(255 255 255 / 0%) 100%);
+    mask: linear-gradient(rgb(255 255 255) 0 0) content-box, linear-gradient(rgb(255 255 255) 0 0);
+    mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
 }
@@ -77,17 +85,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 30px var(--color-primary-20);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-glow-lg);
+    border: 1px solid var(--border-subtle);
 
     .material-symbols-outlined {
-        color: white;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        color: var(--text-primary);
+        text-shadow: 0 var(--space-0-5) var(--space-1) rgb(0 0 0 / 20%);
     }
 }
 
 .auth-title {
     font-weight: 800;
+
     /* Extra bold */
     letter-spacing: -0.02em;
     color: var(--text-primary);
@@ -136,6 +145,7 @@
         opacity: 0;
         transform: translateY(var(--space-10)) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -167,14 +177,16 @@
     grid-template-columns: repeat(5, 1fr);
     gap: var(--space-3);
 
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         /* User Requirement: Keep them next to each other on small screens */
-        grid-template-columns: repeat(5, 1fr) !important;
-        gap: 2px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--space-0-5);
+
         /* Extremely tight gap for 5 items */
-        margin-left: -8px;
+        margin-left: calc(var(--space-2) * -1);
+
         /* Negative margin to fit width if needed */
-        margin-right: -8px;
+        margin-right: calc(var(--space-2) * -1);
     }
 }
 
@@ -196,19 +208,20 @@
     opacity: 0.9;
 
     /* Mobile Interaction Improvements */
-    @media (max-width: 480px) {
+    @media (width <=480px) {
         padding: var(--space-2);
         border-radius: var(--radius-lg);
-        gap: 4px;
+        gap: var(--space-1);
+
         /* Smaller gap between icon and text */
 
         /* Smaller text & icon for mobile */
         .material-symbols-outlined {
-            font-size: 20px !important;
+            font-size: var(--text-xl);
         }
 
         span.text-xs {
-            font-size: 10px !important;
+            font-size: var(--text-2xs);
             white-space: nowrap;
         }
     }

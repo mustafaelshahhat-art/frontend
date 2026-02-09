@@ -39,14 +39,12 @@
       <!-- Added .relative class to ensure icon positioning context -->
       <!-- Email Field -->
       <app-form-control formControlName="email" label="البريد الإلكتروني" type="email" placeholder="name@example.com"
-        iconLeft="mail" [error]="(email?.invalid && email?.touched) ? 'يرجى إدخال بريد إلكتروني صحيح' : undefined">
-      </app-form-control>
+        iconLeft="mail" [error]="(email?.invalid && email?.touched) ? 'يرجى إدخال بريد إلكتروني صحيح' : undefined" />
 
       <!-- Password Field -->
       <app-form-control formControlName="password" label="كلمة المرور" type="password" placeholder="********"
         iconLeft="lock"
-        [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined">
-      </app-form-control>
+        [error]="(password?.invalid && password?.touched) ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : undefined" />
 
       <!-- Submit Button -->
       <div class="flex justify-center">

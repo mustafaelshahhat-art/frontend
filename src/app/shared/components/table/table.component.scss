@@ -93,8 +93,8 @@ table {
 }
 
 .empty-icon {
-    width: 64px;
-    height: 64px;
+    width: var(--space-16);
+    height: var(--space-16);
     border-radius: var(--radius-full);
     background: var(--bg-surface);
     display: flex;
@@ -102,7 +102,7 @@ table {
     justify-content: center;
 
     .material-symbols-outlined {
-        font-size: 32px;
+        font-size: var(--text-3xl);
         color: var(--text-disabled);
     }
 }

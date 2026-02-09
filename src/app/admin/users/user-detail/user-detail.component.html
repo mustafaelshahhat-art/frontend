@@ -3,7 +3,7 @@
 
         <!-- Loading State -->
         @if (isLoading) {
-        <app-inline-loading message="جاري تحميل بيانات المستخدم..."></app-inline-loading>
+        <app-inline-loading message="جاري تحميل بيانات المستخدم..." />
         }
 
         <!-- Error/Not Found State -->
@@ -25,8 +25,7 @@
                     <div class="profile-card">
                         <div class="profile-avatar">
                             <app-smart-image [src]="user.avatar" [type]="user.role === 'Referee' ? 'referee' : 'avatar'"
-                                size="xl" [initials]="user.name.charAt(0)">
-                            </app-smart-image>
+                                size="xl" [initials]="user.name.charAt(0)" />
                             <div class="status-indicator" [class.active]="user.status === 'Active'"
                                 [class.inactive]="user.status !== 'Active'">
                                 <span class="material-symbols-outlined">
@@ -64,10 +63,10 @@
             <div class="content-grid">
                 <!-- Quick Stats Row -->
                 <div class="stats-row animate-fade-in-up">
-                    <app-stat-card label="معرف العضوية" [value]="user.displayId" icon="fingerprint"></app-stat-card>
-                    <app-stat-card label="رقم الهوية" [value]="user.nationalId || '—'" icon="badge"></app-stat-card>
-                    <app-stat-card label="العمر" [value]="(user.age || '—') + ' سنة'" icon="cake"></app-stat-card>
-                    <app-stat-card label="الهاتف" [value]="user.phone || '—'" icon="call"></app-stat-card>
+                    <app-stat-card label="معرف العضوية" [value]="user.displayId" icon="fingerprint" />
+                    <app-stat-card label="رقم الهوية" [value]="user.nationalId || '—'" icon="badge" />
+                    <app-stat-card label="العمر" [value]="(user.age || '—') + ' سنة'" icon="cake" />
+                    <app-stat-card label="الهاتف" [value]="user.phone || '—'" icon="call" />
                 </div>
 
                 <!-- Main Content Columns -->
@@ -164,7 +163,7 @@
                                     </div>
                                     <div class="doc-image">
                                         <app-smart-image [src]="user.idFrontUrl" type="id"
-                                            size="custom"></app-smart-image>
+                                            size="custom" />
                                         <div class="doc-overlay">
                                             <span class="material-symbols-outlined">zoom_in</span>
                                         </div>
@@ -177,7 +176,7 @@
                                     </div>
                                     <div class="doc-image">
                                         <app-smart-image [src]="user.idBackUrl" type="id"
-                                            size="custom"></app-smart-image>
+                                            size="custom" />
                                         <div class="doc-overlay">
                                             <span class="material-symbols-outlined">zoom_in</span>
                                         </div>

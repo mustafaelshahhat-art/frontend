@@ -2,19 +2,16 @@
 
     <div class="registration-form-body">
         <app-form-control label="الرقم المحول منه" [(ngModel)]="registerForm.fromNumber"
-            placeholder="رقم الجوال المحول منه">
-        </app-form-control>
+            placeholder="رقم الجوال المحول منه" />
 
         <div class="transfer-type-group">
             <span class="registration-form-label">نوع التحويل</span>
-            <app-select [(ngModel)]="registerForm.transferType" [options]="transferOptions" placeholder="اختر النوع">
-            </app-select>
+            <app-select [(ngModel)]="registerForm.transferType" [options]="transferOptions" placeholder="اختر النوع" />
         </div>
 
         <div class="upload-group">
             <app-file-upload label="إيصال الدفع" accept="image/*" [multiple]="false"
-                (filesSelected)="onFileSelected($event)">
-            </app-file-upload>
+                (filesSelected)="onFileSelected($event)" />
         </div>
     </div>
 
