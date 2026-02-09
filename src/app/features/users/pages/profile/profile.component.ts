@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, ChangeDetectorRef, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, computed, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -17,6 +18,9 @@ import { FormControlComponent } from '../../../../shared/components/form-control
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { LocationService } from '../../../../core/services/location.service';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
+import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
 
 @Component({
     selector: 'app-profile',
@@ -38,7 +42,8 @@ import { PendingStatusCardComponent } from '../../../../shared/components/pendin
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
+    @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
@@ -46,6 +51,17 @@ export class ProfileComponent implements OnInit {
     private locationService = inject(LocationService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
+    private router = inject(Router);
+    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly captainLayout = inject(CaptainLayoutService);
+    private readonly refereeLayout = inject(RefereeLayoutService);
+
+    // Dynamic layout service based on current route
+    private get layoutService() {
+        if (this.router.url.startsWith('/captain')) return this.captainLayout;
+        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
+        return this.adminLayout;
+    }
 
     user: User | null = null;
     userRole: UserRole = UserRole.PLAYER;
@@ -77,6 +93,10 @@ export class ProfileComponent implements OnInit {
     isLocationsLoading = false;
 
     ngOnInit(): void {
+        // Set layout page metadata
+        this.layoutService.setTitle(this.pageTitle);
+        this.layoutService.setSubtitle(this.pageSubtitle);
+
         this.user = this.authService.getCurrentUser();
         this.userRole = this.user?.role || UserRole.PLAYER;
         // Initialize forms immediately to avoid formGroup binding errors
@@ -86,8 +106,20 @@ export class ProfileComponent implements OnInit {
         this.loadUserProfile();
         // Load location data (governorates now; cities/districts based on selected values)
         this.loadLocations();
+    }
 
+    ngAfterViewInit(): void {
+        // Defer to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+            if (this.actionsTemplate) {
+                this.layoutService.setActions(this.actionsTemplate);
+            }
+        });
+        this.cdr.detectChanges();
+    }
 
+    ngOnDestroy(): void {
+        this.layoutService.reset();
     }
 
     refreshStatus(): void {
@@ -337,6 +369,12 @@ export class ProfileComponent implements OnInit {
         // Store current avatar state for potential rollback
         this.pendingAvatar = this.profilePicture;
         this.avatarToDelete = false;
+
+        // Ensure form starts as pristine (no changes)
+        if (this.profileForm) {
+            this.profileForm.markAsPristine();
+        }
+
         this.cdr.detectChanges();
     }
 
@@ -350,6 +388,12 @@ export class ProfileComponent implements OnInit {
         // Reset form to original values
         this.populateForm();
         this.cdr.detectChanges();
+    }
+
+    get hasChanges(): boolean {
+        const isFormDirty = this.profileForm?.dirty || false;
+        const isAvatarChanged = (this.pendingAvatar !== this.originalAvatar && this.pendingAvatar !== null) || this.avatarToDelete;
+        return isFormDirty || isAvatarChanged;
     }
 
     private enableFormFields(): void {
@@ -432,9 +476,12 @@ export class ProfileComponent implements OnInit {
                 }
             });
         } else {
+            // Form is invalid
             Object.keys(this.profileForm.controls).forEach(key => {
                 const control = this.profileForm.get(key);
+                control?.markAsTouched();
             });
+            this.uiFeedback.error('بيانات غير صحيحة', 'يرجى التأكد من صحة جميع الحقول المطلوبة (الاسم، البريد الإلكتروني، رقم الهاتف)');
         }
     }
 

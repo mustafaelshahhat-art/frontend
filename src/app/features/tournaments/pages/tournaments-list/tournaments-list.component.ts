@@ -10,6 +10,7 @@ import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -56,6 +57,12 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     private readonly tournamentStore = inject(TournamentStore);
     private readonly teamStore = inject(TeamStore);
     private readonly adminLayout = inject(AdminLayoutService);
+    private readonly captainLayout = inject(CaptainLayoutService);
+
+    // Dynamic layout service based on current route
+    private get layoutService() {
+        return this.router.url.startsWith('/captain') ? this.captainLayout : this.adminLayout;
+    }
 
     @ViewChild('actions') actionsTemplate!: TemplateRef<any>;
     @ViewChild('filtersRef') filtersTemplate!: TemplateRef<any>;
@@ -120,21 +127,21 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     });
 
     ngOnInit(): void {
-        this.adminLayout.setTitle(this.isAdmin() ? 'إدارة البطولات' : 'البطولات المتاحة');
-        this.adminLayout.setSubtitle(this.isAdmin() ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك');
+        this.layoutService.setTitle(this.isAdmin() ? 'إدارة البطولات' : 'البطولات المتاحة');
+        this.layoutService.setSubtitle(this.isAdmin() ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك');
         this.loadInitialData();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         setTimeout(() => {
-            this.adminLayout.setActions(this.actionsTemplate);
-            this.adminLayout.setFilters(this.filtersTemplate);
+            this.layoutService.setActions(this.actionsTemplate);
+            this.layoutService.setFilters(this.filtersTemplate);
         });
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutService.reset();
     }
 
     // Registration Modal State

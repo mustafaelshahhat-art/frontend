@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -49,6 +50,12 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
     private readonly adminLayout = inject(AdminLayoutService);
+    private readonly captainLayout = inject(CaptainLayoutService);
+
+    // Dynamic layout service based on current route
+    private get layoutService() {
+        return this.router.url.startsWith('/captain') ? this.captainLayout : this.adminLayout;
+    }
 
     currentUser = this.authStore.currentUser;
     userRole = this.authStore.userRole;
@@ -105,8 +112,8 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as any) === 'NEW').length);
 
     ngOnInit(): void {
-        this.adminLayout.setTitle(this.pageTitle);
-        this.adminLayout.setSubtitle(this.pageSubtitle);
+        this.layoutService.setTitle(this.pageTitle);
+        this.layoutService.setSubtitle(this.pageSubtitle);
         this.loadObjections();
     }
 
@@ -119,17 +126,16 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
             { key: 'action', label: 'الإجراءات', width: '110px', template: this.actionInfo }
         ];
 
-        if (this.isAdmin()) {
-            setTimeout(() => {
-                this.adminLayout.setFilters(this.filtersTemplate);
-            });
-        }
+        // Enable filters for all layouts
+        setTimeout(() => {
+            this.layoutService.setFilters(this.filtersTemplate);
+        });
 
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutService.reset();
     }
 
     loadObjections(): void {

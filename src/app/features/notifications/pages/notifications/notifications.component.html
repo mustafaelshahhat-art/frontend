@@ -1,3 +1,9 @@
+<!-- Filters Template -->
+<ng-template #filtersTemplate>
+    <app-filter [items]="filters" [activeValue]="selectedFilter()" (change)="setFilter($event)">
+    </app-filter>
+</ng-template>
+
 <!-- Actions Template -->
 <ng-template #actionsTemplate>
     <div class="flex items-center gap-2">

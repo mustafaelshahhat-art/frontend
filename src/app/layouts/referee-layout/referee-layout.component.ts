@@ -10,18 +10,22 @@ import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
+import { RefereeLayoutService } from '../../core/services/referee-layout.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 @Component({
     selector: 'app-referee-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent],
-    templateUrl: './referee-layout.component.html'
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
+    templateUrl: './referee-layout.component.html',
+    styleUrls: ['./referee-layout.component.scss']
 })
 export class RefereeLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    public layout = inject(RefereeLayoutService);
 
     isSidebarOpen = true;
     isMobile = false;
@@ -38,9 +42,9 @@ export class RefereeLayoutComponent implements OnInit, OnDestroy {
 
     navItems: NavItem[] = [
         { label: 'مبارياتي', icon: 'sports_soccer', route: '/referee/matches' },
-        { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' }
+        { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' },
+        { label: 'الملف الشخصي', icon: 'person', route: '/referee/profile' }
     ];
-
 
     constructor() {
         // Effect to react to auth state changes

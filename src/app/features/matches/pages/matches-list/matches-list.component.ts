@@ -1,5 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatchService } from '../../../../core/services/match.service';
@@ -52,6 +54,7 @@ interface MatchFilter {
     styleUrls: ['./matches-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
+
 export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly matchService = inject(MatchService);
     private readonly authService = inject(AuthService);
@@ -61,6 +64,15 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly matchStore = inject(MatchStore);
     private readonly authStore = inject(AuthStore);
     private readonly adminLayout = inject(AdminLayoutService);
+    private readonly captainLayout = inject(CaptainLayoutService);
+    private readonly refereeLayout = inject(RefereeLayoutService);
+
+    // Dynamic layout service based on current route
+    private get layoutService() {
+        if (this.router.url.startsWith('/captain')) return this.captainLayout;
+        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
+        return this.adminLayout;
+    }
 
     // Signals State derived from Store
     matches = this.matchStore.matches;
@@ -119,21 +131,21 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     ngOnInit(): void {
-        this.adminLayout.setTitle(this.pageTitle);
-        this.adminLayout.setSubtitle(this.pageSubtitle);
+        this.layoutService.setTitle(this.pageTitle);
+        this.layoutService.setSubtitle(this.pageSubtitle);
         this.loadMatches();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         setTimeout(() => {
-            this.adminLayout.setFilters(this.filtersTemplate);
+            this.layoutService.setFilters(this.filtersTemplate);
         });
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutService.reset();
     }
 
     refreshStatus(): void {

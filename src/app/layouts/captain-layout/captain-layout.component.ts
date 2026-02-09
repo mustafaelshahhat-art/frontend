@@ -11,14 +11,17 @@ import { NotificationService } from '../../core/services/notification.service';
 import { PermissionsService } from '../../core/services/permissions.service';
 import { Permission } from '../../core/permissions/permissions.model';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { User, UserStatus } from '../../core/models/user.model';
+import { UserStatus } from '../../core/models/user.model';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
+import { CaptainLayoutService } from '../../core/services/captain-layout.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 @Component({
     selector: 'app-captain-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent],
-    templateUrl: './captain-layout.component.html'
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
+    templateUrl: './captain-layout.component.html',
+    styleUrls: ['./captain-layout.component.scss']
 })
 export class CaptainLayoutComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
@@ -26,6 +29,7 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
     private router = inject(Router);
     private notificationService = inject(NotificationService);
     private permissionsService = inject(PermissionsService);
+    public layout = inject(CaptainLayoutService);
 
     isSidebarOpen = true;
     isMobile = false;
@@ -54,7 +58,8 @@ export class CaptainLayoutComponent implements OnInit, OnDestroy {
         { label: 'المباريات', icon: 'sports_soccer', route: '/captain/matches' },
         { label: 'البطولات', icon: 'emoji_events', route: '/captain/championships' },
         { label: 'الاعتراضات', icon: 'gavel', route: '/captain/objections' },
-        { label: 'الإشعارات', icon: 'notifications', route: '/captain/notifications' }
+        { label: 'الإشعارات', icon: 'notifications', route: '/captain/notifications' },
+        { label: 'الملف الشخصي', icon: 'person', route: '/captain/profile' }
     ];
 
 

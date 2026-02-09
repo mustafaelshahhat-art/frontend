@@ -1,7 +1,13 @@
+<ng-template #actionsTemplate>
+    <div class="action-buttons-wrapper flex items-center gap-3">
+        <app-button *ngIf="!isPending()" (onClick)="toggleEditMode()" [isLoading]="isLoading"
+            [icon]="isEditing ? 'save' : 'edit'" [disabled]="isLoading || (isEditing && !hasChanges)">
+            {{ saveButtonLabel }}
+        </app-button>
+    </div>
+</ng-template>
+
 <div class="profile-page">
-    <app-page-header [title]="pageTitle" [subtitle]="pageSubtitle">
-        <app-badge type="primary">{{ roleBadge }}</app-badge>
-    </app-page-header>
 
     <!-- Pending Status - Replace content when pending -->
     <ng-container *ngIf="isPending(); else mainContent">
@@ -126,15 +132,10 @@
                             </div>
                         </div>
 
-                        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
-                            <ng-container *ngIf="isEditing">
-                                <app-button type="button" (onClick)="cancelEdit()" variant="outline">
-                                    إلغاء
-                                </app-button>
-                            </ng-container>
-                            <app-button type="submit" [isLoading]="isLoading" icon="save"
-                                [disabled]="isLoading || (isEditing && profileForm.invalid)">
-                                {{ saveButtonLabel }}
+                        <!-- Cancel button only (Save is in layout header) -->
+                        <div *ngIf="isEditing" style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                            <app-button type="button" (onClick)="cancelEdit()" variant="outline" icon="close">
+                                إلغاء التعديل
                             </app-button>
                         </div>
                     </form>

@@ -1,3 +1,40 @@
+// ==========================================================================
+// REFEREE LAYOUT - Mirroring Captain Layout Styles
+// ==========================================================================
+
+// ==========================================================================
+// PAGE CONTAINER
+// ==========================================================================
+
+.referee-page-container {
+    padding: var(--space-xl, 24px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.referee-page-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl, 24px);
+    margin-top: -24px; // Pull content closer to header
+}
+
+.referee-toolbar {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    width: 100%;
+
+    ::ng-deep app-filter {
+        flex: 1;
+        width: 100%;
+    }
+}
+
+// ==========================================================================
+// PENDING STATUS BANNER (If needed)
+// ==========================================================================
+
 .pending-banner {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
     border: 1px solid rgba(245, 158, 11, 0.2);
@@ -21,12 +58,13 @@
         text-transform: uppercase;
         border: 1px solid rgba(217, 119, 6, 0.1);
     }
+
+    // ... other button styles ...
 }
 
-.mr-sidebar {
-    margin-right: 280px;
-    transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+// ==========================================================================
+// RESPONSIVE ADJUSTMENTS
+// ==========================================================================
 
 @media (max-width: 991.98px) {
     .pending-banner {
@@ -38,5 +76,37 @@
         .pending-badge {
             align-self: flex-end;
         }
+    }
+
+    .referee-page-container {
+        padding: var(--space-lg, 20px) var(--space-md, 16px);
+    }
+}
+
+@media (max-width: 768px) {
+    .referee-page-container {
+        padding: var(--space-md, 16px);
+    }
+
+    .referee-page-content {
+        gap: var(--space-lg, 20px);
+        margin-top: -16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .referee-page-container {
+        padding: var(--space-sm, 12px);
+    }
+
+    .referee-page-content {
+        gap: var(--space-md, 16px);
+        margin-top: -12px;
+    }
+
+    .referee-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
     }
 }

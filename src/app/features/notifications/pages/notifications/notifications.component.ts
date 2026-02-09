@@ -1,5 +1,7 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, signal } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +13,11 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { NotificationStore } from '../../../../core/stores/notification.store';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { Notification as AppNotification } from '../../../../core/models/tournament.model';
+import { CardComponent } from '../../../../shared/components/card/card.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
+import { FilterComponent, FilterItem } from '../../../../shared/components/filter/filter.component';
 
 interface Notification {
     id: string;
@@ -23,10 +30,7 @@ interface Notification {
     link?: string;
 }
 
-import { CardComponent } from '../../../../shared/components/card/card.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
-import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
+type NotificationFilterValue = 'all' | 'unread' | 'read';
 
 @Component({
     selector: 'app-notifications',
@@ -40,7 +44,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         ButtonComponent,
         BadgeComponent,
         InlineLoadingComponent,
-        TimeAgoPipe
+        TimeAgoPipe,
+        FilterComponent
     ],
     templateUrl: './notifications.component.html',
     styleUrls: ['./notifications.component.scss'],
@@ -52,14 +57,43 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
     private notificationStore = inject(NotificationStore);
     private router = inject(Router);
     private readonly adminLayout = inject(AdminLayoutService);
+    private readonly captainLayout = inject(CaptainLayoutService);
+    private readonly refereeLayout = inject(RefereeLayoutService);
+
+    // Dynamic layout service based on current route
+    private get layoutService() {
+        if (this.router.url.startsWith('/captain')) return this.captainLayout;
+        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
+        return this.adminLayout;
+    }
 
     currentUser = this.authService.getCurrentUser();
     userRole = this.currentUser?.role || UserRole.PLAYER;
 
     isLoading = this.notificationStore.isLoading;
 
+    // Filter State
+    selectedFilter = signal<NotificationFilterValue>('all');
+    @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<any>;
+
+    readonly filters: FilterItem[] = [
+        { label: 'الكل', value: 'all', icon: 'all_inclusive' },
+        { label: 'غير مقروءة', value: 'unread', icon: 'mark_email_unread' },
+        { label: 'مقروءة', value: 'read', icon: 'drafts' }
+    ];
+
     notificationsView = computed(() => {
-        return this.notificationStore.notifications().map((n: AppNotification) => ({
+        let currentNotifications = this.notificationStore.notifications();
+
+        // Apply Filter based on signal
+        const filter = this.selectedFilter();
+        if (filter === 'unread') {
+            currentNotifications = currentNotifications.filter(n => !n.isRead);
+        } else if (filter === 'read') {
+            currentNotifications = currentNotifications.filter(n => n.isRead);
+        }
+
+        return currentNotifications.map((n: AppNotification) => ({
             id: n.id,
             title: n.title,
             message: n.message,
@@ -77,20 +111,21 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
     @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<any>;
 
     ngOnInit(): void {
-        this.adminLayout.setTitle(this.pageTitle);
-        this.adminLayout.setSubtitle(this.pageSubtitle);
+        this.layoutService.setTitle(this.pageTitle);
+        this.layoutService.setSubtitle(this.pageSubtitle);
         this.notificationService.loadNotifications();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         setTimeout(() => {
-            this.adminLayout.setActions(this.actionsTemplate);
+            if (this.actionsTemplate) this.layoutService.setActions(this.actionsTemplate);
+            if (this.filtersTemplate) this.layoutService.setFilters(this.filtersTemplate);
         });
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutService.reset();
     }
 
     get pageTitle(): string {
@@ -116,6 +151,10 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         if (notification.link) {
             this.router.navigateByUrl(notification.link);
         }
+    }
+
+    setFilter(filter: string): void {
+        this.selectedFilter.set(filter as NotificationFilterValue);
     }
 
     getIcon(type: string): string {
@@ -149,7 +188,9 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     get unreadCount(): number {
-        return this.notifications.filter(n => !n.isRead).length;
+        // This should probably count total unread from store, but for now filtering viewed notifications
+        // A better approach is to filter the store notifications directly for unread count
+        return this.notificationStore.notifications().filter(n => !n.isRead).length;
     }
 
     trackByNotification(index: number, item: Notification): string {

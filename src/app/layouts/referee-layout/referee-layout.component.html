@@ -5,7 +5,7 @@
 
     <!-- Sidebar -->
     <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
-        brandSubtitle="منصة الصافرة" userRoleLabel="حكم دولي" (close)="closeSidebar()" (logout)="handleLogout()">
+        brandSubtitle="لوحة الحكم" userRoleLabel="حكم معتمد" (close)="closeSidebar()" (logout)="handleLogout()">
     </app-sidebar>
 
     <!-- Main Content Area -->
@@ -22,10 +22,25 @@
             </div>
         </app-header>
 
-
         <!-- Page Content (Scrollable) -->
-        <main class="app-content p-4">
-            <router-outlet></router-outlet>
+        <main class="app-content">
+            <div class="referee-page-container">
+                <!-- Header Section -->
+                <app-page-header *ngIf="layout.title()" [title]="layout.title()" [subtitle]="layout.subtitle()">
+                    <!-- Actions Slot -->
+                    <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
+                </app-page-header>
+
+                <div class="referee-page-content">
+                    <!-- Filters Section -->
+                    <div class="referee-toolbar" *ngIf="layout.filtersTemplate()">
+                        <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null"></ng-container>
+                    </div>
+
+                    <!-- Content Section -->
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
         </main>
 
     </div>

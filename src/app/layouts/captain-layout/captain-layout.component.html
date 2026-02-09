@@ -23,10 +23,25 @@
             </div>
         </app-header>
 
-
         <!-- Page Content (Scrollable) -->
-        <main class="app-content p-4">
-            <router-outlet></router-outlet>
+        <main class="app-content">
+            <div class="captain-page-container">
+                <!-- Header Section -->
+                <app-page-header *ngIf="layout.title()" [title]="layout.title()" [subtitle]="layout.subtitle()">
+                    <!-- Actions Slot -->
+                    <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null"></ng-container>
+                </app-page-header>
+
+                <div class="captain-page-content">
+                    <!-- Filters Section -->
+                    <div class="captain-toolbar" *ngIf="layout.filtersTemplate()">
+                        <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null"></ng-container>
+                    </div>
+
+                    <!-- Content Section -->
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
         </main>
 
     </div>

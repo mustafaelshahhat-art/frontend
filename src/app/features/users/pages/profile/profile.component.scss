@@ -1,28 +1,93 @@
 .profile-page {
-    padding: var(--space-xl, 24px);
-    max-width: 1000px;
-    margin: 0 auto;
+    // Layout handles page container - no additional padding needed
 }
 
 .profile-container {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 380px 1fr; // Increased width from 300px to 380px
     gap: var(--space-xl, 24px);
+    align-items: stretch; // Ensures both columns have equal height
 
-    @media (max-width: 900px) {
+    @media (max-width: 1024px) {
         grid-template-columns: 1fr;
     }
 }
 
+// 1. Content Area Styles (Flexbox Wrapper)
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    // Ensure the app-card expands to fill the container
+    app-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    // Deep selectors to force internal card structure to expand
+    ::ng-deep .card {
+        height: 100%; // Critical for filling height
+        display: flex;
+        flex-direction: column;
+    }
+
+    ::ng-deep .card-body {
+        flex: 1; // Content area expands to push footer/fill space
+        display: flex;
+        flex-direction: column;
+    }
+
+    // Ensure the form takes full height
+    form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        // Form grid can expand if needed
+        .form-grid {
+            flex: 1;
+        }
+    }
+}
+
+// 2. Sidebar Styles (Flexbox Wrapper)
 .profile-sidebar {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl, 24px);
+    height: 100%;
 }
 
+// 3. Avatar Card Styles (Flex Item)
+// 3. Avatar Card Styles (Flex Item)
 .avatar-card {
-    text-align: center;
-    padding: var(--space-xl, 24px);
+    flex: 1; // Expand to fill sidebar height
+    display: flex;
+    flex-direction: column;
+
+    // Override default card padding/sizing if causing issues
+    box-sizing: border-box;
+    width: 100%;
+
+    // Center content vertically and horizontally
+    ::ng-deep .card {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    ::ng-deep .card-body {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
 
     .avatar-wrapper {
         width: 120px;
@@ -56,7 +121,7 @@
             color: var(--color-primary, #10B981);
         }
     }
-    
+
     .edit-overlay {
         position: absolute;
         inset: 0;
@@ -71,19 +136,19 @@
         transition: opacity 0.3s ease;
         pointer-events: none;
         border-radius: 50%;
-        
+
         .material-symbols-outlined {
             font-size: 32px;
             color: var(--color-primary, #10B981);
         }
-        
+
         span {
             font-size: var(--text-sm, 14px);
             font-weight: var(--font-semibold, 600);
             text-align: center;
         }
     }
-    
+
     .avatar-wrapper.editable:hover .edit-overlay {
         opacity: 1;
         pointer-events: all;
@@ -177,5 +242,24 @@
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+}
+
+// Header Actions Styling (In Layout Header)
+::ng-deep .action-buttons-wrapper {
+    @media (max-width: 640px) {
+        width: 100%; // Ensure container spans full width
+
+        // Force the app-button component and its inner button to expand
+        app-button {
+            width: 100%;
+            display: block; // If custom element
+
+            // Assuming inner button needs width 100%
+            button {
+                width: 100% !important;
+                justify-content: center; // Ensure content is centered
+            }
+        }
     }
 }
