@@ -203,7 +203,10 @@ export class AuthService {
         this.updateCurrentUser(updatedUser);
 
         const disabledStatuses = ['Suspended', 'Banned', 'Disabled', 'Deleted'];
-        if (disabledStatuses.includes(newStatus)) {
+        const shouldBlockAccess = disabledStatuses.includes(newStatus) || 
+            (newStatus === 'Pending' && user.role !== 'TournamentCreator');
+            
+        if (shouldBlockAccess) {
             console.warn(`Account status changed to ${newStatus}. Logging out...`);
             this.logout();
             // Navigation handled by layout effects
