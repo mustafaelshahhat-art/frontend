@@ -7,7 +7,7 @@ export const adminRoutes: Routes = [
     {
         path: '',
         component: AdminLayoutComponent,
-        canActivate: [permissionGuard([Permission.MANAGE_USERS])],
+        canActivate: [permissionGuard([Permission.VIEW_ADMIN_DASHBOARD])],
         children: [
             {
                 path: 'dashboard',

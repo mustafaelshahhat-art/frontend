@@ -19,7 +19,7 @@ import { UserStore } from '../../core/stores/user.store';
 @Component({
     selector: 'app-users-list',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         ReactiveFormsModule,
         FilterComponent,
@@ -60,9 +60,10 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // User Type Tabs
-    userType = signal<'admins' | 'referees' | 'players'>('admins');
+    userType = signal<'admins' | 'referees' | 'players' | 'creators'>('admins');
     userTypeTabs = [
         { value: 'admins', label: 'المشرفين' },
+        { value: 'creators', label: 'منشئي البطولات' },
         { value: 'referees', label: 'الحكام' },
         { value: 'players', label: 'اللاعبين' }
     ];
@@ -80,6 +81,9 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     // Modal State
     showAddAdminModal = signal<boolean>(false);
     isCreatingAdmin = signal<boolean>(false);
+
+    showAddCreatorModal = signal<boolean>(false);
+    isCreatingCreator = signal<boolean>(false);
 
     // Admin Form
     adminForm: FormGroup = this.fb.group({
@@ -151,6 +155,8 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         // Filter by user type
         if (type === 'admins') {
             result = result.filter(u => u.role === UserRole.ADMIN);
+        } else if (type === 'creators') {
+            result = result.filter(u => u.role === UserRole.TOURNAMENT_CREATOR);
         } else if (type === 'referees') {
             result = result.filter(u => u.role === UserRole.REFEREE);
         } else if (type === 'players') {
@@ -170,7 +176,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     setUserType(type: unknown): void {
-        this.userType.set(type as 'admins' | 'referees' | 'players');
+        this.userType.set(type as 'admins' | 'referees' | 'players' | 'creators');
     }
 
     getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
@@ -198,6 +204,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         switch (user.role) {
             case UserRole.ADMIN: return 'مسؤول';
+            case UserRole.TOURNAMENT_CREATOR: return 'منشئ بطولة';
             case UserRole.REFEREE: return 'حكم';
             default: return 'لاعب';
         }
@@ -332,6 +339,47 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             error: (err) => {
                 this.isCreatingAdmin.set(false);
                 this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المشرف');
+            }
+        });
+    }
+
+    // ==========================================
+    // ADD CREATOR MODAL
+    // ==========================================
+
+    openAddCreatorModal(): void {
+        this.adminForm.reset({ status: 'Active' });
+        this.showAddCreatorModal.set(true);
+    }
+
+    closeAddCreatorModal(): void {
+        this.showAddCreatorModal.set(false);
+        this.adminForm.reset({ status: 'Active' });
+    }
+
+    submitCreatorForm(): void {
+        if (this.adminForm.invalid) {
+            this.adminForm.markAllAsTouched();
+            return;
+        }
+
+        this.isCreatingCreator.set(true);
+        const formValue = this.adminForm.value;
+
+        this.userService.createTournamentCreator({
+            name: formValue.name,
+            email: formValue.email,
+            password: formValue.password,
+            status: formValue.status
+        }).subscribe({
+            next: (user) => {
+                this.isCreatingCreator.set(false);
+                this.closeAddCreatorModal();
+                this.uiFeedback.success('تم الإنشاء', `تم إنشاء منشئ البطولة "${user.name}" بنجاح`);
+            },
+            error: (err) => {
+                this.isCreatingCreator.set(false);
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المستخدم');
             }
         });
     }

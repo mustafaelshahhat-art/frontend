@@ -10,7 +10,7 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         RouterModule,
         SmartImageComponent
     ],
@@ -54,6 +54,8 @@ export class SidebarComponent {
         switch (this.currentUser.role) {
             case 'Admin':
                 return '/admin/settings';
+            case 'TournamentCreator':
+                return '/admin/dashboard';
             case 'Referee':
                 return '/referee/profile';
             default:
@@ -67,6 +69,7 @@ export class SidebarComponent {
 
         switch (this.currentUser.role) {
             case 'Admin': return 'مسؤول النظام';
+            case 'TournamentCreator': return 'منشئ بطولة';
             case 'Referee': return 'حكم الساحة';
             case 'Player':
                 if (this.currentUser.isTeamOwner) return 'قائد الفريق';

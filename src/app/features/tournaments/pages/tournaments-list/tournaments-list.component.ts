@@ -32,7 +32,7 @@ interface TournamentFilter {
 @Component({
     selector: 'app-tournaments-list',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         RouterModule,
         EmptyStateComponent,
@@ -125,8 +125,10 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     });
 
     ngOnInit(): void {
-        this.layoutService.setTitle(this.isAdmin() ? 'إدارة البطولات' : 'البطولات المتاحة');
-        this.layoutService.setSubtitle(this.isAdmin() ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك');
+        const title = (this.isAdmin() || this.isCreator()) ? 'إدارة البطولات' : 'البطولات المتاحة';
+        const subtitle = (this.isAdmin() || this.isCreator()) ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك';
+        this.layoutService.setTitle(title);
+        this.layoutService.setSubtitle(subtitle);
         this.loadInitialData();
     }
 
@@ -149,6 +151,10 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     // Role checks
     isAdmin(): boolean {
         return this.authService.hasRole(UserRole.ADMIN);
+    }
+
+    isCreator(): boolean {
+        return this.authService.hasRole(UserRole.TOURNAMENT_CREATOR);
     }
 
     // Team State from Store
@@ -242,7 +248,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     viewDetails(tournament: Tournament): void {
-        if (this.isAdmin()) {
+        if (this.isAdmin() || this.isCreator()) {
             this.router.navigate(['/admin/tournaments', tournament.id]);
         } else if (this.hasTeam()) {
             this.router.navigate(['/captain/championships', tournament.id]);

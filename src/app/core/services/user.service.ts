@@ -65,6 +65,13 @@ export class UserService {
     }
 
     /**
+     * Creates a new tournament creator user. Only callable by existing admins.
+     */
+    createTournamentCreator(request: CreateAdminRequest): Observable<User> {
+        return this.http.post<User>(`${this.apiUrl}/create-tournament-creator`, request);
+    }
+
+    /**
      * Gets the count of active admins. Used for safety checks.
      */
     getAdminCount(userId?: string): Observable<AdminCountDto> {

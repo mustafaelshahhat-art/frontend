@@ -5,6 +5,11 @@
         إضافة مشرف
     </app-button>
     }
+    @if (userType() === 'creators') {
+    <app-button (click)="openAddCreatorModal()" variant="primary" icon="person_add">
+        إضافة منشئ بطولة
+    </app-button>
+    }
 </ng-template>
 
 <!-- Filters Template -->
@@ -147,6 +152,51 @@
         <app-button variant="primary" icon="check" [isLoading]="isCreatingAdmin()" [disabled]="adminForm.invalid"
             (click)="submitAdminForm()">
             إنشاء المشرف
+        </app-button>
+    </div>
+</app-modal>
+
+<!-- Add Creator Modal -->
+<app-modal [visible]="showAddCreatorModal()" title="إضافة منشئ بطولة جديد" icon="person_add" size="md"
+    (closeRequest)="closeAddCreatorModal()">
+
+    <form [formGroup]="adminForm" class="flex-col gap-lg">
+        <!-- Full Name -->
+        <app-form-control label="الاسم الكامل" placeholder="أدخل اسم المنشئ" iconLeft="person" formControlName="name"
+            [control]="adminForm.get('name')" />
+
+        <!-- Email -->
+        <app-form-control label="البريد الإلكتروني" placeholder="example@domain.com" iconLeft="email"
+            formControlName="email" [control]="adminForm.get('email')" dir="ltr" />
+
+        <!-- Password -->
+        <app-form-control label="كلمة المرور" type="password" placeholder="6 أحرف على الأقل" formControlName="password"
+            iconLeft="lock" [control]="adminForm.get('password')" />
+
+        <!-- Status -->
+        <div class="form-group">
+            <span id="creatorStatusLabel" class="form-label">حالة الحساب</span>
+            <div class="status-options" role="radiogroup" aria-labelledby="creatorStatusLabel">
+                <label class="status-option" [class.active]="adminForm.get('status')?.value === 'Active'">
+                    <input type="radio" formControlName="status" value="Active">
+                    <span class="status-dot active"></span>
+                    <span>نشط</span>
+                </label>
+                <label class="status-option" [class.active]="adminForm.get('status')?.value === 'Suspended'">
+                    <input type="radio" formControlName="status" value="Suspended">
+                    <span class="status-dot suspended"></span>
+                    <span>موقوف</span>
+                </label>
+            </div>
+        </div>
+    </form>
+
+    <!-- Footer -->
+    <div modal-footer class="flex items-center justify-end gap-md">
+        <app-button variant="ghost" (click)="closeAddCreatorModal()">إلغاء</app-button>
+        <app-button variant="primary" icon="check" [isLoading]="isCreatingCreator()" [disabled]="adminForm.invalid"
+            (click)="submitCreatorForm()">
+            إنشاء المستخدم
         </app-button>
     </div>
 </app-modal>

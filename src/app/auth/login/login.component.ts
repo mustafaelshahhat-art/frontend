@@ -14,7 +14,7 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         ReactiveFormsModule,
         RouterLink,
@@ -110,7 +110,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private handleNavigation(user: User): void {
         const role = user.role?.toString();
 
-        if (role === UserRole.ADMIN) {
+        if (role === UserRole.ADMIN || role === UserRole.TOURNAMENT_CREATOR) {
             this.router.navigate(['/admin/dashboard']);
         } else if (role === UserRole.REFEREE) {
             this.router.navigate(['/referee/matches']);

@@ -5,4 +5,5 @@ export interface NavItem {
     active?: boolean;
     exact?: boolean;
     badge?: string | number;
+    permission?: string;
 }

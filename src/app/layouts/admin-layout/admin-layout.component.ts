@@ -13,6 +13,8 @@ import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcru
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { Notification } from '../../core/models/tournament.model';
+import { PermissionsService } from '../../core/services/permissions.service';
+import { Permission } from '../../core/permissions/permissions.model';
 
 @Component({
     selector: 'app-admin-layout',
@@ -27,6 +29,7 @@ export class AdminLayoutComponent implements OnInit {
     private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private permissionsService = inject(PermissionsService);
     public layout = inject(AdminLayoutService);
 
     isSidebarOpen = true;
@@ -41,17 +44,23 @@ export class AdminLayoutComponent implements OnInit {
     currentUser = this.authStore.currentUser;
     isAuthenticated = this.authStore.isAuthenticated;
 
-    navItems: NavItem[] = [
-        { label: 'لوحة التحكم', icon: 'dashboard', route: '/admin/dashboard' },
-        { label: 'البطولات', icon: 'emoji_events', route: '/admin/tournaments' },
-        { label: 'الفرق', icon: 'groups', route: '/admin/teams' },
-        { label: 'المباريات', icon: 'sports_soccer', route: '/admin/matches' },
-        { label: 'المستخدمين', icon: 'person', route: '/admin/users' },
-        { label: 'الاعتراضات', icon: 'gavel', route: '/admin/objections' },
-        { label: 'الطلبات المالية', icon: 'payments', route: '/admin/payment-requests' },
-        { label: 'الإشعارات', icon: 'notifications', route: '/admin/notifications' },
-        { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log' }
+    allNavItems: NavItem[] = [
+        { label: 'لوحة التحكم', icon: 'dashboard', route: '/admin/dashboard', permission: Permission.VIEW_ADMIN_DASHBOARD },
+        { label: 'البطولات', icon: 'emoji_events', route: '/admin/tournaments', permission: Permission.MANAGE_TOURNAMENTS },
+        { label: 'الفرق', icon: 'groups', route: '/admin/teams', permission: Permission.MANAGE_TEAMS },
+        { label: 'المباريات', icon: 'sports_soccer', route: '/admin/matches', permission: Permission.MANAGE_MATCHES },
+        { label: 'المستخدمين', icon: 'person', route: '/admin/users', permission: Permission.MANAGE_USERS },
+        { label: 'الاعتراضات', icon: 'gavel', route: '/admin/objections', permission: Permission.VIEW_OBJECTIONS },
+        { label: 'الطلبات المالية', icon: 'payments', route: '/admin/payment-requests', permission: Permission.VIEW_PAYMENTS },
+        { label: 'الإشعارات', icon: 'notifications', route: '/admin/notifications', permission: Permission.VIEW_ADMIN_DASHBOARD },
+        { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log', permission: Permission.VIEW_LOGS }
     ];
+
+    get navItems(): NavItem[] {
+        return this.allNavItems.filter(item =>
+            !item.permission || this.permissionsService.hasPermission(item.permission as Permission)
+        );
+    }
 
 
     constructor() {

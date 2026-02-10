@@ -17,11 +17,12 @@ import { MatchStore } from '../../core/stores/match.store';
 import { TournamentStore } from '../../core/stores/tournament.store';
 import { UserStore } from '../../core/stores/user.store';
 import { ActivityStore, StoreActivity } from '../../core/stores/activity.store';
+import { AuthStore } from '../../core/stores/auth.store';
 
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         StatCardComponent,
         ActionCardComponent,
@@ -44,6 +45,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private readonly tournamentStore = inject(TournamentStore);
     private readonly userStore = inject(UserStore);
     private readonly activityStore = inject(ActivityStore);
+    private readonly authStore = inject(AuthStore);
     private readonly adminLayout = inject(AdminLayoutService);
 
     // Computed Stats from Stores
@@ -76,8 +78,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
 
     ngOnInit(): void {
-        this.adminLayout.setTitle('منصة التحكم للمدير');
-        this.adminLayout.setSubtitle('مرحباً بك، إليك ملخص النشاط الحالي');
+        const isAdmin = this.authStore.currentUser()?.role === 'Admin';
+        const title = isAdmin ? 'منصة التحكم للمدير' : 'منصة منشئ البطولة';
+        const subtitle = isAdmin ? 'مرحباً بك، إليك ملخص النشاط الحالي' : 'مرحباً بك، تتبع بطولاتك وأنشطتها هنا';
+
+        this.adminLayout.setTitle(title);
+        this.adminLayout.setSubtitle(subtitle);
         this.loadInitialData();
     }
 

@@ -25,7 +25,7 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 @Component({
     selector: 'app-objections-list',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         RouterLink,
@@ -154,7 +154,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
             this.cdr.detectChanges();
         };
 
-        if (this.isAdmin()) {
+        if (this.isAdmin() || this.isCreator()) {
             this.objectionsService.getObjections().subscribe({
                 next: handleSuccess,
                 error: handleError
@@ -178,11 +178,11 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     get pageTitle(): string {
-        return this.isAdmin() ? 'إدارة الاعتراضات' : 'مركز الاعتراضات';
+        return (this.isAdmin() || this.isCreator()) ? 'إدارة الاعتراضات' : 'مركز الاعتراضات';
     }
 
     get pageSubtitle(): string {
-        return this.isAdmin()
+        return (this.isAdmin() || this.isCreator())
             ? 'مراجعة الاعتراضات المقدمة واتخاذ القرارات'
             : 'تقديم ومتابعة الاعتراضات الرسمية للجنة المنظمة';
     }
@@ -257,6 +257,10 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
 
     isAdmin(): boolean {
         return this.userRole() === UserRole.ADMIN;
+    }
+
+    isCreator(): boolean {
+        return this.userRole() === UserRole.TOURNAMENT_CREATOR;
     }
 
     isCaptain(): boolean {
