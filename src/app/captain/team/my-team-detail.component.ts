@@ -180,8 +180,11 @@ export class MyTeamDetailComponent implements OnInit, AfterViewInit, OnDestroy {
                         const latestData = this.teamData();
                         if (latestData) {
                             this.teamData.set({ ...latestData, invitations: requests });
+                            this.cdr.markForCheck();
                         }
                     });
+                    // Also refresh teams overview to update player counts etc.
+                    this.loadTeamData();
                 } else if (!currentData) {
                     this.authService.refreshUserProfile().subscribe({
                         next: (updatedUser) => {
@@ -190,12 +193,30 @@ export class MyTeamDetailComponent implements OnInit, AfterViewInit, OnDestroy {
                             } else {
                                 this.loadInvitations();
                             }
+                            this.cdr.markForCheck();
                         },
-                        error: () => this.loadInvitations()
+                        error: () => {
+                            this.loadInvitations();
+                            this.cdr.markForCheck();
+                        }
                     });
                 } else {
                     this.loadInvitations();
+                    this.cdr.markForCheck();
                 }
+            })
+        );
+
+        // Real-time: When the user is removed from a team, reload everything
+        this.subscriptions.add(
+            this.notificationService.removedFromTeamAndRefresh.subscribe(() => {
+                this.authService.refreshUserProfile().subscribe({
+                    next: (updatedUser) => {
+                        this.currentUser = updatedUser;
+                        this.loadTeamData();
+                        this.cdr.markForCheck();
+                    }
+                });
             })
         );
     }
@@ -636,7 +657,7 @@ export class MyTeamDetailComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.teamService.removePlayer(current.id, player.id.toString()).subscribe(() => {
                         this.teamData.set({
                             ...current,
-                            players: current.players.filter((p) => p.id !== player.id)
+                            players: current.players.filter((p) => String(p.id) !== String(player.id))
                         });
                         this.uiFeedback.success('تم الاستبعاد', 'تم إزالة اللاعب من الفريق');
                     });

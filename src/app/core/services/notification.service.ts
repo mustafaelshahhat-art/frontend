@@ -104,9 +104,20 @@ export class NotificationService {
             connection.on('ReceiveNotification', (notification: Notification) => {
                 this.notificationStore.addNotification(notification);
 
-                if (notification.type === 'invite' || notification.type === 'join_request' ||
+                // Check for removal/deletion keywords in team or system notifications
+                // This handles cases like "Team Deleted" by Admin or "Player Removed"
+                const isRemoval = (notification.type === 'team' || notification.type === 'system') &&
+                    (/remove|delete|kick|ban|left|استبعاد|حذف|طرد|مغادرة/.test(notification.message.toLowerCase()) ||
+                        /remove|delete|kick|ban|left|استبعاد|حذف|طرد|مغادرة/.test(notification.title.toLowerCase()));
+
+                if (isRemoval) {
+                    console.log('Removal notification received:', notification.title);
+                    this.removedFromTeam$.next();
+                } else if (notification.type === 'invite' || notification.type === 'join_request' ||
                     notification.type === 'invite_accepted' || notification.type === 'invite_rejected' ||
-                    notification.type === 'join_accepted' || notification.type === 'join_rejected') {
+                    notification.type === 'join_accepted' || notification.type === 'join_rejected' ||
+                    notification.type === 'team') {
+                    // For general team updates or requests, just refresh the team data
                     this.joinRequestUpdate$.next();
                 }
             });

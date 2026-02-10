@@ -154,6 +154,15 @@ export class TeamDetailComponent implements OnChanges, OnInit {
         if (changes['canSeeRequests'] || changes['canSeeFinances']) {
             this.updateFilteredTabs();
         }
+
+        // Auto-close invite modal when loading finishes (request completed)
+        if (changes['isInviteLoading'] && !changes['isInviteLoading'].firstChange) {
+            const wasLoading = changes['isInviteLoading'].previousValue;
+            const isNowLoading = changes['isInviteLoading'].currentValue;
+            if (wasLoading && !isNowLoading && this.isInviteModalOpen) {
+                this.closeInviteModal();
+            }
+        }
     }
 
     ngOnInit(): void {
