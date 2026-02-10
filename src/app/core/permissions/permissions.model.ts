@@ -64,7 +64,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS,
         Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
-        Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
-        Permission.VIEW_ADMIN_DASHBOARD
+        Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS
     ]
 };

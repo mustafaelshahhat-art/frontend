@@ -1,6 +1,6 @@
 <!-- Actions Template -->
 <ng-template #actions>
-    @if (isAdmin()) {
+    @if (isAdmin() || isCreator()) {
     <app-button (click)="createNewTournament()" icon="add_circle">
         بطولة جديدة
     </app-button>

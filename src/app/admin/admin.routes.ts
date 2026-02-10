@@ -7,11 +7,12 @@ export const adminRoutes: Routes = [
     {
         path: '',
         component: AdminLayoutComponent,
-        canActivate: [permissionGuard([Permission.VIEW_ADMIN_DASHBOARD])],
+        canActivate: [permissionGuard([Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS])],
         children: [
             {
                 path: 'dashboard',
                 loadComponent: () => import('./dashboard/dashboard.component').then(m => m.AdminDashboardComponent),
+                canActivate: [permissionGuard([Permission.VIEW_ADMIN_DASHBOARD])],
                 data: { breadcrumb: 'لوحة التحكم', icon: 'dashboard' }
             },
             {
@@ -102,7 +103,7 @@ export const adminRoutes: Routes = [
             },
             {
                 path: '',
-                redirectTo: 'dashboard',
+                redirectTo: 'tournaments',
                 pathMatch: 'full'
             }
         ]

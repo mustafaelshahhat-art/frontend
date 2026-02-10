@@ -110,8 +110,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private handleNavigation(user: User): void {
         const role = user.role?.toString();
 
-        if (role === UserRole.ADMIN || role === UserRole.TOURNAMENT_CREATOR) {
+        if (role === UserRole.ADMIN) {
             this.router.navigate(['/admin/dashboard']);
+        } else if (role === UserRole.TOURNAMENT_CREATOR) {
+            this.router.navigate(['/admin/tournaments']);
         } else if (role === UserRole.REFEREE) {
             this.router.navigate(['/referee/matches']);
         } else if (role === UserRole.PLAYER) {

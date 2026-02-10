@@ -78,7 +78,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
 
     ngOnInit(): void {
-        const isAdmin = this.authStore.currentUser()?.role === 'Admin';
+        const currentUser = this.authStore.currentUser();
+        const isAdmin = currentUser?.role === 'Admin';
+        const isCreator = currentUser?.role === 'TournamentCreator';
+        
+        // Redirect tournament creators to tournaments page
+        if (isCreator) {
+            this.router.navigate(['/admin/tournaments']);
+            return;
+        }
+        
         const title = isAdmin ? 'منصة التحكم للمدير' : 'منصة منشئ البطولة';
         const subtitle = isAdmin ? 'مرحباً بك، إليك ملخص النشاط الحالي' : 'مرحباً بك، تتبع بطولاتك وأنشطتها هنا';
 
