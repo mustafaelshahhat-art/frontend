@@ -13,6 +13,9 @@ export class CaptainLayoutService {
     // Layout Slots
     readonly actionsTemplate = signal<TemplateRef<unknown> | null>(null);
     readonly filtersTemplate = signal<TemplateRef<unknown> | null>(null);
+    
+    // Direct action handler (alternative to templates)
+    readonly actionHandler = signal<(() => void) | null>(null);
 
 
 
@@ -48,6 +51,10 @@ export class CaptainLayoutService {
     setFilters(template: TemplateRef<unknown> | null): void {
         this.filtersTemplate.set(template);
     }
+    
+    setActionHandler(handler: (() => void) | null): void {
+        this.actionHandler.set(handler);
+    }
 
     // Helper to reset all (optional, can be called on navigation end)
     reset(): void {
@@ -57,5 +64,6 @@ export class CaptainLayoutService {
         this.backAction.set(null);
         this.actionsTemplate.set(null);
         this.filtersTemplate.set(null);
+        this.actionHandler.set(null);
     }
 }

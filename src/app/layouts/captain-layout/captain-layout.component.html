@@ -33,7 +33,13 @@
         <app-page-header [title]="layout.title()" [subtitle]="layout.subtitle()" [showBack]="layout.showBack()"
           (back)="layout.onBack()">
           <!-- Actions Slot -->
-          <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null" />
+          @if (layout.actionHandler(); as handler) {
+            <app-button (click)="handler()" variant="primary" size="md" icon="add">
+                إنشاء فريق جديد
+            </app-button>
+          } @else {
+            <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null" />
+          }
         </app-page-header>
         }
 

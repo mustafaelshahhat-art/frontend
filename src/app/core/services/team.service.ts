@@ -117,5 +117,9 @@ export class TeamService {
     disableTeam(teamId: string): Observable<unknown> {
         return this.http.post<unknown>(`${this.apiUrl}/${teamId}/disable`, {});
     }
+
+    getTeamsOverview(): Observable<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: any[] }> {
+        return this.http.get<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: any[] }>(`${environment.apiUrl}/me/teams-overview`);
+    }
 }
 

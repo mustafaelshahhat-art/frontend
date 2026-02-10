@@ -15,6 +15,11 @@ export const captainRoutes: Routes = [
                 data: { breadcrumb: 'فريقي', icon: 'groups' }
             },
             {
+                path: 'team/:id',
+                loadComponent: () => import('./team/team-detail/team-detail.component').then(m => m.CaptainTeamDetailComponent),
+                data: { breadcrumb: 'تفاصيل الفريق' }
+            },
+            {
                 path: 'championships',
                 loadComponent: () => import('../features/tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent),
                 data: { breadcrumb: 'البطولات', icon: 'emoji_events' }

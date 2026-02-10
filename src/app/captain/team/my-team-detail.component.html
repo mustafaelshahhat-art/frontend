@@ -1,0 +1,184 @@
+@if (!loading() && teamsOverview()) {
+
+<!-- PENDING JOIN REQUESTS / INVITATIONS -->
+@if (teamsOverview()!.pendingInvitations.length > 0) {
+<div class="section">
+    <h2 class="section-title">الدعوات المعلقة</h2>
+    <div class="teams-grid">
+        @for (invite of teamsOverview()!.pendingInvitations; track invite.id) {
+        <div class="team-card invite-card">
+            <div class="team-header">
+                <div class="team-info">
+                    <h3>{{ invite.teamName }}</h3>
+                    <p>دعوة للانضمام</p>
+                </div>
+            </div>
+            <div class="team-actions">
+                <app-button (click)="acceptInvite(invite.id)" (keydown.enter)="acceptInvite(invite.id)"
+                    (keydown.space)="acceptInvite(invite.id)" variant="primary" size="sm" icon="check"
+                    tabindex="0">قبول</app-button>
+                <app-button (click)="rejectInvite(invite.id)" (keydown.enter)="rejectInvite(invite.id)"
+                    (keydown.space)="rejectInvite(invite.id)" variant="outline" size="sm" icon="close"
+                    tabindex="0">رفض</app-button>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+}
+
+<!-- TEAMS I OWN -->
+@if (teamsOverview()!.ownedTeams.length > 0) {
+<div class="section">
+    <h2 class="section-title">الفرق التي أملكها</h2>
+    <div class="teams-grid">
+        @for (team of teamsOverview()!.ownedTeams; track team.id) {
+        <div class="team-card owned-card" (click)="navigateToTeamDetail(team.id)"
+            (keydown.enter)="navigateToTeamDetail(team.id)" (keydown.space)="navigateToTeamDetail(team.id)" tabindex="0"
+            role="button">
+            <div class="team-header">
+                <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                <div class="team-info">
+                    <h3>{{ team.name }}</h3>
+                    <p>فريق مملوك</p>
+                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">{{ (team.playerCount || 0) >= 8 ?
+                        'فريق مكتمل' : 'فريق غير مكتمل' }}</span>
+                </div>
+            </div>
+            <div class="team-stats">
+                <div class="stat">
+                    <span class="stat-value">{{ team.playerCount || 0 }}</span>
+                    <span class="stat-label">لاعب</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
+                    <span class="stat-label">المدينة</span>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+}
+
+<!-- TEAMS I AM A MEMBER OF -->
+@if (teamsOverview()!.memberTeams.length > 0) {
+<div class="section">
+    <h2 class="section-title">الفرق التي أنا منضم إليها</h2>
+    <div class="teams-grid">
+        @for (team of teamsOverview()!.memberTeams; track team.id) {
+        <div class="team-card member-card" (click)="navigateToTeamDetail(team.id)"
+            (keydown.enter)="navigateToTeamDetail(team.id)" (keydown.space)="navigateToTeamDetail(team.id)" tabindex="0"
+            role="button">
+            <div class="team-header">
+                <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                <div class="team-info">
+                    <h3>{{ team.name }}</h3>
+                    <p>عضو في الفريق</p>
+                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">{{ (team.playerCount || 0) >= 8 ?
+                        'فريق مكتمل' : 'فريق غير مكتمل' }}</span>
+                </div>
+            </div>
+            <div class="team-stats">
+                <div class="stat">
+                    <span class="stat-value">{{ team.playerCount || 0 }}</span>
+                    <span class="stat-label">لاعب</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
+                    <span class="stat-label">المدينة</span>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+}
+
+
+}
+
+@if (loading()) {
+<div class="loading-container">
+    <p>جاري التحميل...</p>
+</div>
+}
+
+@if (!loading() && (!teamsOverview() || (teamsOverview()!.ownedTeams.length === 0 && teamsOverview()!.memberTeams.length
+=== 0 && teamsOverview()!.pendingInvitations.length === 0))) {
+<div class="no-team-container">
+    <!-- Case 1: Account Pending -->
+    @if (isUserPending()) {
+    <div class="create-team-card pending-card animate-fade-in-up">
+        <div class="icon-circle warning">
+            <span class="material-symbols-outlined">pending_actions</span>
+        </div>
+        <h2>حسابك قيد المراجعة</h2>
+        <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.
+        </p>
+
+        <app-button variant="ghost" icon="refresh" (click)="loadTeamData()" class="w-full">
+            تحديث الحالة
+        </app-button>
+    </div>
+    }
+
+    <!-- Case 2: Account Active, No Team, Has Invitation -->
+    @if (!isUserPending() && pendingInvitations().length > 0) {
+    <div class="create-team-card invite-card animate-fade-in-up">
+        <div class="icon-circle primary">
+            <span class="material-symbols-outlined">mail</span>
+        </div>
+        <h2>لديك دعوة للانضمام إلى فريق</h2>
+        @for (invite of pendingInvitations(); track invite.id) {
+        <div class="invite-item">
+            <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
+            <div class="flex gap-4">
+                <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check"
+                    class="flex-1">قبول</app-button>
+                <app-button (click)="rejectInvite(invite.id)" variant="outline" icon="close"
+                    class="flex-1">رفض</app-button>
+            </div>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Case 3: Account Active, No Team, No Invitation -->
+    @if (!isUserPending() && pendingInvitations().length === 0) {
+    <div class="create-team-card animate-fade-in-up">
+        <div class="icon-circle">
+            <span class="material-symbols-outlined">groups</span>
+        </div>
+        <h2>أنت لست عضواً في أي فريق</h2>
+        <p>قم بإنشاء فريقك الخاص الآن وقد فريقك نحو البطولة!</p>
+    </div>
+    }
+</div>
+}
+
+<!-- CREATE TEAM MODAL -->
+<app-modal [visible]="showCreateTeamModal" title="إنشاء فريق جديد" icon="groups" size="md"
+    (closeRequest)="closeCreateTeamModal()">
+
+    <div class="flex-col gap-4">
+        <p class="text-muted text-sm mb-2">
+            يرجى إدخال اسم الفريق الذي ترغب في إنشائه
+        </p>
+
+        <div class="input-group">
+            <span class="material-symbols-outlined">shield</span>
+            <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input w-full"
+                (keyup.enter)="createNewTeam()">
+        </div>
+    </div>
+
+    <div modal-footer>
+        <app-button variant="ghost" (click)="closeCreateTeamModal()">
+            إلغاء
+        </app-button>
+        <app-button (click)="createNewTeam()" [isLoading]="creatingTeam" variant="primary" icon="add">
+            إنشاء فريق
+        </app-button>
+    </div>
+</app-modal>

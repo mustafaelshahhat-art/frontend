@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, effect, signal, untracked, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, effect, signal, untracked, computed, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Observable, Subscription, of, timer } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TeamDetailComponent, TeamData, TeamPlayer, TeamMatch, TeamFinance } from '../../shared/components/team-detail';
+import { Subscription } from 'rxjs';
+import { TeamData, TeamPlayer, TeamMatch, TeamFinance } from '../../shared/components/team-detail';
 import { TeamService } from '../../core/services/team.service';
-import { Team, Player, ApiTeamMatch, ApiTeamFinance } from '../../core/models/team.model';
+import { Team, ApiTeamMatch, ApiTeamFinance } from '../../core/models/team.model';
+import { SmartImageComponent } from '../../shared/components/smart-image/smart-image.component';
 import { AuthService } from '../../core/services/auth.service';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { User, UserStatus } from '../../core/models/user.model';
@@ -18,6 +17,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { TeamJoinRequest } from '../../core/models/team-request.model';
 import { TeamStore } from '../../core/stores/team.store';
 import { AuthStore } from '../../core/stores/auth.store';
+import { CaptainLayoutService } from '../../core/services/captain-layout.service';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 
 interface TeamStats {
     matches: number;
@@ -35,6 +36,12 @@ interface ExtendedTeam extends Team {
     isActive?: boolean;
 }
 
+interface TeamsOverview {
+    ownedTeams: Team[];
+    memberTeams: Team[];
+    pendingInvitations: TeamJoinRequest[];
+}
+
 
 @Component({
     selector: 'app-my-team-detail',
@@ -42,243 +49,15 @@ interface ExtendedTeam extends Team {
     imports: [
         CommonModule,
         FormsModule,
-        TeamDetailComponent,
-        ButtonComponent
+        ButtonComponent,
+        SmartImageComponent,
+        ModalComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
-@if (!loading() && teamData()) {
-    <div class="my-team-page">
-        <app-team-detail 
-            [team]="teamData()!"
-            [showBackButton]="false"
-            [canEditName]="isCaptain() && teamData()!.isActive"
-            [canAddPlayers]="isCaptain() && teamData()!.isActive"
-            [canRemovePlayers]="isCaptain() && teamData()!.isActive"
-            [canManageStatus]="false"
-            [canManageInvitations]="isCaptain() && teamData()!.isActive"
-            [canDeleteTeam]="isCaptain()"
-            [canSeeRequests]="isCaptain()"
-            [canSeeFinances]="isCaptain() || isAdmin()"
-            [isInviteLoading]="isAddingPlayer"
-            [initialTab]="'players'"
-            (playerAction)="handlePlayerAction($event)"
-            (editName)="handleEditName($event)"
-            (addPlayer)="onAddPlayerClick($event)"
-            (tabChanged)="handleTabChange($event)"
-            (respondRequest)="handleRespondRequest($event)"
-            (deleteTeam)="handleDeleteTeam()" />
-    </div>
-}
-
-@if (loading()) {
-    <div class="loading-container">
-        <p>جاري التحميل...</p>
-    </div>
-}
-
-@if (!loading() && !teamData()) {
-    <div class="no-team-container">
-        <!-- Case 1: Account Pending -->
-        @if (isUserPending()) {
-        <div class="create-team-card pending-card animate-fade-in-up">
-            <div class="icon-circle warning">
-                <span class="material-symbols-outlined">pending_actions</span>
-            </div>
-            <h2>حسابك قيد المراجعة</h2>
-            <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.</p>
-            
-            <app-button variant="ghost" icon="refresh" (click)="loadTeamData()" class="w-full">
-                تحديث الحالة
-            </app-button>
-        </div>
-        }
-
-        <!-- Case 2: Account Active, No Team, Has Invitation -->
-        @if (!isUserPending() && pendingInvitations().length > 0) {
-        <div class="create-team-card invite-card animate-fade-in-up">
-            <div class="icon-circle primary">
-                <span class="material-symbols-outlined">mail</span>
-            </div>
-            <h2>لديك دعوة للانضمام إلى فريق</h2>
-            @for (invite of pendingInvitations(); track invite.id) {
-            <div class="invite-item">
-                <p>فريق <strong>{{ invite.teamName }}</strong> يدعوك للانضمام إليه.</p>
-                <div class="flex gap-4">
-                    <app-button (click)="acceptInvite(invite.id)" variant="primary" icon="check" class="flex-1">قبول</app-button>
-                    <app-button (click)="rejectInvite(invite.id)" variant="outline" icon="close" class="flex-1">رفض</app-button>
-                </div>
-            </div>
-            }
-        </div>
-        }
-
-        <!-- Case 3: Account Active, No Team, No Invitation -->
-        @if (!isUserPending() && pendingInvitations().length === 0) {
-        <div class="create-team-card animate-fade-in-up">
-            <div class="icon-circle">
-                <span class="material-symbols-outlined">groups</span>
-            </div>
-            <h2>أنت لست عضواً في أي فريق</h2>
-            <p>قم بإنشاء فريقك الخاص الآن وقد فريقك نحو البطولة!</p>
-            
-            <div class="create-form">
-                <div class="input-group">
-                    <span class="material-symbols-outlined">shield</span>
-                    <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input">
-                </div>
-                <app-button (click)="createNewTeam()" [isLoading]="creatingTeam" variant="primary" size="lg" icon="add" class="w-full">
-                    إنشاء فريق جديد
-                </app-button>
-            </div>
-        </div>
-        }
-    </div>
-}
-    `,
-    styles: [`
-        .my-team-page {
-            min-height: 100vh;
-        }
-
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 60vh;
-            font-size: 1.2rem;
-            color: var(--text-muted);
-        }
-
-        .no-team-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80vh;
-            padding: 20px;
-        }
-
-        .create-team-card {
-            background: var(--surface-light);
-            border: 1px solid var(--border-visible);
-            border-radius: 30px;
-            padding: 40px;
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-
-        .icon-circle {
-            width: 80px;
-            height: 80px;
-            background: var(--primary-light);
-            background-opacity: 0.1;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-        }
-
-        .icon-circle span {
-            font-size: 40px;
-            color: var(--primary);
-        }
-
-        .create-team-card h2 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 900;
-            color: var(--text-main);
-            margin-bottom: 12px;
-        }
-
-        .create-team-card p {
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            line-height: 1.6;
-        }
-
-        .create-form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .input-group {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-group span {
-            position: absolute;
-            right: 16px;
-            color: var(--primary);
-            opacity: 0.5;
-        }
-
-        .team-input {
-            width: 100%;
-            padding: 16px 48px 16px 16px;
-            background: var(--surface);
-            border: 1px solid var(--border-visible);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .team-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
-        }
-
-        .invite-card {
-            border-color: var(--primary);
-            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.02) 100%);
-        }
-
-        .invite-item {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border-visible);
-            margin-bottom: 16px;
-            
-            p { margin-bottom: 16px; font-size: 1.1rem; }
-        }
-
-        .flex { display: flex; }
-        .gap-4 { gap: 1rem; }
-        .flex-1 { flex: 1; }
-
-        .icon-circle.warning {
-            background: rgba(255, 193, 7, 0.1);
-        }
-
-        .icon-circle.primary {
-            background: rgba(var(--primary-rgb), 0.1);
-        }
-
-        .icon-circle.primary span {
-            color: var(--primary);
-        }
-
-        .icon-circle.warning span {
-            color: #ffc107;
-        }
-
-        .pending-card {
-            border-color: rgba(255, 193, 7, 0.2);
-            background: linear-gradient(135deg, rgba(19, 27, 46, 0.7) 0%, rgba(25, 35, 60, 0.7) 100%);
-        }
-
-        .w-full { width: 100%; }
-    `]
+    templateUrl: './my-team-detail.component.html',
+    styleUrls: ['./my-team-detail.component.scss']
 })
-export class MyTeamDetailComponent implements OnInit, OnDestroy {
+export class MyTeamDetailComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly teamService = inject(TeamService);
     private readonly authService = inject(AuthService);
@@ -288,8 +67,10 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     private readonly authStore = inject(AuthStore);
     private readonly teamStore = inject(TeamStore);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly captainLayout = inject(CaptainLayoutService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
-    @ViewChild(TeamDetailComponent) teamDetail!: TeamDetailComponent;
+
 
     private userSubscription: Subscription | null = null;
 
@@ -297,6 +78,9 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     teamData = signal<TeamData | null>(null);
     loading = signal<boolean>(true);
     private isLoadingTeam = false;
+
+    // Multi-team support
+    teamsOverview = signal<TeamsOverview | null>(null);
 
     // Computed signals replace manual effect updates + setTimeout
     isCaptain = computed(() => {
@@ -312,19 +96,21 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
     newTeamName = '';
     creatingTeam = false;
     pendingInvitations = signal<TeamJoinRequest[]>([]);
+    showCreateTeamForm = false;
+    showCreateTeamModal = false;
 
     isUserPending = computed(() => this.authStore.currentUser()?.status === UserStatus.PENDING);
 
     constructor() {
-        // Reactive effect: Watch TeamStore and Auth state for real-time updates
+        // Reactive effect: Watch Auth state for real-time updates
+        // NOTE: We don't watch teamStore.teams() anymore to avoid circular dependencies
         effect(() => {
-            // Track store changes
-            this.teamStore.teams();
             const user = this.authStore.currentUser(); // Track user changes (REACTIVE SIGNAL)
 
             // Collect current state without tracking it
             const currentData = untracked(() => this.teamData());
             const isLoading = untracked(() => this.isLoadingTeam);
+            const teamsOverviewData = untracked(() => this.teamsOverview());
 
             // Update local reference (non-signal, safe to mutate)
             untracked(() => { this.currentUser = user; });
@@ -337,7 +123,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
                 // Case 1: No user - trigger reset via loadTeamData
                 if (!user) {
-                    if (currentData) {
+                    if (currentData || teamsOverviewData) {
                         this.loadTeamData();
                     } else if (this.loading()) {
                         queueMicrotask(() => this.loading.set(false));
@@ -347,7 +133,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
                 // Case 2: User has no team id - trigger loadTeamData to reset state
                 if (!user.teamId) {
-                    if (currentData) {
+                    if (currentData || teamsOverviewData) {
                         // User lost their team - loadTeamData will clear teamData
                         this.loadTeamData();
                     } else {
@@ -361,14 +147,11 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 // Case 3: User has a team id - check if we need to load it
                 const storeTeam = this.teamStore.getTeamById(user.teamId);
 
-                if (!storeTeam) {
-                    // Team not in store - fetch it
+                if (!storeTeam && !teamsOverviewData) {
+                    // Team not in store and no overview data - fetch it
                     this.loadTeamData();
-                } else if (!currentData || currentData.id !== storeTeam.id || currentData.players?.length !== storeTeam.players?.length) {
-                    // Team data changed - reload
-                    this.loadTeamData();
-                } else if (this.loading()) {
-                    // Data is consistent, ensure loading is off
+                } else if (teamsOverviewData && this.loading()) {
+                    // We have data but still loading - turn off loading
                     queueMicrotask(() => this.loading.set(false));
                 }
             });
@@ -417,8 +200,21 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         );
     }
 
+    ngAfterViewInit(): void {
+        // Set up the layout with page title
+        this.captainLayout.setTitle('فريقي');
+        this.captainLayout.setSubtitle('إدارة فرقك والانضمام إلى فرق أخرى');
+
+        // Use actionHandler directly instead of template to avoid OnPush change detection issues
+        setTimeout(() => {
+            this.captainLayout.setActionHandler(() => this.openCreateTeamModal());
+        });
+    }
+
     ngOnDestroy(): void {
         this.subscriptions.unsubscribe();
+        // Reset layout when component is destroyed
+        this.captainLayout.reset();
     }
 
     loadInvitations(): void {
@@ -489,29 +285,8 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
 
         if (!this.currentUser) {
             this.teamData.set(null);
+            this.teamsOverview.set(null);
             this.loading.set(false);
-            return;
-        }
-
-        // eslint-disable-next-line no-useless-assignment
-        let loadTeam$: Observable<Team | null> | null = null;
-
-        if (this.currentUser.teamId) {
-            loadTeam$ = this.teamService.getTeamByIdSilent(this.currentUser.teamId);
-        } else {
-            loadTeam$ = this.teamService.getTeamByCaptainId(this.currentUser.id).pipe(
-                map((team: Team | undefined) => team || null),
-                catchError(err => {
-                    console.error('Error checking captain status', err);
-                    return of(null);
-                })
-            );
-        }
-
-        if (!loadTeam$) {
-            this.teamData.set(null);
-            this.loadInvitations();
-            queueMicrotask(() => this.loading.set(false));
             return;
         }
 
@@ -520,46 +295,42 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             queueMicrotask(() => this.loading.set(true));
         }
 
-        // Safety timeout using RxJS timer
-        timer(8000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-            if (this.loading() && this.isLoadingTeam) {
-                console.warn('Force clearing loading state after timeout');
-                this.isLoadingTeam = false;
-                this.loading.set(false);
-            }
-        });
+        console.log('Loading teams overview for user:', this.currentUser.id);
 
-        loadTeam$.subscribe({
-            next: (team: Team | null) => {
-
+        // Load teams overview instead of single team
+        this.teamService.getTeamsOverview().subscribe({
+            next: (overview: TeamsOverview) => {
+                console.log('Teams overview loaded:', overview);
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
+                    this.teamsOverview.set(overview);
+                    this.pendingInvitations.set(overview.pendingInvitations);
 
-                    if (team) {
-                        const isMember = team.captainId === this.currentUser?.id ||
-                            (this.currentUser?.teamId === team.id) ||
-                            (team.players && team.players.some((p: Player) => p.userId === this.currentUser?.id || p.id === this.currentUser?.id));
+                    // For backward compatibility, set the first team as current teamData
+                    // Priority: owned teams first, then member teams
+                    let currentTeam: Team | null = null;
+                    if (overview.ownedTeams.length > 0) {
+                        currentTeam = overview.ownedTeams[0];
+                        console.log('Setting first owned team as current:', currentTeam.name);
+                    } else if (overview.memberTeams.length > 0) {
+                        currentTeam = overview.memberTeams[0];
+                        console.log('Setting first member team as current:', currentTeam.name);
+                    }
 
-                        if (!isMember) {
-                            console.warn('Membership lost - clearing team association');
-                            this.authService.clearTeamAssociation();
-                            this.teamData.set(null);
-                            this.loadInvitations();
-                            return;
-                        }
-
-                        const existingTeam = this.teamStore.getTeamById(team.id);
+                    if (currentTeam) {
+                        const existingTeam = this.teamStore.getTeamById(currentTeam.id);
                         if (existingTeam) {
-                            this.teamStore.updateTeam(team);
+                            this.teamStore.updateTeam(currentTeam);
                         } else {
-                            this.teamStore.addTeam(team);
+                            this.teamStore.addTeam(currentTeam);
                         }
 
-                        const converted = this.convertToTeamData(team);
+                        const converted = this.convertToTeamData(currentTeam);
                         this.teamData.set(converted);
 
-                        if (this.isCaptain()) {
+                        // Load invitations for captain teams
+                        if (currentTeam.captainId === this.currentUser?.id) {
                             this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
                                 const current = this.teamData();
                                 if (current) {
@@ -568,28 +339,50 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                             });
                         }
                     } else {
+                        console.log('No teams found for user');
                         this.teamData.set(null);
                         this.loadInvitations();
-                    }
-
-                    const user = this.authStore.currentUser();
-                    if (user?.teamId && !this.teamData()) {
-                        // Retry logic
-                        queueMicrotask(() => this.loadTeamData());
                     }
                 });
             },
             error: (err) => {
+                console.error('Error loading teams overview:', err);
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
-                    if (err.status === 404) {
-                        this.authService.clearTeamAssociation();
-                        this.teamData.set(null);
-                    }
+                    this.teamsOverview.set(null);
+                    this.teamData.set(null);
+                    this.uiFeedback.error('خطأ في التحميل', 'فشل في تحميل بيانات الفرق. يرجى المحاولة مرة أخرى.');
                 });
             }
         });
+    }
+
+    navigateToTeamDetail(teamId: string): void {
+        // SPA navigation to team detail page
+        this.router.navigate(['/captain/team', teamId]);
+    }
+
+    selectTeam(team: Team): void {
+        const existingTeam = this.teamStore.getTeamById(team.id);
+        if (existingTeam) {
+            this.teamStore.updateTeam(team);
+        } else {
+            this.teamStore.addTeam(team);
+        }
+
+        const converted = this.convertToTeamData(team);
+        this.teamData.set(converted);
+
+        // Load invitations for captain teams
+        if (team.captainId === this.currentUser?.id) {
+            this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                const current = this.teamData();
+                if (current) {
+                    this.teamData.set({ ...current, invitations: requests });
+                }
+            });
+        }
     }
 
     createNewTeam(): void {
@@ -606,8 +399,14 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
         }
 
         this.creatingTeam = true;
+        this.loading.set(true); // Show loading while creating
+
+        console.log('Creating new team:', this.newTeamName);
+
         this.teamService.createTeam(this.currentUser, this.newTeamName).subscribe({
             next: (response) => {
+                console.log('Team created successfully:', response.team);
+
                 // 1. Set team data first so that the userSubscription sees it and doesn't trigger loadTeamData
                 const converted = this.convertToTeamData(response.team);
                 this.teamData.set(converted);
@@ -617,17 +416,37 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
                 this.authService.updateCurrentUser(response.updatedUser);
                 this.currentUser = response.updatedUser;
 
-                // 3. Cleanup local UI state
+                // 3. Reload teams overview to include new team
+                this.loadTeamData();
+
+                // 4. Cleanup local UI state
                 this.creatingTeam = false;
-                this.loading.set(false); // Ensure loading is off if it were on
+                this.showCreateTeamForm = false;
+                this.showCreateTeamModal = false; // Close modal
+                this.newTeamName = '';
+                // loading will be set to false in loadTeamData
                 this.uiFeedback.success('مبروك!', `تم إنشاء فريق "${response.team.name}" بنجاح.`);
             },
             error: (err) => {
-                this.uiFeedback.error('فشل الإنشاء', err.message);
+                console.error('Error creating team:', err);
+                this.uiFeedback.error('فشل الإنشاء', err.message || 'حدث خطأ أثناء إنشاء الفريق');
                 this.creatingTeam = false;
                 this.loading.set(false);
             }
         });
+    }
+
+    // Modal methods
+    openCreateTeamModal(): void {
+        this.showCreateTeamModal = true;
+        this.newTeamName = '';
+        this.cdr.markForCheck();
+    }
+
+    closeCreateTeamModal(): void {
+        this.showCreateTeamModal = false;
+        this.newTeamName = '';
+        this.creatingTeam = false;
     }
 
     handleTabChange(tab: string): void {
@@ -789,7 +608,7 @@ export class MyTeamDetailComponent implements OnInit, OnDestroy {
             next: (response: { playerName: string }) => {
                 this.isAddingPlayer = false;
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
-                this.teamDetail.closeInviteModal();
+                this.showCreateTeamForm = false;
             },
             error: (err: { error?: { message?: string }, message?: string }) => {
                 this.isAddingPlayer = false;

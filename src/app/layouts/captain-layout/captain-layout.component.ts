@@ -15,12 +15,13 @@ import { UserStatus } from '../../core/models/user.model';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { CaptainLayoutService } from '../../core/services/captain-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { Notification } from '../../core/models/tournament.model';
 
 @Component({
     selector: 'app-captain-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
+    imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent, ButtonComponent],
     templateUrl: './captain-layout.component.html',
     styleUrls: ['./captain-layout.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
