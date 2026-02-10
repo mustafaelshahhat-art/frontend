@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Group, BracketDto, TournamentFormat, BracketRound, TournamentStanding } from '../../../../core/models/tournament.model';
+import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Group, BracketDto, TournamentFormat, BracketRound, TournamentStanding, MatchEventType } from '../../../../core/models/tournament.model';
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
@@ -71,6 +71,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     TournamentStatus = TournamentStatus;
     MatchStatus = MatchStatus;
     RegistrationStatus = RegistrationStatus;
+    MatchEventType = MatchEventType;
 
     @HostBinding('style.--progress-val')
     get progressValStyle(): SafeStyle {
@@ -123,14 +124,30 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     scorers = computed(() => {
-        // Calculate scorers from matches locally for now, or fetch from backend if endpoint exists
-        // Simplified: return empty or mock if backend doesn't provide it directly in tournament/matches
-        // Real logic: iterate matches -> goals -> aggregate
         const matches = this.tournamentMatches();
         const scorerMap = new Map<string, { name: string, team: string, goals: number, teamId: string }>();
 
         matches.forEach(m => {
-            m.goals?.forEach(g => {
+            // Process goals from both sources to ensure we capture all data
+            const goalsSource = [...(m.goals || [])];
+
+            // Add goals from events if they're not already in goals (backend often sends events)
+            if (m.events) {
+                m.events
+                    .filter(e => (e.type as any) === 'Goal' || e.type === MatchEventType.GOAL)
+                    .forEach(e => {
+                        if (e.playerId && !goalsSource.some(g => g.playerId === e.playerId && g.minute === e.minute)) {
+                            goalsSource.push({
+                                playerId: e.playerId,
+                                playerName: e.playerName || 'لاعب مجهول',
+                                teamId: e.teamId,
+                                minute: e.minute
+                            });
+                        }
+                    });
+            }
+
+            goalsSource.forEach(g => {
                 const key = g.playerId;
                 if (!scorerMap.has(key)) {
                     scorerMap.set(key, {
@@ -146,17 +163,27 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         return Array.from(scorerMap.values())
             .sort((a, b) => b.goals - a.goals)
-            .slice(0, 5); // Top 5
+            .slice(0, 10); // Show top 10 instead of 5
     });
 
     canGenerateMatches = computed(() => {
         const t = this.tournament();
-        const regs = t?.registrations?.filter(r => r.status === RegistrationStatus.APPROVED) || [];
-        // Basic check: Admin, Open/Closed (allow generation if closed or effectively full), enough teams
-        // This logic mimics backend requirement often
+        const matches = this.tournamentMatches();
+        // The manual generate button appears ONLY if auto-generation failed (Intervention required)
         return this.isAdmin() &&
-            (t?.status === TournamentStatus.REGISTRATION_OPEN || t?.status === TournamentStatus.REGISTRATION_CLOSED) &&
-            regs.length >= 2;
+            t?.requiresAdminIntervention &&
+            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
+            matches.length === 0;
+    });
+
+    canEditTournament = computed(() => {
+        const t = this.tournament();
+        const matches = this.tournamentMatches();
+        // Edit is allowed ONLY before registration is closed OR matches are generated
+        // Status must be draft or registration_open
+        return this.isAdmin() &&
+            (t?.status === TournamentStatus.DRAFT || t?.status === TournamentStatus.REGISTRATION_OPEN) &&
+            matches.length === 0;
     });
 
     // Registration Computeds
@@ -211,6 +238,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             const id = params.get('id');
             if (id) {
                 this.tournamentId.set(id);
+                this.updateLayout(); // Initial call with placeholders
                 this.loadInitialData(id);
             }
         });
@@ -236,7 +264,9 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     ngOnDestroy(): void {
-        // Implementation or empty
+        this.adminLayout.reset();
+        this.captainLayout.reset();
+        this.refereeLayout.reset();
     }
 
     isAdmin(): boolean {
@@ -250,10 +280,21 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     updateLayout(): void {
-        // Adjust layout based on role if needed
-        // This method was called in loadInitialData, likely to set specific layout flags
+        const tournament = this.tournament();
+        const title = tournament ? tournament.name : 'تحميل...';
+
         if (this.isAdmin()) {
-            // Admin layout adjustments
+            this.adminLayout.setTitle('تفاصيل البطولة');
+            this.adminLayout.setSubtitle(title);
+            this.adminLayout.setBackAction(() => this.navigateBack());
+        } else if (this.isCaptain()) {
+            this.captainLayout.setTitle('تفاصيل البطولة');
+            this.captainLayout.setSubtitle(title);
+            this.captainLayout.setBackAction(() => this.navigateBack());
+        } else {
+            this.refereeLayout.setTitle('تفاصيل البطولة');
+            this.refereeLayout.setSubtitle(title);
+            this.refereeLayout.setBackAction(() => this.navigateBack());
         }
     }
 
@@ -587,5 +628,63 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     canSubmitObjection(status: MatchStatus): boolean {
         return this.permissionsService.canSubmitObjection(status);
+    }
+
+    emergencyStart(): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.uiFeedback.confirm(
+            '⚠️ إجراء طارئ: بدء البطولة',
+            `هذا الإجراء مخصص فقط للحالات التي يتعطل فيها البدء التلقائي. هل أنت متأكد من رغبتك في فرض بدء بطولة "${t.name}"؟`,
+            'تأكيد البدء الطارئ',
+            'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.isLoading.set(true);
+                this.tournamentService.emergencyStart(t.id).subscribe({
+                    next: (updatedTournament) => {
+                        this.tournamentStore.upsertTournament(updatedTournament);
+                        this.uiFeedback.success('تم التدخل بنجاح', 'تم تغيير حالة البطولة إلى نشطة');
+                        this.isLoading.set(false);
+                        this.cdr.detectChanges();
+                    },
+                    error: (err) => {
+                        this.isLoading.set(false);
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل البدء الطارئ');
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
+        });
+    }
+
+    emergencyEnd(): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.uiFeedback.confirm(
+            '⚠️ إجراء طارئ: إنهاء البطولة',
+            `هذا الإجراء مخصص فقط للحالات التي تتعلق بمشاكل في النظام. هل أنت متأكد من فرض إنهاء بطولة "${t.name}"؟ سيتم نقلها للأرشيف.`,
+            'تأكيد الإنهاء الطارئ',
+            'danger'
+        ).subscribe(confirmed => {
+            if (confirmed) {
+                this.isLoading.set(true);
+                this.tournamentService.emergencyEnd(t.id).subscribe({
+                    next: (updatedTournament) => {
+                        this.tournamentStore.upsertTournament(updatedTournament);
+                        this.uiFeedback.success('تم التدخل بنجاح', 'تم إنهاء البطولة بنجاح');
+                        this.isLoading.set(false);
+                        this.cdr.detectChanges();
+                    },
+                    error: (err) => {
+                        this.isLoading.set(false);
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل الإنهاء الطارئ');
+                        this.cdr.detectChanges();
+                    }
+                });
+            }
+        });
     }
 }

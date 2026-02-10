@@ -134,5 +134,13 @@ export class TournamentService {
     eliminateTeam(tournamentId: string, teamId: string): Observable<Tournament> {
         return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/eliminate`, {});
     }
+
+    emergencyStart(tournamentId: string): Observable<Tournament> {
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-start`, {});
+    }
+
+    emergencyEnd(tournamentId: string): Observable<Tournament> {
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-end`, {});
+    }
 }
 

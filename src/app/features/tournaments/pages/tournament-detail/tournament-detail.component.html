@@ -65,17 +65,18 @@
                     <div class="banner-actions">
                         <!-- Admin Actions -->
                         @if (isAdmin()) {
-                        <app-button variant="primary" size="md" shadow="glow"
-                            [icon]="t.status === TournamentStatus.REGISTRATION_OPEN ? 'lock' : 'lock_open'"
-                            (click)="toggleStatus()">
-                            {{ t.status === TournamentStatus.REGISTRATION_OPEN ? 'إغلاق التسجيل' : 'فتح التسجيل' }}
+                        <!-- Edit Tournament Button -->
+                        @if (canEditTournament()) {
+                        <app-button variant="primary" size="md" shadow="glow" icon="edit" (click)="editTournament()">
+                            تعديل البطولة
                         </app-button>
+                        }
 
-                        <!-- Generate Matches Button -->
+                        <!-- Generate Matches Button (Emergency Only) -->
                         @if (canGenerateMatches()) {
-                        <app-button variant="outline" size="md" icon="calendar_month" (click)="generateMatches()"
-                            [disabled]="isGeneratingMatches()">
-                            {{ isGeneratingMatches() ? 'جاري التوليد...' : 'توليد جدول المباريات' }}
+                        <app-button variant="outline" size="md" icon="warning" class="emergency-action"
+                            (click)="generateMatches()" [disabled]="isGeneratingMatches()">
+                            {{ isGeneratingMatches() ? 'جاري التوليد...' : '⚠️ توليد يدوي للمباريات' }}
                         </app-button>
                         }
 
@@ -84,6 +85,23 @@
                             (click)="deleteTournament()">
                             حذف البطولة
                         </app-button>
+
+                        <!-- Emergency Overrides -->
+                        @if (t.requiresAdminIntervention) {
+                        @if ((t.status === TournamentStatus.REGISTRATION_CLOSED || t.status === TournamentStatus.DRAFT)
+                        && tournamentMatches().length > 0) {
+                        <app-button variant="outline" size="md" icon="warning" class="emergency-action"
+                            (click)="emergencyStart()">
+                            ⚠️ بدء طوارئ (Admin Override)
+                        </app-button>
+                        }
+                        @if (t.status === TournamentStatus.ACTIVE && tournamentMatches().length > 0) {
+                        <app-button variant="outline" size="md" icon="warning" class="emergency-action"
+                            (click)="emergencyEnd()">
+                            ⚠️ إنهاء طوارئ (Admin Override)
+                        </app-button>
+                        }
+                        }
                         }
 
                         <!-- Captain Actions -->

@@ -96,6 +96,7 @@ export interface Tournament {
 
     winnerTeamId?: string;
     winnerTeamName?: string;
+    requiresAdminIntervention?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

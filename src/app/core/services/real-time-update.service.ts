@@ -71,7 +71,7 @@ export class RealTimeUpdateService {
         // Deprecated compatibility no-op.
     }
 
-    private initializeSignalR(): void {
+    private async initializeSignalR(): Promise<void> {
         const token = this.authService.getToken();
         if (!token) {
             console.warn('SignalR: No token available, skipping initialization.');
@@ -89,7 +89,17 @@ export class RealTimeUpdateService {
             this.listenersBound = true;
         }
 
-        this.signalRService.startConnection('notifications');
+        await this.signalRService.startConnection('notifications');
+
+        // Subscribe to Admin role if user is Admin
+        const user = this.authService.getCurrentUser();
+        if (user?.role === 'Admin' && this.hubConnection) {
+            try {
+                await this.hubConnection.invoke('SubscribeToRole', 'Admin');
+            } catch (err) {
+                console.warn('Could not join role:Admin group', err);
+            }
+        }
     }
 
     private bindHubListeners(): void {
@@ -348,6 +358,12 @@ export class RealTimeUpdateService {
                 error: () => this.authService.logout()
             });
             return true;
+        }
+
+        if (event.type === 'ADMIN_OVERRIDE') {
+            const action = this.readValue<string>(event.metadata, 'action');
+            this.uiFeedback.info('تنبيه أمني: تدخل إداري', `قام مسؤول آخر بتنفيذ إجراء: ${action}`);
+            return false; // Don't block other listeners
         }
 
         return false;
