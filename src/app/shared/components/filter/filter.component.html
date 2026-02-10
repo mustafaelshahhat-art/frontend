@@ -2,7 +2,7 @@
     @for (item of items; track getValue(item)) {
     <button (click)="onSelect(getValue(item))" class="filter-tab" [class.active]="activeValue === getValue(item)">
         @if (item.icon) {
-        <span class="material-symbols-outlined">{{ item.icon }}</span>
+        <app-icon [name]=" item.icon " class=" icon-sm"></app-icon>
         }
         {{ getLabel(item) }}
         <span class="tab-indicator"></span>

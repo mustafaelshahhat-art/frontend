@@ -1,5 +1,5 @@
 <div class="empty-state">
-    <span class="material-symbols-outlined icon">{{ icon }}</span>
+    <app-icon [name]=" icon " class="icon icon-sm"></app-icon>
     <h3 class="title">{{ title }}</h3>
     @if (description) {
     <p class="empty-message">{{ description }}</p>

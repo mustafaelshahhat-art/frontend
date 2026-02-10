@@ -28,16 +28,14 @@
                                 size="xl" [initials]="user.name.charAt(0)" />
                             <div class="status-indicator" [class.active]="user.status === 'Active'"
                                 [class.inactive]="user.status !== 'Active'">
-                                <span class="material-symbols-outlined">
-                                    {{ user.status === 'Active' ? 'check_circle' : 'cancel' }}
-                                </span>
+                                <app-icon [name]="user.status === 'Active' ? 'check_circle' : 'cancel' " class=" icon-sm"></app-icon>
                             </div>
                         </div>
 
                         <div class="profile-info">
                             <div class="profile-meta">
                                 <app-badge type="gold">
-                                    <span class="material-symbols-outlined">military_tech</span>
+                                    <app-icon name="military_tech" class=" icon-sm"></app-icon>
                                     {{ getRoleLabel(user.role) }}
                                 </app-badge>
                                 <app-badge [type]="getBadgeType(user.status)">
@@ -77,7 +75,7 @@
                         <div class="glass-card animate-fade-in-up animate-delay-100">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <span class="material-symbols-outlined">history</span>
+                                    <app-icon name="history" class=" icon-sm"></app-icon>
                                 </div>
                                 <h2 class="card-title">سجل النشاط</h2>
                                 @if (user.activities?.length) {
@@ -93,9 +91,7 @@
                                 <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
                                 <div class="timeline-item" [style.animation-delay]="(i * 0.05) + 's'">
                                     <div class="timeline-dot" [ngClass]="getActivityBadgeClass(activity.type)">
-                                        <span class="material-symbols-outlined">
-                                            {{ getActivityIcon(activity.type) }}
-                                        </span>
+                                        <app-icon [name]="getActivityIcon(activity.type) " class=" icon-sm"></app-icon>
                                     </div>
                                     @if (!last) {
                                     <div class="timeline-connector"></div>
@@ -103,7 +99,7 @@
                                     <div class="timeline-content">
                                         <p class="timeline-message">{{ activity.message }}</p>
                                         <span class="timeline-time">
-                                            <span class="material-symbols-outlined">schedule</span>
+                                            <app-icon name="schedule" class=" icon-sm"></app-icon>
                                             {{ activity.createdAt | date:'yyyy/MM/dd - HH:mm' }}
                                         </span>
                                     </div>
@@ -114,7 +110,7 @@
 
                             @if (!user.activities?.length) {
                             <div class="empty-timeline">
-                                <span class="material-symbols-outlined">history_toggle_off</span>
+                                <app-icon name="history_toggle_off" class=" icon-sm"></app-icon>
                                 <p>لا يوجد نشاط مسجل حالياً</p>
                             </div>
                             }
@@ -127,7 +123,7 @@
                         <div class="glass-card animate-fade-in-up animate-delay-150">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <span class="material-symbols-outlined">location_on</span>
+                                    <app-icon name="location_on" class=" icon-sm"></app-icon>
                                 </div>
                                 <h2 class="card-title">العنوان</h2>
                             </div>
@@ -151,34 +147,34 @@
                         <div class="glass-card animate-fade-in-up animate-delay-200">
                             <div class="card-header">
                                 <div class="card-icon">
-                                    <span class="material-symbols-outlined">verified_user</span>
+                                    <app-icon name="verified_user" class=" icon-sm"></app-icon>
                                 </div>
                                 <h2 class="card-title">وثائق الهوية</h2>
                             </div>
                             <div class="documents-gallery">
                                 <div class="doc-card">
                                     <div class="doc-label">
-                                        <span class="material-symbols-outlined">credit_card</span>
+                                        <app-icon name="credit_card" class=" icon-sm"></app-icon>
                                         <span>وجه البطاقة</span>
                                     </div>
                                     <div class="doc-image">
                                         <app-smart-image [src]="user.idFrontUrl" type="id"
                                             size="custom" />
                                         <div class="doc-overlay">
-                                            <span class="material-symbols-outlined">zoom_in</span>
+                                            <app-icon name="zoom_in" class=" icon-sm"></app-icon>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="doc-card">
                                     <div class="doc-label">
-                                        <span class="material-symbols-outlined">credit_card</span>
+                                        <app-icon name="credit_card" class=" icon-sm"></app-icon>
                                         <span>ظهر البطاقة</span>
                                     </div>
                                     <div class="doc-image">
                                         <app-smart-image [src]="user.idBackUrl" type="id"
                                             size="custom" />
                                         <div class="doc-overlay">
-                                            <span class="material-symbols-outlined">zoom_in</span>
+                                            <app-icon name="zoom_in" class=" icon-sm"></app-icon>
                                         </div>
                                     </div>
                                 </div>

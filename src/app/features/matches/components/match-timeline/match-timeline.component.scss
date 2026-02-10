@@ -172,9 +172,7 @@
     box-shadow: var(--shadow-inset-sm);
     flex-shrink: 0;
 
-    .material-symbols-outlined {
-        font-size: var(--text-2xl);
-    }
+    
 
     &[data-type="Goal"] {
         background: rgb(16 185 129 / 15%);
@@ -242,10 +240,7 @@
     background: var(--bg-surface-light);
     border-radius: var(--radius-md);
 
-    .material-symbols-outlined {
-        font-size: var(--text-sm);
-        opacity: 0.7;
-    }
+    
 
     &.home {
         color: var(--color-primary);
@@ -288,8 +283,6 @@
         width: 40px;
         height: 40px;
 
-        .material-symbols-outlined {
-            font-size: var(--text-xl);
-        }
+        
     }
 }

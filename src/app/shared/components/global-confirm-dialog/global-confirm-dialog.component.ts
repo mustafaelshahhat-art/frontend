@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../services/ui-feedback.service';
@@ -6,7 +7,7 @@ import { ButtonComponent } from '../button/button.component';
 @Component({
     selector: 'app-global-confirm-dialog',
     standalone: true,
-    imports: [CommonModule, ButtonComponent],
+    imports: [IconComponent, CommonModule, ButtonComponent],
     templateUrl: './global-confirm-dialog.component.html',
     styleUrls: ['./global-confirm-dialog.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

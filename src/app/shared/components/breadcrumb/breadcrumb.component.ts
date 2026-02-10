@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -7,7 +8,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 @Component({
     selector: 'app-breadcrumb',
     standalone: true,
-    imports: [CommonModule, RouterLink],
+    imports: [IconComponent, CommonModule, RouterLink],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (breadcrumbs().length > 0) {
@@ -18,14 +19,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
                             @if (!last) {
                                 <a [routerLink]="crumb.url" class="breadcrumb-link">
                                     @if (crumb.icon) {
-                                        <span class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
+                                        <app-icon [name]=" crumb.icon " class="breadcrumb-icon icon-sm"></app-icon>
                                     }
                                     {{ crumb.label }}
                                 </a>
                             } @else {
                                 <span class="breadcrumb-current">
                                     @if (crumb.icon) {
-                                        <span class="material-symbols-outlined breadcrumb-icon">{{ crumb.icon }}</span>
+                                        <app-icon [name]=" crumb.icon " class="breadcrumb-icon icon-sm"></app-icon>
                                     }
                                     {{ crumb.label }}
                                 </span>

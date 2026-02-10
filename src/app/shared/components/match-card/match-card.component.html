@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="match-card-header">
         <div class="match-card-icon">
-            <span class="material-symbols-outlined">{{ statusConfig.icon || 'sports_soccer' }}</span>
+            <app-icon [name]=" statusConfig.icon || 'sports_soccer' " class=" icon-sm"></app-icon>
         </div>
         <span class="match-card-badge" [attr.data-variant]="statusConfig.variant">
             @if (isLive) {
@@ -20,7 +20,7 @@
         <h4>{{ title || match.tournamentName || 'مباراة ودية' }}</h4>
         @if (match.date) {
         <div class="match-time-badge">
-            <span class="material-symbols-outlined icon-xs">schedule</span>
+            <app-icon name="schedule" class="icon-xs icon-sm"></app-icon>
             {{ match.date | date:'hh:mm a' }} - {{ match.date | date:'yyyy/MM/dd' }}
         </div>
         }

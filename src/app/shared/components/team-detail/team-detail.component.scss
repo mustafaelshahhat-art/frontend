@@ -188,10 +188,7 @@
         justify-content: center;
         margin-bottom: var(--space-3);
 
-        .material-symbols-outlined {
-            font-size: var(--text-2xl);
-            color: var(--color-primary-light);
-        }
+        
     }
 
     &-label {
@@ -216,9 +213,7 @@
             width: 36px;
             height: 36px;
 
-            .material-symbols-outlined {
-                font-size: var(--text-xl);
-            }
+            
         }
 
         &-value {
@@ -380,10 +375,7 @@
             border: 1px solid var(--border-subtle);
             transition: var(--transition-base);
 
-            .material-symbols-outlined {
-                font-size: var(--text-lg);
-                transition: transform var(--transition-fast);
-            }
+            
 
             .btn-text {
                 display: none;
@@ -394,9 +386,7 @@
                 border-color: var(--border-visible);
                 transform: scale(1.1);
 
-                .material-symbols-outlined {
-                    transform: scale(1.15);
-                }
+                
             }
         }
 
@@ -406,9 +396,7 @@
                 height: var(--height-avatar-sm);
                 min-width: var(--height-avatar-sm);
 
-                .material-symbols-outlined {
-                    font-size: var(--text-base);
-                }
+                
             }
         }
     }

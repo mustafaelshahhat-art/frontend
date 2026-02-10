@@ -1,10 +1,11 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, Output, EventEmitter, HostBinding, ElementRef, inject, AfterContentInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-button',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './button.component.html',
     styleUrls: ['./button.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

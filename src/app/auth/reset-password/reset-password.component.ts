@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -12,7 +13,7 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
 @Component({
     selector: 'app-reset-password',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormControlComponent, ButtonComponent, AlertComponent],
+    imports: [IconComponent, CommonModule, ReactiveFormsModule, FormControlComponent, ButtonComponent, AlertComponent],
     templateUrl: './reset-password.component.html',
     styleUrls: ['./reset-password.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

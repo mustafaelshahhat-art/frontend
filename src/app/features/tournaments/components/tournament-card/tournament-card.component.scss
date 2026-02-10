@@ -41,10 +41,7 @@
         box-shadow: var(--shadow-xl), 0 0 25px var(--color-primary-10);
 
         .tournament-banner {
-            .material-symbols-outlined {
-                transform: scale(1.1) translateY(-5px);
-                opacity: 0.5;
-            }
+            
 
             &::after {
                 opacity: 0.4;
@@ -88,13 +85,7 @@
         transition: opacity var(--duration-normal) ease;
     }
 
-    .material-symbols-outlined {
-        font-size: var(--space-20);
-        color: var(--color-white);
-        opacity: 0.3;
-        z-index: var(--z-above);
-        transition: var(--transition-bounce);
-    }
+    
 
     .trophy-icon {
         font-size: var(--space-25);
@@ -250,10 +241,7 @@
         border: 1px solid var(--border-subtle);
         margin-bottom: var(--space-4);
 
-        .material-symbols-outlined {
-            font-size: var(--height-icon-sm);
-            color: var(--color-primary-light);
-        }
+        
 
         .phase-text {
             font-size: var(--text-3xs);
@@ -283,10 +271,7 @@
             gap: var(--space-2);
             color: var(--text-muted);
 
-            .material-symbols-outlined {
-                font-size: var(--height-icon-sm);
-                color: var(--color-primary-light);
-            }
+            
         }
 
         .label {
@@ -358,10 +343,7 @@
     font-size: var(--text-3xs);
     font-weight: var(--font-bold);
 
-    .material-symbols-outlined {
-        font-size: var(--height-icon-sm);
-        flex-shrink: 0;
-    }
+    
 
     &.pending {
         background: rgb(245 158 11 / 10%);

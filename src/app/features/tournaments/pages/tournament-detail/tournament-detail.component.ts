@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -31,7 +32,7 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 @Component({
     selector: 'app-tournament-detail',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         RouterModule,
         FormsModule,

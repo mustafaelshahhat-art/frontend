@@ -3,7 +3,7 @@
     <div class="icon-container">
         <div class="icon-pulse"></div>
         <div class="icon-bg">
-            <span class="material-symbols-outlined">{{ icon }}</span>
+            <app-icon [name]=" icon " class=" icon-sm"></app-icon>
         </div>
     </div>
 
@@ -19,7 +19,7 @@
     <!-- Action -->
     @if (showRefreshButton) {
     <button class="refresh-btn" (click)="refresh()">
-        <span class="material-symbols-outlined">refresh</span>
+        <app-icon name="refresh" class=" icon-sm"></app-icon>
         <span>{{ refreshButtonText }}</span>
     </button>
     }

@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, forwardRef, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, AbstractControl } from '@angular/forms';
@@ -7,7 +8,7 @@ let uniqueId = 0;
 @Component({
     selector: 'app-form-control',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [IconComponent, CommonModule, ReactiveFormsModule],
     templateUrl: './form-control.component.html',
     styleUrls: ['./form-control.component.scss'],
     providers: [

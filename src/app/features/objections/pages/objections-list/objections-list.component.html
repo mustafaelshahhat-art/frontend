@@ -48,16 +48,16 @@
             </div>
 
             <div class="objection-meta">
-                <span><span class="material-symbols-outlined">sports_soccer</span> المباراة: {{
+                <span><app-icon name="sports_soccer" class=" icon-sm"></app-icon> المباراة: {{
                     objection.homeTeamName }} vs {{ objection.awayTeamName }}</span>
-                <span><span class="material-symbols-outlined">calendar_today</span> {{ objection.createdAt |
+                <span><app-icon name="calendar_today" class=" icon-sm"></app-icon> {{ objection.createdAt |
                     date:'yyyy/MM/dd' }}</span>
             </div>
 
             @if (objection.adminNotes) {
             <div class="admin-response">
                 <div class="response-header">
-                    <span class="material-symbols-outlined">feedback</span>
+                    <app-icon name="feedback" class=" icon-sm"></app-icon>
                     قرار اللجنة
                 </div>
                 <p>{{ objection.adminNotes }}</p>

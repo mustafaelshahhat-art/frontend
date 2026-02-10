@@ -71,14 +71,14 @@
 
                 @if (matchData.date) {
                 <div class="match-time-banner">
-                    <span class="material-symbols-outlined">calendar_today</span>
+                    <app-icon name="calendar_today" class=" icon-sm"></app-icon>
                     موعد اللقاء: {{ matchData.date | date:'yyyy/MM/dd' }} - {{ matchData.date | date:'hh:mm a' }}
                 </div>
                 }
 
                 @if (matchData.refereeName) {
                 <div class="referee-bar">
-                    <span class="material-symbols-outlined">sports</span>
+                    <app-icon name="sports" class=" icon-sm"></app-icon>
                     الحكم: {{ matchData.refereeName }}
                 </div>
                 }
@@ -103,7 +103,7 @@
         <div class="events-section">
             <div class="events-panel">
                 <div class="panel-header">
-                    <span class="material-symbols-outlined">timeline</span>
+                    <app-icon name="timeline" class=" icon-sm"></app-icon>
                     <h3>أحداث المباراة</h3>
                     <span class="events-badge">{{ matchData.events?.length || 0 }}</span>
                 </div>
@@ -129,7 +129,7 @@
             <div *appHasPermission="Permission.MANAGE_MATCHES" class="admin-tools-premium">
                 <div class="admin-header">
                     <div class="admin-title">
-                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <app-icon name="admin_panel_settings" class=" icon-sm"></app-icon>
                         <h3>لوحة التحكم الإدارية</h3>
                     </div>
                     <div class="admin-badge">Admin Mode</div>
@@ -180,7 +180,7 @@
             @if (canShowRefereeControls()) {
             <div class="control-panel">
                 <div class="panel-header">
-                    <span class="material-symbols-outlined">dashboard_customize</span>
+                    <app-icon name="dashboard_customize" class=" icon-sm"></app-icon>
                     <h3>مركز التحكم</h3>
                 </div>
                 <div class="panel-body">
@@ -198,7 +198,7 @@
 
                     @if (matchData.status === MatchStatus.FINISHED) {
                     <div class="report-done">
-                        <span class="material-symbols-outlined">task_alt</span>
+                        <app-icon name="task_alt" class=" icon-sm"></app-icon>
                         تم إنهاء المباراة
                     </div>
                     }
@@ -210,7 +210,7 @@
             @if (canShowRefereeControls()) {
             <div class="control-panel">
                 <div class="panel-header">
-                    <span class="material-symbols-outlined">edit_note</span>
+                    <app-icon name="edit_note" class=" icon-sm"></app-icon>
                     <h3>تسجيل حدث</h3>
                 </div>
                 <div class="panel-body">
@@ -225,13 +225,13 @@
             @if (matchData.report?.isSubmitted) {
             <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
                 <div class="panel-header">
-                    <span class="material-symbols-outlined">description</span>
+                    <app-icon name="description" class=" icon-sm"></app-icon>
                     <h3>تقرير المباراة</h3>
                 </div>
                 <div class="panel-body">
                     <p class="report-notes">"{{ matchData.report?.notes || 'لا توجد ملاحظات' }}"</p>
                     <div class="report-date">
-                        <span class="material-symbols-outlined">schedule</span>
+                        <app-icon name="schedule" class=" icon-sm"></app-icon>
                         {{ matchData.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
                     </div>
                 </div>
@@ -242,7 +242,7 @@
             @if (canShowObjectionSection()) {
             <div class="control-panel">
                 <div class="panel-header">
-                    <span class="material-symbols-outlined">gavel</span>
+                    <app-icon name="gavel" class=" icon-sm"></app-icon>
                     <h3>تقديم اعتراض</h3>
                 </div>
                 <div class="panel-body">

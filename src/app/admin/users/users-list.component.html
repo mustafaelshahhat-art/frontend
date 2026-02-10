@@ -78,7 +78,7 @@
             <app-button (click)="suspendUser(row)" variant="ghost" size="sm" icon="block" class="text-gold" />
             } @else {
             <span class="last-admin-note" title="لا يمكن إيقاف آخر مشرف">
-                <span class="material-symbols-outlined text-muted">lock</span>
+                <app-icon name="lock" class="text-muted icon-sm"></app-icon>
             </span>
             }
             }
@@ -88,7 +88,7 @@
             <app-button (click)="deleteUser(row)" variant="ghost" size="sm" icon="delete" class="text-danger" />
             } @else {
             <span class="last-admin-note" title="لا يمكن حذف آخر مشرف">
-                <span class="material-symbols-outlined text-muted">shield</span>
+                <app-icon name="shield" class="text-muted icon-sm"></app-icon>
             </span>
             }
         </div>

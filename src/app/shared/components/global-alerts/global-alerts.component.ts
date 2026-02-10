@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../services/ui-feedback.service';
@@ -5,7 +6,7 @@ import { UIFeedbackService } from '../../services/ui-feedback.service';
 @Component({
     selector: 'app-global-alerts',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './global-alerts.component.html',
     styleUrls: ['./global-alerts.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

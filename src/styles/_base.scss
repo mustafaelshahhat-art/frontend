@@ -3,7 +3,6 @@
 // ==========================================================================
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Lexend:wght@200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 // ==========================================================================
 // RESET - Enhanced for better cross-browser consistency
@@ -186,17 +185,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-// ==========================================================================
-// MATERIAL ICONS - Improved rendering
-// ==========================================================================
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  user-select: none;
-  vertical-align: middle;
-  line-height: 1;
 }
 
 // ==========================================================================

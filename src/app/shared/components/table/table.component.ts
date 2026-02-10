@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -13,7 +14,7 @@ export interface TableColumn {
 @Component({
     selector: 'app-table',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './table.component.html',
     styleUrls: ['./table.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

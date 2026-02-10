@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
@@ -24,7 +25,7 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 @Component({
     selector: 'app-objections-list',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         RouterLink,

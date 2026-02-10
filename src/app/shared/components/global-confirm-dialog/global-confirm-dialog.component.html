@@ -2,7 +2,7 @@
 <div class="confirm-overlay" (click)="onCancel()" (keyup.enter)="onCancel()" tabindex="0">
     <div class="confirm-modal" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()" tabindex="0">
         <div class="confirm-icon" [attr.data-type]="dialog.type">
-            <span class="material-symbols-outlined">{{ dialog.icon }}</span>
+            <app-icon [name]=" dialog.icon " class=" icon-sm"></app-icon>
         </div>
         <h3 class="confirm-title">{{ dialog.title }}</h3>
         <p class="confirm-message">{{ dialog.message }}</p>

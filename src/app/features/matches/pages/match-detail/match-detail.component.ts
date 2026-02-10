@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,7 +35,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
 @Component({
     selector: 'app-match-detail',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         RouterLink,

@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -31,7 +32,7 @@ interface TournamentFilter {
 @Component({
     selector: 'app-tournaments-list',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         RouterModule,
         EmptyStateComponent,

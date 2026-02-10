@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatchEventType } from '../../../../core/models/tournament.model';
@@ -16,7 +17,7 @@ export interface TimelineEvent {
 @Component({
     selector: 'app-match-timeline',
     standalone: true,
-    imports: [CommonModule, HasPermissionDirective, IconButtonComponent],
+    imports: [IconComponent, CommonModule, HasPermissionDirective, IconButtonComponent],
     templateUrl: './match-timeline.component.html',
     styleUrls: ['./match-timeline.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

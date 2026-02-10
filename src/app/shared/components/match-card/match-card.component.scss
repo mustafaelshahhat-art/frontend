@@ -124,9 +124,7 @@
     flex-shrink: 0;
     color: rgb(0 0 0 / 75%);
 
-    .material-symbols-outlined {
-        font-size: var(--height-icon-sm);
-    }
+    
 }
 
 .match-card-badge {
@@ -221,9 +219,7 @@
         margin-top: var(--space-1);
         white-space: nowrap;
 
-        .material-symbols-outlined {
-            font-size: var(--text-xs);
-        }
+        
     }
 
     p {
@@ -281,18 +277,13 @@
     flex-shrink: 0;
     overflow: hidden;
 
-    .material-symbols-outlined {
-        font-size: var(--height-icon-sm);
-        color: var(--text-primary);
-    }
+    
 
     @media (width <=480px) {
         width: var(--space-8);
         height: var(--space-8);
 
-        .material-symbols-outlined {
-            font-size: var(--text-base);
-        }
+        
     }
 }
 
@@ -366,9 +357,7 @@
         box-shadow: var(--shadow-md);
         min-height: 40px;
 
-        .material-symbols-outlined {
-            font-size: var(--text-base);
-        }
+        
 
         &:hover {
             transform: translateY(-1px);

@@ -37,7 +37,7 @@
 
             <div class="notification-content-wrapper">
                 <div class="notif-icon-box" [attr.data-type]="notif.type">
-                    <span class="material-symbols-outlined">{{ getIcon(notif.type) }}</span>
+                    <app-icon [name]=" getIcon(notif.type) " class=" icon-sm"></app-icon>
                 </div>
                 <div class="notif-details">
                     <div class="notif-header">

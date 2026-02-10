@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
@@ -20,7 +21,7 @@ import { ActivityStore, StoreActivity } from '../../core/stores/activity.store';
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         StatCardComponent,
         ActionCardComponent,

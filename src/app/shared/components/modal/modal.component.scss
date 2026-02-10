@@ -34,10 +34,6 @@
 
     &.theme-danger {
         border-color: var(--color-danger-30);
-
-        .modal-header .material-symbols-outlined {
-            color: var(--color-danger);
-        }
     }
 }
 
@@ -56,9 +52,7 @@
         flex: 1;
     }
 
-    .material-symbols-outlined {
-        color: var(--color-primary);
-    }
+
 }
 
 .modal-body {

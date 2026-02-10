@@ -11,7 +11,7 @@
     <div class="image-placeholder animate-fade-in">
         <div class="placeholder-content">
             @if (!initials) {
-            <span class="material-symbols-outlined">{{ placeholderIcon }}</span>
+            <app-icon [name]=" placeholderIcon " class=" icon-sm"></app-icon>
             }
             @if (initials) {
             <span class="initials">{{ initials | uppercase }}</span>

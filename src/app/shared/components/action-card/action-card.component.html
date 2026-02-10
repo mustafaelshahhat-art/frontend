@@ -2,9 +2,9 @@
     class="action-card animate-fade-in" tabindex="0" role="button">
     <div class="action-header">
         <div class="action-icon-wrapper" [ngClass]="colorClass">
-            <span class="material-symbols-outlined">{{ icon }}</span>
+            <app-icon [name]=" icon " class=" icon-sm"></app-icon>
         </div>
-        <span class="material-symbols-outlined action-arrow">arrow_back</span>
+        <app-icon name="arrow_back" class="action-arrow icon-sm"></app-icon>
     </div>
 
     <div class="action-body">

@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, inject, ChangeDetectionStrategy, AfterViewInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -6,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
     selector: 'app-pending-approval',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './pending-approval.component.html',
     styleUrls: ['./pending-approval.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

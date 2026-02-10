@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
@@ -5,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 @Component({
     selector: 'app-smart-image',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './smart-image.component.html',
     styleUrls: ['./smart-image.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

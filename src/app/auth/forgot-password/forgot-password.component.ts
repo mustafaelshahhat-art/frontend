@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, inject, DestroyRef, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +12,7 @@ import { AlertComponent } from '../../shared/components/alert/alert.component';
 @Component({
     selector: 'app-forgot-password',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink, FormControlComponent, ButtonComponent, AlertComponent],
+    imports: [IconComponent, CommonModule, ReactiveFormsModule, RouterLink, FormControlComponent, ButtonComponent, AlertComponent],
     templateUrl: './forgot-password.component.html',
     styleUrls: ['./forgot-password.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

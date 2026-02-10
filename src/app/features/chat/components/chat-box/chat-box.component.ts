@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewChecked, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Match } from '../../../../core/models/tournament.model';
 import { CommonModule } from '@angular/common';
@@ -26,7 +27,7 @@ export interface ChatParticipant {
 @Component({
     selector: 'app-chat-box',
     standalone: true,
-    imports: [CommonModule, FormsModule, IconButtonComponent, FormControlComponent, ReactiveFormsModule],
+    imports: [IconComponent, CommonModule, FormsModule, IconButtonComponent, FormControlComponent, ReactiveFormsModule],
     templateUrl: './chat-box.component.html',
     styleUrls: ['./chat-box.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

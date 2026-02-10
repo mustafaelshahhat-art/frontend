@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -11,7 +12,7 @@ export interface SelectOption {
 @Component({
     selector: 'app-select',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './select.component.html',
     styleUrls: ['./select.component.scss'],
     providers: [

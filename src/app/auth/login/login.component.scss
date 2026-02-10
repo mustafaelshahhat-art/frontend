@@ -88,10 +88,7 @@
     box-shadow: var(--shadow-glow-lg);
     border: 1px solid var(--border-subtle);
 
-    .material-symbols-outlined {
-        color: var(--text-primary);
-        text-shadow: 0 var(--space-0-5) var(--space-1) rgb(0 0 0 / 20%);
-    }
+    
 }
 
 .auth-title {
@@ -216,9 +213,7 @@
         /* Smaller gap between icon and text */
 
         /* Smaller text & icon for mobile */
-        .material-symbols-outlined {
-            font-size: var(--text-xl);
-        }
+        
 
         span.text-xs {
             font-size: var(--text-2xs);

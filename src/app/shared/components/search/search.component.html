@@ -1,10 +1,10 @@
 <div class="search-container flex-1 mr-3">
-    <span class="material-symbols-outlined search-icon">search</span>
+    <app-icon name="search" class="search-icon icon-sm"></app-icon>
     <input type="text" [placeholder]="placeholder" [value]="value" (input)="onInput($event)" (focus)="onFocus()"
         class="search-input" />
     @if (value) {
     <button (click)="clearSearch()" class="search-clear">
-        <span class="material-symbols-outlined">close</span>
+        <app-icon name="close" class=" icon-sm"></app-icon>
     </button>
     }
 
@@ -24,7 +24,7 @@
         <ng-container>
             @if (searchResults().length === 0) {
             <div class="search-empty">
-                <span class="material-symbols-outlined">search_off</span>
+                <app-icon name="search_off" class=" icon-sm"></app-icon>
                 <span>لا توجد نتائج</span>
             </div>
             }
@@ -32,7 +32,7 @@
             @for (result of searchResults(); track result.id) {
             <div (click)="navigateToResult(result)" (keyup.enter)="navigateToResult(result)" tabindex="0"
                 class="search-result-item">
-                <span class="material-symbols-outlined result-icon">{{ result.icon }}</span>
+                <app-icon [name]=" result.icon " class="result-icon icon-sm"></app-icon>
                 <div class="result-content">
                     <span class="result-title">{{ result.title }}</span>
                     @if (result.subtitle) {

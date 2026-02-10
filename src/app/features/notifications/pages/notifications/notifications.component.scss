@@ -69,9 +69,7 @@
     justify-content: center;
     flex-shrink: 0;
 
-    .material-symbols-outlined {
-        font-size: var(--text-2xl);
-    }
+    
 
     // Dynamic types handled via data attribute in SCSS
     &[data-type="match"] {

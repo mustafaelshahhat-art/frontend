@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BracketDto, Match, MatchStatus, BracketRound, RegistrationStatus } from '../../../../core/models/tournament.model';
@@ -32,7 +33,7 @@ interface BracketRoundView {
 @Component({
     selector: 'app-knockout-bracket',
     standalone: true,
-    imports: [CommonModule, SmartImageComponent],
+    imports: [IconComponent, CommonModule, SmartImageComponent],
     templateUrl: './knockout-bracket.component.html',
     styleUrls: ['./knockout-bracket.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

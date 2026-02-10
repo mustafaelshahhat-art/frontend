@@ -70,9 +70,7 @@
     border: 1.5px solid transparent;
     background: transparent;
 
-    .material-symbols-outlined {
-        font-size: var(--height-icon-sm);
-    }
+    
 }
 
 /* Details Button - Neutral/Info */
@@ -150,9 +148,7 @@
             transform: translateY(-2px);
         }
 
-        .material-symbols-outlined {
-            color: var(--color-danger);
-        }
+        
     }
 }
 

@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,7 +19,7 @@ import { ChangeDetectorRef } from '@angular/core';
 @Component({
     selector: 'app-user-detail',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         ReactiveFormsModule,
         ButtonComponent,

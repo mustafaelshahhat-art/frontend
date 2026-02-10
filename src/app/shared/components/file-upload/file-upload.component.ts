@@ -1,10 +1,11 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-file-upload',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './file-upload.component.html',
     styleUrls: ['./file-upload.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

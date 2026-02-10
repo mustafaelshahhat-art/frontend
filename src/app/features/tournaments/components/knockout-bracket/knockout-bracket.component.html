@@ -27,7 +27,7 @@
                                 <div class="score-box">
                                     <span class="score">{{ getScore(pair, pair.homeTeamId) }}</span>
                                     <span class="winner-indicator" *ngIf="isWinner(pair, pair.homeTeamId)">
-                                        <span class="material-symbols-outlined">star</span>
+                                        <app-icon name="star" class=" icon-sm"></app-icon>
                                     </span>
                                 </div>
                             </div>
@@ -46,7 +46,7 @@
                                 <div class="score-box">
                                     <span class="score">{{ getScore(pair, pair.awayTeamId) }}</span>
                                     <span class="winner-indicator" *ngIf="isWinner(pair, pair.awayTeamId)">
-                                        <span class="material-symbols-outlined">star</span>
+                                        <app-icon name="star" class=" icon-sm"></app-icon>
                                     </span>
                                 </div>
                             </div>
@@ -70,7 +70,7 @@
 <ng-template #emptyState>
     <div class="empty-bracket-state">
         <div class="icon-wrapper">
-            <span class="material-symbols-outlined">account_tree</span>
+            <app-icon name="account_tree" class=" icon-sm"></app-icon>
         </div>
         <h3>لا يوجد جدول حالياً</h3>
         <p>سيتم عرض مواجهات الأدوار الإقصائية هنا فور اكتمال دور المجموعات وإجراء القرعة.</p>

@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectionStrategy, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, signal } from '@angular/core';
 import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
 import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
@@ -34,7 +35,7 @@ type NotificationFilterValue = 'all' | 'unread' | 'read';
 @Component({
     selector: 'app-notifications',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         EmptyStateComponent,

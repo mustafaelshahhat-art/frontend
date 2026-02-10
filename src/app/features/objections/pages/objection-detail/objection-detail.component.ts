@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +16,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
     selector: 'app-objection-detail',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         CardComponent,
@@ -86,7 +87,7 @@ import { FormsModule } from '@angular/forms';
                     <app-card title="قرار اللجنة" icon="feedback" class="feedback-card">
                         <div class="decision-feedback p-md rounded-xl border">
                             <div class="flex items-center gap-2 mb-sm">
-                                <span class="material-symbols-outlined text-primary text-sm">schedule</span>
+                                <app-icon name="schedule" class="text-primary text-sm icon-sm"></app-icon>
                                 <span class="text-xs text-muted">{{ objection.reviewedDate | date:'yyyy/MM/dd HH:mm' }}</span>
                                 <span class="text-xs text-muted">بواسطة: {{ objection.reviewedBy || 'مسؤول النظام' }}</span>
                             </div>
@@ -135,7 +136,7 @@ import { FormsModule } from '@angular/forms';
                     <app-card title="البطولة" icon="emoji_events">
                         <div class="flex items-center gap-3">
                             <div class="tournament-icon bg-gold bg-opacity-10 text-gold p-2 rounded-lg">
-                                <span class="material-symbols-outlined">military_tech</span>
+                                <app-icon name="military_tech" class=" icon-sm"></app-icon>
                             </div>
                             <span class="font-bold text-secondary">{{ objection.tournamentName }}</span>
                         </div>

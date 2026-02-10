@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
@@ -18,7 +19,7 @@ import { UserStore } from '../../core/stores/user.store';
 @Component({
     selector: 'app-users-list',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         ReactiveFormsModule,
         FilterComponent,

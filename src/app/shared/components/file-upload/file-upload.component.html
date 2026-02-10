@@ -5,7 +5,7 @@
         role="button" [attr.aria-label]="label">
         <div class="upload-content">
             <div class="icon-wrapper">
-                <span class="material-symbols-outlined">cloud_upload</span>
+                <app-icon name="cloud_upload" class=" icon-sm"></app-icon>
             </div>
             <div class="text-content">
                 <span class="label">{{ label }}</span>
@@ -23,14 +23,14 @@
         @for (file of selectedFiles; track file; let i = $index) {
         <div class="file-item">
             <div class="file-info">
-                <span class="material-symbols-outlined file-icon">description</span>
+                <app-icon name="description" class="file-icon icon-sm"></app-icon>
                 <div class="file-details">
                     <span class="file-name">{{ file.name }}</span>
                     <span class="file-size">{{ formatFileSize(file.size) }}</span>
                 </div>
             </div>
             <button type="button" class="remove-btn" (click)="removeFile(i, $event)" [disabled]="disabled || isLoading">
-                <span class="material-symbols-outlined">close</span>
+                <app-icon name="close" class=" icon-sm"></app-icon>
             </button>
         </div>
         }
@@ -39,7 +39,7 @@
 
     @if (error) {
     <div class="error-message">
-        <span class="material-symbols-outlined">error</span>
+        <app-icon name="error" class=" icon-sm"></app-icon>
         {{ error }}
     </div>
     }

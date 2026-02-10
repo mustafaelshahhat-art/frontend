@@ -53,11 +53,11 @@
 
                     <div class="flex items-center gap-lg flex-wrap mobile-center">
                         <div class="flex items-center gap-2 text-muted font-bold text-sm">
-                            <span class="material-symbols-outlined text-gold opacity-70">location_on</span>
+                            <app-icon name="location_on" class="text-gold opacity-70 icon-sm"></app-icon>
                             <span>{{ team.city }}</span>
                         </div>
                         <div class="flex items-center gap-2 text-muted font-bold text-sm">
-                            <span class="material-symbols-outlined text-primary opacity-70">person</span>
+                            <app-icon name="person" class="text-primary opacity-70 icon-sm"></app-icon>
                             <span>الكابتن: <span class="text-primary-light">{{ team.captainName }}</span></span>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
         @if (!team.isActive) {
         <div class="card bg-danger bg-opacity-10 border-danger border-opacity-20 p-lg animate-pulse-subtle">
             <div class="flex items-center gap-4 text-danger">
-                <span class="material-symbols-outlined text-3xl">warning</span>
+                <app-icon name="warning" class="text-3xl icon-sm"></app-icon>
                 <div class="flex-col">
                     <h4 class="font-super-black mb-1">تم تعطيل هذا الفريق بواسطة الإدارة</h4>
                     <p class="text-sm opacity-80 mb-0">تم إيقاف كافة الأنشطة التنافسية لهذا الفريق وانسحابه من البطولات
@@ -94,26 +94,23 @@
             <div class="flex-col gap-lg">
                 <div class="grid-stats">
                     <div class="stat-card">
-                        <div class="stat-card-decoration"><span class="material-symbols-outlined">sports_soccer</span>
+                        <div class="stat-card-decoration"><app-icon name="sports_soccer" class=" icon-sm"></app-icon>
                         </div>
                         <span class="stat-card-label">المباريات</span>
                         <span class="stat-card-value">{{ team.stats.matches }}</span>
                     </div>
                     <div class="stat-card border-success border-opacity-20">
-                        <div class="stat-card-decoration bg-success bg-opacity-5"><span
-                                class="material-symbols-outlined text-success">check_circle</span></div>
+                        <div class="stat-card-decoration bg-success bg-opacity-5"><app-icon name="check_circle" class="text-success icon-sm"></app-icon></div>
                         <span class="stat-card-label text-success">انتصار</span>
                         <span class="stat-card-value text-success">{{ team.stats.wins }}</span>
                     </div>
                     <div class="stat-card border-warning border-opacity-20">
-                        <div class="stat-card-decoration bg-warning bg-opacity-5"><span
-                                class="material-symbols-outlined text-warning">balance</span></div>
+                        <div class="stat-card-decoration bg-warning bg-opacity-5"><app-icon name="balance" class="text-warning icon-sm"></app-icon></div>
                         <span class="stat-card-label text-warning">تعادل</span>
                         <span class="stat-card-value text-warning">{{ team.stats.draws }}</span>
                     </div>
                     <div class="stat-card border-danger border-opacity-20">
-                        <div class="stat-card-decoration bg-danger bg-opacity-5"><span
-                                class="material-symbols-outlined text-danger">cancel</span></div>
+                        <div class="stat-card-decoration bg-danger bg-opacity-5"><app-icon name="cancel" class="text-danger icon-sm"></app-icon></div>
                         <span class="stat-card-label text-danger">هزيمة</span>
                         <span class="stat-card-value text-danger">{{ team.stats.losses }}</span>
                     </div>
@@ -124,7 +121,7 @@
                     <div class="card p-lg border-primary border-opacity-10">
                         <div class="flex-between items-center mb-8">
                             <h3 class="font-super-black text-lg mb-0">تحليل الأهداف</h3>
-                            <span class="material-symbols-outlined text-primary">monitoring</span>
+                            <app-icon name="monitoring" class="text-primary icon-sm"></app-icon>
                         </div>
                         <div class="flex items-center gap-xl">
                             <div class="flex-1 flex-col items-center border-l border-visible text-center">
@@ -213,7 +210,7 @@
             <div class="flex-col gap-4">
                 @if (!team.matches || team.matches.length === 0) {
                 <div class="empty-state p-xl text-center">
-                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">sports_soccer</span>
+                    <app-icon name="sports_soccer" class="text-4xl opacity-20 mb-4 icon-sm"></app-icon>
                     <p class="text-muted">لا يوجد مباريات مسجلة حالياً</p>
                 </div>
                 }
@@ -226,7 +223,7 @@
                             <span class="text-2xs font-bold text-muted">{{ match.date | date:'y/MM/dd | HH:mm'
                                 }}</span>
                         </div>
-                        <span class="material-symbols-outlined text-sm text-muted opacity-50">more_horiz</span>
+                        <app-icon name="more_horiz" class="text-sm text-muted opacity-50 icon-sm"></app-icon>
                     </div>
 
                     <div class="p-lg flex items-center justify-between gap-xl mobile-center">
@@ -267,7 +264,7 @@
             <div class="flex-col gap-md">
                 @if (!team.finances || team.finances.length === 0) {
                 <div class="empty-state p-xl text-center">
-                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">account_balance_wallet</span>
+                    <app-icon name="account_balance_wallet" class="text-4xl opacity-20 mb-4 icon-sm"></app-icon>
                     <p class="text-muted">لا يوجد سجل مالي حالياً</p>
                 </div>
                 }
@@ -302,7 +299,7 @@
             <div class="flex-col gap-4">
                 @if (!team.invitations || team.invitations.length === 0) {
                 <div class="empty-state p-xl text-center">
-                    <span class="material-symbols-outlined text-4xl opacity-20 mb-4">mail_outline</span>
+                    <app-icon name="mail_outline" class="text-4xl opacity-20 mb-4 icon-sm"></app-icon>
                     <p class="text-muted">لا يوجد طلبات أو دعوات معلقة حالياً</p>
                 </div>
                 }

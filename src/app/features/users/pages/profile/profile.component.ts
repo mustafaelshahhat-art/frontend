@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, computed, ViewChild, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         ReactiveFormsModule,

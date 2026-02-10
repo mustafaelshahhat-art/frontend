@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BracketDto, Match, MatchStatus, BracketRound } from '../../../../core/models/tournament.model';
@@ -29,7 +30,7 @@ interface BracketRoundView {
 @Component({
   selector: 'app-tournament-brackets',
   standalone: true,
-  imports: [CommonModule, SmartImageComponent],
+  imports: [IconComponent, CommonModule, SmartImageComponent],
   template: `
     <div class="bracket-container" *ngIf="rounds.length > 0; else emptyState">
       <div class="bracket-wrapper">
@@ -80,7 +81,7 @@ interface BracketRoundView {
     </div>
     <ng-template #emptyState>
         <div class="empty-bracket">
-            <span class="material-symbols-outlined icon">account_tree</span>
+            <app-icon name="account_tree" class="icon icon-sm"></app-icon>
             <p>لم تبدأ الأدوار الإقصائية بعد</p>
         </div>
     </ng-template>

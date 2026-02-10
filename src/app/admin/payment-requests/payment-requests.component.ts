@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
@@ -15,7 +16,7 @@ import { TournamentStore } from '../../core/stores/tournament.store';
 @Component({
     selector: 'app-payment-requests',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FilterComponent,
         ButtonComponent,

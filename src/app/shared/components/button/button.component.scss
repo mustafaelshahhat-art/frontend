@@ -27,17 +27,7 @@
     min-height: var(--space-11);
     line-height: var(--leading-none);
 
-    .material-symbols-outlined {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: var(--space-6);
-        height: var(--space-6);
-        line-height: var(--leading-none);
-        font-size: var(--text-xl);
-        flex-shrink: 0;
-        pointer-events: none;
-    }
+    
 
     .btn-text {
         line-height: var(--leading-none);
@@ -67,9 +57,7 @@
             min-height: var(--space-9);
             border-radius: var(--radius-lg);
 
-            .material-symbols-outlined {
-                font-size: var(--text-lg);
-            }
+            
         }
 
         &.btn-lg {

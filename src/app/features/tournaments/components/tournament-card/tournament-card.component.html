@@ -7,7 +7,7 @@
 
         <!-- Winner Trophy Overlay -->
         @if (tournament.winnerTeamId) {
-        <span class="material-symbols-outlined trophy-icon animate-bounce-subtle">emoji_events</span>
+        <app-icon name="emoji_events" class="trophy-icon animate-bounce-subtle icon-sm"></app-icon>
         }
 
         <!-- Status Badge -->
@@ -37,7 +37,7 @@
 
         <!-- Phase Description (Hover/Always visible) -->
         <div class="phase-indicator">
-            <span class="material-symbols-outlined">{{ getPhaseIcon() }}</span>
+            <app-icon [name]=" getPhaseIcon() " class=" icon-sm"></app-icon>
             <span class="phase-text">{{ getPhaseDescription() }}</span>
         </div>
     </div>
@@ -46,14 +46,14 @@
     <div class="tournament-stats">
         <div class="stat-item">
             <div class="stat-header">
-                <span class="material-symbols-outlined">payments</span>
+                <app-icon name="payments" class=" icon-sm"></app-icon>
                 <span class="label">الجائزة</span>
             </div>
             <span class="value">{{ tournament.prizes || 'لا يوجد' }}</span>
         </div>
         <div class="stat-item">
             <div class="stat-header">
-                <span class="material-symbols-outlined">calendar_today</span>
+                <app-icon name="calendar_today" class=" icon-sm"></app-icon>
                 <span class="label">{{ tournament.status === TournamentStatus.COMPLETED ? 'انتهت في' : 'تاريخ البدء'
                     }}</span>
             </div>
@@ -80,19 +80,19 @@
             <!-- Captain: Already Registered Status -->
             @if (isRegistered && myRegistration?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
             <div class="context-msg pending">
-                <span class="material-symbols-outlined">hourglass_top</span>
+                <app-icon name="hourglass_top" class=" icon-sm"></app-icon>
                 <span>طلبك قيد المراجعة - أنت مسجل مؤقتاً</span>
             </div>
             }
             @if (isRegistered && myRegistration?.status === RegistrationStatus.APPROVED) {
             <div class="context-msg approved">
-                <span class="material-symbols-outlined">verified</span>
+                <app-icon name="verified" class=" icon-sm"></app-icon>
                 <span>فريقك مُوافَق عليه رسمياً</span>
             </div>
             }
             @if (myRegistration?.status === RegistrationStatus.REJECTED) {
             <div class="context-msg rejected">
-                <span class="material-symbols-outlined">error</span>
+                <app-icon name="error" class=" icon-sm"></app-icon>
                 <span>تم رفض الطلب - يمكنك التسجيل مجدداً</span>
             </div>
             }
@@ -100,7 +100,7 @@
             <!-- Captain: Team Busy -->
             @if (isBusy && !isRegistered) {
             <div class="context-msg busy">
-                <span class="material-symbols-outlined">block</span>
+                <app-icon name="block" class=" icon-sm"></app-icon>
                 <span>فريقك مشارك في بطولة أخرى</span>
             </div>
             }
@@ -108,7 +108,7 @@
             <!-- User Pending Approval -->
             @if (isUserPending) {
             <div class="context-msg warning">
-                <span class="material-symbols-outlined">pending</span>
+                <app-icon name="pending" class=" icon-sm"></app-icon>
                 <span>حسابك بانتظار التفعيل</span>
             </div>
             }
@@ -119,7 +119,7 @@
         @if (isTeamDisabled) {
         <div class="context-messages">
             <div class="context-msg rejected animate-pulse-subtle">
-                <span class="material-symbols-outlined">warning</span>
+                <app-icon name="warning" class=" icon-sm"></app-icon>
                 <span>تم تعطيل الفريق بواسطة الإدارة</span>
             </div>
         </div>
@@ -129,7 +129,7 @@
         @if (showNonOwnerHint && !isTeamDisabled) {
         <div class="context-messages">
             <div class="context-msg info">
-                <span class="material-symbols-outlined">info</span>
+                <app-icon name="info" class=" icon-sm"></app-icon>
                 <span>التسجيل متاح لقائد الفريق فقط</span>
             </div>
         </div>
@@ -139,7 +139,7 @@
         @if (tournament.status === TournamentStatus.COMPLETED) {
         <div class="context-messages">
             <div class="context-msg finished">
-                <span class="material-symbols-outlined">flag</span>
+                <app-icon name="flag" class=" icon-sm"></app-icon>
                 <span>انتهت هذه البطولة</span>
             </div>
         </div>
@@ -157,7 +157,7 @@
         <app-button [variant]="getRegisterButtonVariant()" class="flex-1" (click)="onRegisterClick($event)"
             [disabled]="isRegisterDisabled" [title]="getRegisterTooltip()">
             @if (getRegisterIcon()) {
-            <span class="material-symbols-outlined btn-icon">{{ getRegisterIcon() }}</span>
+            <app-icon [name]=" getRegisterIcon() " class="btn-icon icon-sm"></app-icon>
             }
             {{ getRegisterLabel() }}
         </app-button>

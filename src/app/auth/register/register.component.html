@@ -7,7 +7,7 @@
         <!-- Header Section -->
         <header class="text-center mb-xl flex flex-col items-center">
             <div class="auth-logo gradient-primary shadow-glow mx-auto">
-                <span class="material-symbols-outlined text-4xl text-primary" aria-hidden="true">sports_soccer</span>
+                <app-icon name="sports_soccer" class="text-4xl text-primary icon-sm"></app-icon>
             </div>
             <h1 class="auth-title">بطولة رمضان</h1>
             <p class="text-secondary text-base">إنشاء حساب جديد للمشاركة في البطولة</p>
@@ -26,7 +26,7 @@
                     (click)="form.role.set(UserRole.REFEREE)" (keyup.enter)="form.role.set(UserRole.REFEREE)"
                     role="button" tabindex="0" aria-label="تسجيل كحكم">
                     <div class="role-card-icon">
-                        <span class="material-symbols-outlined" aria-hidden="true">sports_whistle</span>
+                        <app-icon name="sports_whistle" class=" icon-sm"></app-icon>
                     </div>
                     <div class="role-card-content">
                         <h3 class="role-card-title">حكم</h3>
@@ -40,7 +40,7 @@
                     (click)="form.role.set(UserRole.PLAYER)" (keyup.enter)="form.role.set(UserRole.PLAYER)"
                     role="button" tabindex="0" aria-label="تسجيل كلاعب">
                     <div class="role-card-icon">
-                        <span class="material-symbols-outlined">groups</span>
+                        <app-icon name="groups" class=" icon-sm"></app-icon>
                     </div>
                     <div class="role-card-content">
                         <h3 class="role-card-title">لاعب</h3>
@@ -71,7 +71,7 @@
         <div class="form-container-inner" [class.animate-slide-in-left]="isPageReady()">
             <div class="form-header-inner text-center">
                 <div class="avatar avatar-lg gradient-primary mx-auto mb-4 rounded-2xl flex-center step-avatar">
-                    <span class="material-symbols-outlined text-xl text-primary">person_add</span>
+                    <app-icon name="person_add" class="text-xl text-primary icon-sm"></app-icon>
                 </div>
                 <h2 class="form-step-title">بيانات ال{{ form.role() === UserRole.REFEREE ? 'حكم' : 'لاعب' }}</h2>
                 <p class="form-step-subtitle">أدخل بياناتك الشخصية لإتمام التسجيل في البطولة</p>
@@ -157,8 +157,8 @@
                         (keyup.enter)="frontInput.click()" tabindex="0">
                         <input type="file" #frontInput hidden (change)="onFileChange($event, 'idFront')"
                             accept="image/*">
-                        <span class="material-symbols-outlined file-upload-icon">{{ form.idFront() ? 'check_circle' :
-                            'badge' }}</span>
+                        <app-icon [name]=" form.idFront() ? 'check_circle' :
+                            'badge' " class="file-upload-icon icon-sm"></app-icon>
                         <p class="file-upload-text">{{ form.idFront() ? 'تم رفع الوجه الأمامي' : 'صورة الوجه الأمامي' }}
                         </p>
                     </div>
@@ -166,8 +166,8 @@
                     <div class="file-upload-box" [class.has-file]="form.idBack()" (click)="backInput.click()"
                         (keyup.enter)="backInput.click()" tabindex="0">
                         <input type="file" #backInput hidden (change)="onFileChange($event, 'idBack')" accept="image/*">
-                        <span class="material-symbols-outlined file-upload-icon">{{ form.idBack() ? 'check_circle' :
-                            'contact_page' }}</span>
+                        <app-icon [name]=" form.idBack() ? 'check_circle' :
+                            'contact_page' " class="file-upload-icon icon-sm"></app-icon>
                         <p class="file-upload-text">{{ form.idBack() ? 'تم رفع الوجه الخلفي' : 'صورة الوجه الخلفي' }}
                         </p>
                     </div>

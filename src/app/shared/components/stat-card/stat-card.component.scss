@@ -127,9 +127,7 @@
     position: relative;
     z-index: var(--z-above);
 
-    .material-symbols-outlined {
-        font-size: var(--text-2xl);
-    }
+    
 
     &.primary {
         background: var(--color-primary-10);
@@ -166,8 +164,6 @@
         width: var(--space-11);
         height: var(--space-11);
 
-        .material-symbols-outlined {
-            font-size: var(--text-xl);
-        }
+        
     }
 }

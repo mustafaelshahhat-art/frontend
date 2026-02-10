@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
@@ -9,7 +10,7 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         RouterModule,
         SmartImageComponent
     ],

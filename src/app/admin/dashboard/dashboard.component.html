@@ -37,9 +37,9 @@
                     <div class="activity-item">
                         <div class="activity-icon-container"
                             [class.danger-style]="activity.message.includes('تعطيل') || activity.message.includes('إغلاق')">
-                            <span class="material-symbols-outlined">{{ activity.type.toLowerCase().includes('user')
+                            <app-icon [name]=" activity.type.toLowerCase().includes('user')
                                 ? 'person' : (activity.type.toLowerCase().includes('team') ? 'groups' : 'bolt')
-                                }}</span>
+                                " class=" icon-sm"></app-icon>
                         </div>
                         <div class="activity-content">
                             <p class="activity-msg">{{ activity.message }}</p>

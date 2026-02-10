@@ -1,10 +1,11 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-action-card',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './action-card.component.html',
     styleUrls: ['./action-card.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

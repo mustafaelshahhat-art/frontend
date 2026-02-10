@@ -15,7 +15,7 @@
             @if (loading) {
             <span class="spinner-sm"></span>
             }
-            <span class="material-symbols-outlined chevron" [class.rotated]="isOpen">expand_more</span>
+            <app-icon name="expand_more" class="chevron icon-sm"></app-icon>
         </div>
     </div>
 
@@ -31,12 +31,12 @@
                 (keyup.enter)="selectOption(option)" tabindex="0">
 
                 @if (option.icon) {
-                <span class="material-symbols-outlined option-icon">{{ option.icon }}</span>
+                <app-icon [name]=" option.icon " class="option-icon icon-sm"></app-icon>
                 }
                 <span class="option-label">{{ option.label }}</span>
 
                 @if (option.value === selectedValue) {
-                <span class="material-symbols-outlined check-icon">check</span>
+                <app-icon name="check" class="check-icon icon-sm"></app-icon>
                 }
             </div>
             }

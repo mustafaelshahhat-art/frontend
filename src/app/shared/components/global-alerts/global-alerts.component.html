@@ -2,7 +2,7 @@
     @for (alert of uiFeedback.alerts(); track alert.id) {
     <div class="global-alert" [attr.data-type]="alert.type">
         <div class="global-alert-icon" [attr.data-type]="alert.type">
-            <span class="material-symbols-outlined">{{ getIcon(alert.type) }}</span>
+            <app-icon [name]=" getIcon(alert.type) " class=" icon-sm"></app-icon>
         </div>
         <div class="global-alert-content">
             <div class="global-alert-title">{{ alert.title }}</div>
@@ -12,7 +12,7 @@
         </div>
         @if (alert.dismissible) {
         <button class="global-alert-dismiss" (click)="uiFeedback.dismissAlert(alert.id)">
-            <span class="material-symbols-outlined">close</span>
+            <app-icon name="close" class=" icon-sm"></app-icon>
         </button>
         }
     </div>

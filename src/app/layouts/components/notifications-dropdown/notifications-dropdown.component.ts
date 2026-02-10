@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
@@ -6,7 +7,7 @@ import { Notification } from '../../../core/models/tournament.model';
 @Component({
     selector: 'app-notifications-dropdown',
     standalone: true,
-    imports: [TimeAgoPipe],
+    imports: [IconComponent, TimeAgoPipe],
     templateUrl: './notifications-dropdown.component.html',
     styleUrls: ['./notifications-dropdown.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../button/button.component';
@@ -5,7 +6,7 @@ import { ButtonComponent } from '../button/button.component';
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [IconComponent, CommonModule, ButtonComponent],
   templateUrl: './empty-state.component.html',
   styleUrls: ['./empty-state.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -60,9 +60,7 @@
     color: var(--text-muted);
     transition: all var(--duration-fast) ease;
 
-    .material-symbols-outlined {
-        font-size: var(--text-2xl);
-    }
+    
 }
 
 .text-content {
@@ -155,9 +153,7 @@
         color: var(--color-danger);
     }
 
-    .material-symbols-outlined {
-        font-size: var(--text-lg);
-    }
+    
 }
 
 .error-message {
@@ -168,7 +164,5 @@
     font-size: var(--text-xs);
     margin-top: var(--space-xs);
 
-    .material-symbols-outlined {
-        font-size: var(--text-base);
-    }
+    
 }

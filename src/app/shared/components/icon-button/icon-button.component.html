@@ -1,9 +1,9 @@
-<button [type]="type" class="icon-btn" [ngClass]="[variant, size]" [disabled]="disabled || loading" [title]="tooltip"
+<button [type]="type" class="icon-btn" [ngClass]="[variant, size]" [disabled]="disabled || isLoading" [title]="tooltip"
     (click)="handleClick($event)">
-    @if (loading) {
+    @if (isLoading) {
     <span class="spinner"></span>
     }
-    @if (!loading && icon) {
-    <span class="material-symbols-outlined">{{ icon }}</span>
+    @if (!isLoading && icon) {
+    <app-icon [name]=" icon " class=" icon-sm"></app-icon>
     }
 </button>

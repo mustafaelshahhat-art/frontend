@@ -168,13 +168,6 @@
         border-color: var(--color-danger-20);
     }
 
-    .material-symbols-outlined {
-        font-size: var(--text-xl);
-
-        @media (width <=480px) {
-            font-size: var(--text-lg);
-        }
-    }
 }
 
 .activity-content {

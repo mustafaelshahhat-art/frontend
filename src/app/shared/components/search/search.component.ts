@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, Input, Output, EventEmitter, inject, HostListener, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 @Component({
     selector: 'app-search',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [IconComponent, CommonModule, FormsModule],
     templateUrl: './search.component.html',
     styleUrls: ['./search.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

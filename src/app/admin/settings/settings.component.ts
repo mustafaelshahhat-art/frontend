@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, signal, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import { finalize } from 'rxjs';
 @Component({
     selector: 'app-settings',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         ReactiveFormsModule,

@@ -4,7 +4,7 @@
     <!-- Menu Button (Mobile) -->
     @if (isMobile) {
     <button (click)="handleToggleSidebar()" class="header-menu-btn">
-      <span class="material-symbols-outlined">menu_open</span>
+      <app-icon name="menu_open" class=" icon-sm"></app-icon>
     </button>
     }
 
@@ -26,7 +26,7 @@
     <!-- Notifications Button -->
     <div class="relative notifications-wrapper">
       <button (click)="toggleNotifications()" class="header-btn">
-        <span class="material-symbols-outlined text-xl">notifications</span>
+        <app-icon name="notifications" class="text-xl icon-sm"></app-icon>
         @if (unreadCount > 0) {
         <span class="header-btn-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         }

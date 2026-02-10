@@ -111,7 +111,7 @@
     @if (isUserPending()) {
     <div class="create-team-card pending-card animate-fade-in-up">
         <div class="icon-circle warning">
-            <span class="material-symbols-outlined">pending_actions</span>
+            <app-icon name="pending_actions" class=" icon-sm"></app-icon>
         </div>
         <h2>حسابك قيد المراجعة</h2>
         <p>عذراً، لا يمكنك إنشاء فريق حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل.
@@ -127,7 +127,7 @@
     @if (!isUserPending() && pendingInvitations().length > 0) {
     <div class="create-team-card invite-card animate-fade-in-up">
         <div class="icon-circle primary">
-            <span class="material-symbols-outlined">mail</span>
+            <app-icon name="mail" class=" icon-sm"></app-icon>
         </div>
         <h2>لديك دعوة للانضمام إلى فريق</h2>
         @for (invite of pendingInvitations(); track invite.id) {
@@ -148,7 +148,7 @@
     @if (!isUserPending() && pendingInvitations().length === 0) {
     <div class="create-team-card animate-fade-in-up">
         <div class="icon-circle">
-            <span class="material-symbols-outlined">groups</span>
+            <app-icon name="groups" class=" icon-sm"></app-icon>
         </div>
         <h2>أنت لست عضواً في أي فريق</h2>
         <p>قم بإنشاء فريقك الخاص الآن وقد فريقك نحو البطولة!</p>
@@ -167,7 +167,7 @@
         </p>
 
         <div class="input-group">
-            <span class="material-symbols-outlined">shield</span>
+            <app-icon name="shield" class=" icon-sm"></app-icon>
             <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input w-full"
                 (keyup.enter)="createNewTeam()">
         </div>

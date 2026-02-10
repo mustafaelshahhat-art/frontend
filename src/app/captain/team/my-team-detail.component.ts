@@ -1,3 +1,4 @@
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Component, OnInit, OnDestroy, inject, effect, signal, untracked, computed, DestroyRef, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -46,7 +47,7 @@ interface TeamsOverview {
 @Component({
     selector: 'app-my-team-detail',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         FormsModule,
         ButtonComponent,

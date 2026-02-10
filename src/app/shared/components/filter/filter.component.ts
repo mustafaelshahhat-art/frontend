@@ -1,3 +1,4 @@
+import { IconComponent } from '../icon/icon.component';
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -16,7 +17,7 @@ export interface FilterItem {
 @Component({
     selector: 'app-filter',
     standalone: true,
-    imports: [CommonModule],
+    imports: [IconComponent, CommonModule],
     templateUrl: './filter.component.html',
     styleUrls: ['./filter.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

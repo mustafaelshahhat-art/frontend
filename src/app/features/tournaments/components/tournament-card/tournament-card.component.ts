@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -17,7 +18,7 @@ import { KebabCasePipe } from '../../../../shared/pipes/kebab-case.pipe';
 @Component({
     selector: 'app-tournament-card',
     standalone: true,
-    imports: [
+    imports: [IconComponent, 
         CommonModule,
         RouterModule,
         BadgeComponent,

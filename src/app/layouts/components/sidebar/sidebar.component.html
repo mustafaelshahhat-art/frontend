@@ -4,7 +4,7 @@
     <!-- Close Button (Mobile) -->
     @if (isMobile) {
     <button (click)="handleClose()" class="sidebar-close">
-      <span class="material-symbols-outlined">close</span>
+      <app-icon name="close" class=" icon-sm"></app-icon>
     </button>
     }
 
@@ -12,7 +12,7 @@
       <!-- Logo & Brand -->
       <div class="sidebar-brand">
         <div class="sidebar-brand-icon">
-          <span class="material-symbols-outlined text-primary text-2xl">shield</span>
+          <app-icon name="shield" class="text-primary text-2xl icon-sm"></app-icon>
         </div>
         <div class="flex-col">
           <h1 class="sidebar-brand-text">بطولة<br>رمضان</h1>
@@ -25,7 +25,7 @@
         @for (item of navItems; track item) {
         <a [routerLink]="item.route" routerLinkActive="active" #rla="routerLinkActive" (click)="handleClose()"
           class="sidebar-nav-item">
-          <span class="material-symbols-outlined sidebar-nav-icon">{{ item.icon }}</span>
+          <app-icon [name]=" item.icon " class="sidebar-nav-icon icon-sm"></app-icon>
           <span class="sidebar-nav-label">{{ item.label }}</span>
         </a>
         }
@@ -54,7 +54,7 @@
 
       <!-- Logout Button -->
       <button type="button" (click)="handleLogout()" class="sidebar-logout">
-        <span class="material-symbols-outlined text-xl">logout</span>
+        <app-icon name="logout" class="text-xl icon-sm"></app-icon>
         <span>تسجيل الخروج</span>
       </button>
     </div>

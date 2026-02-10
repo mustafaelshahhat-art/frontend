@@ -4,7 +4,7 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="icon-wrapper bg-primary-subtle">
-                    <span class="material-symbols-outlined text-primary">forum</span>
+                    <app-icon name="forum" class="text-primary icon-sm"></app-icon>
                 </div>
                 <div>
                     <h2 class="chat-title">{{ title }}</h2>
@@ -37,7 +37,7 @@
             @if (messages.length === 0) {
             <div class="chat-empty">
                 <div class="chat-empty-icon">
-                    <span class="material-symbols-outlined">chat_bubble_outline</span>
+                    <app-icon name="chat_bubble_outline" class=" icon-sm"></app-icon>
                 </div>
                 <h3 class="chat-empty-title">لا توجد رسائل بعد</h3>
                 <p class="chat-empty-subtitle">ابدأ المحادثة مع الحكم والفرق الأخرى</p>

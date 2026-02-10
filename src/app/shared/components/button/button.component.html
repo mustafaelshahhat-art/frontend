@@ -8,9 +8,7 @@
 
     @if (!isLoading) {
     @if (icon && iconPos === 'left') {
-    <span class="material-symbols-outlined">
-        {{ icon }}
-    </span>
+    <app-icon [name]="icon " class=" icon-sm"></app-icon>
     }
 
     <span class="btn-text">
@@ -18,9 +16,7 @@
     </span>
 
     @if (icon && iconPos === 'right') {
-    <span class="material-symbols-outlined">
-        {{ icon }}
-    </span>
+    <app-icon [name]="icon " class=" icon-sm"></app-icon>
     }
     }
 

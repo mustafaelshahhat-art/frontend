@@ -51,12 +51,12 @@
                 <div class="live-actions gap-2 w-full">
                     <button (click)="$event.stopPropagation(); openEventModal(match)"
                         class="match-card-action primary-btn flex-1">
-                        <span class="material-symbols-outlined">edit_note</span>
+                        <app-icon name="edit_note" class=" icon-sm"></app-icon>
                         تسجيل حدث
                     </button>
                     <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
                         class="match-card-action danger-btn flex-1">
-                        <span class="material-symbols-outlined">stop_circle</span>
+                        <app-icon name="stop_circle" class=" icon-sm"></app-icon>
                         إنهاء
                     </button>
                 </div>
@@ -67,7 +67,7 @@
                 <div class="player-actions">
                     <!-- Details Button -->
                     <button class="action-btn details-btn" (click)="$event.stopPropagation(); viewMatch(match.id)">
-                        <span class="material-symbols-outlined">info</span>
+                        <app-icon name="info" class=" icon-sm"></app-icon>
                         <span>التفاصيل</span>
                     </button>
 
@@ -75,8 +75,8 @@
                     @if (match.status !== MatchStatus.FINISHED && match.status !== MatchStatus.CANCELLED) {
                     <button class="action-btn chat-btn" [class.chat-live]="match.status === MatchStatus.LIVE"
                         (click)="$event.stopPropagation(); openChat(match.id)">
-                        <span class="material-symbols-outlined">{{ match.status === MatchStatus.LIVE ? 'forum' :
-                            'chat' }}</span>
+                        <app-icon [name]=" match.status === MatchStatus.LIVE ? 'forum' :
+                            'chat' " class=" icon-sm"></app-icon>
                         <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة' }}</span>
                     </button>
                     }
@@ -85,7 +85,7 @@
                     @if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) {
                     <button class="action-btn objection-btn"
                         (click)="$event.stopPropagation(); submitObjection(match.id)">
-                        <span class="material-symbols-outlined">report</span>
+                        <app-icon name="report" class=" icon-sm"></app-icon>
                         <span>تقديم اعتراض</span>
                     </button>
                     }
