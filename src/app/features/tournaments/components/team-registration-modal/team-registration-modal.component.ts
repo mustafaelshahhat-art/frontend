@@ -10,6 +10,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
+import { TeamService } from '../../../../core/services/team.service';
 
 @Component({
     selector: 'app-team-registration-modal',
@@ -39,10 +40,45 @@ export class TeamRegistrationModalComponent {
 
     isSubmitting = false;
     registerForm = {
+        selectedTeamId: '',
         fromNumber: '',
         transferType: '',
         receipt: null as File | null
     };
+
+    availableTeams: any[] = []; // List of teams where user is captain
+
+    private teamService = inject(TeamService); // Need TeamService to fetch teams
+
+    ngOnInit() {
+        // We load teams when component inits, but ideally when modal opens.
+        // Since we reuse, let's load on Init and filter.
+        this.loadUserTeams();
+    }
+
+    // Load teams where user is captain
+    private loadUserTeams() {
+        const user = this.authService.getCurrentUser();
+        if (user) {
+            this.teamService.getTeamsOverview().subscribe((overview: any) => {
+                // Only allow teams where user is OWNER (Captain)
+                this.availableTeams = overview.ownedTeams || [];
+
+                // If only one team, auto-select
+                if (this.availableTeams.length === 1) {
+                    this.registerForm.selectedTeamId = this.availableTeams[0].id;
+                }
+            });
+        }
+    }
+
+    get teamOptions(): SelectOption[] {
+        return this.availableTeams.map(t => ({
+            label: t.name,
+            value: t.id,
+            icon: 'groups'
+        }));
+    }
 
     get transferOptions(): SelectOption[] {
         if (!this.tournament) return [];
@@ -73,11 +109,16 @@ export class TeamRegistrationModalComponent {
 
     resetForm(): void {
         this.registerForm = {
+            selectedTeamId: '',
             fromNumber: '',
             transferType: '',
             receipt: null
         };
         this.isSubmitting = false;
+        // Re-select if only one team
+        if (this.availableTeams.length === 1) {
+            this.registerForm.selectedTeamId = this.availableTeams[0].id;
+        }
     }
 
     onFileSelected(files: File[]): void {
@@ -87,27 +128,34 @@ export class TeamRegistrationModalComponent {
     }
 
     submit(): void {
+        if (!this.registerForm.selectedTeamId) {
+            this.uiFeedback.error('خطأ', 'يرجى اختيار الفريق المشارك');
+            return;
+        }
+
         if (!this.registerForm.fromNumber || !this.registerForm.transferType || !this.registerForm.receipt) {
             this.uiFeedback.error('خطأ', 'يرجى تعبئة جميع الحقول المطلوبة');
             return;
         }
 
         if (!this.tournament) return;
-        const currentUser = this.authService.getCurrentUser();
-        if (!currentUser?.teamId) {
-            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً لتتمكن من التسجيل');
+
+        // Validation: User must be captain of selected team
+        const selectedTeam = this.availableTeams.find(t => t.id === this.registerForm.selectedTeamId);
+        if (!selectedTeam) {
+            this.uiFeedback.error('خطأ', 'الفريق المختار غير صالح.');
             return;
         }
 
         this.isSubmitting = true;
 
-        // Step 1: Register Team (PendingPayment)
-        this.tournamentService.requestTournamentRegistration(this.tournament.id, currentUser.teamId).subscribe({
-            next: () => this.uploadPayment(currentUser.teamId!),
+        // Step 1: Register Team (PendingPayment) - Pass TeamId explicitly
+        this.tournamentService.requestTournamentRegistration(this.tournament.id, this.registerForm.selectedTeamId).subscribe({
+            next: () => this.uploadPayment(this.registerForm.selectedTeamId),
             error: (err: { status: number, error?: { message?: string } }) => {
                 if (err.status === 409) {
                     // Already registered, try to just upload the payment
-                    this.uploadPayment(currentUser.teamId!);
+                    this.uploadPayment(this.registerForm.selectedTeamId);
                 } else {
                     this.isSubmitting = false;
                     this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');

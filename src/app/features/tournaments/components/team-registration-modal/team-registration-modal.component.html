@@ -1,6 +1,13 @@
 <app-modal [visible]="isVisible" title="تسجيل الفريق" icon="rocket_launch" size="md" (closeRequest)="close()">
 
     <div class="registration-form-body">
+
+        <div class="team-select-group" *ngIf="availableTeams.length > 0">
+            <span class="registration-form-label">اختر الفريق</span>
+            <app-select [(ngModel)]="registerForm.selectedTeamId" [options]="teamOptions"
+                placeholder="اختر الفريق للمشاركة" />
+        </div>
+
         <app-form-control label="الرقم المحول منه" [(ngModel)]="registerForm.fromNumber"
             placeholder="رقم الجوال المحول منه" />
 
