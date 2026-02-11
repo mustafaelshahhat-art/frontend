@@ -85,6 +85,9 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     showAddCreatorModal = signal<boolean>(false);
     isCreatingCreator = signal<boolean>(false);
 
+    showAddRefereeModal = signal<boolean>(false);
+    isCreatingReferee = signal<boolean>(false);
+
     // Admin Form
     adminForm: FormGroup = this.fb.group({
         name: ['', [Validators.required, Validators.minLength(3)]],
@@ -380,6 +383,47 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             error: (err) => {
                 this.isCreatingCreator.set(false);
                 this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المستخدم');
+            }
+        });
+    }
+
+    // ==========================================
+    // ADD REFEREE MODAL
+    // ==========================================
+
+    openAddRefereeModal(): void {
+        this.adminForm.reset({ status: 'Active' });
+        this.showAddRefereeModal.set(true);
+    }
+
+    closeAddRefereeModal(): void {
+        this.showAddRefereeModal.set(false);
+        this.adminForm.reset({ status: 'Active' });
+    }
+
+    submitRefereeForm(): void {
+        if (this.adminForm.invalid) {
+            this.adminForm.markAllAsTouched();
+            return;
+        }
+
+        this.isCreatingReferee.set(true);
+        const formValue = this.adminForm.value;
+
+        this.userService.createReferee({
+            name: formValue.name,
+            email: formValue.email,
+            password: formValue.password,
+            status: formValue.status
+        }).subscribe({
+            next: (user) => {
+                this.isCreatingReferee.set(false);
+                this.closeAddRefereeModal();
+                this.uiFeedback.success('تم الإنشاء', `تم إنشاء الحكم "${user.name}" بنجاح`);
+            },
+            error: (err) => {
+                this.isCreatingReferee.set(false);
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء الحكم');
             }
         });
     }

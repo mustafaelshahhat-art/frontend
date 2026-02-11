@@ -13,67 +13,13 @@
             <p class="text-secondary text-base">إنشاء حساب جديد للمشاركة في البطولة</p>
         </header>
 
-        <!-- Step 1: Account Type Selection -->
-        @if (currentStep() === 1) {
-        <div class="selection-container">
-            <h2 class="text-xl font-bold mb-6 text-center">اختر نوع الحساب</h2>
-            <p class="selection-subtitle text-center">يرجى تحديد الدور الذي ستقوم به في بطولة رمضان. سيساعدنا هذا في
-                تخصيص تجربتك بشكل أفضل.</p>
-
-            <div class="cards-grid-selection">
-                <!-- Referee Card -->
-                <div class="role-card" [class.selected]="form.role() === UserRole.REFEREE"
-                    (click)="form.role.set(UserRole.REFEREE)" (keyup.enter)="form.role.set(UserRole.REFEREE)"
-                    role="button" tabindex="0" aria-label="تسجيل كحكم">
-                    <div class="role-card-icon">
-                        <app-icon name="sports_whistle" class=" icon-sm"></app-icon>
-                    </div>
-                    <div class="role-card-content">
-                        <h3 class="role-card-title">حكم</h3>
-                        <p class="role-card-desc">إدارة المباريات، تسجيل النتائج، وضمان اللعب النظيف وتطبيق قوانين
-                            البطولة بدقة واحترافية.</p>
-                    </div>
-                </div>
-
-                <!-- Player Card -->
-                <div class="role-card" [class.selected]="form.role() === UserRole.PLAYER"
-                    (click)="form.role.set(UserRole.PLAYER)" (keyup.enter)="form.role.set(UserRole.PLAYER)"
-                    role="button" tabindex="0" aria-label="تسجيل كلاعب">
-                    <div class="role-card-icon">
-                        <app-icon name="groups" class=" icon-sm"></app-icon>
-                    </div>
-                    <div class="role-card-content">
-                        <h3 class="role-card-title">لاعب</h3>
-                        <p class="role-card-desc">انضم للبطولة كلاعب، شارك في فريق أو قم بإنشاء فريقك الخاص لتصبح قائداً
-                            وأدر تشكيلتك بكل سهولة.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-center mt-xl">
-                <app-button variant="primary" size="xl" (trigger)="nextStep(form.role())" icon="arrow_back"
-                    iconPos="right">
-                    متابعة
-                </app-button>
-            </div>
-
-            <div class="text-center mt-6">
-                <p class="text-secondary text-sm">
-                    لديك حساب بالفعل؟
-                    <a routerLink="/auth/login" class="text-gold font-bold hover:underline ml-1">تسجيل الدخول</a>
-                </p>
-            </div>
-        </div>
-        }
-
-        <!-- Step 2: Detailed Registration Form -->
-        @if (currentStep() === 2) {
+        <!-- Registration Form (Always Player) -->
         <div class="form-container-inner" [class.animate-slide-in-left]="isPageReady()">
             <div class="form-header-inner text-center">
                 <div class="avatar avatar-lg gradient-primary mx-auto mb-4 rounded-2xl flex-center step-avatar">
                     <app-icon name="person_add" class="text-xl text-primary icon-sm"></app-icon>
                 </div>
-                <h2 class="form-step-title">بيانات ال{{ form.role() === UserRole.REFEREE ? 'حكم' : 'لاعب' }}</h2>
+                <h2 class="form-step-title">بيانات اللاعب</h2>
                 <p class="form-step-subtitle">أدخل بياناتك الشخصية لإتمام التسجيل في البطولة</p>
             </div>
 
@@ -182,13 +128,13 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <app-button variant="ghost" (trigger)="currentStep.set(1)">
-                        العودة لاختيار الدور
-                    </app-button>
+                    <p class="text-secondary text-sm">
+                        لديك حساب بالفعل؟
+                        <a routerLink="/auth/login" class="text-gold font-bold hover:underline ml-1">تسجيل الدخول</a>
+                    </p>
                 </div>
             </form>
         </div>
-        }
     </div>
 
     <!-- Footer -->

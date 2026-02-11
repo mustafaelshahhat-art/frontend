@@ -52,7 +52,7 @@ export class AdminLayoutComponent implements OnInit {
         { label: 'المستخدمين', icon: 'person', route: '/admin/users', permission: Permission.MANAGE_USERS },
         { label: 'الاعتراضات', icon: 'gavel', route: '/admin/objections', permission: Permission.VIEW_OBJECTIONS },
         { label: 'الطلبات المالية', icon: 'payments', route: '/admin/payment-requests', permission: Permission.VIEW_PAYMENTS },
-        { label: 'الإشعارات', icon: 'notifications', route: '/admin/notifications', permission: Permission.VIEW_ADMIN_DASHBOARD },
+        { label: 'الإشعارات', icon: 'notifications', route: '/admin/notifications', permission: Permission.VIEW_NOTIFICATIONS },
         { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log', permission: Permission.VIEW_LOGS }
     ];
 

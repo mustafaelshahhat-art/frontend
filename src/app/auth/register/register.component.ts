@@ -3,7 +3,7 @@ import { Component, inject, OnInit, signal, ChangeDetectionStrategy, AfterViewIn
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { UserRole } from '../../core/models/user.model';
+
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
@@ -27,9 +27,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   private router = inject(Router);
   private locationService = inject(LocationService);
 
-  UserRole = UserRole;
   isLoading = signal(false);
-  currentStep = signal<1 | 2>(1);
   isPageReady = signal(false);
 
   form = {
@@ -41,7 +39,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     governorate: signal(''),
     city: signal(''),
     neighborhood: signal(''),
-    role: signal<UserRole>(UserRole.PLAYER),
+
     password: signal(''),
     confirmPassword: signal(''),
     idFront: signal<File | null>(null),
@@ -57,6 +55,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.checkMaintenance();
+    this.loadGovernorates();
   }
 
   ngAfterViewInit(): void {
@@ -76,13 +75,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     });
   }
 
-  nextStep(role: UserRole): void {
-    this.form.role.set(role);
-    this.currentStep.set(2);
-    if (this.governorateOptions().length === 0) {
-      this.loadGovernorates();
-    }
-  }
+
 
   private loadGovernorates(): void {
     this.locationService.getGovernorates().subscribe({
@@ -170,7 +163,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       governorate: this.form.governorate(),
       city: this.form.city(),
       neighborhood: this.form.neighborhood(),
-      role: this.form.role(),
+      role: 'Player',
       password: this.form.password(),
       confirmPassword: this.form.confirmPassword(),
       idFront: this.form.idFront(),

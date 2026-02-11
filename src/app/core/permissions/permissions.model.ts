@@ -34,7 +34,8 @@ export enum Permission {
     // System
     VIEW_LOGS = 'VIEW_LOGS',
     MANAGE_SETTINGS = 'MANAGE_SETTINGS',
-    VIEW_ADMIN_DASHBOARD = 'VIEW_ADMIN_DASHBOARD'
+    VIEW_ADMIN_DASHBOARD = 'VIEW_ADMIN_DASHBOARD',
+    VIEW_NOTIFICATIONS = 'VIEW_NOTIFICATIONS'
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
@@ -46,7 +47,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
         Permission.VIEW_LOGS, Permission.MANAGE_SETTINGS,
-        Permission.VIEW_ADMIN_DASHBOARD
+        Permission.VIEW_ADMIN_DASHBOARD,
+        Permission.VIEW_NOTIFICATIONS
     ],
     [UserRole.REFEREE]: [
         Permission.VIEW_TOURNAMENTS,
@@ -64,6 +66,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS,
         Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
-        Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS
+        Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
+        Permission.VIEW_NOTIFICATIONS
     ]
 };

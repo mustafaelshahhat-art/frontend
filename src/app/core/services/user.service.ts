@@ -72,6 +72,14 @@ export class UserService {
     }
 
     /**
+     * Creates a new referee user. Only callable by existing admins.
+     * No email confirmation required. Account is immediately active.
+     */
+    createReferee(request: CreateAdminRequest): Observable<User> {
+        return this.http.post<User>(`${this.apiUrl}/create-referee`, request);
+    }
+
+    /**
      * Gets the count of active admins. Used for safety checks.
      */
     getAdminCount(userId?: string): Observable<AdminCountDto> {
