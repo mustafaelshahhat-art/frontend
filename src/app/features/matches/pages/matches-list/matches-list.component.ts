@@ -1,10 +1,9 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
-import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -12,6 +11,10 @@ import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { AuthStore } from '../../../../core/stores/auth.store';
+
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -36,7 +39,7 @@ interface MatchFilter {
 @Component({
     selector: 'app-matches-list',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         RouterModule,
         EmptyStateComponent,
@@ -47,7 +50,8 @@ interface MatchFilter {
         ButtonComponent,
         InlineLoadingComponent,
         PendingStatusCardComponent,
-        ObjectionModalComponent
+        ObjectionModalComponent,
+        HasPermissionDirective
     ],
     templateUrl: './matches-list.component.html',
     styleUrls: ['./matches-list.component.scss'],
@@ -62,17 +66,10 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly matchStore = inject(MatchStore);
     private readonly authStore = inject(AuthStore);
-    private readonly adminLayout = inject(AdminLayoutService);
-    private readonly captainLayout = inject(CaptainLayoutService);
-    private readonly refereeLayout = inject(RefereeLayoutService);
-
-    // Dynamic layout service based on current route
-    private get layoutService() {
-        if (this.router.url.startsWith('/captain')) return this.captainLayout;
-        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
-        return this.adminLayout;
-    }
-
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    public readonly permissionsService = inject(PermissionsService);
+    private readonly navService = inject(ContextNavigationService);
+    public readonly Permission = Permission;
     // Signals State derived from Store
     matches = this.matchStore.matches;
     isLoading = this.matchStore.isLoading;
@@ -130,21 +127,21 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     ngOnInit(): void {
-        this.layoutService.setTitle(this.pageTitle);
-        this.layoutService.setSubtitle(this.pageSubtitle);
+        this.layoutOrchestrator.setTitle(this.pageTitle);
+        this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
         this.loadMatches();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         queueMicrotask(() => {
-            this.layoutService.setFilters(this.filtersTemplate);
+            this.layoutOrchestrator.setFilters(this.filtersTemplate);
         });
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.layoutService.reset();
+        this.layoutOrchestrator.reset();
     }
 
     refreshStatus(): void {
@@ -246,7 +243,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     viewMatch(matchId: string): void {
-        this.router.navigate([this.getRoutePrefix(), 'matches', matchId]);
+        this.navService.navigateTo(['matches', matchId]);
     }
 
     // List Optimization
@@ -256,7 +253,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Admin actions
     updateScore(match: Match): void {
-        this.router.navigate(['/admin/matches', match.id]);
+        this.navService.navigateTo(['matches', match.id]);
     }
 
     // ==========================================
@@ -300,7 +297,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     // ==========================================
 
     openChat(matchId: string): void {
-        this.router.navigate([this.getRoutePrefix(), 'matches', matchId, 'chat']);
+        this.navService.navigateTo(['matches', matchId, 'chat']);
     }
 
     submitObjection(matchId: string): void {

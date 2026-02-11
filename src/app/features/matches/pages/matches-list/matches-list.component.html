@@ -6,7 +6,7 @@
 </ng-template>
 
 <!-- Pending Status (Blocker) -->
-@if (isPending() && !isAdmin()) {
+@if (isPending() && !permissionsService.has(Permission.VIEW_ADMIN_DASHBOARD)) {
 <app-pending-status-card title="حسابك قيد المراجعة"
     message="عذراً، لا يمكنك استعراض أو إدارة المباريات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل."
     (onRefresh)="refreshStatus()" />
@@ -31,40 +31,40 @@
 
             <div class="match-card-actions" actions>
                 <!-- Admin: Update Score -->
-                @if (isAdmin()) {
-                <app-button (click)="$event.stopPropagation(); updateScore(match)" size="sm" variant="outline"
+                <app-button *appHasPermission="Permission.MANAGE_MATCHES"
+                    (click)="$event.stopPropagation(); updateScore(match)" size="sm" variant="outline"
                     icon="scoreboard">
                     تحديث النتيجة
                 </app-button>
-                }
 
                 <!-- Referee: Start Match -->
-                @if (isReferee() && match.status === MatchStatus.SCHEDULED) {
-                <app-button (click)="$event.stopPropagation(); startMatch(match)" size="sm" variant="primary"
-                    icon="play_arrow">
+                @if (match.status === MatchStatus.SCHEDULED) {
+                <app-button *appHasPermission="Permission.START_MATCH"
+                    (click)="$event.stopPropagation(); startMatch(match)" size="sm" variant="primary" icon="play_arrow">
                     بدء المباراة
                 </app-button>
                 }
 
                 <!-- Referee: Live Actions -->
-                @if (isReferee() && match.status === MatchStatus.LIVE) {
-                <div class="live-actions gap-2 w-full">
-                    <button (click)="$event.stopPropagation(); openEventModal(match)"
-                        class="match-card-action primary-btn flex-1">
-                        <app-icon name="edit_note" class=" icon-sm"></app-icon>
-                        تسجيل حدث
-                    </button>
-                    <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
-                        class="match-card-action danger-btn flex-1">
-                        <app-icon name="stop_circle" class=" icon-sm"></app-icon>
-                        إنهاء
-                    </button>
-                </div>
-                }
+                <ng-container *appHasPermission="Permission.START_MATCH">
+                    @if (match.status === MatchStatus.LIVE) {
+                    <div class="live-actions gap-2 w-full">
+                        <button (click)="$event.stopPropagation(); openEventModal(match)"
+                            class="match-card-action primary-btn flex-1">
+                            <app-icon name="edit_note" class=" icon-sm"></app-icon>
+                            تسجيل حدث
+                        </button>
+                        <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
+                            class="match-card-action danger-btn flex-1">
+                            <app-icon name="stop_circle" class=" icon-sm"></app-icon>
+                            إنهاء
+                        </button>
+                    </div>
+                    }
+                </ng-container>
 
                 <!-- Captain/Player Actions -->
-                @if (!isAdmin() && !isReferee()) {
-                <div class="player-actions">
+                <div *appHasPermission="Permission.CREATE_OBJECTION" class="player-actions">
                     <!-- Details Button -->
                     <button class="action-btn details-btn" (click)="$event.stopPropagation(); viewMatch(match.id)">
                         <app-icon name="info" class=" icon-sm"></app-icon>
@@ -90,11 +90,10 @@
                     </button>
                     }
                 </div>
-                }
 
                 <!-- Referee: View Details -->
-                @if (isReferee() && match.status === MatchStatus.FINISHED) {
-                <app-button variant="ghost" size="sm" icon="chevron_left">
+                @if (match.status === MatchStatus.FINISHED) {
+                <app-button *appHasPermission="Permission.START_MATCH" variant="ghost" size="sm" icon="chevron_left">
                     التفاصيل
                 </app-button>
                 }

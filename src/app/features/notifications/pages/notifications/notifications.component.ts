@@ -1,8 +1,6 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectionStrategy, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, signal } from '@angular/core';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
-import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +16,8 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { FilterComponent, FilterItem } from '../../../../shared/components/filter/filter.component';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { Permission } from '../../../../core/permissions/permissions.model';
 
 interface Notification {
     id: string;
@@ -35,7 +35,7 @@ type NotificationFilterValue = 'all' | 'unread' | 'read';
 @Component({
     selector: 'app-notifications',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         EmptyStateComponent,
@@ -52,22 +52,13 @@ type NotificationFilterValue = 'all' | 'unread' | 'read';
 })
 export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy {
     private authService = inject(AuthService);
+    private permissionsService = inject(PermissionsService);
     private notificationService = inject(NotificationService);
     private notificationStore = inject(NotificationStore);
     private router = inject(Router);
-    private readonly adminLayout = inject(AdminLayoutService);
-    private readonly captainLayout = inject(CaptainLayoutService);
-    private readonly refereeLayout = inject(RefereeLayoutService);
-
-    // Dynamic layout service based on current route
-    private get layoutService() {
-        if (this.router.url.startsWith('/captain')) return this.captainLayout;
-        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
-        return this.adminLayout;
-    }
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
 
     currentUser = this.authService.getCurrentUser();
-    userRole = this.currentUser?.role || UserRole.PLAYER;
 
     isLoading = this.notificationStore.isLoading;
 
@@ -110,34 +101,35 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
     @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
 
     ngOnInit(): void {
-        this.layoutService.setTitle(this.pageTitle);
-        this.layoutService.setSubtitle(this.pageSubtitle);
+        this.layoutOrchestrator.setTitle(this.pageTitle);
+        this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
         this.notificationService.loadNotifications();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         queueMicrotask(() => {
-            if (this.actionsTemplate) this.layoutService.setActions(this.actionsTemplate);
-            if (this.filtersTemplate) this.layoutService.setFilters(this.filtersTemplate);
+            if (this.actionsTemplate) this.layoutOrchestrator.setActions(this.actionsTemplate);
+            if (this.filtersTemplate) this.layoutOrchestrator.setFilters(this.filtersTemplate);
         });
     }
 
     ngOnDestroy(): void {
-        this.layoutService.reset();
+        this.layoutOrchestrator.reset();
     }
 
     get pageTitle(): string {
-        return this.isAdmin() ? 'التنبيهات' : 'مركز التنبيهات';
+        return this.permissionsService.has(Permission.VIEW_ADMIN_DASHBOARD) ? 'التنبيهات' : 'مركز التنبيهات';
     }
 
     get pageSubtitle(): string {
-        const subtitles: Partial<Record<UserRole, string>> = {
-            [UserRole.ADMIN]: 'إدارة جميع تنبيهات النظام والمستجدات',
-            [UserRole.REFEREE]: 'ابق على اطلاع بآخر التحديثات والمواعيد الخاصة بك',
-            [UserRole.PLAYER]: 'تابع آخر أخبار فريقك ونتائج البطولة لحظة بلحظة'
-        };
-        return subtitles[this.userRole] || '';
+        if (this.permissionsService.has(Permission.VIEW_ADMIN_DASHBOARD)) {
+            return 'إدارة جميع تنبيهات النظام والمستجدات';
+        }
+        if (this.permissionsService.has(Permission.START_MATCH)) {
+            return 'ابق على اطلاع بآخر التحديثات والمواعيد الخاصة بك';
+        }
+        return 'تابع آخر أخبار فريقك ونتائج البطولة لحظة بلحظة';
     }
 
     markAllAsRead(): void {
@@ -182,9 +174,6 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         return colors[type] || '#64748b';
     }
 
-    isAdmin(): boolean {
-        return this.userRole === UserRole.ADMIN;
-    }
 
     get unreadCount(): number {
         // This should probably count total unread from store, but for now filtering viewed notifications

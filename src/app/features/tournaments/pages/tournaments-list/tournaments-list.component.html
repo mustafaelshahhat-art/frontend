@@ -1,10 +1,8 @@
 <!-- Actions Template -->
 <ng-template #actions>
-    @if (isAdmin() || isCreator()) {
-    <app-button (click)="createNewTournament()" icon="add_circle">
+    <app-button *appHasPermission="AppPermission.MANAGE_TOURNAMENTS" (click)="createNewTournament()" icon="add_circle">
         بطولة جديدة
     </app-button>
-    }
 </ng-template>
 
 <!-- Filters Template -->

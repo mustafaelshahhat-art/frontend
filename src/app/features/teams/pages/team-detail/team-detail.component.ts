@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { switchMap, tap, finalize } from 'rxjs/operators';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { TeamDetailComponent, TeamData, TeamPlayer } from '../../../../shared/components/team-detail';
@@ -11,8 +12,12 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { Match } from '../../../../core/models/tournament.model';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
 import { UserRole } from '../../../../core/models/user.model';
+import { TeamRequestService } from '../../../../core/services/team-request.service';
+import { TeamJoinRequest } from '../../../../core/models/team-request.model';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -23,32 +28,38 @@ import { UserRole } from '../../../../core/models/user.model';
     ],
     template: `
         <!-- Show content if we have team data, even if still loading/refreshing -->
-        @if (team) {
+        @if (teamData()) {
             <app-team-detail 
-                [team]="team"
+                [team]="teamData()!"
                 [showBackButton]="true"
-                [backRoute]="'/admin/teams'"
-                [canEditName]="false"
-                [canAddPlayers]="false"
-                [canRemovePlayers]="false"
-                [canManageStatus]="true"
-                [canDeleteTeam]="isCaptainOrAdmin"
+                [backRoute]="backRoute()"
+                [canEditName]="canManageTeam()"
+                [canAddPlayers]="canManageTeam()"
+                [canRemovePlayers]="canManageTeam()"
+                [canManageStatus]="canManageGlobal()"
+                [canManageInvitations]="canManageTeam()"
+                [canDeleteTeam]="canManageGlobal() || isCaptain()"
+                [canSeeRequests]="canManageTeam() || canManageGlobal()"
                 (playerAction)="handlePlayerAction($event)"
+                (editName)="handleEditName($event)"
+                (addPlayer)="handleAddPlayer($event)"
+                (tabChanged)="handleTabChange($event)"
+                (respondRequest)="handleRespondRequest($event)"
                 (deleteTeam)="handleDeleteTeam()"
                 (disableTeam)="handleDisableTeam()" />
         }
 
         <!-- Only show centering spinner if we have NO data yet -->
-        @if (isLoading() && !team) {
+        @if (isLoading() && !teamData()) {
             <div class="flex-center p-xl loading-viewport">
                 <div class="spinner-lg"></div>
             </div>
         }
 
-        @if (!isLoading() && !team) {
+        @if (!isLoading() && !teamData()) {
             <div class="flex-center p-xl">
                 <p>لم يتم العثور على الفريق</p>
-                <button class="btn btn-primary mt-m" (click)="router.navigate(['/admin/teams'])">العودة للفرق</button>
+                <button class="btn btn-primary mt-m" (click)="goToTeamsList()">العودة للفرق</button>
             </div>
         }
     `,
@@ -66,12 +77,38 @@ export class TeamDetailPageComponent implements OnInit {
     private readonly matchService = inject(MatchService);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly authService = inject(AuthService);
+    private readonly teamRequestService = inject(TeamRequestService);
     private readonly teamStore: TeamStore = inject(TeamStore);
     private readonly matchStore: MatchStore = inject(MatchStore);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly permissionsService = inject(PermissionsService);
+    protected readonly cd = inject(ChangeDetectorRef);
+    private readonly navService = inject(ContextNavigationService);
 
     teamId = signal<string | null>(null);
     isLoading = signal<boolean>(true);
+
+    // Permission Signals
+    isCaptain = computed(() => {
+        const team = this.teamStore.getTeamById(this.teamId() || '');
+        const user = this.authService.getCurrentUser();
+        return !!(team && user && team.captainId === user.id);
+    });
+
+    canManageTeam = computed(() => {
+        return this.isCaptain() || this.permissionsService.has(Permission.MANAGE_TEAMS);
+    });
+
+    canManageGlobal = computed(() => {
+        return this.permissionsService.has(Permission.MANAGE_TEAMS);
+    });
+
+    backRoute = computed(() => {
+        const prefix = this.navService.getRootPrefix();
+        if (prefix === '/admin') return '/admin/teams';
+        if (prefix === '/referee') return '/referee/matches';
+        return '/captain/matches'; // Default for captain/player context on team detail
+    });
 
     // Computed Matches for this team (Real-Time Source of Truth)
     teamMatches = computed(() => {
@@ -106,6 +143,9 @@ export class TeamDetailPageComponent implements OnInit {
         return stats;
     });
 
+    // Local data for UI state that isn't in main Team model
+    invitations = signal<TeamJoinRequest[]>([]);
+
     // Combined Team Data View Model
     teamData = computed((): TeamData | null => {
         const id = this.teamId();
@@ -137,23 +177,40 @@ export class TeamDetailPageComponent implements OnInit {
                 status: p.status || 'active'
             })),
             matches: this.teamMatches(),
-            finances: []
+            finances: [],
+            invitations: this.invitations()
         };
     });
 
-    // Helper for template compatibility (if needed, or update template to use teamData())
-    get team(): TeamData | null { return this.teamData(); }
-
-    isCaptainOrAdmin = false;
-
     ngOnInit(): void {
-        this.adminLayout.reset();
+        this.layoutOrchestrator.reset();
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.teamId.set(id);
             this.loadInitialData(id);
+            this.loadInvitations();
         } else {
-            this.router.navigate(['/admin/teams']);
+            this.goToTeamsList();
+        }
+    }
+
+    loadInvitations(): void {
+        if (this.canManageTeam()) {
+            this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+                this.invitations.set(requests);
+                this.cd.markForCheck();
+            });
+        }
+    }
+
+    goToTeamsList(): void {
+        const prefix = this.navService.getRootPrefix();
+        if (prefix === '/admin') {
+            this.navService.navigateTo('teams');
+        } else if (prefix === '/referee') {
+            this.navService.navigateTo('matches');
+        } else {
+            this.navService.navigateTo('matches'); // Or team home
         }
     }
 
@@ -164,7 +221,7 @@ export class TeamDetailPageComponent implements OnInit {
             tap(data => {
                 if (data) {
                     this.teamStore.upsertTeam(data);
-                    this.checkPermissions(data);
+                    this.updateLayout(data);
                 }
             }),
             switchMap(() => this.matchService.getMatchesByTeam(id)),
@@ -180,25 +237,108 @@ export class TeamDetailPageComponent implements OnInit {
         });
     }
 
-    checkPermissions(team: Team): void {
-        const user = this.authService.getCurrentUser();
-        if (user && team) {
-            this.isCaptainOrAdmin = user.role === UserRole.ADMIN || (user.id === team.captainId);
-        }
+    updateLayout(team: Team): void {
+        this.layoutOrchestrator.setTitle('تفاصيل الفريق');
+        this.layoutOrchestrator.setSubtitle(team.name);
+        this.layoutOrchestrator.setBackAction(() => this.goToTeamsList());
     }
 
     handleDeleteTeam(): void {
         const t = this.teamData();
         if (!t) return;
 
-        this.teamService.deleteTeam(t.id).subscribe({
+        this.uiFeedback.confirm(
+            'حذف الفريق',
+            'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق وإلغاء عضوية جميع اللاعبين.',
+            'حذف نهائي',
+            'danger'
+        ).subscribe((confirmed: boolean) => {
+            if (confirmed) {
+                this.teamService.deleteTeam(t.id).subscribe({
+                    next: () => {
+                        this.teamStore.removeTeam(t.id);
+                        this.authService.refreshUserProfile().subscribe();
+                        this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+                        this.goToTeamsList();
+                    },
+                    error: (err) => {
+                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
+                    }
+                });
+            }
+        });
+    }
+
+    handleEditName(newName: string): void {
+        const current = this.teamData();
+        if (!current || !newName.trim()) return;
+
+        this.teamService.updateTeam({ id: current.id, name: newName } as Partial<Team>).subscribe({
+            next: (updated) => {
+                this.teamStore.upsertTeam(updated);
+                this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
+            },
+            error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث اسم الفريق')
+        });
+    }
+
+    handleAddPlayer(displayId: string): void {
+        const team = this.teamData();
+        if (!team) return;
+
+        this.teamService.invitePlayerByDisplayId(team.id, displayId).subscribe({
+            next: (response: { playerName: string }) => {
+                this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
+            },
+            error: (err: { error?: { message?: string }, message?: string }) => {
+                this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
+            }
+        });
+    }
+
+    handleTabChange(tab: string): void {
+        const current = this.teamData();
+        if (!current) return;
+
+        switch (tab) {
+            case 'players':
+                this.teamService.getTeamPlayers(current.id).subscribe(players => {
+                    const team = this.teamStore.getTeamById(current.id);
+                    if (team) {
+                        this.teamStore.updateTeam({ ...team, players });
+                    }
+                });
+                break;
+            case 'matches':
+                this.matchService.getMatchesByTeam(current.id).subscribe(matches => {
+                    matches.forEach(m => {
+                        if (this.matchStore.getMatchById(m.id)) {
+                            this.matchStore.updateMatch(m);
+                        } else {
+                            this.matchStore.addMatch(m);
+                        }
+                    });
+                });
+                break;
+            case 'requests':
+                this.loadInvitations();
+                break;
+        }
+    }
+
+    handleRespondRequest(event: { request: TeamJoinRequest, approve: boolean }): void {
+        const { request, approve } = event;
+        const current = this.teamData();
+        if (!current) return;
+
+        this.teamRequestService.respondToRequest(current.id, request.id, approve).subscribe({
             next: () => {
-                this.authService.refreshUserProfile().subscribe();
-                this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
-                this.router.navigate(['/admin/teams']);
+                this.uiFeedback.success(approve ? 'تم القبول' : 'تم الرفض', 'تم تحديث حالة الطلب بنجاح');
+                // Refresh full team data to update player count and list
+                this.loadInitialData(current.id);
             },
             error: (err) => {
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
+                this.uiFeedback.error('فشل المعالجة', err.error?.message || 'حدث خطأ أثناء معالجة الطلب');
             }
         });
     }
@@ -210,7 +350,7 @@ export class TeamDetailPageComponent implements OnInit {
         this.teamService.disableTeam(t.id).subscribe({
             next: () => {
                 this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
-                // Store updates via RealTime event
+                this.loadInitialData(t.id);
             },
             error: () => {
                 this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
@@ -234,9 +374,10 @@ export class TeamDetailPageComponent implements OnInit {
                 if (!t) return;
 
                 if (action === 'remove') {
-                    this.teamService.removePlayer(t.id, player.id).subscribe({
+                    this.teamService.removePlayer(t.id, player.id.toString()).subscribe({
                         next: () => {
                             this.uiFeedback.success('تم الحذف', 'تم إزالة اللاعب من الفريق');
+                            this.loadInitialData(t.id);
                         },
                         error: () => {
                             this.uiFeedback.error('خطأ', 'فشل في إزالة اللاعب');

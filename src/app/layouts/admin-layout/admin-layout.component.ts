@@ -8,7 +8,7 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { AdminLayoutService } from '../../core/services/admin-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -58,7 +58,7 @@ export class AdminLayoutComponent implements OnInit {
 
     get navItems(): NavItem[] {
         return this.allNavItems.filter(item =>
-            !item.permission || this.permissionsService.hasPermission(item.permission as Permission)
+            !item.permission || this.permissionsService.has(item.permission as Permission)
         );
     }
 
@@ -70,6 +70,17 @@ export class AdminLayoutComponent implements OnInit {
                 this.router.navigate(['/auth/login']);
             }
         });
+
+        // Auto-close on navigation (Mobile only)
+        this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntilDestroyed()
+        ).subscribe(() => {
+            if (this.isMobile) {
+                this.isSidebarOpen = false;
+            }
+            this.showNotifications = false;
+        });
     }
 
     ngOnInit(): void {
@@ -78,16 +89,6 @@ export class AdminLayoutComponent implements OnInit {
         if (this.isMobile) {
             this.isSidebarOpen = false;
         }
-
-        // Auto-close on navigation (Mobile only)
-        this.router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
-        ).subscribe(() => {
-            if (this.isMobile) {
-                this.isSidebarOpen = false;
-            }
-            this.showNotifications = false;
-        });
     }
 
     @HostListener('window:resize')

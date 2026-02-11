@@ -2,7 +2,8 @@
     @if (match() ; as matchData) {
     <div class="actions flex-center-gap">
         @if (matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED) {
-        <app-button *appHasPermission="[Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.MANAGE_MY_TEAM]"
+        <app-button
+            *appHasPermission="[AppPermission.MANAGE_MATCHES, AppPermission.START_MATCH, AppPermission.MANAGE_MY_TEAM]"
             [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
             المحادثة
         </app-button>
@@ -126,7 +127,7 @@
         <div class="controls-section">
 
             <!-- Admin Controls (Premium Redesign) -->
-            <div *appHasPermission="Permission.MANAGE_MATCHES" class="admin-tools-premium">
+            <div *appHasPermission="AppPermission.MANAGE_MATCHES" class="admin-tools-premium">
                 <div class="admin-header">
                     <div class="admin-title">
                         <app-icon name="admin_panel_settings" class=" icon-sm"></app-icon>
@@ -223,7 +224,7 @@
 
             <!-- Report Preview -->
             @if (matchData.report?.isSubmitted) {
-            <div *appHasPermission="Permission.START_MATCH" class="control-panel success-panel">
+            <div *appHasPermission="AppPermission.START_MATCH" class="control-panel success-panel">
                 <div class="panel-header">
                     <app-icon name="description" class=" icon-sm"></app-icon>
                     <h3>تقرير المباراة</h3>

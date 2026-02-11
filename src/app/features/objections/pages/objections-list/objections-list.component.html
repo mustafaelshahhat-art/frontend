@@ -4,8 +4,8 @@
 </ng-template>
 
 <!-- Main Content -->
-@if (isPending() && !isAdmin()) {
-<app-pending-status-card title="حسابك قيد المراجعة"
+@if (isPending()) {
+<app-pending-status-card *appHasPermission="AppPermission.CREATE_OBJECTION" title="حسابك قيد المراجعة"
     message="عذراً، لا يمكنك تقديم اعتراضات حتى يتم اعتماد حسابك من قبل إدارة البطولة. يرجى الانتظار، سيتم إخطارك فور التفعيل." />
 } @else {
 <div class="flex-col gap-md">
@@ -15,21 +15,23 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && (isAdmin() ? filteredObjections().length === 0 : objections().length === 0) && !showForm) {
-    <app-empty-state icon="gavel" [title]="isAdmin() ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
-        [description]="isAdmin() ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'" />
+    @if (!isLoading() && (permissionsService.has(AppPermission.MANAGE_OBJECTIONS) ? filteredObjections().length === 0 :
+    objections().length === 0) && !showForm) {
+    <app-empty-state icon="gavel"
+        [title]="permissionsService.has(AppPermission.MANAGE_OBJECTIONS) ? 'لا توجد اعتراضات' : 'سجل الاعتراضات فارغ'"
+        [description]="permissionsService.has(AppPermission.MANAGE_OBJECTIONS) ? 'لم يتم العثور على أي اعتراضات في هذا التصنيف حالياً.' : 'لم تقم بتقديم أي اعتراضات رسمية حتى الآن.'" />
     }
 
     <!-- Admin: Table View -->
-    @if (!isLoading() && isAdmin() && filteredObjections().length > 0) {
-    <div class="card p-0 overflow-hidden objections-table-card">
+    @if (!isLoading() && filteredObjections().length > 0) {
+    <div *appHasPermission="AppPermission.MANAGE_OBJECTIONS" class="card p-0 overflow-hidden objections-table-card">
         <app-table [data]="filteredObjections()" [columns]="columns" [loading]="isLoading()" />
     </div>
     }
 
     <!-- Captain: Card View -->
-    @if (!isLoading() && !isAdmin() && filteredObjections().length > 0) {
-    <div class="objections-card-list">
+    @if (!isLoading() && filteredObjections().length > 0) {
+    <div *appHasPermission="AppPermission.CREATE_OBJECTION" class="objections-card-list">
         @for (objection of filteredObjections(); track objection.id) {
         <app-card class="objection-item-card">
             <div class="objection-card-header">

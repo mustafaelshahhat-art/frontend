@@ -23,14 +23,14 @@ export function permissionGuard(requiredPermissions: Permission[]): CanActivateF
         }
 
         // Check if user has ANY of the required permissions
-        if (permissionsService.hasAnyPermission(requiredPermissions)) {
+        if (permissionsService.hasAny(requiredPermissions)) {
             return true;
         }
 
         // User is authenticated but doesn't have permission
         // Redirect to unauthorized or home based on what they CAN do
         // For now, simpler redirect to a known safe route or unauthorized page
-        return router.createUrlTree(['/shared/unauthorized']);
+        return router.createUrlTree(['/unauthorized']);
         // Note: We might want to be smarter here, but 'unauthorized' is standard.
     };
 }

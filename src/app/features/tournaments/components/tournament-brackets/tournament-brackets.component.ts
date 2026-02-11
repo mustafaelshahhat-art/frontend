@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { BracketDto, Match, MatchStatus, BracketRound } from '../../../../core/models/tournament.model';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { Router } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
+import { inject } from '@angular/core';
 
 interface BracketPairing {
   id: string; // unique key (e.g. min(TeamA,TeamB)-max(TeamA,TeamB))
@@ -205,6 +207,7 @@ export class TournamentBracketsComponent implements OnChanges {
   @Input() bracket: BracketDto | null = null;
   rounds: BracketRoundView[] = [];
 
+  private navService = inject(ContextNavigationService);
   constructor(private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -282,8 +285,7 @@ export class TournamentBracketsComponent implements OnChanges {
 
   viewMatch(pair: BracketPairing): void {
     // Navigate to first match or latest relevant?
-    // Usually users want to see the active or latest match.
     const matchToView = pair.matches.find(m => m.status === MatchStatus.LIVE) || pair.matches[pair.matches.length - 1];
-    this.router.navigate(['/admin/matches', matchToView.id]); // Adjust based on user role if needed, or stick to simple link
+    this.navService.navigateTo(['matches', matchToView.id]);
   }
 }

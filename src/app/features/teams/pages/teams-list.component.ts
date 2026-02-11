@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ContextNavigationService } from '../../../core/navigation/context-navigation.service';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -41,7 +42,8 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly teamService = inject(TeamService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly teamStore: TeamStore = inject(TeamStore);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly navService = inject(ContextNavigationService);
 
     currentFilter = signal<TeamFilterValue>('all');
 
@@ -77,8 +79,8 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
 
     ngOnInit(): void {
-        this.adminLayout.setTitle('إدارة الفرق');
-        this.adminLayout.setSubtitle('استعراض وإدارة الفرق المسجلة في البطولة');
+        this.layoutOrchestrator.setTitle('إدارة الفرق');
+        this.layoutOrchestrator.setSubtitle('استعراض وإدارة الفرق المسجلة في البطولة');
         this.loadTeams();
     }
 
@@ -93,14 +95,14 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         queueMicrotask(() => {
-            this.adminLayout.setFilters(this.filtersTemplate);
+            this.layoutOrchestrator.setFilters(this.filtersTemplate);
         });
 
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutOrchestrator.reset();
     }
 
     loadTeams(): void {
@@ -165,7 +167,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     viewTeam(team: Team): void {
-        this.router.navigate(['/admin/teams', team.id], { state: { team } });
+        this.navService.navigateTo(['teams', team.id], { state: { team } });
     }
 
     getTeamStatusConfig(isActive: boolean | undefined): StatusConfig {

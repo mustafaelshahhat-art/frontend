@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
 import { User, UserRole } from '../../../../core/models/user.model';
@@ -63,6 +64,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private matchService = inject(MatchService);
     private notificationService = inject(NotificationService);
     private cdr = inject(ChangeDetectorRef);
+    private navService = inject(ContextNavigationService);
 
     ChatParticipantRole = ChatParticipantRole;
 
@@ -299,33 +301,12 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     }
 
     goBack(): void {
-        if (this.currentUser) {
-            switch (this.currentUser.role) {
-                case UserRole.ADMIN:
-                    this.router.navigate(['/admin/matches']);
-                    break;
-                case UserRole.REFEREE:
-                    this.router.navigate(['/referee/matches']);
-                    break;
-                case UserRole.PLAYER:
-                    this.router.navigate(['/captain/matches']);
-                    break;
-                default:
-                    this.router.navigate(['/']);
-            }
-        } else {
-            this.router.navigate(['/']);
-        }
+        this.navService.navigateBack('matches');
     }
 
     getBackRoute(): string {
-        if (!this.currentUser) return '/';
-
-        switch (this.currentUser.role) {
-            case UserRole.ADMIN: return '/admin/matches';
-            case UserRole.REFEREE: return '/referee/matches';
-            default: return '/captain/matches';
-        }
+        const root = this.navService.getRootPrefix();
+        return `${root}/matches`;
     }
 
     // Check if current user can schedule match (Admin or Referee only)

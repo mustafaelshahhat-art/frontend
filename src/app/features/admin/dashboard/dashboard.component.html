@@ -1,0 +1,98 @@
+<div class="animate-fade-in-up">
+    <!-- Stats Grid -->
+    <div class="grid-stats mb-md">
+        @for (stat of stats(); track stat.label) {
+        <app-stat-card [label]="stat.label" [value]="stat.value" [icon]="stat.icon" [colorClass]="stat.colorClass"
+            (click)="stat.route && navigateTo(stat.route)" />
+        }
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="card card-glass rounded-xl p-md">
+        <app-page-header title="الإجراءات السريعة" subtitle="إدارة العمليات اليومية للنظام" />
+
+        <div class="grid-stats">
+            <app-action-card *appHasPermission="Permission.MANAGE_TOURNAMENTS" title="إنشاء بطولة"
+                description="إعداد مسابقة جديدة" icon="add_circle" colorClass="primary"
+                (clicked)="navigateTo('/admin/tournaments/new')" />
+
+            <app-action-card *appHasPermission="Permission.MANAGE_USERS" title="مراجعة الحسابات"
+                description="إدارة المستخدمين" icon="person_check" colorClass="info"
+                (clicked)="navigateTo('/admin/users')" />
+
+            <app-action-card *appHasPermission="Permission.MANAGE_PAYMENTS" title="الموافقات المالية"
+                description="متابعة الرسوم" icon="payments" colorClass="gold"
+                (clicked)="navigateTo('/admin/payment-requests')" />
+        </div>
+    </div>
+
+    <div class="grid-2-cols gap-xl mt-xl">
+        <!-- Recent Activity Widget -->
+        <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+            <div class="p-md">
+                <app-page-header title="آخر النشاطات" icon="history">
+                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/activity-log')">الكل</app-button>
+                </app-page-header>
+
+                @if (recentActivities.length > 0) {
+                <div class="activity-list mt-md">
+                    @for (activity of recentActivities.slice(0, 5); track $index) {
+                    <div class="activity-item">
+                        <div class="activity-icon-container"
+                            [class.danger-style]="activity.message.includes('تعطيل') || activity.message.includes('إغلاق')">
+                            <app-icon [name]=" activity.type.toLowerCase().includes('user')
+                                ? 'person' : (activity.type.toLowerCase().includes('team') ? 'groups' : 'bolt')
+                                " class=" icon-sm"></app-icon>
+                        </div>
+                        <div class="activity-content">
+                            <p class="activity-msg">{{ activity.message }}</p>
+                            <p class="activity-type">{{ activity.type }}</p>
+                        </div>
+                        <app-badge type="neutral" size="xs" class="activity-time-badge">
+                            {{ activity.time }}
+                        </app-badge>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (recentActivities.length === 0) {
+                <app-empty-state icon="history" title="لا توجد نشاطات بعد"
+                    description="سيظهر سجل العمليات هنا فور حدوث أي نشاط" />
+                }
+            </div>
+        </app-card>
+
+        <!-- Live Matches Widget -->
+        <app-card variant="glass" [padding]="false" class="overflow-hidden widget-card">
+            <div class="p-md">
+                <app-page-header title="مباريات اليوم" icon="live_tv">
+                    <app-button variant="ghost" size="sm" (click)="navigateTo('/admin/matches')">الكل</app-button>
+                </app-page-header>
+
+                @if (liveMatches.length > 0) {
+                <div class="live-matches-mini mt-md">
+                    @for (match of liveMatches.slice(0, 3); track match.id) {
+                    <div class="match-mini-row">
+                        <div class="team-side home">
+                            <span class="team-name">{{ match.homeTeamName }}</span>
+                        </div>
+                        <div class="score-center">
+                            <span class="score-pill">{{ match.homeScore }} - {{ match.awayScore }}</span>
+                        </div>
+                        <div class="team-side away">
+                            <span class="team-name">{{ match.awayTeamName }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (liveMatches.length === 0) {
+                <app-empty-state icon="sports_soccer" title="لا توجد مباريات مجدولة اليوم"
+                    description="سيتم عرض المباريات المباشرة واليومية هنا" />
+                }
+            </div>
+        </app-card>
+    </div>
+</div>

@@ -2,6 +2,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -10,8 +11,9 @@ import { UserRole } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -20,6 +22,8 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { TournamentCardComponent } from '../../components/tournament-card/tournament-card.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 
 // Type-safe filter definition
 type TournamentFilterValue = 'all' | 'available' | 'active' | 'completed';
@@ -40,7 +44,8 @@ interface TournamentFilter {
         ButtonComponent,
         InlineLoadingComponent,
         TournamentCardComponent,
-        TeamRegistrationModalComponent
+        TeamRegistrationModalComponent,
+        HasPermissionDirective
     ],
     templateUrl: './tournaments-list.component.html',
     styleUrls: ['./tournaments-list.component.scss'],
@@ -54,13 +59,11 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly tournamentStore = inject(TournamentStore);
     private readonly teamStore = inject(TeamStore);
-    private readonly adminLayout = inject(AdminLayoutService);
-    private readonly captainLayout = inject(CaptainLayoutService);
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    public readonly permissionsService = inject(PermissionsService);
+    private readonly navService = inject(ContextNavigationService);
 
-    // Dynamic layout service based on current route
-    private get layoutService() {
-        return this.router.url.startsWith('/captain') ? this.captainLayout : this.adminLayout;
-    }
+    AppPermission = Permission;
 
     @ViewChild('actions') actionsTemplate!: TemplateRef<unknown>;
     @ViewChild('filtersRef') filtersTemplate!: TemplateRef<unknown>;
@@ -125,23 +128,24 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     });
 
     ngOnInit(): void {
-        const title = (this.isAdmin() || this.isCreator()) ? 'إدارة البطولات' : 'البطولات المتاحة';
-        const subtitle = (this.isAdmin() || this.isCreator()) ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك';
-        this.layoutService.setTitle(title);
-        this.layoutService.setSubtitle(subtitle);
+        const isAdminView = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS);
+        const title = isAdminView ? 'إدارة البطولات' : 'البطولات المتاحة';
+        const subtitle = isAdminView ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك';
+        this.layoutOrchestrator.setTitle(title);
+        this.layoutOrchestrator.setSubtitle(subtitle);
         this.loadInitialData();
     }
 
     ngAfterViewInit(): void {
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         queueMicrotask(() => {
-            this.layoutService.setActions(this.actionsTemplate);
-            this.layoutService.setFilters(this.filtersTemplate);
+            this.layoutOrchestrator.setActions(this.actionsTemplate);
+            this.layoutOrchestrator.setFilters(this.filtersTemplate);
         });
     }
 
     ngOnDestroy(): void {
-        this.layoutService.reset();
+        this.layoutOrchestrator.reset();
     }
 
     // Registration Modal State
@@ -149,14 +153,6 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     isRegistrationModalVisible = false;
 
     // Role checks
-    isAdmin(): boolean {
-        return this.authService.hasRole(UserRole.ADMIN);
-    }
-
-    isCreator(): boolean {
-        return this.authService.hasRole(UserRole.TOURNAMENT_CREATOR);
-    }
-
     // Team State from Store
     myTeam = computed(() => {
         const teamId = this.authService.getCurrentUser()?.teamId;
@@ -244,28 +240,26 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
     // Navigation
     createNewTournament(): void {
-        this.router.navigate(['/admin/tournaments/new']);
+        this.navService.navigateTo('tournaments/new');
     }
 
     viewDetails(tournament: Tournament): void {
-        if (this.isAdmin() || this.isCreator()) {
-            this.router.navigate(['/admin/tournaments', tournament.id]);
-        } else if (this.hasTeam()) {
-            this.router.navigate(['/captain/championships', tournament.id]);
-        }
+        const isAdmin = this.navService.getRootPrefix() === '/admin';
+        const path = isAdmin ? 'tournaments' : 'championships';
+        this.navService.navigateTo([path, tournament.id]);
     }
 
     registerTeam(tournament: Tournament): void {
         // Check pre-conditions before opening modal
-        const user = this.authService.getCurrentUser();
-        if (!user || user.role !== UserRole.PLAYER) {
+        if (!this.permissionsService.has(Permission.REGISTER_TOURNAMENT)) {
             this.uiFeedback.error('غير مصرح', 'يجب أن تكون لاعباً وصاحب فريق للتسجيل');
             return;
         }
 
-        if (!user.teamId) {
+        const user = this.authService.getCurrentUser();
+        if (!user?.teamId) {
             this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
-            this.router.navigate(['/captain/my-team']);
+            this.navService.navigateTo('team');
             return;
         }
 
@@ -298,7 +292,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     isPlayerWithoutTeam(): boolean {
         const user = this.authService.getCurrentUser();
         if (!user) return false;
-        return user.role === UserRole.PLAYER && !user.teamId;
+        return this.permissionsService.has(Permission.REGISTER_TOURNAMENT) && !user.teamId;
     }
 
     // Contextual empty filter message

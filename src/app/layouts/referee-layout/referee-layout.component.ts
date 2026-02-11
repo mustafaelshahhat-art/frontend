@@ -8,7 +8,7 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { RefereeLayoutService } from '../../core/services/referee-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -57,6 +57,17 @@ export class RefereeLayoutComponent implements OnInit {
             // Update pending status reactively
             this.isPending = this.currentUser()?.status === 'Pending';
         });
+
+        // Auto-close on navigation (Mobile only)
+        this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntilDestroyed()
+        ).subscribe(() => {
+            if (this.isMobile) {
+                this.isSidebarOpen = false;
+            }
+            this.showNotifications = false;
+        });
     }
 
     ngOnInit(): void {
@@ -65,16 +76,6 @@ export class RefereeLayoutComponent implements OnInit {
         if (this.isMobile) {
             this.isSidebarOpen = false;
         }
-
-        // Auto-close on navigation (Mobile only)
-        this.router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
-        ).subscribe(() => {
-            if (this.isMobile) {
-                this.isSidebarOpen = false;
-            }
-            this.showNotifications = false;
-        });
     }
 
     @HostListener('window:resize')

@@ -3,6 +3,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect,
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -12,9 +13,7 @@ import { LocationService } from '../../../../core/services/location.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
-import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchTimelineComponent } from '../../components/match-timeline/match-timeline.component';
@@ -35,7 +34,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
 @Component({
     selector: 'app-match-detail',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         RouterLink,
@@ -69,9 +68,8 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     private userService = inject(UserService);
     private objectionsService = inject(ObjectionsService);
     private matchStore = inject(MatchStore);
-    private adminLayout = inject(AdminLayoutService);
-    private captainLayout = inject(CaptainLayoutService);
-    private refereeLayout = inject(RefereeLayoutService);
+    private layoutOrchestrator = inject(LayoutOrchestratorService);
+    private navService = inject(ContextNavigationService);
 
     @ViewChild('headerActions') headerActions!: TemplateRef<unknown>;
 
@@ -104,6 +102,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     // Enums for template
     MatchStatus = MatchStatus;
     MatchEventType = MatchEventType;
+    AppPermission = Permission;
 
     // Modals
     showEventModal = signal(false);
@@ -197,29 +196,16 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         const m = this.match();
         if (!m) return;
 
-        const layout = this.getLayout();
-        if (layout) {
-            layout.setTitle(m.tournamentName || 'تفاصيل المباراة');
-            layout.setSubtitle(`${m.homeTeamName} vs ${m.awayTeamName}`);
-            layout.setBackAction(() => this.navigateBack());
-            layout.setActions(this.headerActions);
-        }
-    }
-
-    private getLayout(): AdminLayoutService | CaptainLayoutService | RefereeLayoutService | null {
-        if (this.authService.hasRole(UserRole.ADMIN)) return this.adminLayout;
-        if (this.authService.getCurrentUser()?.isTeamOwner) return this.captainLayout;
-        if (this.authService.hasRole(UserRole.REFEREE)) return this.refereeLayout;
-        return null;
+        this.layoutOrchestrator.setTitle(m.tournamentName || 'تفاصيل المباراة');
+        this.layoutOrchestrator.setSubtitle(`${m.homeTeamName} vs ${m.awayTeamName}`);
+        this.layoutOrchestrator.setBackAction(() => this.navigateBack());
+        this.layoutOrchestrator.setActions(this.headerActions);
+        this.layoutOrchestrator.setFilters(null);
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
-        this.captainLayout.reset();
-        this.refereeLayout.reset();
+        this.layoutOrchestrator.reset();
     }
-
-    Permission = Permission;
 
     loadMatch(id: string): void {
         this.isLoading.set(true);
@@ -245,33 +231,22 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     }
 
     navigateBack(): void {
-        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) {
-            this.router.navigate(['/admin/matches']);
-        } else if (this.permissionsService.hasPermission(Permission.START_MATCH)) {
-            this.router.navigate(['/referee/matches']);
-        } else {
-            this.router.navigate(['/captain/matches']);
-        }
+        this.navService.navigateBack('matches');
     }
 
     getBackRoute(): string {
-        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return '/admin/matches';
-        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return '/referee/matches';
-        return '/captain/matches';
+        const root = this.navService.getRootPrefix();
+        return `${root}/matches`;
     }
 
     getChatRoute(): string[] {
         const currentMatch = this.match();
         if (!currentMatch) return [];
-        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/matches', currentMatch.id, 'chat'];
-        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/matches', currentMatch.id, 'chat'];
-        return ['/captain/matches', currentMatch.id, 'chat'];
+        return [this.navService.getRootPrefix(), 'matches', currentMatch.id, 'chat'];
     }
 
     getTeamRoute(teamId: string): string[] {
-        if (this.permissionsService.hasPermission(Permission.MANAGE_MATCHES)) return ['/admin/teams', teamId];
-        if (this.permissionsService.hasPermission(Permission.START_MATCH)) return ['/referee/teams', teamId];
-        return [];
+        return [this.navService.getRootPrefix(), 'teams', teamId];
     }
 
     // ==================== REFEREE ACTIONS ====================

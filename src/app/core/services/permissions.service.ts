@@ -10,10 +10,7 @@ import { MatchStatus } from '../models/tournament.model';
 export class PermissionsService {
     private authService = inject(AuthService);
 
-    /**
-     * Checks if the current user has the required permission.
-     */
-    hasPermission(permission: Permission): boolean {
+    has(permission: Permission): boolean {
         const user = this.authService.getCurrentUser();
         if (!user) return false;
 
@@ -21,10 +18,7 @@ export class PermissionsService {
         return rolePermissions.includes(permission);
     }
 
-    /**
-     * Checks if the current user has any of the provided permissions.
-     */
-    hasAnyPermission(permissions: Permission[]): boolean {
+    hasAny(permissions: Permission[]): boolean {
         const user = this.authService.getCurrentUser();
         if (!user) return false;
 
@@ -32,38 +26,13 @@ export class PermissionsService {
         return permissions.some(p => rolePermissions.includes(p));
     }
 
-    /**
-     * Checks if the current user has all of the provided permissions.
-     */
-    hasAllPermissions(permissions: Permission[]): boolean {
-        const user = this.authService.getCurrentUser();
-        if (!user) return false;
-
-        const rolePermissions = ROLE_PERMISSIONS[user.role as UserRole] || [];
-        return permissions.every(p => rolePermissions.includes(p));
-    }
-
-    /**
-     * Checks if current user can manage live match controls (Referee only, Live matches only).
-     * Used for referee-specific actions like "مركز التحكم", "تسجيل حدث", "تسجيل حدث جديد".
-     */
     canManageLiveMatch(matchStatus: MatchStatus): boolean {
-        // Must be Referee (has START_MATCH but NOT MANAGE_MATCHES to exclude Admin)
-        const isReferee = this.hasPermission(Permission.START_MATCH) &&
-            !this.hasPermission(Permission.MANAGE_MATCHES);
-        // Match must be Live
+        const isReferee = this.has(Permission.START_MATCH) && !this.has(Permission.MANAGE_MATCHES);
         return isReferee && matchStatus === MatchStatus.LIVE;
     }
 
-    /**
-     * Checks if current user can submit objections (Player only, Finished matches only).
-     * Used for "تقديم اعتراض" section visibility.
-     */
     canSubmitObjection(matchStatus: MatchStatus): boolean {
-        // Must be Player (has CREATE_OBJECTION but NOT START_MATCH to exclude Referee)
-        const isPlayer = this.hasPermission(Permission.CREATE_OBJECTION) &&
-            !this.hasPermission(Permission.START_MATCH);
-        // Match must be Finished or Cancelled
+        const isPlayer = this.has(Permission.CREATE_OBJECTION) && !this.has(Permission.START_MATCH);
         return isPlayer && (matchStatus === MatchStatus.FINISHED || matchStatus === MatchStatus.CANCELLED);
     }
 }

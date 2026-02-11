@@ -2,6 +2,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { Component, OnInit, inject, ChangeDetectorRef, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { ObjectionStore } from '../../../../core/stores/objection.store';
 import { Objection, ObjectionStatus, ObjectionType } from '../../../../core/models/objection.model';
@@ -9,14 +10,14 @@ import { CardComponent } from '../../../../shared/components/card/card.component
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-objection-detail',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         CardComponent,
@@ -229,9 +230,10 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
     private router = inject(Router);
     private objectionsService = inject(ObjectionsService);
     private objectionStore = inject(ObjectionStore);
-    private adminLayout = inject(AdminLayoutService);
+    private layoutOrchestrator = inject(LayoutOrchestratorService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
+    private navService = inject(ContextNavigationService);
 
     objection: Objection | undefined;
     isLoading = false;
@@ -262,13 +264,13 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
 
     private updateLayout(): void {
         if (!this.objection) return;
-        this.adminLayout.setTitle(`اعتراض مباراة: ${this.objection.homeTeamName} ضد ${this.objection.awayTeamName}`);
-        this.adminLayout.setSubtitle('مراجعة بيانات الاعتراض واتخاذ القرار المناسب');
-        this.adminLayout.setBackAction(() => this.navigateBack());
+        this.layoutOrchestrator.setTitle(`اعتراض مباراة: ${this.objection.homeTeamName} ضد ${this.objection.awayTeamName}`);
+        this.layoutOrchestrator.setSubtitle('مراجعة بيانات الاعتراض واتخاذ القرار المناسب');
+        this.layoutOrchestrator.setBackAction(() => this.navigateBack());
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutOrchestrator.reset();
     }
 
     loadObjection(): void {
@@ -294,7 +296,7 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
     }
 
     navigateBack(): void {
-        this.router.navigate(['/admin/objections']);
+        this.navService.navigateTo('objections');
     }
 
     getTypeLabel(type: ObjectionType): string {

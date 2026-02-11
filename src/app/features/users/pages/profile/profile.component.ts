@@ -16,15 +16,13 @@ import { FormControlComponent } from '../../../../shared/components/form-control
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { LocationService } from '../../../../core/services/location.service';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
-import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -51,16 +49,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
-    private readonly adminLayout = inject(AdminLayoutService);
-    private readonly captainLayout = inject(CaptainLayoutService);
-    private readonly refereeLayout = inject(RefereeLayoutService);
-
-    // Dynamic layout service based on current route
-    private get layoutService() {
-        if (this.router.url.startsWith('/captain')) return this.captainLayout;
-        if (this.router.url.startsWith('/referee')) return this.refereeLayout;
-        return this.adminLayout;
-    }
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
 
     user: User | null = null;
     userRole: UserRole = UserRole.PLAYER;
@@ -93,8 +82,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         // Set layout page metadata
-        this.layoutService.setTitle(this.pageTitle);
-        this.layoutService.setSubtitle(this.pageSubtitle);
+        this.layoutOrchestrator.setTitle(this.pageTitle);
+        this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
 
         this.user = this.authService.getCurrentUser();
         this.userRole = this.user?.role || UserRole.PLAYER;
@@ -111,14 +100,14 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         // Defer to avoid ExpressionChangedAfterItHasBeenCheckedError
         queueMicrotask(() => {
             if (this.actionsTemplate) {
-                this.layoutService.setActions(this.actionsTemplate);
+                this.layoutOrchestrator.setActions(this.actionsTemplate);
             }
         });
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.layoutService.reset();
+        this.layoutOrchestrator.reset();
     }
 
     refreshStatus(): void {

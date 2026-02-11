@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, SeedingMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
@@ -8,7 +9,7 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 
 @Component({
     selector: 'app-tournament-manage',
@@ -32,7 +33,8 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly tournamentService = inject(TournamentService);
     private readonly uiFeedback = inject(UIFeedbackService);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly navService = inject(ContextNavigationService);
 
     isEditMode = signal(false);
     tournamentId = signal<string | null>(null);
@@ -113,13 +115,13 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
 
     // ... (updateLayout same)
     private updateLayout(): void {
-        this.adminLayout.setTitle(this.isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة');
-        this.adminLayout.setSubtitle(this.isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل');
-        this.adminLayout.setBackAction(() => this.cancel());
+        this.layoutOrchestrator.setTitle(this.isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة');
+        this.layoutOrchestrator.setSubtitle(this.isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل');
+        this.layoutOrchestrator.setBackAction(() => this.cancel());
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layoutOrchestrator.reset();
     }
 
     loadTournament(id: string): void {
@@ -218,7 +220,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             this.tournamentService.updateTournament(this.tournamentId()!, tournamentData).subscribe({
                 next: () => {
                     this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات البطولة بنجاح');
-                    this.router.navigate(['/admin/tournaments', this.tournamentId()]);
+                    this.navService.navigateTo(['tournaments', this.tournamentId()!]);
                 },
                 error: () => this.isSubmitting.set(false)
             });
@@ -226,7 +228,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             this.tournamentService.createTournament(tournamentData).subscribe({
                 next: () => {
                     this.uiFeedback.success('تم الإنشاء', 'تم إنشاء البطولة بنجاح');
-                    this.router.navigate(['/admin/tournaments']);
+                    this.navService.navigateTo('tournaments');
                 },
                 error: () => this.isSubmitting.set(false)
             });
@@ -235,9 +237,9 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
 
     cancel(): void {
         if (this.isEditMode()) {
-            this.router.navigate(['/admin/tournaments', this.tournamentId()]);
+            this.navService.navigateTo(['tournaments', this.tournamentId()!]);
         } else {
-            this.router.navigate(['/admin/tournaments']);
+            this.navService.navigateTo('tournaments');
         }
     }
 }

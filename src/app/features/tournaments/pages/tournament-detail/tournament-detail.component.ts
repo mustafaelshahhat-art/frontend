@@ -2,6 +2,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
@@ -22,17 +23,16 @@ import { TeamRegistrationModalComponent } from '../../components/team-registrati
 import { ObjectionModalComponent } from '../../../matches/components/objection-modal/objection-modal.component';
 import { KnockoutBracketComponent } from '../../components/knockout-bracket/knockout-bracket.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
-import { PermissionsService } from '../../../../core/services/permissions.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
-import { RefereeLayoutService } from '../../../../core/services/referee-layout.service';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-tournament-detail',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         RouterModule,
         FormsModule,
@@ -46,7 +46,8 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
         TeamRegistrationModalComponent,
         ObjectionModalComponent,
         TableComponent,
-        KnockoutBracketComponent
+        KnockoutBracketComponent,
+        HasPermissionDirective
     ],
     templateUrl: './tournament-detail.component.html',
     styleUrls: ['./tournament-detail.component.scss'],
@@ -63,9 +64,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     private tournamentStore: TournamentStore = inject(TournamentStore);
     private matchStore: MatchStore = inject(MatchStore);
     private permissionsService = inject(PermissionsService);
-    private adminLayout = inject(AdminLayoutService);
-    private captainLayout = inject(CaptainLayoutService);
-    private refereeLayout = inject(RefereeLayoutService);
+    private layoutOrchestrator = inject(LayoutOrchestratorService);
+    private navService = inject(ContextNavigationService);
+
+    Permission = Permission;
     private sanitizer = inject(DomSanitizer);
 
     // Expose Enums to template
@@ -265,9 +267,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
-        this.captainLayout.reset();
-        this.refereeLayout.reset();
+        this.layoutOrchestrator.reset();
     }
 
     isAdmin(): boolean {
@@ -284,19 +284,9 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         const tournament = this.tournament();
         const title = tournament ? tournament.name : 'تحميل...';
 
-        if (this.isAdmin()) {
-            this.adminLayout.setTitle('تفاصيل البطولة');
-            this.adminLayout.setSubtitle(title);
-            this.adminLayout.setBackAction(() => this.navigateBack());
-        } else if (this.isCaptain()) {
-            this.captainLayout.setTitle('تفاصيل البطولة');
-            this.captainLayout.setSubtitle(title);
-            this.captainLayout.setBackAction(() => this.navigateBack());
-        } else {
-            this.refereeLayout.setTitle('تفاصيل البطولة');
-            this.refereeLayout.setSubtitle(title);
-            this.refereeLayout.setBackAction(() => this.navigateBack());
-        }
+        this.layoutOrchestrator.setTitle('تفاصيل البطولة');
+        this.layoutOrchestrator.setSubtitle(title);
+        this.layoutOrchestrator.setBackAction(() => this.navigateBack());
     }
 
     // Load Initial Data (Updated logic)
@@ -381,18 +371,20 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     navigateBack(): void {
-        if (this.isAdmin()) {
-            this.router.navigate(['/admin/tournaments']);
-        } else if (this.isCaptain()) {
-            this.router.navigate(['/captain/championships']);
+        const prefix = this.navService.getRootPrefix();
+        if (prefix === '/admin') {
+            this.navService.navigateTo('tournaments');
+        } else if (prefix === '/captain') {
+            this.navService.navigateTo('championships');
         } else {
             this.router.navigate(['/']);
         }
     }
 
     getBackRoute(): string {
-        if (this.isAdmin()) return '/admin/tournaments';
-        if (this.isCaptain()) return '/captain/championships';
+        const prefix = this.navService.getRootPrefix();
+        if (prefix === '/admin') return `${prefix}/tournaments`;
+        if (prefix === '/captain') return `${prefix}/championships`;
         return '/';
     }
 
@@ -459,7 +451,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     editTournament(): void {
         const t = this.tournament();
         if (t) {
-            this.router.navigate(['/admin/tournaments/edit', t.id]);
+            this.navService.navigateTo(['tournaments/edit', t.id]);
         }
     }
 
@@ -478,7 +470,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 this.tournamentService.deleteTournament(t.id).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم الحذف', 'تم حذف البطولة بنجاح');
-                        this.router.navigate(['/admin/tournaments']);
+                        this.navService.navigateTo('tournaments');
                     },
                     error: (err) => {
                         this.isLoading.set(false);
@@ -605,17 +597,15 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     // New action methods for match cards
     viewMatch(matchId: string): void {
-        const prefix = this.isAdmin() ? '/admin' : '/captain';
-        this.router.navigate([prefix, 'matches', matchId]);
+        this.navService.navigateTo(['matches', matchId]);
     }
 
     openChat(matchId: string): void {
-        const prefix = this.isAdmin() ? '/admin' : '/captain';
-        this.router.navigate([prefix, 'matches', matchId, 'chat']);
+        this.navService.navigateTo(['matches', matchId, 'chat']);
     }
 
     updateScore(match: Match): void {
-        this.router.navigate(['/admin/matches', match.id]);
+        this.navService.navigateTo(['matches', match.id]);
     }
 
     submitObjection(matchId: string): void {

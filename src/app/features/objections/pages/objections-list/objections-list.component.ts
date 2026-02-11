@@ -1,14 +1,17 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, computed, signal, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
-import { CaptainLayoutService } from '../../../../core/services/captain-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { ObjectionsService } from '../../../../core/services/objections.service';
 import { Objection, ObjectionType, ObjectionStatus } from '../../../../core/models/objection.model';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { ObjectionStore } from '../../../../core/stores/objection.store';
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { UserRole } from '../../../../core/models/user.model';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -36,7 +39,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         ButtonComponent,
         TableComponent,
         PendingStatusCardComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        HasPermissionDirective
     ],
     templateUrl: './objections-list.component.html',
     styleUrls: ['./objections-list.component.scss'],
@@ -49,13 +53,10 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     private uiFeedback = inject(UIFeedbackService);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
-    private readonly adminLayout = inject(AdminLayoutService);
-    private readonly captainLayout = inject(CaptainLayoutService);
-
-    // Dynamic layout service based on current route
-    private get layoutService() {
-        return this.router.url.startsWith('/captain') ? this.captainLayout : this.adminLayout;
-    }
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly navService = inject(ContextNavigationService);
+    public readonly permissionsService = inject(PermissionsService);
+    public readonly AppPermission = Permission;
 
     currentUser = this.authStore.currentUser;
     userRole = this.authStore.userRole;
@@ -112,8 +113,8 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     pendingCount = computed(() => this.objections().filter(o => o.status === ObjectionStatus.PENDING || (o.status as unknown) === 'NEW').length);
 
     ngOnInit(): void {
-        this.layoutService.setTitle(this.pageTitle);
-        this.layoutService.setSubtitle(this.pageSubtitle);
+        this.layoutOrchestrator.setTitle(this.pageTitle);
+        this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
         this.loadObjections();
     }
 
@@ -128,7 +129,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
 
         // Enable filters for all layouts
         queueMicrotask(() => {
-            this.layoutService.setFilters(this.filtersTemplate);
+            this.layoutOrchestrator.setFilters(this.filtersTemplate);
             this.cdr.markForCheck();
         });
 
@@ -136,7 +137,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     ngOnDestroy(): void {
-        this.layoutService.reset();
+        this.layoutOrchestrator.reset();
     }
 
     loadObjections(): void {
@@ -188,7 +189,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     selectObjection(objection: Objection): void {
-        this.router.navigate(['/admin/objections', objection.id]);
+        this.navService.navigateTo(['objections', objection.id]);
     }
 
     submitObjection(): void {

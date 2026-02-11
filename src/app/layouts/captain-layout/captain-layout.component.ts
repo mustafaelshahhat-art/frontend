@@ -10,7 +10,7 @@ import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { PermissionsService } from '../../core/services/permissions.service';
 import { Permission } from '../../core/permissions/permissions.model';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserStatus } from '../../core/models/user.model';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { CaptainLayoutService } from '../../core/services/captain-layout.service';
@@ -50,7 +50,7 @@ export class CaptainLayoutComponent implements OnInit {
     get filteredNavItems(): NavItem[] {
         return this.navItems.filter(item => {
             if (item.route === '/captain/objections') {
-                return this.permissionsService.hasPermission(Permission.VIEW_OBJECTIONS);
+                return this.permissionsService.has(Permission.VIEW_OBJECTIONS);
             }
             return true;
         });
@@ -75,6 +75,17 @@ export class CaptainLayoutComponent implements OnInit {
             // Update pending status reactively
             this.isPending = this.currentUser()?.status === UserStatus.PENDING;
         });
+
+        // Auto-close on navigation (Mobile only)
+        this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd),
+            takeUntilDestroyed()
+        ).subscribe(() => {
+            if (this.isMobile) {
+                this.isSidebarOpen = false;
+            }
+            this.showNotifications = false;
+        });
     }
 
     ngOnInit(): void {
@@ -84,16 +95,6 @@ export class CaptainLayoutComponent implements OnInit {
         if (this.isMobile) {
             this.isSidebarOpen = false;
         }
-
-        // Auto-close on navigation (Mobile only)
-        this.router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
-        ).subscribe(() => {
-            if (this.isMobile) {
-                this.isSidebarOpen = false;
-            }
-            this.showNotifications = false;
-        });
     }
 
     @HostListener('window:resize')
