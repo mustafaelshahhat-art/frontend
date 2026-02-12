@@ -62,11 +62,10 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // User Type Tabs
-    userType = signal<'admins' | 'referees' | 'players' | 'creators'>('admins');
+    userType = signal<'admins' | 'players' | 'creators'>('admins');
     userTypeTabs = [
         { value: 'admins', label: 'المشرفين' },
         { value: 'creators', label: 'منشئي البطولات' },
-        { value: 'referees', label: 'الحكام' },
         { value: 'players', label: 'اللاعبين' }
     ];
 
@@ -87,8 +86,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     showAddCreatorModal = signal<boolean>(false);
     isCreatingCreator = signal<boolean>(false);
 
-    showAddRefereeModal = signal<boolean>(false);
-    isCreatingReferee = signal<boolean>(false);
+
 
     // Admin Form
     adminForm: FormGroup = this.fb.group({
@@ -109,7 +107,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         this.adminLayout.setTitle('إدارة المستخدمين');
-        this.adminLayout.setSubtitle('عرض وإدارة حسابات المشرفين والحكام واللاعبين في النظام');
+        this.adminLayout.setSubtitle('عرض وإدارة حسابات المشرفين واللاعبين في النظام');
 
         // Initial load only
         this.loadUsers();
@@ -160,10 +158,6 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         // Filter by user type
         if (type === 'admins') {
             result = result.filter(u => u.role === UserRole.ADMIN);
-        } else if (type === 'creators') {
-            result = result.filter(u => u.role === UserRole.TOURNAMENT_CREATOR);
-        } else if (type === 'referees') {
-            result = result.filter(u => u.role === UserRole.REFEREE);
         } else if (type === 'players') {
             result = result.filter(u => u.role === UserRole.PLAYER);
         }
@@ -181,7 +175,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     setUserType(type: unknown): void {
-        this.userType.set(type as 'admins' | 'referees' | 'players' | 'creators');
+        this.userType.set(type as 'admins' | 'players' | 'creators');
     }
 
     getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
@@ -210,7 +204,6 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         switch (user.role) {
             case UserRole.ADMIN: return 'مسؤول';
             case UserRole.TOURNAMENT_CREATOR: return 'منشئ بطولة';
-            case UserRole.REFEREE: return 'حكم';
             default: return 'لاعب';
         }
     }
@@ -388,45 +381,6 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             }
         });
     }
-
-    // ==========================================
-    // ADD REFEREE MODAL
-    // ==========================================
-
-    openAddRefereeModal(): void {
-        this.adminForm.reset({ status: 'Active' });
-        this.showAddRefereeModal.set(true);
-    }
-
-    closeAddRefereeModal(): void {
-        this.showAddRefereeModal.set(false);
-        this.adminForm.reset({ status: 'Active' });
-    }
-
-    submitRefereeForm(): void {
-        if (this.adminForm.invalid) {
-            this.adminForm.markAllAsTouched();
-            return;
-        }
-
-        this.isCreatingReferee.set(true);
-        const formValue = this.adminForm.value;
-
-        this.userService.createReferee({
-            name: formValue.name,
-            email: formValue.email,
-            password: formValue.password,
-            status: formValue.status
-        }).subscribe({
-            next: (user) => {
-                this.isCreatingReferee.set(false);
-                this.closeAddRefereeModal();
-                this.uiFeedback.success('تم الإنشاء', `تم إنشاء الحكم "${user.name}" بنجاح`);
-            },
-            error: (err) => {
-                this.isCreatingReferee.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء الحكم');
-            }
-        });
-    }
 }
+
+

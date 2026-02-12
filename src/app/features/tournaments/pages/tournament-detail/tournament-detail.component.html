@@ -361,8 +361,8 @@
                                 تحديث النتيجة
                             </app-button>
 
-                            <!-- Captain/Player/Referee Actions -->
-                            <div *appHasPermission="[Permission.CREATE_OBJECTION, Permission.START_MATCH]">
+                            <!-- Captain/Player Actions -->
+                            <div *appHasPermission="Permission.CREATE_OBJECTION">
                                 <div class="player-actions">
                                     <button class="action-btn details-btn items-center justify-center"
                                         (click)="$event.stopPropagation(); viewMatch(match.id)">

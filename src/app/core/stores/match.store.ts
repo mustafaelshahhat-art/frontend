@@ -21,17 +21,17 @@ export class MatchStore {
   matches = computed(() => this.state().matches);
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
-  
+
   // Computed selectors for specific views
-  upcomingMatches = computed(() => 
+  upcomingMatches = computed(() =>
     this.matches().filter(m => m.status === MatchStatus.SCHEDULED)
   );
-  
-  ongoingMatches = computed(() => 
+
+  ongoingMatches = computed(() =>
     this.matches().filter(m => m.status === MatchStatus.LIVE)
   );
-  
-  finishedMatches = computed(() => 
+
+  finishedMatches = computed(() =>
     this.matches().filter(m => m.status === MatchStatus.FINISHED)
   );
 
@@ -58,7 +58,7 @@ export class MatchStore {
   updateMatch(updatedMatch: Match): void {
     this.state.update(state => ({
       ...state,
-      matches: state.matches.map(match => 
+      matches: state.matches.map(match =>
         match.id === updatedMatch.id ? updatedMatch : match
       )
     }));
@@ -104,13 +104,5 @@ export class MatchStore {
     return this.matches().filter(match => match.tournamentId === tournamentId);
   }
 
-  getMatchesByReferee(refereeId: string): Match[] {
-    return this.matches().filter(match => match.refereeId === refereeId);
-  }
 
-  getMyMatches(userId: string): Match[] {
-    return this.matches().filter(match => 
-      match.refereeId === userId
-    );
-  }
 }

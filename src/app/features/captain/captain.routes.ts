@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { permissionGuard } from '../../core/guards/permission.guard';
-import { Permission } from '../../core/permissions/permissions.model';
-import { CaptainLayoutComponent } from '../../layouts/captain-layout/captain-layout.component';
+import { CaptainGuard } from '../../core/guards/captain.guard';
+import { TournamentCreatorLayoutComponent } from '../../layouts/tournament-creator-layout/tournament-creator-layout.component';
 import {
     matchRoutes,
-    teamDetailRoute,
+    tournamentManagementRoutes,
+    objectionRoutes,
     notificationRoutes,
     profileRoutes
 } from '../shared-feature.routes';
@@ -12,10 +12,26 @@ import {
 export const captainRoutes: Routes = [
     {
         path: '',
-        component: CaptainLayoutComponent,
-        canActivate: [permissionGuard([Permission.MANAGE_MY_TEAM])],
+        component: TournamentCreatorLayoutComponent,
+        canActivate: [CaptainGuard],
         children: [
-            // ─── Captain-specific routes ─────────────────────
+            // ─── Tournament Creator Specific ─────────────────
+            ...tournamentManagementRoutes(),   // /captain/tournaments, /new, /edit/:id, /:id
+
+            {
+                path: 'payment-requests',
+                loadComponent: () => import('../admin/payment-requests/payment-requests.component').then(m => m.PaymentRequestsComponent),
+                data: { breadcrumb: 'الطلبات المالية', icon: 'payments' }
+            },
+
+            // ─── Shared feature routes ───────────────────────
+            ...matchRoutes(),          // /captain/matches, /:id, /:id/chat
+            ...objectionRoutes(),      // /captain/objections, /:id
+            ...notificationRoutes(),   // /captain/notifications
+            ...profileRoutes(),        // /captain/profile
+
+            // ─── Legacy/Compatibility ────────────────────────
+            // If we still need to support Team Owners (Captains) and their team page
             {
                 path: 'team',
                 loadComponent: () => import('../teams/pages/my-teams/my-teams.component').then(m => m.MyTeamsComponent),
@@ -26,38 +42,16 @@ export const captainRoutes: Routes = [
                 loadComponent: () => import('../teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailPageComponent),
                 data: { breadcrumb: 'تفاصيل الفريق' }
             },
-            {
-                path: 'championships',
-                loadComponent: () => import('../tournaments/pages/tournaments-list/tournaments-list.component').then(m => m.TournamentsListComponent),
-                data: { breadcrumb: 'البطولات', icon: 'emoji_events' }
-            },
-            {
-                path: 'championships/:id',
-                loadComponent: () => import('../tournaments/pages/tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent),
-                data: { breadcrumb: 'تفاصيل البطولة' }
-            },
-            {
-                path: 'objections',
-                loadComponent: () => import('../objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent),
-                canActivate: [permissionGuard([Permission.VIEW_OBJECTIONS])],
-                data: { breadcrumb: 'الاعتراضات', icon: 'gavel' }
-            },
-
-            // ─── Shared feature routes ───────────────────────
-            ...matchRoutes(),          // /captain/matches, /:id, /:id/chat
-            ...teamDetailRoute(),      // /captain/teams/:id  (shared detail page)
-            ...notificationRoutes(),   // /captain/notifications
-            ...profileRoutes(),        // /captain/profile
 
             // ─── Default redirect ────────────────────────────
             {
                 path: 'dashboard',
-                redirectTo: 'team',
+                redirectTo: 'tournaments',
                 pathMatch: 'full'
             },
             {
                 path: '',
-                redirectTo: 'team',
+                redirectTo: 'tournaments',
                 pathMatch: 'full'
             }
         ]

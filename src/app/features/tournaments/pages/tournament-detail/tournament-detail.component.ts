@@ -271,7 +271,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     isAdmin(): boolean {
-        return this.authService.getCurrentUser()?.role === UserRole.ADMIN;
+        const role = this.authService.getCurrentUser()?.role;
+        return role === UserRole.ADMIN || role === UserRole.TOURNAMENT_CREATOR;
     }
 
     isCaptain(): boolean {

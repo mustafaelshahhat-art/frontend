@@ -8,7 +8,7 @@ export class ContextNavigationService {
     private readonly router = inject(Router);
 
     /**
-     * Detects the current root prefix (admin, captain, referee, player) from the URL.
+     * Detects the current root prefix (admin, captain, player) from the URL.
      * Returns the prefix with a leading slash, e.g., '/admin'.
      */
     getRootPrefix(): string {
@@ -17,7 +17,7 @@ export class ContextNavigationService {
 
         // We expect the first or second segment to be one of our roles
         // URL format is usually /admin/... or /...
-        const roles = ['admin', 'captain', 'referee', 'player'];
+        const roles = ['admin', 'captain', 'player'];
 
         // Check for the first non-empty segment
         const role = segments.find(s => roles.includes(s));

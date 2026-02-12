@@ -27,12 +27,11 @@ export class PermissionsService {
     }
 
     canManageLiveMatch(matchStatus: MatchStatus): boolean {
-        const isReferee = this.has(Permission.START_MATCH) && !this.has(Permission.MANAGE_MATCHES);
-        return isReferee && matchStatus === MatchStatus.LIVE;
+        return this.has(Permission.MANAGE_MATCH_EVENTS) && matchStatus === MatchStatus.LIVE;
     }
 
     canSubmitObjection(matchStatus: MatchStatus): boolean {
-        const isPlayer = this.has(Permission.CREATE_OBJECTION) && !this.has(Permission.START_MATCH);
-        return isPlayer && (matchStatus === MatchStatus.FINISHED || matchStatus === MatchStatus.CANCELLED);
+        return this.has(Permission.CREATE_OBJECTION) &&
+            (matchStatus === MatchStatus.FINISHED || matchStatus === MatchStatus.CANCELLED);
     }
 }

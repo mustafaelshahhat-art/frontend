@@ -3,7 +3,7 @@ import { Injectable, signal, TemplateRef } from '@angular/core';
 @Injectable({
     providedIn: 'root'
 })
-export class RefereeLayoutService {
+export class TournamentCreatorLayoutService {
     // Page Metadata
     readonly title = signal<string>('');
     readonly subtitle = signal<string>('');
@@ -13,9 +13,6 @@ export class RefereeLayoutService {
     // Layout Slots
     readonly actionsTemplate = signal<TemplateRef<unknown> | null>(null);
     readonly filtersTemplate = signal<TemplateRef<unknown> | null>(null);
-
-
-
 
     setTitle(title: string): void {
         this.title.set(title);

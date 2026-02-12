@@ -14,7 +14,7 @@ export const adminRoutes: Routes = [
     {
         path: '',
         component: AdminLayoutComponent,
-        canActivate: [permissionGuard([Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS])],
+        canActivate: [permissionGuard([Permission.VIEW_ADMIN_DASHBOARD])],
         children: [
             // ─── Admin-specific routes ───────────────────────
             {

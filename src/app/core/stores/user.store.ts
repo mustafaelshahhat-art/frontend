@@ -27,10 +27,7 @@ export class UserStore {
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
 
-  // Computed selectors for specific views (Filtered by verification)
-  referees = computed(() =>
-    this.users().filter(u => u.role === UserRole.REFEREE && u.status === UserStatus.ACTIVE && u.isEmailVerified)
-  );
+
 
   players = computed(() =>
     this.users().filter(u => u.role === UserRole.PLAYER && u.status === UserStatus.ACTIVE && u.isEmailVerified)
@@ -142,21 +139,5 @@ export class UserStore {
     return this.users().filter(user => user.status === status);
   }
 
-  getRefereesByLocation(governorate?: string, city?: string, district?: string): User[] {
-    let referees = this.referees();
 
-    if (governorate) {
-      referees = referees.filter(r => r.governorate === governorate);
-    }
-
-    if (city) {
-      referees = referees.filter(r => r.city === city);
-    }
-
-    if (district) {
-      referees = referees.filter(r => r.neighborhood === district);
-    }
-
-    return referees;
-  }
 }

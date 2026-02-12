@@ -1,8 +1,8 @@
 <div class="chat-page">
     @if (!isLoading && isAuthorized && match) {
     <app-chat-box [title]="match.homeTeamName + ' vs ' + match.awayTeamName" [match]="match" [messages]="mappedMessages"
-        [currentUserId]="currentUser?.id || ''" [participants]="participants" [referee]="getReferee() || null"
-        [readOnly]="isMatchFinished" [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
+        [currentUserId]="currentUser?.id || ''" [participants]="participants" [readOnly]="isMatchFinished"
+        [canSchedule]="canScheduleMatch()" (back)="goBack()" (send)="onSendMessage($event)"
         (schedule)="openScheduleModal()" />
     }
 

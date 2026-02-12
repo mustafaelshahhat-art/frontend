@@ -86,7 +86,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
 
     objectionTypeOptions: SelectOption[] = [
         { label: 'نتيجة مباراة', value: ObjectionType.MATCH_RESULT },
-        { label: 'قرار حكم', value: ObjectionType.REFEREE_DECISION },
+
         { label: 'أهلية لاعب', value: ObjectionType.PLAYER_ELIGIBILITY },
         { label: 'أخرى', value: ObjectionType.OTHER }
     ];
@@ -248,7 +248,7 @@ export class ObjectionsListComponent implements OnInit, AfterViewInit, OnDestroy
     getTypeLabel(type: ObjectionType): string {
         const labels: Record<ObjectionType, string> = {
             [ObjectionType.MATCH_RESULT]: 'نتيجة مباراة',
-            [ObjectionType.REFEREE_DECISION]: 'قرار حكم',
+
             [ObjectionType.PLAYER_ELIGIBILITY]: 'أهلية لاعب',
             [ObjectionType.RULE_VIOLATION]: 'مخالفة قوانين',
             [ObjectionType.OTHER]: 'أخرى'

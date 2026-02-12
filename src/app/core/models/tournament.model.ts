@@ -125,15 +125,14 @@ export interface Match {
     homeScore: number;
     awayScore: number;
     status: MatchStatus;
-    refereeId: string;
-    refereeName: string;
+
     yellowCards: Card[];
     redCards: Card[];
     goals: Goal[];
     events?: MatchEvent[];
-    report?: MatchReport;  // Referee's final match report
+
     date?: Date;           // Date of the match
-    refereeNotes?: string;
+
     updatedAt?: Date;
     scheduledDate?: string;
     scheduledTime?: string;
@@ -142,19 +141,7 @@ export interface Match {
     stageName?: string;
 }
 
-export interface MatchReport {
-    submittedAt: Date;
-    refereeId: string;
-    refereeName: string;
-    notes: string;  // Referee's additional notes/observations
-    homeTeamYellowCards: number;
-    homeTeamRedCards: number;
-    homeTeamGoals: number;
-    awayTeamYellowCards: number;
-    awayTeamRedCards: number;
-    awayTeamGoals: number;
-    isSubmitted: boolean;
-}
+
 
 
 export interface Card {

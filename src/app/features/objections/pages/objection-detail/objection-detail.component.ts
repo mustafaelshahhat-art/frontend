@@ -13,6 +13,9 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { FormsModule } from '@angular/forms';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 
 @Component({
     selector: 'app-objection-detail',
@@ -23,7 +26,8 @@ import { FormsModule } from '@angular/forms';
         CardComponent,
         BadgeComponent,
         ButtonComponent,
-        EmptyStateComponent
+        EmptyStateComponent,
+        HasPermissionDirective
     ],
     template: `
         <div class="objection-detail-content">
@@ -66,8 +70,8 @@ import { FormsModule } from '@angular/forms';
                         }
                     </app-card>
 
-                    <!-- Decision Section (Admin Only) -->
-                    @if (objection.status === ObjectionStatus.PENDING || objection.status === ObjectionStatus.UNDER_REVIEW) {
+                    <!-- Decision Section (Admin/Creator only) -->
+                    @if ((objection.status === ObjectionStatus.PENDING || objection.status === ObjectionStatus.UNDER_REVIEW) && permissionsService.has(AppPermission.MANAGE_OBJECTIONS)) {
                     <app-card title="اتخاذ قرار" icon="gavel" class="decision-card">
                         <div class="form-group mb-lg">
                             <span class="label mb-xs">ملاحظات اللجنة (اختياري)</span>
@@ -234,11 +238,13 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
     private navService = inject(ContextNavigationService);
+    public permissionsService = inject(PermissionsService);
 
     objection: Objection | undefined;
     isLoading = false;
     adminNotes = '';
     ObjectionStatus = ObjectionStatus;
+    AppPermission = Permission;
 
     constructor() {
         effect(() => {
@@ -302,7 +308,7 @@ export class ObjectionDetailComponent implements OnInit, OnDestroy {
     getTypeLabel(type: ObjectionType): string {
         const labels: Record<string, string> = {
             [ObjectionType.MATCH_RESULT]: 'نتيجة مباراة',
-            [ObjectionType.REFEREE_DECISION]: 'قرار حكم',
+
             [ObjectionType.PLAYER_ELIGIBILITY]: 'أهلية لاعب',
             [ObjectionType.RULE_VIOLATION]: 'مخالفة قوانين',
             [ObjectionType.OTHER]: 'أخرى'

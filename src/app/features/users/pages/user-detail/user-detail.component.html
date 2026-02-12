@@ -24,11 +24,12 @@
                     <!-- Profile Card -->
                     <div class="profile-card">
                         <div class="profile-avatar">
-                            <app-smart-image [src]="user.avatar" [type]="user.role === 'Referee' ? 'referee' : 'avatar'"
-                                size="xl" [initials]="user.name.charAt(0)" />
+                            <app-smart-image [src]="user.avatar" type="avatar" size="xl"
+                                [initials]="user.name.charAt(0)" />
                             <div class="status-indicator" [class.active]="user.status === 'Active'"
                                 [class.inactive]="user.status !== 'Active'">
-                                <app-icon [name]="user.status === 'Active' ? 'check_circle' : 'cancel' " class=" icon-sm"></app-icon>
+                                <app-icon [name]="user.status === 'Active' ? 'check_circle' : 'cancel' "
+                                    class=" icon-sm"></app-icon>
                             </div>
                         </div>
 
@@ -158,8 +159,7 @@
                                         <span>وجه البطاقة</span>
                                     </div>
                                     <div class="doc-image">
-                                        <app-smart-image [src]="user.idFrontUrl" type="id"
-                                            size="custom" />
+                                        <app-smart-image [src]="user.idFrontUrl" type="id" size="custom" />
                                         <div class="doc-overlay">
                                             <app-icon name="zoom_in" class=" icon-sm"></app-icon>
                                         </div>
@@ -171,8 +171,7 @@
                                         <span>ظهر البطاقة</span>
                                     </div>
                                     <div class="doc-image">
-                                        <app-smart-image [src]="user.idBackUrl" type="id"
-                                            size="custom" />
+                                        <app-smart-image [src]="user.idBackUrl" type="id" size="custom" />
                                         <div class="doc-overlay">
                                             <app-icon name="zoom_in" class=" icon-sm"></app-icon>
                                         </div>

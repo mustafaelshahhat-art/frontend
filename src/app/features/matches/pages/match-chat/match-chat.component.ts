@@ -17,7 +17,7 @@ import { Match, MatchStatus } from '../../../../core/models/tournament.model';
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
     PLAYER = 'player',
-    REFEREE = 'referee',
+
     ADMIN = 'admin'
 }
 
@@ -151,11 +151,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Referee assigned to this match
-        if (userRole === UserRole.REFEREE && this.match.refereeId === userId) {
-            this.isAuthorized = true;
-            return;
-        }
+
 
         // Captain or Player of one of the teams
         if (this.currentUser.teamId === this.match.homeTeamId || this.currentUser.teamId === this.match.awayTeamId) {
@@ -171,13 +167,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         // Populate from match data
         this.participants = [
-            {
-                id: this.match.refereeId || 'ref-placeholder',
-                name: this.match.refereeName || 'حكم المباراة',
-                avatarInitial: (this.match.refereeName || 'ح')[0],
-                role: ChatParticipantRole.REFEREE,
-                isOnline: true
-            },
+
             {
                 id: 'system-admin',
                 name: 'الـمشرف',
@@ -215,7 +205,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         switch (this.currentUser.role) {
             case UserRole.ADMIN: return ChatParticipantRole.ADMIN;
-            case UserRole.REFEREE: return ChatParticipantRole.REFEREE;
+
             case UserRole.PLAYER:
                 return this.currentUser.isTeamOwner ? ChatParticipantRole.CAPTAIN : ChatParticipantRole.PLAYER;
             default: return ChatParticipantRole.PLAYER;
@@ -227,7 +217,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             case ChatParticipantRole.ADMIN: return 'مشرف';
             case ChatParticipantRole.CAPTAIN: return 'قائد';
             case ChatParticipantRole.PLAYER: return 'لاعب';
-            case ChatParticipantRole.REFEREE: return 'حكم';
+
             default: return '';
         }
     }
@@ -237,7 +227,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             case ChatParticipantRole.ADMIN: return 'badge-danger';
             case ChatParticipantRole.CAPTAIN: return 'badge-gold';
             case ChatParticipantRole.PLAYER: return 'badge-primary';
-            case ChatParticipantRole.REFEREE: return 'badge-info';
+
             default: return 'badge-muted';
         }
     }
@@ -265,9 +255,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         this.showParticipants = !this.showParticipants;
     }
 
-    getReferee(): ChatParticipant | undefined {
-        return this.participants.find(p => p.role === ChatParticipantRole.REFEREE);
-    }
+
 
     getAdmin(): ChatParticipant | undefined {
         return this.participants.find(p => p.role === ChatParticipantRole.ADMIN);
@@ -309,10 +297,10 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         return `${root}/matches`;
     }
 
-    // Check if current user can schedule match (Admin or Referee only)
+    // Check if current user can schedule match (Admin only)
     canScheduleMatch(): boolean {
         if (!this.currentUser) return false;
-        return this.currentUser.role === UserRole.ADMIN || this.currentUser.role === UserRole.REFEREE;
+        return this.currentUser.role === UserRole.ADMIN;
     }
 
     // Open schedule modal

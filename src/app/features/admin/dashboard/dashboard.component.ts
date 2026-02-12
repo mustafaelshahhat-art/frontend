@@ -62,12 +62,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         const liveMatches = this.matchStore.ongoingMatches();
         const loginsCount = this.loginsTodaySignal();
         const teamsCount = this.totalTeamsSignal();
-        const refereesCount = this.totalRefereesSignal();
 
         return [
             { label: 'إجمالي المستخدمين', value: totalUsers.toString(), icon: 'groups', colorClass: 'info', route: '/admin/users' },
             { label: 'الفرق المسجلة', value: teamsCount.toString(), icon: 'shield', colorClass: 'primary', route: '/admin/teams' },
-            { label: 'طاقم التحكيم', value: refereesCount.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/users' },
             { label: 'نشاط الدخول اليوم', value: loginsCount.toString(), icon: 'login', colorClass: 'success', route: '/admin/activity-log' },
             { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary', route: '/admin/tournaments' },
             { label: 'المباريات اليوم', value: matches.length.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/matches' },
@@ -80,7 +78,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     liveMatches: Match[] = [];
     loginsTodaySignal = signal(0);
     totalTeamsSignal = signal(0);
-    totalRefereesSignal = signal(0);
 
 
     ngOnInit(): void {
@@ -110,7 +107,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
                 this.userStore.setTotalUserCount(data.totalUsers);
                 this.loginsTodaySignal.set(data.loginsToday);
                 this.totalTeamsSignal.set(data.totalTeams);
-                this.totalRefereesSignal.set(data.totalReferees);
                 this.cdr.detectChanges();
             },
             error: () => {

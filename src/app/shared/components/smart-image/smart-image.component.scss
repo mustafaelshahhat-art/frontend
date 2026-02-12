@@ -136,11 +136,7 @@
         }
     }
 
-    // Contextual coloring using theme variables
-    &.referee .image-placeholder {
-        background: linear-gradient(135deg, var(--color-warning-10), var(--bg-surface));
-        color: var(--color-warning);
-    }
+
 
     &.team .image-placeholder {
         background: linear-gradient(135deg, var(--color-primary-10), var(--bg-surface));

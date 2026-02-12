@@ -71,13 +71,7 @@ export class UserService {
         return this.http.post<User>(`${this.apiUrl}/create-tournament-creator`, request);
     }
 
-    /**
-     * Creates a new referee user. Only callable by existing admins.
-     * No email confirmation required. Account is immediately active.
-     */
-    createReferee(request: CreateAdminRequest): Observable<User> {
-        return this.http.post<User>(`${this.apiUrl}/create-referee`, request);
-    }
+
 
     /**
      * Gets the count of active admins. Used for safety checks.
@@ -90,13 +84,7 @@ export class UserService {
         return this.http.get<AdminCountDto>(`${this.apiUrl}/admin-count`, { params });
     }
 
-    getReferees(districtId?: string, cityId?: string, governorateId?: string): Observable<User[]> {
-        let params = new HttpParams();
-        if (districtId) params = params.set('districtId', districtId);
-        if (cityId) params = params.set('cityId', cityId);
-        if (governorateId) params = params.set('governorateId', governorateId);
-        return this.http.get<User[]>(`${environment.apiUrl}/referees`, { params });
-    }
+
 
     /**
      * Uploads a user's avatar image

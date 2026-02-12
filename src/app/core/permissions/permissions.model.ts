@@ -42,7 +42,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     [UserRole.ADMIN]: [
         Permission.VIEW_USERS, Permission.MANAGE_USERS,
         Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS,
-        Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES,
+        Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS, Permission.MANAGE_TEAMS,
         Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
@@ -50,11 +50,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_ADMIN_DASHBOARD,
         Permission.VIEW_NOTIFICATIONS
     ],
-    [UserRole.REFEREE]: [
-        Permission.VIEW_TOURNAMENTS,
-        Permission.VIEW_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
-        Permission.VIEW_TEAMS
-    ],
+
     [UserRole.PLAYER]: [
         Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT,
         Permission.VIEW_MATCHES,
@@ -63,7 +59,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     ],
     [UserRole.TOURNAMENT_CREATOR]: [
         Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS,
-        Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.MANAGE_MATCH_EVENTS,
+        Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS,
         Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,

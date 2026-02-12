@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { CaptainGuard } from './core/guards/captain.guard';
 
 export const routes: Routes = [
     // ─── Public routes ───────────────────────────────
@@ -17,13 +18,9 @@ export const routes: Routes = [
     {
         path: 'captain',
         loadChildren: () => import('./features/captain/captain.routes').then(m => m.captainRoutes),
-        canActivate: [authGuard]
+        canActivate: [CaptainGuard]
     },
-    {
-        path: 'referee',
-        loadChildren: () => import('./features/referee/referee.routes').then(m => m.refereeRoutes),
-        canActivate: [authGuard]
-    },
+
 
     // ─── Shared utility routes ───────────────────────
     {

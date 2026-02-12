@@ -1,6 +1,6 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
@@ -16,7 +16,7 @@ import { TournamentStore } from '../../../core/stores/tournament.store';
 @Component({
     selector: 'app-payment-requests',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FilterComponent,
         ButtonComponent,
@@ -35,7 +35,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     private readonly tournamentService = inject(TournamentService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly tournamentStore = inject(TournamentStore);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly layout = inject(LayoutOrchestratorService);
 
     currentFilter = 'all';
     showReceiptModal = false;
@@ -81,8 +81,8 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     @ViewChild('actionInfo') actionInfo!: TemplateRef<{ tournament: Tournament, registration: TeamRegistration }>;
 
     ngOnInit(): void {
-        this.adminLayout.setTitle('طلبات الدفع');
-        this.adminLayout.setSubtitle('مراجعة واعتماد إيصالات الدفع للفرق المشاركة');
+        this.layout.setTitle('طلبات الدفع');
+        this.layout.setSubtitle('مراجعة واعتماد إيصالات الدفع للفرق المشاركة');
         this.loadInitialData();
         // ✅ FIXED: No real-time setup needed - TournamentStore auto-updates via SignalR
     }
@@ -100,14 +100,14 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
 
         // Defer to avoid ExpressionChangedAfterItHasCheckedError
         queueMicrotask(() => {
-            this.adminLayout.setFilters(this.filtersTemplate);
+            this.layout.setFilters(this.filtersTemplate);
         });
 
         this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
-        this.adminLayout.reset();
+        this.layout.reset();
     }
 
     // ✅ FIXED: Load tournaments ONCE on init to populate store

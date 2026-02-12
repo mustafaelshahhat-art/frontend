@@ -48,8 +48,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
         EmptyStateComponent,
         SmartImageComponent,
         ModalComponent,
-        FormControlComponent,
-        SelectComponent
+        FormControlComponent
     ],
     templateUrl: './match-detail.component.html',
     styleUrls: ['./match-detail.component.scss'],
@@ -85,12 +84,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     // Use local loading state for the initial fetch.
     isLoading = signal(true);
 
-    // Computed visibility for referee-only live match controls
-    canShowRefereeControls = computed(() => {
-        const currentMatch = this.match();
-        if (!currentMatch) return false;
-        return this.permissionsService.canManageLiveMatch(currentMatch.status);
-    });
+
 
     // Computed visibility for player-only objection submission (Finished matches only)
     canShowObjectionSection = computed(() => {
@@ -108,10 +102,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     showEventModal = signal(false);
     showEndMatchConfirm = signal(false);
 
-    // Referee: Report modal
-    reportNotes = '';
-    showReportModal = signal(false);
-    isSubmittingReport = signal(false);
+
 
     // Admin: Score update
     showScoreModal = signal(false);
@@ -119,16 +110,15 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
     showObjectionModal = signal(false);
 
-    isAnyModalOpen = computed(() =>
-        this.showEventModal() ||
-        this.showEndMatchConfirm() ||
-        this.showReportModal() ||
-        this.showScoreModal() ||
-        this.showObjectionModal() ||
-        this.showScheduleModal() ||
-        this.showCancelModal() ||
-        this.showRefereeModal()
-    );
+
+
+    get managementModeLabel(): string {
+        return this.authStore.userRole() === UserRole.TOURNAMENT_CREATOR ? 'Organization Mode' : 'Admin Mode';
+    }
+
+    get managementTitle(): string {
+        return this.authStore.userRole() === UserRole.TOURNAMENT_CREATOR ? 'لوحة تحكم المنظم' : 'لوحة التحكم الإدارية';
+    }
 
     constructor() {
         // Sync local forms when match updates from Store
@@ -162,18 +152,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     showCancelModal = signal(false);
     cancelReason = '';
 
-    // Referee Regions
-    refereeOptions: SelectOption[] = [];
-    selectedRefereeId = '';
 
-    // Cascading Locations
-    governorateOptions = signal<SelectOption[]>([]);
-    cityOptions = signal<SelectOption[]>([]);
-    districtOptions = signal<SelectOption[]>([]);
-    selectedGovernorate = signal<string>('');
-    selectedCity = signal<string>('');
-    selectedDistrict = signal<string>('');
-    isLocationsLoading = signal<boolean>(false);
 
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
@@ -249,7 +228,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         return [this.navService.getRootPrefix(), 'teams', teamId];
     }
 
-    // ==================== REFEREE ACTIONS ====================
+    // ==================== MATCH MANAGEMENT ====================
 
     startMatch(): void {
         const currentMatch = this.match();
@@ -282,38 +261,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
     }
 
-    openReportModal(): void {
-        this.showReportModal.set(true);
-    }
 
-    closeReportModal(): void {
-        this.showReportModal.set(false);
-        this.reportNotes = '';
-    }
-
-    submitReport(): void {
-        const currentMatch = this.match();
-        if (!currentMatch) return;
-
-        this.isSubmittingReport.set(true);
-        this.matchService.submitMatchReport(
-            currentMatch.id,
-            this.reportNotes
-        ).subscribe({
-            next: (updated) => {
-                if (updated) this.matchStore.upsertMatch(updated);
-                this.uiFeedback.success('تم بنجاح', 'تم تقديم تقرير المباراة بنجاح');
-                this.isSubmittingReport.set(false);
-                this.closeReportModal();
-                this.cdr.detectChanges();
-            },
-            error: (err) => {
-                this.uiFeedback.error('خطأ', err.message || 'فشل في تقديم التقرير');
-                this.isSubmittingReport.set(false);
-                this.cdr.detectChanges();
-            }
-        });
-    }
 
     // ==================== ADMIN ACTIONS ====================
 
@@ -346,7 +294,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 date: newDate,
                 status: MatchStatus.POSTPONED
             } as Partial<Match>).subscribe({
-                next: (updated) => {
+                next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم التأجيل', 'تم تأجيل المباراة للموعد الجديد');
@@ -362,7 +310,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 homeScore: 0,
                 awayScore: 0
             } as Partial<Match>).subscribe({
-                next: (updated) => {
+                next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تمت الإعادة', 'تم إعادة المباراة وجدولتها في الموعد الجديد');
@@ -375,7 +323,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate
             } as Partial<Match>).subscribe({
-                next: (updated) => {
+                next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم بنجاح', 'تم تحديد موعد اللقاء');
@@ -404,7 +352,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         }
 
         this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).subscribe({
-            next: (success) => {
+            next: (success: boolean) => {
                 if (success) {
                     const updated = { ...currentMatch, status: MatchStatus.CANCELLED };
                     this.matchStore.updateMatch(updated);
@@ -426,7 +374,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             const currentMatch = this.match();
             if (confirmed && currentMatch) {
                 this.matchService.deleteMatchEvent(currentMatch.id, eventId).subscribe({
-                    next: (updated) => {
+                    next: (updated: Match | null) => {
                         if (updated) this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
                         this.cdr.detectChanges();
@@ -437,113 +385,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    openRefereeModal(): void {
-        this.selectedGovernorate.set('');
-        this.selectedCity.set('');
-        this.selectedDistrict.set('');
-        this.cityOptions.set([]);
-        this.districtOptions.set([]);
-        this.refereeOptions = [];
 
-        this.loadGovernorates();
-        this.showRefereeModal.set(true);
-        this.cdr.detectChanges();
-    }
-
-    loadGovernorates(): void {
-        this.isLocationsLoading.set(true);
-        this.locationService.getGovernorates().subscribe({
-            next: (govs) => {
-                this.governorateOptions.set(govs.map(g => ({ label: g, value: g, icon: 'map' })));
-                this.isLocationsLoading.set(false);
-                this.cdr.detectChanges();
-            },
-            error: () => this.isLocationsLoading.set(false)
-        });
-    }
-
-    onGovernorateChange(gov: string): void {
-        this.selectedGovernorate.set(gov);
-        this.selectedCity.set('');
-        this.selectedDistrict.set('');
-        this.cityOptions.set([]);
-        this.districtOptions.set([]);
-        this.refereeOptions = [];
-
-        if (gov) {
-            this.isLocationsLoading.set(true);
-            this.locationService.getCities(gov).subscribe({
-                next: (cities) => {
-                    this.cityOptions.set(cities.map(c => ({ label: c, value: c, icon: 'location_city' })));
-                    this.isLocationsLoading.set(false);
-                    this.cdr.detectChanges();
-                },
-                error: () => this.isLocationsLoading.set(false)
-            });
-        }
-    }
-
-    onCityChange(city: string): void {
-        this.selectedCity.set(city);
-        this.selectedDistrict.set('');
-        this.districtOptions.set([]);
-        this.refereeOptions = [];
-
-        if (city) {
-            this.isLocationsLoading.set(true);
-            this.locationService.getDistricts(city).subscribe({
-                next: (districts) => {
-                    this.districtOptions.set(districts.map(d => ({ label: d, value: d, icon: 'near_me' })));
-                    this.isLocationsLoading.set(false);
-                    this.cdr.detectChanges();
-                },
-                error: () => this.isLocationsLoading.set(false)
-            });
-        }
-    }
-
-    onDistrictChange(district: string): void {
-        this.selectedDistrict.set(district);
-        this.refereeOptions = [];
-
-        if (district) {
-            this.isLocationsLoading.set(true);
-            this.userService.getReferees(district).subscribe({
-                next: (users) => {
-                    this.refereeOptions = users.map(u => ({
-                        value: u.id,
-                        label: u.name,
-                        icon: 'person'
-                    }));
-                    this.isLocationsLoading.set(false);
-                    this.cdr.detectChanges();
-                },
-                error: () => this.isLocationsLoading.set(false)
-            });
-        }
-    }
-
-    showRefereeModal = signal(false);
-
-    closeRefereeModal(): void {
-        this.showRefereeModal.set(false);
-    }
-
-    assignReferee(): void {
-        const currentMatch = this.match();
-        if (!currentMatch || !this.selectedRefereeId) return;
-
-        this.matchService.assignReferee(currentMatch.id, this.selectedRefereeId).subscribe({
-            next: (updatedMatch) => {
-                if (updatedMatch) {
-                    this.matchStore.upsertMatch(updatedMatch);
-                    this.uiFeedback.success('تم التعيين', `تم تعيين الحكم بنجاح`);
-                }
-                this.closeRefereeModal();
-                this.cdr.detectChanges();
-            }
-        });
-    }
 
     openScoreModal(): void {
         const currentMatch = this.match();

@@ -21,7 +21,6 @@ export interface Objection {
 
 export enum ObjectionType {
     MATCH_RESULT = 'MatchResult',
-    REFEREE_DECISION = 'RefereeDecision',
     PLAYER_ELIGIBILITY = 'PlayerEligibility',
     RULE_VIOLATION = 'RuleViolation',
     OTHER = 'Other'

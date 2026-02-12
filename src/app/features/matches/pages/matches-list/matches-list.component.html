@@ -37,31 +37,9 @@
                     تحديث النتيجة
                 </app-button>
 
-                <!-- Referee: Start Match -->
-                @if (match.status === MatchStatus.SCHEDULED) {
-                <app-button *appHasPermission="Permission.START_MATCH"
-                    (click)="$event.stopPropagation(); startMatch(match)" size="sm" variant="primary" icon="play_arrow">
-                    بدء المباراة
-                </app-button>
-                }
 
-                <!-- Referee: Live Actions -->
-                <ng-container *appHasPermission="Permission.START_MATCH">
-                    @if (match.status === MatchStatus.LIVE) {
-                    <div class="live-actions gap-2 w-full">
-                        <button (click)="$event.stopPropagation(); openEventModal(match)"
-                            class="match-card-action primary-btn flex-1">
-                            <app-icon name="edit_note" class=" icon-sm"></app-icon>
-                            تسجيل حدث
-                        </button>
-                        <button (click)="$event.stopPropagation(); onEndMatchClick(match)"
-                            class="match-card-action danger-btn flex-1">
-                            <app-icon name="stop_circle" class=" icon-sm"></app-icon>
-                            إنهاء
-                        </button>
-                    </div>
-                    }
-                </ng-container>
+
+
 
                 <!-- Captain/Player Actions -->
                 <div *appHasPermission="Permission.CREATE_OBJECTION" class="player-actions">
@@ -91,12 +69,7 @@
                     }
                 </div>
 
-                <!-- Referee: View Details -->
-                @if (match.status === MatchStatus.FINISHED) {
-                <app-button *appHasPermission="Permission.START_MATCH" variant="ghost" size="sm" icon="chevron_left">
-                    التفاصيل
-                </app-button>
-                }
+
             </div>
         </app-match-card>
         }
@@ -106,9 +79,6 @@
 }
 
 <!-- Modals -->
-<app-end-match-confirm [matchId]="activeMatchId || ''" [(visible)]="showEndMatchConfirm"
-    (matchEnded)="onMatchEnded($event)" />
 
-<app-match-event-modal [match]="activeMatch" [(visible)]="showEventModal" (eventAdded)="onEventAdded($event)" />
 
 <app-objection-modal [match]="activeMatch" [(visible)]="showObjectionModal" />

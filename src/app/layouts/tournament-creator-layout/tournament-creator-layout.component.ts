@@ -10,24 +10,28 @@ import { NavItem } from '../../shared/models/nav-item.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
-import { RefereeLayoutService } from '../../core/services/referee-layout.service';
+import { TournamentCreatorLayoutService } from '../../core/services/tournament-creator-layout.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { Notification } from '../../core/models/tournament.model';
+import { PermissionsService } from '../../core/services/permissions.service';
+import { Permission } from '../../core/permissions/permissions.model';
+import { UserRole } from '../../core/models/user.model';
 
 @Component({
-    selector: 'app-referee-layout',
+    selector: 'app-tournament-creator-layout',
     standalone: true,
     imports: [CommonModule, RouterOutlet, SidebarComponent, HeaderComponent, BreadcrumbComponent, PageHeaderComponent],
-    templateUrl: './referee-layout.component.html',
-    styleUrls: ['./referee-layout.component.scss'],
+    templateUrl: './tournament-creator-layout.component.html',
+    styleUrls: ['./tournament-creator-layout.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RefereeLayoutComponent implements OnInit {
+export class TournamentCreatorLayoutComponent implements OnInit {
     private authService = inject(AuthService);
     private authStore = inject(AuthStore);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
-    public layout = inject(RefereeLayoutService);
+    private permissionsService = inject(PermissionsService);
+    public layout = inject(TournamentCreatorLayoutService);
 
     isSidebarOpen = true;
     isMobile = false;
@@ -40,13 +44,37 @@ export class RefereeLayoutComponent implements OnInit {
     // Reactive bindings to AuthStore
     currentUser = this.authStore.currentUser;
     isAuthenticated = this.authStore.isAuthenticated;
-    isPending = false;
 
-    navItems: NavItem[] = [
-        { label: 'مبارياتي', icon: 'sports_soccer', route: '/referee/matches' },
-        { label: 'الإشعارات', icon: 'notifications', route: '/referee/notifications' },
-        { label: 'الملف الشخصي', icon: 'person', route: '/referee/profile' }
-    ];
+    get navItems(): NavItem[] {
+        const user = this.currentUser();
+        if (user?.role === UserRole.TOURNAMENT_CREATOR || user?.role === UserRole.ADMIN) {
+            return [
+                { label: 'بطولاتي', icon: 'emoji_events', route: '/captain/tournaments' },
+                { label: 'المباريات', icon: 'sports_soccer', route: '/captain/matches' },
+                { label: 'الطلبات المالية', icon: 'payments', route: '/captain/payment-requests' },
+                { label: 'الاعتراضات', icon: 'gavel', route: '/captain/objections' },
+                { label: 'الإشعارات', icon: 'notifications', route: '/captain/notifications' },
+                { label: 'حسابي الشخصي', icon: 'person', route: '/captain/profile' }
+            ];
+        }
+        // Team Owner (Captain) views
+        return [
+            { label: 'فريقي', icon: 'groups', route: '/captain/team' },
+            { label: 'المباريات', icon: 'sports_soccer', route: '/captain/matches' },
+            { label: 'البطولات', icon: 'emoji_events', route: '/captain/championships' },
+            { label: 'الاعتراضات', icon: 'gavel', route: '/captain/objections' },
+            { label: 'الإشعارات', icon: 'notifications', route: '/captain/notifications' },
+            { label: 'الملف الشخصي', icon: 'person', route: '/captain/profile' }
+        ];
+    }
+
+    get brandSubtitle(): string {
+        return this.currentUser()?.role === UserRole.TOURNAMENT_CREATOR ? 'منظم البطولات' : 'إدارة الفريق';
+    }
+
+    get userRoleLabel(): string {
+        return this.currentUser()?.role === UserRole.TOURNAMENT_CREATOR ? 'منظم بطولة' : 'قائد فريق';
+    }
 
     constructor() {
         // Effect to react to auth state changes
@@ -54,8 +82,6 @@ export class RefereeLayoutComponent implements OnInit {
             if (!this.isAuthenticated()) {
                 this.router.navigate(['/auth/login']);
             }
-            // Update pending status reactively
-            this.isPending = this.currentUser()?.status === 'Pending';
         });
 
         // Auto-close on navigation (Mobile only)
@@ -109,8 +135,7 @@ export class RefereeLayoutComponent implements OnInit {
     }
 
     handleLogout(): void {
-        this.authService.logout(); // This now updates AuthStore
-        // No need to navigate - effect handles it
+        this.authService.logout();
     }
 
     viewNotification(notification: Notification): void {
@@ -120,7 +145,7 @@ export class RefereeLayoutComponent implements OnInit {
 
     viewAllNotifications(): void {
         this.showNotifications = false;
-        this.router.navigate(['/referee/notifications']);
+        this.router.navigate(['/captain/notifications']);
     }
 
     onNavLinkClick(): void {

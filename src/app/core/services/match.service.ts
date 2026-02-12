@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Match, MatchStatus, Card, Goal, MatchEvent, MatchReport } from '../models/tournament.model';
+import { Match, MatchStatus, Card, Goal, MatchEvent } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -25,9 +25,7 @@ export class MatchService {
         return this.http.get<Match[]>(this.apiUrl);
     }
 
-    getMyMatches(): Observable<Match[]> {
-        return this.http.get<Match[]>(`${this.apiUrl}/my-matches`);
-    }
+
 
     getMatchById(id: string): Observable<Match | undefined> {
         return this.http.get<Match>(`${this.apiUrl}/${id}`);
@@ -40,12 +38,7 @@ export class MatchService {
         );
     }
 
-    getMatchesByReferee(refereeId: string): Observable<Match[]> {
-        // If backend does not have specific endpoint, filter locally
-        return this.getMatches().pipe(
-            map(matches => matches.filter(m => m.refereeId === refereeId))
-        );
-    }
+
 
     getMatchesByTeam(teamId: string): Observable<Match[]> {
         return this.getMatches().pipe(
@@ -115,27 +108,7 @@ export class MatchService {
         return this.http.post<Match>(`${this.apiUrl}/${matchId}/report`, { notes });
     }
 
-    getMatchReport(matchId: string): Observable<MatchReport | null> {
-        // Should be part of Match object via 'refereeNotes' or similar
-        return this.getMatchById(matchId).pipe(
-            map(match => {
-                if (!match) return null;
-                return {
-                    submittedAt: match.updatedAt || new Date(),
-                    refereeId: match.refereeId || '',
-                    refereeName: match.refereeName || '',
-                    notes: match.refereeNotes || '',
-                    homeTeamYellowCards: match.yellowCards?.filter(c => c.teamId === match.homeTeamId).length || 0,
-                    homeTeamRedCards: match.redCards?.filter(c => c.teamId === match.homeTeamId).length || 0,
-                    homeTeamGoals: match.homeScore || 0,
-                    awayTeamYellowCards: match.yellowCards?.filter(c => c.teamId === match.awayTeamId).length || 0,
-                    awayTeamRedCards: match.redCards?.filter(c => c.teamId === match.awayTeamId).length || 0,
-                    awayTeamGoals: match.awayScore || 0,
-                    isSubmitted: !!match.report?.isSubmitted
-                };
-            })
-        );
-    }
+
 
     postponeMatch(matchId: string): Observable<boolean> {
         // Update status to 'Postponed'
@@ -147,10 +120,7 @@ export class MatchService {
         return this.updateMatchStatus(matchId, MatchStatus.SCHEDULED).pipe(map(() => undefined));
     }
 
-    assignReferee(matchId: string, refereeId: string): Observable<Match | undefined> {
-        // Backend update patch
-        return this.http.patch<Match>(`${this.apiUrl}/${matchId}`, { refereeId });
-    }
+
 
     deleteMatchEvent(matchId: string, eventId: string): Observable<Match> {
         return this.http.delete<Match>(`${this.apiUrl}/${matchId}/events/${eventId}`);

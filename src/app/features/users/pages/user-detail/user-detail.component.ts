@@ -127,7 +127,6 @@ export class UserDetailComponent implements OnInit, OnDestroy {
 
         switch (role) {
             case UserRole.ADMIN: return 'مسؤول';
-            case UserRole.REFEREE: return 'حكم';
             default: return 'لاعب';
         }
     }

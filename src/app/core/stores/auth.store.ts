@@ -83,7 +83,5 @@ export class AuthStore {
     return this.hasRole('Player');
   }
 
-  isReferee(): boolean {
-    return this.hasRole('Referee');
-  }
+
 }

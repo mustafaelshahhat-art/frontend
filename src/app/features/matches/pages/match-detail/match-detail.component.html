@@ -77,12 +77,7 @@
                 </div>
                 }
 
-                @if (matchData.refereeName) {
-                <div class="referee-bar">
-                    <app-icon name="sports" class=" icon-sm"></app-icon>
-                    الحكم: {{ matchData.refereeName }}
-                </div>
-                }
+
             </div>
 
             <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
@@ -131,9 +126,9 @@
                 <div class="admin-header">
                     <div class="admin-title">
                         <app-icon name="admin_panel_settings" class=" icon-sm"></app-icon>
-                        <h3>لوحة التحكم الإدارية</h3>
+                        <h3>{{ managementTitle }}</h3>
                     </div>
-                    <div class="admin-badge">Admin Mode</div>
+                    <div class="admin-badge">{{ managementModeLabel }}</div>
                 </div>
 
                 <div class="admin-content">
@@ -149,9 +144,19 @@
                         <app-button variant="outline" icon="calendar_month" (click)="openSetScheduleModal()">
                             تحديد موعد اللقاء
                         </app-button>
-                        <app-button variant="outline" icon="person_pin" (click)="openRefereeModal()">
-                            {{ matchData.refereeId ? 'تغيير الحكم' : 'تعيين حكم' }}
+
+                        @if (matchData.status === MatchStatus.SCHEDULED || matchData.status === MatchStatus.POSTPONED ||
+                        matchData.status === MatchStatus.RESCHEDULED) {
+                        <app-button variant="primary" icon="play_arrow" (click)="startMatch()">
+                            بدء المباراة
                         </app-button>
+                        }
+
+                        @if (matchData.status === MatchStatus.LIVE) {
+                        <app-button variant="danger" icon="stop" (click)="onEndMatchClick()">
+                            إنهاء المباراة
+                        </app-button>
+                        }
                     </div>
                     <div class="admin-grid-full mt-3">
                         <app-button variant="outline" icon="edit_note" (click)="openEventModal()" class="w-full">
@@ -177,67 +182,11 @@
                 </div>
             </div>
 
-            <!-- Referee Controls -->
-            @if (canShowRefereeControls()) {
-            <div class="control-panel">
-                <div class="panel-header">
-                    <app-icon name="dashboard_customize" class=" icon-sm"></app-icon>
-                    <h3>مركز التحكم</h3>
-                </div>
-                <div class="panel-body">
-                    @if (matchData.status === MatchStatus.SCHEDULED) {
-                    <app-button (click)="startMatch()" class="w-full" variant="primary" icon="play_circle">
-                        بدء المباراة
-                    </app-button>
-                    }
 
-                    @if (matchData.status === MatchStatus.LIVE) {
-                    <app-button (click)="onEndMatchClick()" class="w-full" variant="danger" icon="stop_circle">
-                        إنهاء المباراة
-                    </app-button>
-                    }
 
-                    @if (matchData.status === MatchStatus.FINISHED) {
-                    <div class="report-done">
-                        <app-icon name="task_alt" class=" icon-sm"></app-icon>
-                        تم إنهاء المباراة
-                    </div>
-                    }
-                </div>
-            </div>
-            }
 
-            <!-- Add Event Button -->
-            @if (canShowRefereeControls()) {
-            <div class="control-panel">
-                <div class="panel-header">
-                    <app-icon name="edit_note" class=" icon-sm"></app-icon>
-                    <h3>تسجيل حدث</h3>
-                </div>
-                <div class="panel-body">
-                    <app-button (click)="openEventModal()" variant="primary" class="w-full" icon="add">
-                        تسجيل حدث جديد
-                    </app-button>
-                </div>
-            </div>
-            }
 
-            <!-- Report Preview -->
-            @if (matchData.report?.isSubmitted) {
-            <div *appHasPermission="AppPermission.START_MATCH" class="control-panel success-panel">
-                <div class="panel-header">
-                    <app-icon name="description" class=" icon-sm"></app-icon>
-                    <h3>تقرير المباراة</h3>
-                </div>
-                <div class="panel-body">
-                    <p class="report-notes">"{{ matchData.report?.notes || 'لا توجد ملاحظات' }}"</p>
-                    <div class="report-date">
-                        <app-icon name="schedule" class=" icon-sm"></app-icon>
-                        {{ matchData.report?.submittedAt | date:'yyyy/MM/dd - hh:mm a' }}
-                    </div>
-                </div>
-            </div>
-            }
+
 
             <!-- Captain: Submit Objection -->
             @if (canShowObjectionSection()) {
@@ -291,45 +240,7 @@
 <!-- Objection Modal -->
 <app-objection-modal [match]="match()" [(visible)]="showObjectionModal" />
 
-<!-- Referee Selection Modal -->
-<app-modal [visible]="showRefereeModal()" title="تعيين حكم للمباراة" icon="person_pin"
-    (closeRequest)="closeRefereeModal()">
-    <div class="form-grid-single gap-4 mb-6">
-        <!-- Governorate -->
-        <div class="form-field">
-            <app-select [options]="governorateOptions()" [ngModel]="selectedGovernorate()"
-                (ngModelChange)="onGovernorateChange($event)" label="المحافظة" placeholder="اختر المحافظة"
-                [loading]="isLocationsLoading() && !selectedGovernorate()" />
-        </div>
 
-        <!-- City -->
-        <div class="form-field">
-            <app-select [options]="cityOptions()" [ngModel]="selectedCity()" (ngModelChange)="onCityChange($event)"
-                label="المدينة" placeholder="اختر المدينة" [disabled]="!selectedGovernorate()"
-                [loading]="isLocationsLoading() && !!selectedGovernorate() && !selectedCity()" />
-        </div>
-
-        <!-- District -->
-        <div class="form-field">
-            <app-select [options]="districtOptions()" [ngModel]="selectedDistrict()"
-                (ngModelChange)="onDistrictChange($event)" label="الحي / منطقة السكن" placeholder="اختر الحي"
-                [disabled]="!selectedCity()"
-                [loading]="isLocationsLoading() && !!selectedCity() && !selectedDistrict()" />
-        </div>
-
-        <!-- Referee -->
-        <div class="form-field">
-            <app-select [options]="refereeOptions" [(ngModel)]="selectedRefereeId" label="الحكم المتاح"
-                placeholder="اختر الحكم" [disabled]="!selectedDistrict()"
-                [loading]="isLocationsLoading() && !!selectedDistrict()" />
-        </div>
-    </div>
-    <div modal-footer class="flex justify-end gap-3 w-full">
-        <app-button (click)="closeRefereeModal()" variant="ghost">إلغاء</app-button>
-        <app-button (click)="assignReferee()" variant="primary" [disabled]="!selectedRefereeId">تأكيد
-            التعيين</app-button>
-    </div>
-</app-modal>
 
 <!-- Postpone/Reset Schedule Modal -->
 <app-modal [visible]="showScheduleModal()"
@@ -360,7 +271,7 @@
 <app-modal [visible]="showCancelModal()" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
     (closeRequest)="closeCancelModal()">
     <div class="prose mb-4">
-        <p class="text-secondary">سيتم إرسال إشعار فوري لجميع اللاعبين والحكم بسبب الإلغاء.</p>
+        <p class="text-secondary">سيتم إرسال إشعار فوري لجميع اللاعبين بسبب الإلغاء.</p>
     </div>
 
     <div class="form-field full-width">

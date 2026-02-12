@@ -345,7 +345,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const roles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'مدير النظام',
-            [UserRole.REFEREE]: 'حكم معتمد',
             [UserRole.PLAYER]: 'لاعب'
         };
         return role ? (roles[role] || '') : '';
@@ -564,9 +563,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.uiFeedback.success('تم التحديد', 'سيتم حذف الصورة عند حفظ التغييرات');
     }
 
-    isReferee(): boolean {
-        return this.userRole === UserRole.REFEREE;
-    }
+
 
     isCaptain(): boolean {
         return !!this.user?.isTeamOwner;

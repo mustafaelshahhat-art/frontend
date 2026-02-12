@@ -106,7 +106,6 @@ export class TeamDetailPageComponent implements OnInit {
     backRoute = computed(() => {
         const prefix = this.navService.getRootPrefix();
         if (prefix === '/admin') return '/admin/teams';
-        if (prefix === '/referee') return '/referee/matches';
         return '/captain/matches'; // Default for captain/player context on team detail
     });
 
@@ -207,8 +206,6 @@ export class TeamDetailPageComponent implements OnInit {
         const prefix = this.navService.getRootPrefix();
         if (prefix === '/admin') {
             this.navService.navigateTo('teams');
-        } else if (prefix === '/referee') {
-            this.navService.navigateTo('matches');
         } else {
             this.navService.navigateTo('matches'); // Or team home
         }

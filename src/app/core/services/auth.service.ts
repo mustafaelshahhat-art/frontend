@@ -56,12 +56,12 @@ export class AuthService {
     }
 
     private mapRoleToBackend(role: string | number): number {
-        // Backend UserRole: Player = 0, Referee = 1, Admin = 2
+        // Backend UserRole: Player = 0, Admin = 2
         if (typeof role === 'number') return role;
 
         const r = role?.toLowerCase();
         if (r === 'admin') return 2;
-        if (r === 'referee') return 1;
+
         return 0; // Default to Player (Captain role removed)
     }
 
@@ -203,9 +203,9 @@ export class AuthService {
         this.updateCurrentUser(updatedUser);
 
         const disabledStatuses = ['Suspended', 'Banned', 'Disabled', 'Deleted'];
-        const shouldBlockAccess = disabledStatuses.includes(newStatus) || 
+        const shouldBlockAccess = disabledStatuses.includes(newStatus) ||
             (newStatus === 'Pending' && user.role !== 'TournamentCreator');
-            
+
         if (shouldBlockAccess) {
             console.warn(`Account status changed to ${newStatus}. Logging out...`);
             this.logout();

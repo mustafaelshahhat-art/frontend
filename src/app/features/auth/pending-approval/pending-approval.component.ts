@@ -31,13 +31,7 @@ export class PendingApprovalComponent implements AfterViewInit {
     }
 
     goToHome(): void {
-        const role = this.currentUser?.role?.toLowerCase();
-        if (role === 'referee') {
-            this.router.navigate(['/referee/matches']);
-        } else {
-            // Player/Captain goes to team page
-            this.router.navigate(['/captain/team']);
-        }
+        this.router.navigate(['/captain/team']);
     }
 }
 

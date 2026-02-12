@@ -38,7 +38,7 @@ export class ChatBoxComponent implements OnInit, AfterViewChecked {
     @Input() messages: ChatMessage[] = [];
     @Input() currentUserId = '';
     @Input() participants: ChatParticipant[] = [];
-    @Input() referee: ChatParticipant | null = null;
+
     @Input() isLoading = false;
     @Input() readOnly = false;
     @Input() canSchedule = false;

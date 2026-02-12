@@ -55,9 +55,8 @@ export class SidebarComponent {
             case 'Admin':
                 return '/admin/settings';
             case 'TournamentCreator':
-                return '/admin/dashboard';
-            case 'Referee':
-                return '/referee/profile';
+                return '/captain/profile';
+
             default:
                 // Both Player and Captain currently share the 'captain' layout routes
                 return '/captain/profile';
@@ -70,7 +69,7 @@ export class SidebarComponent {
         switch (this.currentUser.role) {
             case 'Admin': return 'مسؤول النظام';
             case 'TournamentCreator': return 'منشئ بطولة';
-            case 'Referee': return 'حكم الساحة';
+
             case 'Player':
                 if (this.currentUser.isTeamOwner) return 'قائد الفريق';
                 return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';

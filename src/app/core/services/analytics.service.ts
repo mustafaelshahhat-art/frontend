@@ -6,7 +6,6 @@ import { environment } from '../../../environments/environment';
 export interface DashboardStats {
     totalUsers: number;
     totalTeams: number;
-    totalReferees: number;
     activeTournaments: number;
     matchesToday: number;
     pendingObjections: number;
@@ -46,7 +45,6 @@ export class AnalyticsService {
                 return {
                     totalUsers: d.totalUsers,
                     totalTeams: d.totalTeams,
-                    totalReferees: d.totalReferees,
                     activeTournaments: d.activeTournaments,
                     matchesToday: d.matchesToday,
                     pendingObjections: d.pendingObjections,

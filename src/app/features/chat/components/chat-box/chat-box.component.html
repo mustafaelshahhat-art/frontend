@@ -51,9 +51,7 @@
                     <span class="chat-message-name">{{ msg.senderName }}</span>
                     @if (msg.senderRole) {
                     <span class="chat-message-role" [class.bg-primary-subtle]="msg.senderRole === 'captain'"
-                        [class.bg-info-subtle]="msg.senderRole === 'referee'"
-                        [class.text-primary]="msg.senderRole === 'captain'"
-                        [class.text-info]="msg.senderRole === 'referee'">
+                        [class.text-primary]="msg.senderRole === 'captain'">
                         {{ msg.senderRole }}
                     </span>
                     }

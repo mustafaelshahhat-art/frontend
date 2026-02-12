@@ -42,7 +42,6 @@ export class ObjectionModalComponent {
 
     objectionTypeOptions: SelectOption[] = [
         { value: 'MatchResult', label: 'نتيجة المباراة', icon: 'scoreboard' },
-        { value: 'RefereeDecision', label: 'قرار تحكيمي', icon: 'sports' },
         { value: 'PlayerEligibility', label: 'أهلية لاعب', icon: 'person_off' },
         { value: 'RuleViolation', label: 'مخالفة قوانين', icon: 'gavel' },
         { value: 'Other', label: 'أخرى', icon: 'more_horiz' }

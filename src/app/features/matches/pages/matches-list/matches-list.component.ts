@@ -18,9 +18,7 @@ import { HasPermissionDirective } from '../../../../shared/directives/has-permis
 
 // Shared Components
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
-import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
@@ -43,8 +41,6 @@ interface MatchFilter {
         CommonModule,
         RouterModule,
         EmptyStateComponent,
-        EndMatchConfirmComponent,
-        MatchEventModalComponent,
         FilterComponent,
         MatchCardComponent,
         ButtonComponent,
@@ -84,9 +80,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     MatchStatus = MatchStatus;
     MatchEventType = MatchEventType;
 
-    // Modals State (Referee Specific)
-    showEndMatchConfirm = false;
-    showEventModal = false;
+    // Modals State
     showObjectionModal = false;
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
@@ -177,10 +171,9 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
             this.matchStore.setError('Failed to load matches');
         };
 
-        if (this.userRole() === UserRole.ADMIN) {
+        if (this.userRole() === UserRole.ADMIN || this.userRole() === UserRole.TOURNAMENT_CREATOR) {
             this.matchService.getMatches().subscribe({ next: handleSuccess, error: handleError });
-        } else if (this.userRole() === UserRole.REFEREE) {
-            this.matchService.getMyMatches().subscribe({ next: handleSuccess, error: handleError });
+
         } else {
             const teamId = this.currentUser()?.teamId;
             if (teamId) {
@@ -197,7 +190,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const titles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'إدارة المباريات',
-            [UserRole.REFEREE]: 'أجندة المباريات',
+            [UserRole.TOURNAMENT_CREATOR]: 'إدارة المباريات',
             [UserRole.PLAYER]: 'مباريات الفريق'
         };
         return titles[role] || 'المباريات';
@@ -209,7 +202,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const subtitles: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: 'إدارة جدول المباريات وتحديث النتائج المباشرة',
-            [UserRole.REFEREE]: 'استعرض مباريات اليوم وقم بإدارتها باحترافية',
+            [UserRole.TOURNAMENT_CREATOR]: 'إدارة جدول المباريات وتحديث النتائج المباشرة',
             [UserRole.PLAYER]: 'عرض نتائج المباريات السابقة والمواجهات القادمة في البطولة'
         };
         return subtitles[role] || '';
@@ -227,7 +220,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const prefixes: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: '/admin',
-            [UserRole.REFEREE]: '/referee',
+            [UserRole.TOURNAMENT_CREATOR]: '/captain',
             [UserRole.PLAYER]: '/captain'
         };
         return prefixes[role] || '/captain';
@@ -235,7 +228,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Role checks
     isAdmin(): boolean { return this.userRole() === UserRole.ADMIN; }
-    isReferee(): boolean { return this.userRole() === UserRole.REFEREE; }
+
     isCaptain(): boolean { return !!this.currentUser()?.isTeamOwner; }
 
     setFilter(filter: unknown): void {
@@ -256,41 +249,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.navService.navigateTo(['matches', match.id]);
     }
 
-    // ==========================================
-    // Referee Specific Actions
-    // ==========================================
 
-    startMatch(match: Match): void {
-        this.matchService.startMatch(match.id).subscribe({
-            next: (updatedMatch) => {
-                if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
-                this.uiFeedback.success('تم البدء', 'تم بدء المباراة');
-            },
-            error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
-        });
-    }
-
-    onEndMatchClick(match: Match): void {
-        this.activeMatchId = match.id;
-        this.showEndMatchConfirm = true;
-    }
-
-    onMatchEnded(updatedMatch: Match): void {
-        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
-        this.activeMatchId = null;
-    }
-
-    openEventModal(match: Match): void {
-        this.activeMatch = match;
-        this.activeMatchId = match.id;
-        this.showEventModal = true;
-    }
-
-    onEventAdded(updatedMatch: Match): void {
-        if (updatedMatch) this.matchStore.upsertMatch(updatedMatch);
-        this.activeMatch = null;
-        this.activeMatchId = null;
-    }
 
     // ==========================================
     // Captain/Player Actions
