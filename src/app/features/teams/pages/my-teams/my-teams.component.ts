@@ -89,7 +89,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     isCaptain = computed(() => {
         const team = this.teamData();
         const user = this.authStore.currentUser();
-        return !!(team && user && team.captainId === user.id);
+        return !!(team && user && team.players.some(p => p.id === user.id && p.teamRole === 'Captain'));
     });
 
     isAdmin = computed(() => this.authStore.currentUser()?.role === 'Admin');
@@ -361,7 +361,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.teamData.set(converted);
 
                         // Load invitations for captain teams
-                        if (currentTeam.captainId === this.currentUser?.id) {
+                        if (currentTeam.players.some(p => p.id === this.currentUser?.id && p.teamRole === 'Captain')) {
                             this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
                                 const current = this.teamData();
                                 if (current) {
@@ -407,7 +407,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.teamData.set(converted);
 
         // Load invitations for captain teams
-        if (team.captainId === this.currentUser?.id) {
+        if (team.players.some(p => p.id === this.currentUser?.id && p.teamRole === 'Captain')) {
             this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
                 const current = this.teamData();
                 if (current) {
@@ -558,7 +558,6 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
         return {
             id: team.id,
             name: team.name,
-            captainId: team.captainId || '',
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
             logo: team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',

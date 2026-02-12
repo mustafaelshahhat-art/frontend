@@ -1,5 +1,6 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
@@ -64,6 +65,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     private matchStore: MatchStore = inject(MatchStore);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
+    private destroyRef = inject(DestroyRef);
 
     Permission = Permission;
     private sanitizer = inject(DomSanitizer);
@@ -232,7 +234,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     ngOnInit(): void {
-        this.route.paramMap.subscribe(params => {
+        this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             const id = params.get('id');
             if (id) {
                 this.tournamentId.set(id);
@@ -279,7 +281,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.isLoading.set(true);
 
         // 1. Load Tournament
-        this.tournamentService.getTournamentById(id).subscribe({
+        this.tournamentService.getTournamentById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (data) => {
                 if (data) {
                     this.tournamentStore.upsertTournament(data);
@@ -287,7 +289,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
                     // Check for Bracket/Groups tabs
                     if (data.format === TournamentFormat.GroupsThenKnockout || data.format === TournamentFormat.GroupsWithHomeAwayKnockout) {
-                        this.tournamentService.getGroups(id).subscribe(g => {
+                        this.tournamentService.getGroups(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(g => {
                             this.groups.set(g);
                             if (g.length > 0 && !this.activeGroup()) this.activeGroup.set(g[0].id);
                         });
@@ -296,11 +298,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     if (data.format === TournamentFormat.GroupsThenKnockout ||
                         data.format === TournamentFormat.GroupsWithHomeAwayKnockout ||
                         data.format === TournamentFormat.KnockoutOnly) {
-                        this.tournamentService.getBracket(id).subscribe(b => this.bracket.set(b));
+                        this.tournamentService.getBracket(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(b => this.bracket.set(b));
                     }
                 }
                 // ... (Load matches, standings same as before)
-                this.matchService.getMatchesByTournament(id).subscribe({
+                this.matchService.getMatchesByTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: (matches) => {
                         matches.forEach((m: Match) => {
                             if (!this.matchStore.getMatchById(m.id)) {
@@ -315,7 +317,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     error: () => this.isLoading.set(false)
                 });
 
-                this.tournamentService.getStandings(id).subscribe(standings => {
+                this.tournamentService.getStandings(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(standings => {
                     this.standings.set(standings);
                     const map = new Map<string, number>();
                     standings.forEach(s => {
@@ -341,7 +343,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (!t) return;
 
         this.isGeneratingMatches.set(true);
-        this.tournamentService.generateMatches(t.id).subscribe({
+        this.tournamentService.generateMatches(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (matches) => {
                 this.isGeneratingMatches.set(false);
                 this.uiFeedback.success('تم بنجاح', 'تم توليد جدول المباريات بنجاح.');
@@ -444,10 +446,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             `هل أنت متأكد من حذف بطولة "${t.name}"؟ هذا الإجراء سيؤدي لحذف كافة المباريات والتسجيلات المرتبطة بها ولا يمكن التراجع عنه.`,
             'حذف نهائي',
             'danger'
-        ).subscribe((confirmed: boolean) => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             if (confirmed) {
                 this.isLoading.set(true);
-                this.tournamentService.deleteTournament(t.id).subscribe({
+                this.tournamentService.deleteTournament(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم الحذف', 'تم حذف البطولة بنجاح');
                         this.navService.navigateTo('tournaments');
@@ -484,7 +486,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             });
         } else {
             const newStatus = TournamentStatus.REGISTRATION_OPEN;
-            this.tournamentService.updateTournament(t.id, { status: newStatus }).subscribe({
+            this.tournamentService.updateTournament(t.id, { status: newStatus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: (updatedTournament) => {
                     this.tournamentStore.updateTournament(updatedTournament);
                     this.isLoading.set(false);
@@ -536,10 +538,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             `هل أنت متأكد من إقصاء فريق "${teamName}" من البطولة؟ سيتم إنهاء جميع مبارياته القادمة كخسارة، لكنه سيبقى في جدول الترتيب.`,
             'إقصاء الفريق',
             'danger'
-        ).subscribe((confirmed: boolean) => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             if (confirmed) {
                 this.isLoading.set(true);
-                this.tournamentService.eliminateTeam(t.id, teamId).subscribe({
+                this.tournamentService.eliminateTeam(t.id, teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: (updatedTournament) => {
                         if (updatedTournament) {
                             this.tournamentStore.upsertTournament(updatedTournament);
@@ -583,10 +585,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             `هذا الإجراء مخصص فقط للحالات التي يتعطل فيها البدء التلقائي. هل أنت متأكد من رغبتك في فرض بدء بطولة "${t.name}"؟`,
             'تأكيد البدء الطارئ',
             'danger'
-        ).subscribe(confirmed => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
             if (confirmed) {
                 this.isLoading.set(true);
-                this.tournamentService.emergencyStart(t.id).subscribe({
+                this.tournamentService.emergencyStart(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: (updatedTournament) => {
                         this.tournamentStore.upsertTournament(updatedTournament);
                         this.uiFeedback.success('تم التدخل بنجاح', 'تم تغيير حالة البطولة إلى نشطة');
@@ -612,10 +614,10 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             `هذا الإجراء مخصص فقط للحالات التي تتعلق بمشاكل في النظام. هل أنت متأكد من فرض إنهاء بطولة "${t.name}"؟ سيتم نقلها للأرشيف.`,
             'تأكيد الإنهاء الطارئ',
             'danger'
-        ).subscribe(confirmed => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
             if (confirmed) {
                 this.isLoading.set(true);
-                this.tournamentService.emergencyEnd(t.id).subscribe({
+                this.tournamentService.emergencyEnd(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: (updatedTournament) => {
                         this.tournamentStore.upsertTournament(updatedTournament);
                         this.uiFeedback.success('تم التدخل بنجاح', 'تم إنهاء البطولة بنجاح');

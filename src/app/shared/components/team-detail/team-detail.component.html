@@ -81,8 +81,7 @@
 
         <!-- Tabbed Content Section -->
         <div class="tabs-scroll-container">
-            <app-filter [items]="filteredTabs" [activeValue]="activeTab"
-                (filterChange)="onTabChange($event)" />
+            <app-filter [items]="filteredTabs" [activeValue]="activeTab" (filterChange)="onTabChange($event)" />
         </div>
 
         <!-- Dynamic Content Area -->
@@ -100,17 +99,20 @@
                         <span class="stat-card-value">{{ team.stats.matches }}</span>
                     </div>
                     <div class="stat-card border-success border-opacity-20">
-                        <div class="stat-card-decoration bg-success bg-opacity-5"><app-icon name="check_circle" class="text-success icon-sm"></app-icon></div>
+                        <div class="stat-card-decoration bg-success bg-opacity-5"><app-icon name="check_circle"
+                                class="text-success icon-sm"></app-icon></div>
                         <span class="stat-card-label text-success">انتصار</span>
                         <span class="stat-card-value text-success">{{ team.stats.wins }}</span>
                     </div>
                     <div class="stat-card border-warning border-opacity-20">
-                        <div class="stat-card-decoration bg-warning bg-opacity-5"><app-icon name="balance" class="text-warning icon-sm"></app-icon></div>
+                        <div class="stat-card-decoration bg-warning bg-opacity-5"><app-icon name="balance"
+                                class="text-warning icon-sm"></app-icon></div>
                         <span class="stat-card-label text-warning">تعادل</span>
                         <span class="stat-card-value text-warning">{{ team.stats.draws }}</span>
                     </div>
                     <div class="stat-card border-danger border-opacity-20">
-                        <div class="stat-card-decoration bg-danger bg-opacity-5"><app-icon name="cancel" class="text-danger icon-sm"></app-icon></div>
+                        <div class="stat-card-decoration bg-danger bg-opacity-5"><app-icon name="cancel"
+                                class="text-danger icon-sm"></app-icon></div>
                         <span class="stat-card-label text-danger">هزيمة</span>
                         <span class="stat-card-value text-danger">{{ team.stats.losses }}</span>
                     </div>
@@ -191,7 +193,7 @@
                                             size="sm" icon="person_off" class="text-danger" />
                                         }
 
-                                        @if (canRemovePlayers && player.id !== team.captainId) {
+                                        @if (canRemovePlayers && player.teamRole !== 'Captain') {
                                         <app-button (click)="requestPlayerAction(player, 'remove')" variant="ghost"
                                             size="sm" icon="delete" class="text-danger" />
                                         }

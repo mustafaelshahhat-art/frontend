@@ -1,5 +1,6 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, effect, OnDestroy, TemplateRef, ViewChild, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -68,6 +69,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     private authStore = inject(AuthStore);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
+    private destroyRef = inject(DestroyRef);
 
     @ViewChild('headerActions') headerActions!: TemplateRef<unknown>;
 
@@ -177,7 +179,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
     loadMatch(id: string): void {
         this.isLoading.set(true);
-        this.matchService.getMatchById(id).subscribe({
+        this.matchService.getMatchById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (match) => {
                 if (match) {
                     this.matchStore.updateMatch(match);
@@ -222,7 +224,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     startMatch(): void {
         const currentMatch = this.match();
         if (!currentMatch) return;
-        this.matchService.startMatch(currentMatch.id).subscribe({
+        this.matchService.startMatch(currentMatch.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (updated) => {
                 if (updated) this.matchStore.upsertMatch(updated);
                 this.uiFeedback.success('تم البدء', 'انطلقت المباراة الآن! - الوضع المباشر');
@@ -282,7 +284,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate,
                 status: MatchStatus.POSTPONED
-            } as Partial<Match>).subscribe({
+            } as Partial<Match>).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -298,7 +300,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 status: MatchStatus.RESCHEDULED,
                 homeScore: 0,
                 awayScore: 0
-            } as Partial<Match>).subscribe({
+            } as Partial<Match>).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -311,7 +313,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         } else {
             this.matchService.updateMatch(currentMatch.id, {
                 date: newDate
-            } as Partial<Match>).subscribe({
+            } as Partial<Match>).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: (updated: Match | null) => {
                     if (updated) {
                         this.matchStore.upsertMatch(updated);
@@ -340,7 +342,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).subscribe({
+        this.matchService.updateMatchStatus(currentMatch.id, MatchStatus.CANCELLED).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (success: boolean) => {
                 if (success) {
                     const updated = { ...currentMatch, status: MatchStatus.CANCELLED };
@@ -359,10 +361,10 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             'هل أنت متأكد من رغبتك في حذف هذا الحدث؟ ستتم استعادة الأهداف (إن وجدت) وتحديث إحصائيات المباراة.',
             'حذف الحدث',
             'danger'
-        ).subscribe((confirmed: boolean) => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             const currentMatch = this.match();
             if (confirmed && currentMatch) {
-                this.matchService.deleteMatchEvent(currentMatch.id, eventId).subscribe({
+                this.matchService.deleteMatchEvent(currentMatch.id, eventId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: (updated: Match | null) => {
                         if (updated) this.matchStore.upsertMatch(updated);
                         this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
@@ -394,6 +396,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         if (!currentMatch) return;
 
         this.matchService.updateMatchScore(currentMatch.id, this.scoreForm.homeScore, this.scoreForm.awayScore)
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (success: boolean) => {
                     if (success) {

@@ -3,12 +3,15 @@ import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { BehaviorSubject, Observable, timer } from 'rxjs';
+import { DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
     providedIn: 'root',
 })
 export class SignalRService {
     private readonly authService = inject(AuthService);
+    private readonly destroyRef = inject(DestroyRef);
     private hubs: Map<string, signalR.HubConnection> = new Map<string, signalR.HubConnection>();
     private connectionStatus$ = new BehaviorSubject<boolean>(false);
 
@@ -50,7 +53,7 @@ export class SignalRService {
                 this.connectionStatus$.next(true);
             } catch (err) {
                 console.error(`SignalR: Error connecting to ${hubPath}:`, err);
-                timer(5000).subscribe(() => this.startConnection(hubPath));
+                timer(5000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.startConnection(hubPath));
             }
         }
     }

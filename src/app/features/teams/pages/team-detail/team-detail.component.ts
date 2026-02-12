@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
@@ -84,6 +85,7 @@ export class TeamDetailPageComponent implements OnInit {
     private readonly permissionsService = inject(PermissionsService);
     protected readonly cd = inject(ChangeDetectorRef);
     private readonly navService = inject(ContextNavigationService);
+    private readonly destroyRef = inject(DestroyRef);
 
     teamId = signal<string | null>(null);
     isLoading = signal<boolean>(true);
@@ -92,7 +94,7 @@ export class TeamDetailPageComponent implements OnInit {
     isCaptain = computed(() => {
         const team = this.teamStore.getTeamById(this.teamId() || '');
         const user = this.authService.getCurrentUser();
-        return !!(team && user && team.captainId === user.id);
+        return !!(team && user && team.players.some(p => p.id === user.id && p.teamRole === 'Captain'));
     });
 
     canManageTeam = computed(() => {
@@ -157,7 +159,6 @@ export class TeamDetailPageComponent implements OnInit {
         return {
             id: t.id,
             name: t.name,
-            captainId: t.captainId,
             city: t.city || 'غير محدد',
             captainName: t.captainName || 'غير معروف',
             logo: t.logoUrl || t.logo || 'assets/images/team-placeholder.png',
@@ -195,7 +196,7 @@ export class TeamDetailPageComponent implements OnInit {
 
     loadInvitations(): void {
         if (this.canManageTeam()) {
-            this.teamRequestService.getRequestsForMyTeam().subscribe(requests => {
+            this.teamRequestService.getRequestsForMyTeam().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(requests => {
                 this.invitations.set(requests);
                 this.cd.markForCheck();
             });
@@ -215,13 +216,14 @@ export class TeamDetailPageComponent implements OnInit {
         this.isLoading.set(true);
 
         this.teamService.getTeamById(id).pipe(
+            takeUntilDestroyed(this.destroyRef),
             tap(data => {
                 if (data) {
                     this.teamStore.upsertTeam(data);
                     this.updateLayout(data);
                 }
             }),
-            switchMap(() => this.matchService.getMatchesByTeam(id)),
+            switchMap(() => this.matchService.getMatchesByTeam(id).pipe(takeUntilDestroyed(this.destroyRef))),
             tap(matches => {
                 matches.forEach(m => {
                     if (!this.matchStore.getMatchById(m.id)) this.matchStore.addMatch(m);
@@ -249,12 +251,12 @@ export class TeamDetailPageComponent implements OnInit {
             'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق وإلغاء عضوية جميع اللاعبين.',
             'حذف نهائي',
             'danger'
-        ).subscribe((confirmed: boolean) => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.teamService.deleteTeam(t.id).subscribe({
+                this.teamService.deleteTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: () => {
                         this.teamStore.removeTeam(t.id);
-                        this.authService.refreshUserProfile().subscribe();
+                        this.authService.refreshUserProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
                         this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
                         this.goToTeamsList();
                     },
@@ -270,7 +272,7 @@ export class TeamDetailPageComponent implements OnInit {
         const current = this.teamData();
         if (!current || !newName.trim()) return;
 
-        this.teamService.updateTeam({ id: current.id, name: newName } as Partial<Team>).subscribe({
+        this.teamService.updateTeam({ id: current.id, name: newName } as Partial<Team>).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (updated) => {
                 this.teamStore.upsertTeam(updated);
                 this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
@@ -283,7 +285,7 @@ export class TeamDetailPageComponent implements OnInit {
         const team = this.teamData();
         if (!team) return;
 
-        this.teamService.invitePlayerByDisplayId(team.id, displayId).subscribe({
+        this.teamService.invitePlayerByDisplayId(team.id, displayId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (response: { playerName: string }) => {
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
             },
@@ -299,7 +301,7 @@ export class TeamDetailPageComponent implements OnInit {
 
         switch (tab) {
             case 'players':
-                this.teamService.getTeamPlayers(current.id).subscribe(players => {
+                this.teamService.getTeamPlayers(current.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(players => {
                     const team = this.teamStore.getTeamById(current.id);
                     if (team) {
                         this.teamStore.updateTeam({ ...team, players });
@@ -307,7 +309,7 @@ export class TeamDetailPageComponent implements OnInit {
                 });
                 break;
             case 'matches':
-                this.matchService.getMatchesByTeam(current.id).subscribe(matches => {
+                this.matchService.getMatchesByTeam(current.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(matches => {
                     matches.forEach(m => {
                         if (this.matchStore.getMatchById(m.id)) {
                             this.matchStore.updateMatch(m);
@@ -328,7 +330,7 @@ export class TeamDetailPageComponent implements OnInit {
         const current = this.teamData();
         if (!current) return;
 
-        this.teamRequestService.respondToRequest(current.id, request.id, approve).subscribe({
+        this.teamRequestService.respondToRequest(current.id, request.id, approve).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.uiFeedback.success(approve ? 'تم القبول' : 'تم الرفض', 'تم تحديث حالة الطلب بنجاح');
                 // Refresh full team data to update player count and list
@@ -344,7 +346,7 @@ export class TeamDetailPageComponent implements OnInit {
         const t = this.teamData();
         if (!t) return;
 
-        this.teamService.disableTeam(t.id).subscribe({
+        this.teamService.disableTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
                 this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
                 this.loadInitialData(t.id);
@@ -371,7 +373,7 @@ export class TeamDetailPageComponent implements OnInit {
                 if (!t) return;
 
                 if (action === 'remove') {
-                    this.teamService.removePlayer(t.id, player.id.toString()).subscribe({
+                    this.teamService.removePlayer(t.id, player.id.toString()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                         next: () => {
                             this.uiFeedback.success('تم الحذف', 'تم إزالة اللاعب من الفريق');
                             this.loadInitialData(t.id);

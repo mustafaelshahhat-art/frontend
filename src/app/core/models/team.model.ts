@@ -17,6 +17,7 @@ export interface Player extends PlayerStats {
     number?: number;
     position?: string;
     status?: string;
+    teamRole?: 'Captain' | 'Member';
 }
 
 export interface JoinRequest {
@@ -45,7 +46,6 @@ export interface TeamRegistration {
 export interface Team {
     id: string;
     name: string;
-    captainId: string;
     captainName: string;
     founded: string;
     logo?: string;

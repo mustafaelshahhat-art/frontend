@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, no-restricted-syntax */
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject, NgZone, OnDestroy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
@@ -30,6 +31,7 @@ export class RealTimeUpdateService {
     private readonly matchStore = inject(MatchStore);
     private readonly teamStore = inject(TeamStore);
     private readonly userStore = inject(UserStore);
+    private readonly destroyRef = inject(DestroyRef);
 
 
     private hubConnection: signalR.HubConnection | null = null;
@@ -330,10 +332,10 @@ export class RealTimeUpdateService {
             this.uiFeedback.success('تم تفعيل حسابك', 'حسابك الآن نشط وجاهز للاستخدام.');
 
             // Critical fix: Automatic token refresh to update JWT status/role claims
-            this.authService.refreshToken().subscribe({
+            this.authService.refreshToken().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                 next: () => {
                     console.warn('JWT refreshed after account approval');
-                    this.authService.refreshUserProfile().subscribe();
+                    this.authService.refreshUserProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
                 },
                 error: () => this.authService.logout()
             });

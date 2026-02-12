@@ -25,6 +25,7 @@ export interface TeamPlayer {
     yellowCards: number;
     redCards: number;
     status: string;
+    teamRole?: 'Captain' | 'Member';
 }
 
 export interface TeamMatch {
@@ -62,7 +63,6 @@ export interface TeamStats {
 export interface TeamData {
     id: string;
     name: string;
-    captainId: string;
     city: string;
     captainName: string;
     logo: string;
@@ -81,7 +81,7 @@ export interface TeamData {
 @Component({
     selector: 'app-team-detail',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,

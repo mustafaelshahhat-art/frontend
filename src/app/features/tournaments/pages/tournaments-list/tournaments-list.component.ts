@@ -171,7 +171,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     isCaptain = computed(() => {
         const team = this.myTeam();
         const user = this.authService.getCurrentUser();
-        return team && user ? team.captainId === user.id : false;
+        return team && user ? team.players.some(p => p.userId === user.id && p.teamRole === 'Captain') : false;
     });
 
     // Check if user has a team (proxy for "Captain" UI section access)

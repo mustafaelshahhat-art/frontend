@@ -45,7 +45,7 @@ export class TeamStore {
   updateTeam(updatedTeam: Team): void {
     this.state.update(state => ({
       ...state,
-      teams: state.teams.map(team => 
+      teams: state.teams.map(team =>
         team.id === updatedTeam.id ? updatedTeam : team
       )
     }));
@@ -73,7 +73,9 @@ export class TeamStore {
     return this.teams().find(team => team.id === id);
   }
 
-  getTeamsByCaptain(captainId: string): Team[] {
-    return this.teams().filter(team => team.captainId === captainId);
+  getTeamsByCaptain(userId: string): Team[] {
+    return this.teams().filter(team =>
+      team.players && team.players.some(p => p.userId === userId && p.teamRole === 'Captain')
+    );
   }
 }
