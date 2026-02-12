@@ -34,20 +34,21 @@ import { TeamJoinRequest } from '../../../../core/models/team-request.model';
                 [team]="teamData()!"
                 [showBackButton]="true"
                 [backRoute]="backRoute()"
-                [canEditName]="canManageTeam()"
-                [canAddPlayers]="canManageTeam()"
-                [canRemovePlayers]="canManageTeam()"
-                [canManageStatus]="canManageGlobal()"
-                [canManageInvitations]="canManageTeam()"
-                [canDeleteTeam]="canManageGlobal() || isCaptain()"
-                [canSeeRequests]="canManageTeam() || canManageGlobal()"
+                [canEditName]="isCaptain()"
+                [canAddPlayers]="isCaptain()"
+                [canRemovePlayers]="isCaptain() || canManageAdmin()"
+                [canManageStatus]="canManageAdmin()"
+                [canManageInvitations]="isCaptain()"
+                [canDeleteTeam]="canManageAdmin() || isCaptain()"
+                [canSeeRequests]="isCaptain() || canManageAdmin()"
                 (playerAction)="handlePlayerAction($event)"
                 (editName)="handleEditName($event)"
                 (addPlayer)="handleAddPlayer($event)"
                 (tabChanged)="handleTabChange($event)"
                 (respondRequest)="handleRespondRequest($event)"
                 (deleteTeam)="handleDeleteTeam()"
-                (disableTeam)="handleDisableTeam()" />
+                (disableTeam)="handleDisableTeam()"
+                (activateTeam)="handleActivateTeam()" />
         }
 
         <!-- Only show centering spinner if we have NO data yet -->
@@ -94,11 +95,18 @@ export class TeamDetailPageComponent implements OnInit {
     isCaptain = computed(() => {
         const team = this.teamStore.getTeamById(this.teamId() || '');
         const user = this.authService.getCurrentUser();
-        return !!(team && user && team.players.some(p => p.id === user.id && p.teamRole === 'Captain'));
+        return !!(team && user && team.players.some(p =>
+            (p.userId === user.id || p.id === user.id) &&
+            ((p.teamRole as any) === 'Captain' || (p.teamRole as any) === 'captain')
+        ));
     });
 
     canManageTeam = computed(() => {
-        return this.isCaptain() || this.permissionsService.has(Permission.MANAGE_TEAMS);
+        return this.isCaptain();
+    });
+
+    canManageAdmin = computed(() => {
+        return this.permissionsService.has(Permission.MANAGE_TEAMS);
     });
 
     canManageGlobal = computed(() => {
@@ -108,7 +116,7 @@ export class TeamDetailPageComponent implements OnInit {
     backRoute = computed(() => {
         const prefix = this.navService.getRootPrefix();
         if (prefix === '/admin') return '/admin/teams';
-        return '/captain/matches'; // Default for captain/player context on team detail
+        return '/player/team-management';
     });
 
     // Computed Matches for this team (Real-Time Source of Truth)
@@ -208,7 +216,7 @@ export class TeamDetailPageComponent implements OnInit {
         if (prefix === '/admin') {
             this.navService.navigateTo('teams');
         } else {
-            this.navService.navigateTo('matches'); // Or team home
+            this.navService.navigateTo('team-management');
         }
     }
 
@@ -353,6 +361,21 @@ export class TeamDetailPageComponent implements OnInit {
             },
             error: () => {
                 this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
+            }
+        });
+    }
+
+    handleActivateTeam(): void {
+        const t = this.teamData();
+        if (!t) return;
+
+        this.teamService.activateTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم التفعيل', 'تم إعادة تفعيل الفريق بنجاح');
+                this.loadInitialData(t.id);
+            },
+            error: () => {
+                this.uiFeedback.error('خطأ', 'فشل في تفعيل الفريق');
             }
         });
     }

@@ -1,8 +1,14 @@
 <div class="select-wrapper" #selectRef [class.select-wrapper--open]="isOpen" [class.select-wrapper--disabled]="disabled"
     [class.select-wrapper--error]="error">
+    @if (label) {
+    <label class="select-label" [class.required]="required">{{ label }}</label>
+    }
     <div class="select-trigger" (click)="toggle()" (keyup.enter)="toggle()" tabindex="0"
         [class.has-value]="selectedValue !== null">
         <div class="select-content">
+            @if (icon) {
+            <app-icon [name]="icon" class="trigger-icon icon-sm"></app-icon>
+            }
             @if (!selectedValue) {
             <span class="placeholder">{{ placeholder }}</span>
             }

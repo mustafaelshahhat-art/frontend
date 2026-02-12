@@ -9,6 +9,7 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
+import { SelectComponent } from '../../../../shared/components/select/select.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 
 @Component({
@@ -20,7 +21,8 @@ import { LayoutOrchestratorService } from '../../../../core/services/layout-orch
         ReactiveFormsModule,
         ButtonComponent,
         CardComponent,
-        FormControlComponent
+        FormControlComponent,
+        SelectComponent
     ],
     templateUrl: './tournament-manage.component.html',
     styleUrls: ['./tournament-manage.component.scss'],
@@ -67,21 +69,21 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     });
 
     formats = [
-        { value: TournamentFormat.RoundRobin, label: 'دوري كامل (Round Robin)' },
-        { value: TournamentFormat.GroupsThenKnockout, label: 'مجموعات ثم إقصائيات' },
-        { value: TournamentFormat.KnockoutOnly, label: 'خروج المغلوب (Knockout)' },
-        { value: TournamentFormat.GroupsWithHomeAwayKnockout, label: 'مجموعات + إقصائيات ذهاب وعودة' }
+        { value: TournamentFormat.RoundRobin, label: 'دوري كامل (Round Robin)', icon: 'settings' },
+        { value: TournamentFormat.GroupsThenKnockout, label: 'مجموعات ثم إقصائيات', icon: 'grid_view' },
+        { value: TournamentFormat.KnockoutOnly, label: 'خروج المغلوب (Knockout)', icon: 'emoji_events' },
+        { value: TournamentFormat.GroupsWithHomeAwayKnockout, label: 'مجموعات + إقصائيات ذهاب وعودة', icon: 'event_repeat' }
     ];
 
     matchTypes = [
-        { value: TournamentLegType.SingleLeg, label: 'مباراة واحدة' },
-        { value: TournamentLegType.HomeAndAway, label: 'ذهاب وعودة' }
+        { value: TournamentLegType.SingleLeg, label: 'مباراة واحدة', icon: 'sports_soccer' },
+        { value: TournamentLegType.HomeAndAway, label: 'ذهاب وعودة', icon: 'sync' }
     ];
 
     seedingModes = [
-        { value: SeedingMode.ShuffleOnly, label: 'عشوائي بالكامل (Shuffle)' },
-        { value: SeedingMode.Manual, label: 'يدوي (قريباً)' }, // Placeholder
-        { value: SeedingMode.RankBased, label: 'حسب التصنيف' }
+        { value: SeedingMode.ShuffleOnly, label: 'عشوائي بالكامل (Shuffle)', icon: 'shuffle' },
+        { value: SeedingMode.Manual, label: 'يدوي (قريباً)', icon: 'edit' }, // Placeholder
+        { value: SeedingMode.RankBased, label: 'حسب التصنيف', icon: 'monitoring' }
     ];
 
     ngOnInit(): void {

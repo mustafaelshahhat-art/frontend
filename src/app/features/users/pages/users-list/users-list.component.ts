@@ -160,6 +160,8 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             result = result.filter(u => u.role === UserRole.ADMIN);
         } else if (type === 'players') {
             result = result.filter(u => u.role === UserRole.PLAYER);
+        } else if (type === 'creators') {
+            result = result.filter(u => u.role === UserRole.TOURNAMENT_CREATOR);
         }
 
         // Filter by status

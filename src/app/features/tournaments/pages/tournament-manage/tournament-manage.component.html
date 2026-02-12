@@ -39,12 +39,11 @@
                 <!-- Tournament System -->
                 <app-card title="نظام البطولة" class="form-section">
                     <div class="fields-grid">
-                        <app-form-control label="نظام البطولة" iconLeft="settings" type="select" [options]="formats"
-                            formControlName="format" [control]="tournamentForm.get('format')" />
+                        <app-select label="نظام البطولة" icon="settings" [options]="formats" formControlName="format"
+                            [required]="true" />
 
-                        <app-form-control label="نظام القرعة والتصنيف" iconLeft="shuffle" type="select"
-                            [options]="seedingModes" formControlName="seedingMode"
-                            [control]="tournamentForm.get('seedingMode')" />
+                        <app-select label="نظام القرعة والتصنيف" icon="shuffle" [options]="seedingModes"
+                            formControlName="seedingMode" [required]="true" />
 
                         <div class="checkbox-wrapper"
                             style="display: flex; align-items: center; gap: 10px; margin-top: 28px;">
@@ -53,9 +52,8 @@
                         </div>
 
                         <!-- Legacy MatchType kept if needed or can be hidden if IsHomeAwayEnabled replaces it for groups -->
-                        <app-form-control label="نوع المباريات (الافتراضي)" iconLeft="sports_soccer" type="select"
-                            [options]="matchTypes" formControlName="matchType"
-                            [control]="tournamentForm.get('matchType')" />
+                        <app-select label="نوع المباريات (الافتراضي)" icon="sports_soccer" [options]="matchTypes"
+                            formControlName="matchType" [required]="true" />
 
                         @if (tournamentForm.get('format')?.value === 'GroupsThenKnockout' ||
                         tournamentForm.get('format')?.value === 'GroupsWithHomeAwayKnockout') {

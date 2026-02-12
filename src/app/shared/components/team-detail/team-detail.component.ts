@@ -121,6 +121,7 @@ export class TeamDetailComponent implements OnChanges, OnInit {
     @Output() addPlayer = new EventEmitter<string>();
     @Output() deleteTeam = new EventEmitter<void>();
     @Output() disableTeam = new EventEmitter<void>();
+    @Output() activateTeam = new EventEmitter<void>();
     @Output() respondRequest = new EventEmitter<{ request: TeamJoinRequest, approve: boolean }>();
 
     @Input() canSeeRequests = false;
@@ -257,5 +258,9 @@ export class TeamDetailComponent implements OnChanges, OnInit {
 
     onDisableTeamClick(): void {
         this.disableTeam.emit();
+    }
+
+    onActivateTeamClick(): void {
+        this.activateTeam.emit();
     }
 }

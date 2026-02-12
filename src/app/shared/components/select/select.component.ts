@@ -37,9 +37,11 @@ export class SelectComponent implements ControlValueAccessor {
     }
     @Input() placeholder = 'اختر خياراً';
     @Input() label?: string;
+    @Input() icon?: string;
     @Input() disabled = false;
     @Input() loading = false;
     @Input() error?: string;
+    @Input() required = false;
 
     @Output() selectionChange = new EventEmitter<unknown>();
 

@@ -9,7 +9,7 @@ import { TournamentService } from '../../../../core/services/tournament.service'
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Group, BracketDto, TournamentFormat, BracketRound, TournamentStanding, MatchEventType } from '../../../../core/models/tournament.model';
-import { UserRole, UserStatus } from '../../../../core/models/user.model';
+import { UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { Permission } from '../../../../core/permissions/permissions.model';
@@ -198,6 +198,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     isUserPending = computed(() => {
         return this.authService.getCurrentUser()?.status === UserStatus.PENDING;
+    });
+
+    isCaptain = computed(() => {
+        const user = this.authService.getCurrentUser();
+        return user?.teamId && user?.teamRole === TeamRole.CAPTAIN;
     });
 
     groupedStandings = computed(() => {

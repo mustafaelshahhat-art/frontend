@@ -133,10 +133,15 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.uiFeedback.confirm(title, message, confirmText, !newStatus ? 'danger' : 'info').subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.teamService.updateTeam({ id: team.id, isActive: newStatus }).subscribe({
+                const action$ = !newStatus
+                    ? this.teamService.disableTeam(team.id)
+                    : this.teamService.activateTeam(team.id);
+
+                action$.subscribe({
                     next: () => {
                         this.uiFeedback.success('تم التحديث', `تم ${newStatus ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
-                        // Store update happens via RealTime 'TeamUpdated' event automatically
+                        // Refresh to sync state
+                        this.loadTeams();
                     },
                     error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الفريق')
                 });

@@ -29,7 +29,14 @@
                     <div class="form-group grid-col-span-2">
                         <app-form-control label="الاسم رباعي" name="name" [ngModel]="form.name()"
                             (ngModelChange)="form.name.set($event)" required
-                            placeholder="أدخل اسمك بالكامل كما في البطاقة" />
+                            placeholder="أدخل اسمك بالكامل كما في البطاقة" autocomplete="name" iconLeft="person" />
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <app-form-control label="رقم الهاتف" type="tel" name="phone" [ngModel]="form.phone()"
+                            (ngModelChange)="form.phone.set($event)" required placeholder="05xxxxxxxx" iconLeft="phone"
+                            autocomplete="tel" />
                     </div>
 
                     <!-- Email -->
@@ -39,23 +46,17 @@
                             iconLeft="mail" />
                     </div>
 
-                    <!-- Phone -->
+                    <!-- National ID -->
                     <div class="form-group">
-                        <app-form-control label="رقم الهاتف" type="tel" name="phone" [ngModel]="form.phone()"
-                            (ngModelChange)="form.phone.set($event)" required placeholder="05xxxxxxxx" iconLeft="phone" />
+                        <app-form-control label="الرقم القومي" type="text" name="nationalId"
+                            [ngModel]="form.nationalId()" (ngModelChange)="form.nationalId.set($event)" required
+                            placeholder="14 رقم" iconLeft="badge" autocomplete="off" />
                     </div>
 
                     <!-- Age -->
                     <div class="form-group">
                         <app-form-control label="العمر" type="number" name="age" [ngModel]="form.age()"
-                            (ngModelChange)="form.age.set($event)" required placeholder="سنوات" />
-                    </div>
-
-                    <!-- National ID -->
-                    <div class="form-group">
-                        <app-form-control label="الرقم القومي" type="text" name="nationalId"
-                            [ngModel]="form.nationalId()" (ngModelChange)="form.nationalId.set($event)" required
-                            placeholder="14 رقم" iconLeft="badge" />
+                            (ngModelChange)="form.age.set($event)" required placeholder="سنوات" iconLeft="history" />
                     </div>
 
                     <!-- Governorate -->
@@ -86,14 +87,14 @@
                     <div class="form-group">
                         <app-form-control label="كلمة المرور" type="password" name="password"
                             [ngModel]="form.password()" (ngModelChange)="form.password.set($event)"
-                            placeholder="••••••••" iconLeft="lock" required />
+                            placeholder="••••••••" required />
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="form-group">
                         <app-form-control label="تأكيد كلمة المرور" type="password" name="confirmPassword"
                             [ngModel]="form.confirmPassword()" (ngModelChange)="form.confirmPassword.set($event)"
-                            placeholder="••••••••" iconLeft="lock" required />
+                            placeholder="••••••••" required autocomplete="new-password" />
                     </div>
                 </div>
 
@@ -113,7 +114,7 @@
                         (keyup.enter)="backInput.click()" tabindex="0">
                         <input type="file" #backInput hidden (change)="onFileChange($event, 'idBack')" accept="image/*">
                         <app-icon [name]=" form.idBack() ? 'check_circle' :
-                            'contact_page' " class="file-upload-icon icon-sm"></app-icon>
+                            'badge' " class="file-upload-icon icon-sm"></app-icon>
                         <p class="file-upload-text">{{ form.idBack() ? 'تم رفع الوجه الخلفي' : 'صورة الوجه الخلفي' }}
                         </p>
                     </div>

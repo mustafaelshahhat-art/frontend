@@ -18,7 +18,7 @@ import { KebabCasePipe } from '../../../../shared/pipes/kebab-case.pipe';
 @Component({
     selector: 'app-tournament-card',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         RouterModule,
         BadgeComponent,
@@ -92,7 +92,7 @@ export class TournamentCardComponent {
     getPhaseIcon(): string {
         switch (this.tournament.status) {
             case TournamentStatus.REGISTRATION_OPEN:
-                return 'how_to_reg';
+                return 'person_add';
             case TournamentStatus.REGISTRATION_CLOSED:
                 return 'lock';
             case TournamentStatus.ACTIVE:

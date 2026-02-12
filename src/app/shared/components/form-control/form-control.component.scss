@@ -90,9 +90,9 @@
     padding-left: var(--space-13);
 }
 
-/* Password fields may show icons on the left side. */
+/* Double icons on the left (Password toggle + Primary icon) */
 .has-icon-left.has-icon-right .form-input {
-    padding-left: var(--space-13);
+    padding-left: var(--space-20);
     padding-right: var(--space-4);
 }
 
@@ -113,15 +113,15 @@
         right: auto;
     }
 
-    /* icon-right also on the left for password fields */
-    &.icon-right {
-        left: var(--space-4);
-        right: auto;
-    }
-
+    /* Action icons (password toggle) pushed further left if primary icon exists */
     &.clickable {
         pointer-events: auto;
         cursor: pointer;
+        left: var(--space-4);
+
+        .has-icon-left & {
+            left: var(--space-12);
+        }
 
         &:hover {
             color: var(--color-primary);
@@ -179,7 +179,7 @@
         border-radius: var(--radius-sm);
     }
 
-    
+
 }
 
 .textarea-control {

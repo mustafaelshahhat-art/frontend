@@ -21,9 +21,9 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 export class PlayerLayoutComponent extends BaseLayout {
     get navItems(): NavItem[] {
         const items: NavItem[] = [
-            { label: 'إدارة الفريق', icon: 'groups', route: '/player/team-management' },
-            { label: 'المباريات', icon: 'sports_soccer', route: '/player/matches' },
-            { label: 'البطولات', icon: 'emoji_events', route: '/player/tournaments' },
+            { label: 'إدارة الفريق', icon: 'groups', route: '/player/team-management', exact: false },
+            { label: 'المباريات', icon: 'sports_soccer', route: '/player/matches', exact: false },
+            { label: 'البطولات', icon: 'emoji_events', route: '/player/tournaments', exact: false },
 
             { label: 'الإشعارات', icon: 'notifications', route: '/player/notifications' },
             { label: 'الحساب الشخصي', icon: 'person', route: '/player/profile' }

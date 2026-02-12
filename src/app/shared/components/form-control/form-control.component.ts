@@ -22,6 +22,7 @@ let uniqueId = 0;
 })
 export class FormControlComponent implements ControlValueAccessor {
     @Input() id = `form-control-${uniqueId++}`;
+    @Input() name?: string;
     @Input() label?: string;
     @Input() error?: string;
     @Input() hint?: string;
@@ -39,6 +40,7 @@ export class FormControlComponent implements ControlValueAccessor {
     @Input() disabled = false;
     @Input() min?: number | string;
     @Input() options?: { value: any, label: string }[] = [];
+    @Input() autocomplete: string | null = null;
 
     // Password visibility toggle state
     passwordVisible = false;

@@ -23,8 +23,8 @@
       <!-- Navigation Links -->
       <nav class="sidebar-nav">
         @for (item of navItems; track item) {
-        <a [routerLink]="item.route" routerLinkActive="active" #rla="routerLinkActive" (click)="handleClose()"
-          class="sidebar-nav-item">
+        <a [routerLink]="item.route" [routerLinkActiveOptions]="{exact: item.exact ?? true}" routerLinkActive="active"
+          #rla="routerLinkActive" (click)="handleClose()" class="sidebar-nav-item">
           <app-icon [name]=" item.icon " class="sidebar-nav-icon icon-sm"></app-icon>
           <span class="sidebar-nav-label">{{ item.label }}</span>
         </a>

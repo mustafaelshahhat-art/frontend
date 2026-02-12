@@ -162,6 +162,23 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             });
         });
+
+
+        // Reactive effect: Update Layout Action Button based on User Status
+        effect(() => {
+            const isPending = this.isUserPending();
+
+            // Use untracked to avoid circular dependency if setActionHandler reads signals (it doesn't, but good practice)
+            untracked(() => {
+                if (isPending) {
+                    // Hide the button if user is pending
+                    this.layoutOrchestrator.setActionHandler(null);
+                } else {
+                    // Show the button if user is NOT pending
+                    this.layoutOrchestrator.setActionHandler(() => this.openCreateTeamModal(), 'إنشاء فريق', 'add');
+                }
+            });
+        });
     }
 
     private subscriptions = new Subscription();
@@ -233,10 +250,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.layoutOrchestrator.setTitle('فريقي');
         this.layoutOrchestrator.setSubtitle('إدارة فرقك والانضمام إلى فرق أخرى');
 
-        // Use actionHandler directly instead of template to avoid OnPush change detection issues
-        setTimeout(() => {
-            this.layoutOrchestrator.setActionHandler(() => this.openCreateTeamModal(), 'إنشاء فريق', 'add');
-        });
+
     }
 
     ngOnDestroy(): void {
@@ -391,8 +405,8 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     navigateToTeamDetail(teamId: string): void {
-        // SPA navigation to team detail page
-        this.navService.navigateTo(['team', teamId]);
+        // SPA navigation to team detail page (now under team-management)
+        this.navService.navigateTo(['team-management', teamId]);
     }
 
     selectTeam(team: Team): void {

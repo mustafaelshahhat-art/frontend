@@ -1,3 +1,8 @@
+:host {
+    display: block;
+    overflow: hidden;
+}
+
 .smart-image-container {
     position: relative;
     overflow: hidden;
@@ -27,7 +32,7 @@
         width: var(--space-6);
         height: var(--space-6);
 
-        
+
 
         .initials {
             font-size: var(--text-2xs);
@@ -38,7 +43,7 @@
         width: var(--space-10);
         height: var(--space-10);
 
-        
+
 
         .initials {
             font-size: var(--text-sm);
@@ -49,7 +54,7 @@
         width: var(--space-16);
         height: var(--space-16);
 
-        
+
 
         .initials {
             font-size: var(--text-lg);
@@ -60,7 +65,7 @@
         width: var(--space-30);
         height: var(--space-30);
 
-        
+
 
         .initials {
             font-size: var(--text-3xl);
@@ -68,10 +73,10 @@
     }
 
     &.xl {
-        width: var(--space-50);
-        height: var(--space-50);
+        width: var(--height-avatar-2xl, 7.5rem);
+        height: var(--height-avatar-2xl, 7.5rem);
 
-        
+
 
         .initials {
             font-size: var(--text-4xl);
@@ -121,7 +126,7 @@
             align-items: center;
             gap: var(--space-1);
 
-            
+
 
             .initials {
                 font-weight: var(--font-bold);

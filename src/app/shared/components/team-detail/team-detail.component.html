@@ -49,6 +49,11 @@
                         <app-button (click)="onDisableTeamClick()" variant="danger" size="sm" icon="block"
                             class="ms-auto">تعطيل الفريق</app-button>
                         }
+
+                        @if (canManageStatus && !team.isActive) {
+                        <app-button (click)="onActivateTeamClick()" variant="primary" size="sm" icon="check_circle"
+                            class="ms-auto">إعادة تفعيل الفريق</app-button>
+                        }
                     </div>
 
                     <div class="flex items-center gap-lg flex-wrap mobile-center">

@@ -12,7 +12,7 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
 @Component({
     selector: 'app-verify-email',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         ReactiveFormsModule,
         RouterLink,
@@ -121,7 +121,7 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
             input.value = numValue;
 
             if (numValue && index < 5) {
-                const nextInput = document.getElementById(`digit - ${index + 1} `);
+                const nextInput = document.getElementById(`digit-${index + 1}`);
                 nextInput?.focus();
             }
         }
@@ -131,7 +131,7 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
 
     onKeyDown(event: KeyboardEvent, index: number): void {
         if (event.key === 'Backspace' && !this.verifyForm.get(this.otpDigits[index])?.value && index > 0) {
-            const prevInput = document.getElementById(`digit - ${index - 1} `);
+            const prevInput = document.getElementById(`digit-${index - 1}`);
             prevInput?.focus();
         }
     }
@@ -144,6 +144,11 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
             this.otpDigits.forEach((key, i) => {
                 this.verifyForm.get(key)?.setValue(digits[i]);
             });
+
+            // Focus on the last digit after pasting
+            const lastInput = document.getElementById(`digit-5`);
+            lastInput?.focus();
+
             this.checkAndSubmit();
         }
     }

@@ -91,7 +91,9 @@ export class LoginComponent implements OnInit, AfterViewInit {
                 error: (error) => {
                     this.isLoading.set(false);
 
-                    if (error.code === 'EMAIL_NOT_VERIFIED') {
+                    // Check error.error.code because HttpClient returns HttpErrorResponse
+                    // where the actual backend JSON body is in the 'error' property.
+                    if (error.error?.code === 'EMAIL_NOT_VERIFIED') {
                         // Redirect to verify-email with the obfuscated email
                         const email = this.loginForm.value.email?.trim();
                         const encodedEmail = btoa(email);

@@ -17,13 +17,18 @@ export const playerRoutes: Routes = [
             // ─── Player/Captain Specific ─────────────────────
             {
                 path: 'team-management',
-                loadComponent: () => import('../teams/pages/my-teams/my-teams.component').then(m => m.MyTeamsComponent),
-                data: { breadcrumb: 'إدارة الفريق', icon: 'groups' }
-            },
-            {
-                path: 'team/:id',
-                loadComponent: () => import('../teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailPageComponent),
-                data: { breadcrumb: 'تفاصيل الفريق' }
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () => import('../teams/pages/my-teams/my-teams.component').then(m => m.MyTeamsComponent),
+                        data: { breadcrumb: 'إدارة الفريق', icon: 'groups' }
+                    },
+                    {
+                        path: ':id',
+                        loadComponent: () => import('../teams/pages/team-detail/team-detail.component').then(m => m.TeamDetailPageComponent),
+                        data: { breadcrumb: 'تفاصيل الفريق' }
+                    }
+                ]
             },
 
             // ─── Shared feature routes ───────────────────────

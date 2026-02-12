@@ -42,7 +42,6 @@ export enum RegistrationStatus {
 export interface TeamRegistration {
     teamId: string;
     teamName: string;
-    captainId: string;
     captainName: string;
     status: RegistrationStatus;
     paymentReceiptUrl?: string;  // URL to payment receipt image
@@ -164,7 +163,6 @@ export interface Goal {
 export interface Team {
     id: string;
     name: string;
-    captainId: string;
     captainName: string;
     logoUrl?: string;
     players: Player[];

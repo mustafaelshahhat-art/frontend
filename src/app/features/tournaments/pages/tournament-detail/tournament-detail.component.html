@@ -110,7 +110,7 @@
                         <div *appHasPermission="Permission.REGISTER_TOURNAMENT">
                             @if (t.status === TournamentStatus.REGISTRATION_OPEN) {
                             <div class="captain-actions-container">
-                                @if (!isRegistered()) {
+                                @if (!isRegistered() && isCaptain()) {
                                 <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
                                     (click)="registerTeam()" [disabled]="isUserPending() || isBusyElsewhere"
                                     [title]="isUserPending() ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">

@@ -10,6 +10,23 @@
     }
 }
 
+.select-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-right: var(--space-1);
+
+    &.required::after {
+        content: '*';
+        color: var(--color-danger);
+        margin-right: var(--space-1);
+    }
+}
+
 .select-trigger {
     background: var(--border-color-light);
     border: 1px solid var(--border-visible);
@@ -44,7 +61,15 @@
 
 .select-content {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     text-align: right;
+}
+
+.trigger-icon {
+    color: var(--color-primary);
+    opacity: 0.9;
 }
 
 .placeholder {

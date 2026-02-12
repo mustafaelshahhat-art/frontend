@@ -365,12 +365,13 @@ export class RealTimeUpdateService {
                     return registration;
                 }
 
+                const captain = (team.players || []).find((p: any) => p.teamRole === 'Captain');
+
                 return {
                     ...registration,
                     teamName: team.name,
                     teamLogoUrl: team.logoUrl || team.logo,
-                    captainId: team.captainId,
-                    captainName: team.captainName
+                    captainName: captain?.name || team.captainName || ''
                 };
             });
 
