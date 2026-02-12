@@ -11,6 +11,8 @@ import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistrat
 import { UserRole, UserStatus } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
+import { Permission } from '../../../../core/permissions/permissions.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -20,12 +22,9 @@ import { MatchCardComponent } from '../../../../shared/components/match-card/mat
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
-import { ObjectionModalComponent } from '../../../matches/components/objection-modal/objection-modal.component';
 import { KnockoutBracketComponent } from '../../components/knockout-bracket/knockout-bracket.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
-import { Permission } from '../../../../core/permissions/permissions.model';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
-import { PermissionsService } from '../../../../core/services/permissions.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
@@ -44,7 +43,6 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
         EmptyStateComponent,
         SmartImageComponent,
         TeamRegistrationModalComponent,
-        ObjectionModalComponent,
         TableComponent,
         KnockoutBracketComponent,
         HasPermissionDirective
@@ -59,11 +57,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     private tournamentService = inject(TournamentService);
     private matchService = inject(MatchService);
     private authService = inject(AuthService);
+    private permissionsService = inject(PermissionsService);
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
     private tournamentStore: TournamentStore = inject(TournamentStore);
     private matchStore: MatchStore = inject(MatchStore);
-    private permissionsService = inject(PermissionsService);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
 
@@ -96,7 +94,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     // UI State Signals
     activeTab = signal<string>('info');
     activeMatch = signal<Match | null>(null);
-    showObjectionModal = signal<boolean>(false);
     isGeneratingMatches = signal<boolean>(false);
 
     // Additional Properties
@@ -172,8 +169,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     canGenerateMatches = computed(() => {
         const t = this.tournament();
         const matches = this.tournamentMatches();
-        // The manual generate button appears ONLY if auto-generation failed (Intervention required)
-        return this.isAdmin() &&
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
             t?.requiresAdminIntervention &&
             (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
             matches.length === 0;
@@ -182,9 +178,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     canEditTournament = computed(() => {
         const t = this.tournament();
         const matches = this.tournamentMatches();
-        // Edit is allowed ONLY before registration is closed OR matches are generated
-        // Status must be draft or registration_open
-        return this.isAdmin() &&
+        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
             (t?.status === TournamentStatus.DRAFT || t?.status === TournamentStatus.REGISTRATION_OPEN) &&
             matches.length === 0;
     });
@@ -268,17 +263,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     ngOnDestroy(): void {
         this.layoutOrchestrator.reset();
-    }
-
-    isAdmin(): boolean {
-        const role = this.authService.getCurrentUser()?.role;
-        return role === UserRole.ADMIN || role === UserRole.TOURNAMENT_CREATOR;
-    }
-
-    isCaptain(): boolean {
-        // UserRole.CAPTAIN does not exist, check isTeamOwner flag
-        const user = this.authService.getCurrentUser();
-        return !!user?.isTeamOwner;
     }
 
     updateLayout(): void {
@@ -375,18 +359,18 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         const prefix = this.navService.getRootPrefix();
         if (prefix === '/admin') {
             this.navService.navigateTo('tournaments');
-        } else if (prefix === '/captain') {
-            this.navService.navigateTo('championships');
+        } else if (prefix === '/creator') {
+            this.navService.navigateTo('tournaments');
         } else {
-            this.router.navigate(['/']);
+            this.router.navigate(['/player/tournaments']);
         }
     }
 
     getBackRoute(): string {
         const prefix = this.navService.getRootPrefix();
         if (prefix === '/admin') return `${prefix}/tournaments`;
-        if (prefix === '/captain') return `${prefix}/championships`;
-        return '/';
+        if (prefix === '/creator') return `${prefix}/tournaments`;
+        return '/player/tournaments';
     }
 
     getStatusLabel(status: TournamentStatus | undefined): string {
@@ -430,11 +414,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         return (t.currentTeams / t.maxTeams) * 100;
     }
 
-    // Registration Modal
-    // Replaced by shared component
     isRegisterModalVisible = false;
 
-    // Modal Actions
     openRegisterModal(): void {
         this.isRegisterModalVisible = true;
     }
@@ -445,14 +426,12 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     onRegistrationSuccess(): void {
         this.closeRegisterModal();
-        // Tournament updated via RealTime event
     }
 
-    // Admin actions
     editTournament(): void {
         const t = this.tournament();
         if (t) {
-            this.navService.navigateTo(['tournaments/edit', t.id]);
+            this.navService.navigateTo(['tournaments', 'edit', t.id]);
         }
     }
 
@@ -490,12 +469,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.isLoading.set(true);
 
         if (t.status === TournamentStatus.REGISTRATION_OPEN) {
-            // Closing Registration - Use dedicated endpoint
             this.tournamentService.closeRegistration(t.id).subscribe({
                 next: (updatedTournament) => {
-                    // Update store manually or wait for event?
-                    // Ideally generic update event.
-                    // For responsiveness, manual update:
                     this.tournamentStore.updateTournament(updatedTournament);
                     this.isLoading.set(false);
                     this.uiFeedback.success('تم التحديث', 'تم إغلاق التسجيل بنجاح');
@@ -508,7 +483,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 }
             });
         } else {
-            // Re-opening or other status change - Use generic update
             const newStatus = TournamentStatus.REGISTRATION_OPEN;
             this.tournamentService.updateTournament(t.id, { status: newStatus }).subscribe({
                 next: (updatedTournament) => {
@@ -526,7 +500,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
     }
 
-    // Captain actions
     registerTeam(): void {
         const t = this.tournament();
         if (t) {
@@ -534,27 +507,19 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
     }
 
-    // Navigation
     checkGlobalBusyStatus(): void {
         const user = this.authService.getCurrentUser();
         if (!user?.teamId) return;
 
-        const store = this.tournamentStore as unknown as { tournaments: () => { id: string, registrations: TeamRegistration[] }[] };
-        // Check if tournaments signal actually exists, otherwise skip this logic or fetch if needed
-        // Assuming tournamentStore tracks all loaded tournaments
-        // If not accessible properly, we might default to false or rely on backend check
-
-        // Fix for type safety if tournaments() not explicitly public? 
-        // Assuming it's fine for now or I should check the store definition
-        // Just keeping previous logic structure but handling potential missing method
+        const store = this.tournamentStore as any;
         try {
             const allTournaments = store.tournaments();
             const t = this.tournament();
 
             if (allTournaments.length > 0 && t) {
-                this.isBusyElsewhere = allTournaments.some((other) =>
+                this.isBusyElsewhere = allTournaments.some((other: any) =>
                     other.id !== t.id &&
-                    other.registrations?.some((r) => r.teamId === user.teamId && r.status !== RegistrationStatus.REJECTED)
+                    other.registrations?.some((r: any) => r.teamId === user.teamId && r.status !== RegistrationStatus.REJECTED)
                 );
             }
         } catch (e) {
@@ -579,7 +544,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                         if (updatedTournament) {
                             this.tournamentStore.upsertTournament(updatedTournament);
                         } else {
-                            // Fallback if no data returned
                             this.loadInitialData(t.id);
                         }
                         this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${teamName} بنجاح`);
@@ -596,7 +560,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         });
     }
 
-    // New action methods for match cards
     viewMatch(matchId: string): void {
         this.navService.navigateTo(['matches', matchId]);
     }
@@ -609,18 +572,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.navService.navigateTo(['matches', match.id]);
     }
 
-    submitObjection(matchId: string): void {
-        const match = this.tournamentMatches().find((m: Match) => m.id === matchId);
-        if (match) {
-            this.activeMatch.set(match);
-            this.showObjectionModal.set(true);
-            this.cdr.detectChanges();
-        }
-    }
 
-    canSubmitObjection(status: MatchStatus): boolean {
-        return this.permissionsService.canSubmitObjection(status);
-    }
 
     emergencyStart(): void {
         const t = this.tournament();

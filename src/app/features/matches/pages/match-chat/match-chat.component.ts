@@ -4,7 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
-import { User, UserRole } from '../../../../core/models/user.model';
+import { User, UserRole, TeamRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -12,12 +12,14 @@ import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/
 import { ChatService } from '../../../../core/services/chat.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { PermissionsService } from '../../../../core/services/permissions.service';
 import { Match, MatchStatus } from '../../../../core/models/tournament.model';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 
 export enum ChatParticipantRole {
     CAPTAIN = 'captain',
     PLAYER = 'player',
-
     ADMIN = 'admin'
 }
 
@@ -40,11 +42,6 @@ interface ChatParticipant {
     isOnline: boolean;
 }
 
-
-
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
-
 @Component({
     selector: 'app-match-chat',
     standalone: true,
@@ -65,6 +62,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private notificationService = inject(NotificationService);
     private cdr = inject(ChangeDetectorRef);
     private navService = inject(ContextNavigationService);
+    private permissionsService = inject(PermissionsService);
 
     ChatParticipantRole = ChatParticipantRole;
 
@@ -142,7 +140,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const userId = this.currentUser.id;
         const userRole = this.currentUser.role;
 
         // Admin can access all chats
@@ -150,8 +147,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             this.isAuthorized = true;
             return;
         }
-
-
 
         // Captain or Player of one of the teams
         if (this.currentUser.teamId === this.match.homeTeamId || this.currentUser.teamId === this.match.awayTeamId) {
@@ -167,7 +162,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
         // Populate from match data
         this.participants = [
-
             {
                 id: 'system-admin',
                 name: 'الـمشرف',
@@ -194,8 +188,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         ];
     }
 
-
-
     isMe(msg: ChatMessage): boolean {
         return msg.senderId === this.currentUser?.id;
     }
@@ -203,13 +195,11 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     getCurrentUserRole(): ChatParticipantRole {
         if (!this.currentUser) return ChatParticipantRole.PLAYER;
 
-        switch (this.currentUser.role) {
-            case UserRole.ADMIN: return ChatParticipantRole.ADMIN;
+        if (this.currentUser.role === UserRole.ADMIN) return ChatParticipantRole.ADMIN;
 
-            case UserRole.PLAYER:
-                return this.currentUser.isTeamOwner ? ChatParticipantRole.CAPTAIN : ChatParticipantRole.PLAYER;
-            default: return ChatParticipantRole.PLAYER;
-        }
+        if (this.permissionsService.isTeamCaptain()) return ChatParticipantRole.CAPTAIN;
+
+        return ChatParticipantRole.PLAYER;
     }
 
     getRoleLabel(role: ChatParticipantRole): string {
@@ -217,7 +207,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             case ChatParticipantRole.ADMIN: return 'مشرف';
             case ChatParticipantRole.CAPTAIN: return 'قائد';
             case ChatParticipantRole.PLAYER: return 'لاعب';
-
             default: return '';
         }
     }
@@ -227,7 +216,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             case ChatParticipantRole.ADMIN: return 'badge-danger';
             case ChatParticipantRole.CAPTAIN: return 'badge-gold';
             case ChatParticipantRole.PLAYER: return 'badge-primary';
-
             default: return 'badge-muted';
         }
     }
@@ -254,8 +242,6 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     toggleParticipants(): void {
         this.showParticipants = !this.showParticipants;
     }
-
-
 
     getAdmin(): ChatParticipant | undefined {
         return this.participants.find(p => p.role === ChatParticipantRole.ADMIN);
@@ -386,4 +372,3 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         return !!(this.match?.scheduledDate && this.match?.scheduledTime);
     }
 }
-

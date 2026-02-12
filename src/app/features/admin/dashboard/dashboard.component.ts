@@ -1,7 +1,7 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminLayoutService } from '../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { Router } from '@angular/router';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 import { ActionCardComponent } from '../../../shared/components/action-card/action-card.component';
@@ -50,7 +50,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private readonly userStore = inject(UserStore);
     private readonly activityStore = inject(ActivityStore);
     private readonly authStore = inject(AuthStore);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly adminLayout = inject(LayoutOrchestratorService);
     protected readonly permissionsService = inject(PermissionsService);
     protected readonly Permission = Permission;
 
@@ -69,8 +69,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             { label: 'نشاط الدخول اليوم', value: loginsCount.toString(), icon: 'login', colorClass: 'success', route: '/admin/activity-log' },
             { label: 'البطولات النشطة', value: tournaments.length.toString(), icon: 'emoji_events', colorClass: 'primary', route: '/admin/tournaments' },
             { label: 'المباريات اليوم', value: matches.length.toString(), icon: 'sports_soccer', colorClass: 'gold', route: '/admin/matches' },
-            { label: 'المباريات الحية', value: liveMatches.length.toString(), icon: 'sensors', colorClass: 'danger', route: '/admin/matches' },
-            { label: 'اعتراضات معلقة', value: '0', icon: 'report_problem', colorClass: 'danger', route: '/admin/objections' }
+            { label: 'المباريات الحية', value: liveMatches.length.toString(), icon: 'sensors', colorClass: 'danger', route: '/admin/matches' }
         ];
     });
 

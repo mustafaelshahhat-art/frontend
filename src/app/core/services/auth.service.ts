@@ -122,27 +122,22 @@ export class AuthService {
         }
     }
 
-    hasRole(role: string): boolean {
-        const user = this.getCurrentUser();
-        return user?.role === role;
-    }
-
     /**
-     * Determines if the current user is the owner (Captain) of the given team.
-     * CAPTAIN = a PLAYER who OWNS a team (user.Id == team.CaptainId)
+     * Determines if the current user is a Captain.
      */
-    isTeamOwner(team: Team | null | undefined): boolean {
+    isCaptain(): boolean {
         const user = this.getCurrentUser();
-        if (!user || !team) return false;
-        return team.captainId === user.id;
+        return user?.teamRole === 'Captain';
     }
 
     /**
      * Determines if the current user can register a team in a tournament.
-     * ONLY the team owner (PLAYER) can register the team.
+     * ONLY the team owner (PLAYER Captain) can register the team.
      */
-    canRegisterTournament(team: Team | null | undefined): boolean {
-        return this.isTeamOwner(team);
+    canRegisterTournament(team: any): boolean {
+        const user = this.getCurrentUser();
+        if (!user || !team) return false;
+        return user.teamRole === 'Captain' && team.id === user.teamId;
     }
 
     hasAnyRole(roles: string[]): boolean {
@@ -188,7 +183,7 @@ export class AuthService {
         const user = this.getCurrentUser();
         if (!user) return;
 
-        const updatedUser = { ...user, teamId: undefined, isTeamOwner: false };
+        const updatedUser = { ...user, teamId: undefined, teamRole: undefined };
         this.updateCurrentUser(updatedUser);
     }
 

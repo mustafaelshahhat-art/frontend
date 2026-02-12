@@ -17,7 +17,7 @@ export class ContextNavigationService {
 
         // We expect the first or second segment to be one of our roles
         // URL format is usually /admin/... or /...
-        const roles = ['admin', 'captain', 'player'];
+        const roles = ['admin', 'creator', 'player'];
 
         // Check for the first non-empty segment
         const role = segments.find(s => roles.includes(s));

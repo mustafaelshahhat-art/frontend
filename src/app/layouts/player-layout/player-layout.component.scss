@@ -1,0 +1,46 @@
+.app-layout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: margin-right 0.3s ease;
+    background: transparent;
+
+    &.mr-sidebar {
+        margin-right: var(--width-sidebar);
+    }
+}
+
+.app-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+    background: transparent;
+
+    @media (max-width: 768px) {
+        padding: var(--spacing-md);
+    }
+}
+
+.page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+}

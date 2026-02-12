@@ -35,7 +35,7 @@
     <!-- Bottom Section -->
     <div class="sidebar-footer">
       <!-- User Profile Card -->
-      <a class="sidebar-profile hover-lift" [routerLink]="getProfileRoute()" (click)="isMobile && handleClose()"
+      <a class="sidebar-profile hover-lift" [routerLink]="profileRouteValue" (click)="isMobile && handleClose()"
         (keydown.enter)="isMobile && handleClose()"
         (keydown.space)="$event.preventDefault(); isMobile && handleClose()">
         <div class="sidebar-profile-avatar-wrapper">

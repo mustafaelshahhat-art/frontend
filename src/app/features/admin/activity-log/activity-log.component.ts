@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -29,7 +29,7 @@ import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
 export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly analyticsService = inject(AnalyticsService);
     private readonly cdr = inject(ChangeDetectorRef);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly adminLayout = inject(LayoutOrchestratorService);
 
     logs: Activity[] = [];
     isLoading = true;
@@ -41,7 +41,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         { label: 'الفرق', value: 'team' },
         { label: 'البطولات', value: 'tournament' },
         { label: 'المباريات', value: 'match' },
-        { label: 'الاعتراضات', value: 'objection' },
+
         { label: 'الدفع', value: 'payment' }
     ];
     currentFilter = 'all';
@@ -119,7 +119,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         // Critical / Danger
         if (t.includes('inactive') || t.includes('disabled') || t.includes('deactivated') ||
             t.includes('cancelled') || t.includes('removed') || t.includes('deleted') ||
-            t.includes('rejected') || t.includes('objection')) return 'danger';
+            t.includes('rejected')) return 'danger';
 
         // Success
         if (t.includes('active') || t.includes('activated') || t.includes('approved') ||
@@ -140,7 +140,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         if (t.includes('TEAM')) return 'فريق';
         if (t.includes('TOURNAMENT')) return 'بطولة';
         if (t.includes('MATCH')) return 'مباراة';
-        if (t.includes('OBJECTION')) return 'اعتراض';
+
         if (t.includes('PAYMENT')) return 'دفع';
 
         // Legacy Fallback (Arabic or lowercase)

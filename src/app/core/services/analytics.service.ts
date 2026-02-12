@@ -8,7 +8,6 @@ export interface DashboardStats {
     totalTeams: number;
     activeTournaments: number;
     matchesToday: number;
-    pendingObjections: number;
     totalGoals: number;
     loginsToday: number;
 }
@@ -47,7 +46,7 @@ export class AnalyticsService {
                     totalTeams: d.totalTeams,
                     activeTournaments: d.activeTournaments,
                     matchesToday: d.matchesToday,
-                    pendingObjections: d.pendingObjections,
+
                     totalGoals: d.totalGoals,
                     loginsToday: d.loginsToday
                 };

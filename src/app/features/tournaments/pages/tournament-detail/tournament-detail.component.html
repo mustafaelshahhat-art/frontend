@@ -362,38 +362,25 @@
                             </app-button>
 
                             <!-- Captain/Player Actions -->
-                            <div *appHasPermission="Permission.CREATE_OBJECTION">
-                                <div class="player-actions">
-                                    <button class="action-btn details-btn items-center justify-center"
-                                        (click)="$event.stopPropagation(); viewMatch(match.id)">
-                                        <app-icon name="info" class=" icon-sm"></app-icon>
-                                        <span>التفاصيل</span>
-                                    </button>
+                            <div class="player-actions">
+                                <button class="action-btn details-btn items-center justify-center"
+                                    (click)="$event.stopPropagation(); viewMatch(match.id)">
+                                    <app-icon name="info" class=" icon-sm"></app-icon>
+                                    <span>التفاصيل</span>
+                                </button>
 
-                                    <!-- Chat Button (for non-finished, non-cancelled matches) -->
-                                    @if (match.status !== MatchStatus.FINISHED && match.status !==
-                                    MatchStatus.CANCELLED) {
-                                    <button class="action-btn chat-btn items-center justify-center"
-                                        [class.chat-live]="match.status === MatchStatus.LIVE"
-                                        (click)="$event.stopPropagation(); openChat(match.id)">
-                                        <app-icon [name]=" match.status === MatchStatus.LIVE ?
-                                            'forum' : 'chat' " class=" icon-sm"></app-icon>
-                                        <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
-                                            }}</span>
-                                    </button>
-                                    }
-
-                                    <!-- Objection Button (for finished or cancelled matches) -->
-                                    @if (match.status === MatchStatus.FINISHED || match.status ===
-                                    MatchStatus.CANCELLED) {
-                                    <button *appHasPermission="Permission.CREATE_OBJECTION"
-                                        class="action-btn objection-btn items-center justify-center"
-                                        (click)="$event.stopPropagation(); submitObjection(match.id)">
-                                        <app-icon name="report" class=" icon-sm"></app-icon>
-                                        <span>تقديم اعتراض</span>
-                                    </button>
-                                    }
-                                </div>
+                                <!-- Chat Button (for non-finished, non-cancelled matches) -->
+                                @if (match.status !== MatchStatus.FINISHED && match.status !==
+                                MatchStatus.CANCELLED) {
+                                <button class="action-btn chat-btn items-center justify-center"
+                                    [class.chat-live]="match.status === MatchStatus.LIVE"
+                                    (click)="$event.stopPropagation(); openChat(match.id)">
+                                    <app-icon [name]=" match.status === MatchStatus.LIVE ?
+                                        'forum' : 'chat' " class=" icon-sm"></app-icon>
+                                    <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
+                                        }}</span>
+                                </button>
+                                }
                             </div>
                         </div>
                     </app-match-card>
@@ -456,5 +443,3 @@
 <!-- Registration Modal (Shared) -->
 <app-team-registration-modal [tournament]="tournament()" [isVisible]="isRegisterModalVisible"
     (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()" />
-
-<app-objection-modal [match]="activeMatch()" [(visible)]="showObjectionModal" />

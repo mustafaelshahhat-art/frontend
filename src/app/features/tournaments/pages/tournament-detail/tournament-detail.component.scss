@@ -128,9 +128,7 @@
             border-radius: var(--radius-full);
             border: 1px solid var(--border-light);
 
-            span
-
-            .meta-text-wrapper {
+            span .meta-text-wrapper {
                 display: flex;
                 flex-direction: column;
                 line-height: 1.2;
@@ -253,7 +251,7 @@
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-sm);
 
-        
+
 
         .value {
             font-weight: 700;
@@ -310,7 +308,7 @@
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-light);
 
-    
+
 
     h3 {
         font-size: 1.1rem;
@@ -425,7 +423,7 @@
         background: transparent;
         flex: 1;
 
-        
+
 
         &.details-btn {
             color: var(--text-secondary);
@@ -450,13 +448,7 @@
             }
         }
 
-        &.objection-btn {
-            color: var(--danger-color);
 
-            &:hover {
-                background: rgba(var(--danger-rgb), 0.05);
-            }
-        }
     }
 }
 
@@ -720,7 +712,7 @@
         border: 1px dashed var(--info-color);
         font-size: 0.9rem;
 
-        
+
 
         p {
             margin: 0;
@@ -739,7 +731,7 @@
         padding: 0.5rem;
         border-radius: var(--radius-md);
 
-        
+
     }
 }
 
@@ -794,7 +786,7 @@
                 color: var(--text-secondary);
                 display: flex;
 
-                
+
             }
         }
     }

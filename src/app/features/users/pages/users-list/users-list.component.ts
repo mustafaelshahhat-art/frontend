@@ -1,11 +1,11 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, signal, computed, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { User, UserRole, UserStatus } from '../../../../core/models/user.model';
+import { User, UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
@@ -42,7 +42,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly userStore = inject(UserStore);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly fb = inject(FormBuilder);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly adminLayout = inject(LayoutOrchestratorService);
     private readonly navService = inject(ContextNavigationService);
 
     // map store signals
@@ -197,7 +197,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     getRoleLabel(user: User): string {
-        if (user.role === UserRole.PLAYER && user.isTeamOwner) {
+        if (user.role === UserRole.PLAYER && user.teamRole === TeamRole.CAPTAIN) {
             return 'قائد فريق';
         }
 

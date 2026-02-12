@@ -6,7 +6,6 @@ import {
     matchRoutes,
     teamRoutes,
     tournamentManagementRoutes,
-    objectionRoutes,
     notificationRoutes
 } from '../shared-feature.routes';
 
@@ -35,7 +34,7 @@ export const adminRoutes: Routes = [
             },
             {
                 path: 'payment-requests',
-                loadComponent: () => import('./payment-requests/payment-requests.component').then(m => m.PaymentRequestsComponent),
+                loadComponent: () => import('../payments/payment-requests/payment-requests.component').then(m => m.PaymentRequestsComponent),
                 data: { breadcrumb: 'الطلبات المالية', icon: 'payments' }
             },
             {
@@ -53,7 +52,7 @@ export const adminRoutes: Routes = [
             ...tournamentManagementRoutes(),   // /admin/tournaments, /new, /edit/:id, /:id
             ...matchRoutes(),                  // /admin/matches, /:id, /:id/chat
             ...teamRoutes(),                   // /admin/teams, /:id
-            ...objectionRoutes(),              // /admin/objections, /:id
+
             ...notificationRoutes(),           // /admin/notifications
 
             // ─── Default redirect ────────────────────────────

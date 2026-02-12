@@ -1,0 +1,61 @@
+<!-- Mobile Overlay -->
+@if (isSidebarOpen && isMobile) {
+<div (click)="closeSidebar()" (keydown.enter)="closeSidebar()" (keydown.space)="$event.preventDefault(); closeSidebar()"
+    class="overlay" tabindex="0" role="button" aria-label="إغلاق القائمة"></div>
+}
+
+<div class="app-layout bg-gradient-page">
+
+    <!-- Sidebar -->
+    <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
+        [brandSubtitle]="brandSubtitle" [userRoleLabel]="userRoleLabel" [profileRoute]="'/player/profile'"
+        (closeSidebar)="closeSidebar()" (logout)="handleLogout()" />
+
+    <!-- Main Content Area -->
+    <div class="app-main" [class.mr-sidebar]="!isMobile">
+
+        <!-- Header -->
+        <app-header [isMobile]="isMobile" [windowSize]="windowSize" title="منصة اللاعبين" [unreadCount]="unreadCount()"
+            [notifications]="notifications()" (toggleSidebar)="toggleSidebar()"
+            (viewNotification)="viewNotification($event)" (viewAllNotifications)="viewAllNotifications()">
+
+            <div breadcrumbs class="flex items-center gap-2">
+                <span class="text-muted text-lg">/</span>
+                <app-breadcrumb />
+            </div>
+        </app-header>
+
+        <!-- Page Content (Scrollable) -->
+        <main class="app-content">
+            <div class="page-container">
+                <!-- Header Section -->
+                @if (layout.title()) {
+                <app-page-header [title]="layout.title()" [subtitle]="layout.subtitle()" [showBack]="layout.showBack()"
+                    (back)="layout.onBack()">
+                    <!-- Actions Slot -->
+                    <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null" />
+                    @if (layout.actionHandler()) {
+                    <app-button variant="primary" [icon]="layout.actionIcon()" (click)="layout.actionHandler()!()">
+                        {{ layout.actionLabel() }}
+                    </app-button>
+                    }
+                </app-page-header>
+                }
+
+                <div class="page-content">
+                    <!-- Filters Section -->
+                    @if (layout.filtersTemplate()) {
+                    <div class="toolbar">
+                        <ng-container *ngTemplateOutlet="layout.filtersTemplate() || null" />
+                    </div>
+                    }
+
+                    <!-- Content Section -->
+                    <router-outlet />
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+</div>

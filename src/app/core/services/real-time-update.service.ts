@@ -9,7 +9,6 @@ import { TournamentStore } from '../stores/tournament.store';
 import { MatchStore } from '../stores/match.store';
 import { TeamStore } from '../stores/team.store';
 import { UserStore } from '../stores/user.store';
-import { ObjectionStore } from '../stores/objection.store';
 import * as signalR from '@microsoft/signalr';
 
 export interface SystemEvent {
@@ -31,7 +30,7 @@ export class RealTimeUpdateService {
     private readonly matchStore = inject(MatchStore);
     private readonly teamStore = inject(TeamStore);
     private readonly userStore = inject(UserStore);
-    private readonly objectionStore = inject(ObjectionStore);
+
 
     private hubConnection: signalR.HubConnection | null = null;
     private listenersBound = false;
@@ -240,7 +239,7 @@ export class RealTimeUpdateService {
                             ...affectedUser,
                             teamId: undefined,
                             teamName: undefined,
-                            isTeamOwner: false
+                            teamRole: undefined
                         });
                     }
 
@@ -306,26 +305,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('ObjectionSubmitted', (dto: any) => {
-            this.ngZone.run(() => {
-                if (this.extractId(dto, 'id')) {
-                    this.objectionStore.upsertObjection(dto);
-                    // Show notification for admin if needed
-                    const currentUser = this.authService.getCurrentUser();
-                    if (currentUser?.role === 'Admin') {
-                        this.uiFeedback.info('اعتراض جديد', `قام فريق ${dto.teamName || 'مجهول'} بتقديم اعتراض جديد`);
-                    }
-                }
-            });
-        });
 
-        this.hubConnection.on('ObjectionResolved', (dto: any) => {
-            this.ngZone.run(() => {
-                if (this.extractId(dto, 'id')) {
-                    this.objectionStore.upsertObjection(dto);
-                }
-            });
-        });
 
         this.hubConnection.on('SystemEvent', (event: any) => {
             this.ngZone.run(() => {

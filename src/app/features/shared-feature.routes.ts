@@ -101,21 +101,7 @@ export function tournamentManagementRoutes(): Routes {
     ];
 }
 
-/** /objections (list) + /objections/:id (detail) */
-export function objectionRoutes(): Routes {
-    return [
-        {
-            path: 'objections',
-            loadComponent: () => import('./objections/pages/objections-list/objections-list.component').then(m => m.ObjectionsListComponent),
-            data: { breadcrumb: 'الاعتراضات', icon: 'gavel' }
-        },
-        {
-            path: 'objections/:id',
-            loadComponent: () => import('./objections/pages/objection-detail/objection-detail.component').then(m => m.ObjectionDetailComponent),
-            data: { breadcrumb: 'تفاصيل الاعتراض' }
-        }
-    ];
-}
+
 
 /** /notifications */
 export function notificationRoutes(): Routes {

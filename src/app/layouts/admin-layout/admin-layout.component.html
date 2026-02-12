@@ -8,7 +8,8 @@
 
   <!-- Sidebar -->
   <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
-    brandSubtitle="لوحة الإدارة" userRoleLabel="مدير النظام" (closeSidebar)="closeSidebar()" (logout)="handleLogout()" />
+    brandSubtitle="لوحة الإدارة" userRoleLabel="مدير النظام" profileRoute="/admin/users" (closeSidebar)="closeSidebar()"
+    (logout)="handleLogout()" />
 
   <!-- Main Content Area -->
   <div class="app-main" [class.mr-sidebar]="!isMobile">

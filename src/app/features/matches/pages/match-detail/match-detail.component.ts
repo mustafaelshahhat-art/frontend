@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { MatchStore } from '../../../../core/stores/match.store';
+import { AuthStore } from '../../../../core/stores/auth.store';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { ObjectionsService } from '../../../../core/services/objections.service';
 import { UserService } from '../../../../core/services/user.service';
 import { LocationService } from '../../../../core/services/location.service';
 import { Match, MatchStatus, MatchEventType } from '../../../../core/models/tournament.model';
@@ -17,7 +17,6 @@ import { LayoutOrchestratorService } from '../../../../core/services/layout-orch
 import { EndMatchConfirmComponent } from '../../components/end-match-confirm/end-match-confirm.component';
 import { MatchEventModalComponent } from '../../components/match-event-modal/match-event-modal.component';
 import { MatchTimelineComponent } from '../../components/match-timeline/match-timeline.component';
-import { ObjectionModalComponent } from '../../components/objection-modal/objection-modal.component';
 
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
@@ -41,7 +40,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
         EndMatchConfirmComponent,
         MatchEventModalComponent,
         MatchTimelineComponent,
-        ObjectionModalComponent,
+        MatchTimelineComponent,
         HasPermissionDirective,
         ButtonComponent,
         BadgeComponent,
@@ -65,8 +64,8 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     private uiFeedback = inject(UIFeedbackService);
     private cdr = inject(ChangeDetectorRef);
     private userService = inject(UserService);
-    private objectionsService = inject(ObjectionsService);
     private matchStore = inject(MatchStore);
+    private authStore = inject(AuthStore);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
 
@@ -86,12 +85,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
 
 
-    // Computed visibility for player-only objection submission (Finished matches only)
-    canShowObjectionSection = computed(() => {
-        const currentMatch = this.match();
-        if (!currentMatch) return false;
-        return this.permissionsService.canSubmitObjection(currentMatch.status);
-    });
+
 
     // Enums for template
     MatchStatus = MatchStatus;
@@ -108,7 +102,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     showScoreModal = signal(false);
     scoreForm = { homeScore: 0, awayScore: 0 };
 
-    showObjectionModal = signal(false);
+
 
 
 
@@ -160,12 +154,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             this.matchId.set(id);
             this.loadMatch(id);
 
-            // Handle auto-actions from query params
-            this.route.queryParams.subscribe(params => {
-                if (params['action'] === 'objection') {
-                    queueMicrotask(() => this.openObjectionModal());
-                }
-            });
+
         } else {
             this.navigateBack();
         }
@@ -419,15 +408,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
             });
     }
 
-    // ==================== OBJECTION ====================
 
-    openObjectionModal(): void {
-        this.showObjectionModal.set(true);
-    }
-
-    closeObjectionModal(): void {
-        this.showObjectionModal.set(false);
-    }
 
     // ==================== HELPERS ====================
 

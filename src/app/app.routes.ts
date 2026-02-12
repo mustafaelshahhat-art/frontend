@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { CaptainGuard } from './core/guards/captain.guard';
+import { adminGuard } from './core/guards/admin.guard';
+import { creatorGuard } from './core/guards/creator.guard';
+import { playerGuard } from './core/guards/player.guard';
 
 export const routes: Routes = [
     // ─── Public routes ───────────────────────────────
@@ -13,12 +15,17 @@ export const routes: Routes = [
     {
         path: 'admin',
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes),
-        canActivate: [authGuard]
+        canActivate: [adminGuard]
     },
     {
-        path: 'captain',
-        loadChildren: () => import('./features/captain/captain.routes').then(m => m.captainRoutes),
-        canActivate: [CaptainGuard]
+        path: 'creator',
+        loadChildren: () => import('./features/creator/creator.routes').then(m => m.creatorRoutes),
+        canActivate: [creatorGuard]
+    },
+    {
+        path: 'player',
+        loadChildren: () => import('./features/player/player.routes').then(m => m.playerRoutes),
+        canActivate: [playerGuard]
     },
 
 

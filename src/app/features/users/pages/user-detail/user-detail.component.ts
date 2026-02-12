@@ -8,12 +8,12 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { User, UserRole, UserStatus } from '../../../../core/models/user.model';
+import { User, UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
 import { UserService } from '../../../../core/services/user.service';
 import { UserStore } from '../../../../core/stores/user.store';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
-import { AdminLayoutService } from '../../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 
 @Component({
@@ -38,7 +38,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
     private readonly router = inject(Router);
     private readonly userService = inject(UserService);
     private readonly userStore = inject(UserStore);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly adminLayout = inject(LayoutOrchestratorService);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly navService = inject(ContextNavigationService);
@@ -121,7 +121,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
     }
 
     getRoleLabel(role: string): string {
-        if (role === UserRole.PLAYER && this.user?.isTeamOwner) {
+        if (role === UserRole.PLAYER && this.user?.teamRole === TeamRole.CAPTAIN) {
             return 'لاعب (قائد فريق)';
         }
 

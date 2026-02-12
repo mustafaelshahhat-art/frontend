@@ -4,6 +4,11 @@ export enum UserRole {
     TOURNAMENT_CREATOR = 'TournamentCreator'
 }
 
+export enum TeamRole {
+    CAPTAIN = 'Captain',
+    MEMBER = 'Member'
+}
+
 export enum UserStatus {
     ACTIVE = 'Active',
     PENDING = 'Pending',
@@ -29,9 +34,9 @@ export interface User {
     neighborhood?: string;
     idFrontUrl?: string;
     idBackUrl?: string;
-    teamId?: string; // ID of the team the user belongs to (as player or captain)
+    teamId?: string; // ID of the team the user belongs to
     teamName?: string;
-    isTeamOwner: boolean;
+    teamRole?: TeamRole;
     isEmailVerified: boolean;
     createdAt: Date;
     activities?: Activity[];

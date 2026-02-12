@@ -38,7 +38,7 @@
             <div class="flex-col">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-sm">{{ row.name }}</span>
-                    @if (row.role === 'Player' && row.isTeamOwner) {
+                    @if (row.role === 'Player' && row.teamRole === 'Captain') {
                     <app-badge type="gold" size="xs">قائد</app-badge>
                     }
                 </div>

@@ -9,12 +9,7 @@
         </app-button>
         }
 
-        <!-- Player: Objection Button in Header -->
-        @if (canShowObjectionSection()) {
-        <app-button (click)="openObjectionModal()" variant="ghost" icon="report" title="تقديم اعتراض">
-            اعتراض
-        </app-button>
-        }
+
 
         @if (getStatusConfig(matchData.status) ; as statusConfig) {
         <app-badge [type]="statusConfig.variant" [pulse]="matchData.status === MatchStatus.LIVE"
@@ -188,21 +183,7 @@
 
 
 
-            <!-- Captain: Submit Objection -->
-            @if (canShowObjectionSection()) {
-            <div class="control-panel">
-                <div class="panel-header">
-                    <app-icon name="gavel" class=" icon-sm"></app-icon>
-                    <h3>تقديم اعتراض</h3>
-                </div>
-                <div class="panel-body">
-                    <p class="text-muted text-sm mb-md">إذا كان لديك اعتراض على نتيجة المباراة أو أي قرار تحكيمي</p>
-                    <app-button (click)="openObjectionModal()" variant="primary" class="w-full" icon="report">
-                        تقديم اعتراض
-                    </app-button>
-                </div>
-            </div>
-            }
+
         </div>
 
     </div>
@@ -237,8 +218,7 @@
 <app-match-event-modal [match]="match()" [visible]="showEventModal()" (visibleChange)="showEventModal.set($event)"
     (eventAdded)="onEventAdded($event)" />
 
-<!-- Objection Modal -->
-<app-objection-modal [match]="match()" [(visible)]="showObjectionModal" />
+
 
 
 

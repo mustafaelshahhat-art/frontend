@@ -70,7 +70,7 @@
     border: 1.5px solid transparent;
     background: transparent;
 
-    
+
 }
 
 /* Details Button - Neutral/Info */
@@ -107,22 +107,11 @@
     }
 }
 
-/* Objection Button - Warning/Orange */
-.objection-btn {
-    background: var(--gradient-warning);
-    border-color: var(--color-warning);
-    color: var(--text-primary);
 
-    &:hover {
-        background: var(--gradient-warning);
-        border-color: var(--color-warning-light);
-        box-shadow: var(--shadow-glow-warning);
-        transform: translateY(-2px);
-    }
-}
 
 /* Pulse Animation for Live Chat */
 @keyframes pulse-glow {
+
     0%,
     100% {
         box-shadow: var(--shadow-glow-success-sm);
@@ -148,7 +137,7 @@
             transform: translateY(-2px);
         }
 
-        
+
     }
 }
 

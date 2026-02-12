@@ -79,6 +79,7 @@ export interface Tournament {
     endDate: Date;
     rules: string;
     adminId: string;
+    creatorUserId?: string;
     imageUrl?: string;
 
     // New Fields

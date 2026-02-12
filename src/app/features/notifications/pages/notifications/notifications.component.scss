@@ -69,7 +69,7 @@
     justify-content: center;
     flex-shrink: 0;
 
-    
+
 
     // Dynamic types handled via data attribute in SCSS
     &[data-type="match"] {
@@ -82,10 +82,7 @@
         color: var(--color-primary);
     }
 
-    &[data-type="objection"] {
-        background: var(--color-danger-15);
-        color: var(--color-danger);
-    }
+
 
     &[data-type="message"] {
         background: var(--color-info-15);

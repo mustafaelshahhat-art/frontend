@@ -23,7 +23,7 @@ import { MatchCardComponent } from '../../../../shared/components/match-card/mat
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
-import { ObjectionModalComponent } from '../../components/objection-modal/objection-modal.component';
+
 
 // Type-safe filter definition
 type MatchFilterValue = 'all' | 'upcoming' | 'live' | 'finished' | 'cancelled';
@@ -46,7 +46,6 @@ interface MatchFilter {
         ButtonComponent,
         InlineLoadingComponent,
         PendingStatusCardComponent,
-        ObjectionModalComponent,
         HasPermissionDirective
     ],
     templateUrl: './matches-list.component.html',
@@ -81,7 +80,6 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     MatchEventType = MatchEventType;
 
     // Modals State
-    showObjectionModal = false;
     activeMatchId: string | null = null;
     activeMatch: Match | null = null;
 
@@ -171,7 +169,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
             this.matchStore.setError('Failed to load matches');
         };
 
-        if (this.userRole() === UserRole.ADMIN || this.userRole() === UserRole.TOURNAMENT_CREATOR) {
+        if (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS)) {
             this.matchService.getMatches().subscribe({ next: handleSuccess, error: handleError });
 
         } else {
@@ -216,20 +214,20 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     getRoutePrefix(): string {
         const role = this.userRole();
-        if (!role) return '/captain';
+        if (!role) return '/player';
 
         const prefixes: Partial<Record<UserRole, string>> = {
             [UserRole.ADMIN]: '/admin',
-            [UserRole.TOURNAMENT_CREATOR]: '/captain',
-            [UserRole.PLAYER]: '/captain'
+            [UserRole.TOURNAMENT_CREATOR]: '/creator',
+            [UserRole.PLAYER]: '/player'
         };
-        return prefixes[role] || '/captain';
+        return prefixes[role] || '/player';
     }
 
     // Role checks
     isAdmin(): boolean { return this.userRole() === UserRole.ADMIN; }
 
-    isCaptain(): boolean { return !!this.currentUser()?.isTeamOwner; }
+    isCaptain(): boolean { return this.currentUser()?.teamRole === 'Captain'; }
 
     setFilter(filter: unknown): void {
         this.selectedFilter.set(filter as MatchFilterValue);
@@ -259,14 +257,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.navService.navigateTo(['matches', matchId, 'chat']);
     }
 
-    submitObjection(matchId: string): void {
-        const match = this.matches().find(m => m.id === matchId);
-        if (match) {
-            this.activeMatch = match;
-            this.showObjectionModal = true;
-            this.cdr.markForCheck();
-        }
-    }
+
 }
 
 

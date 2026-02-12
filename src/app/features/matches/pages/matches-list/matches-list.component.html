@@ -42,7 +42,7 @@
 
 
                 <!-- Captain/Player Actions -->
-                <div *appHasPermission="Permission.CREATE_OBJECTION" class="player-actions">
+                <div class="player-actions">
                     <!-- Details Button -->
                     <button class="action-btn details-btn" (click)="$event.stopPropagation(); viewMatch(match.id)">
                         <app-icon name="info" class=" icon-sm"></app-icon>
@@ -58,15 +58,6 @@
                         <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة' }}</span>
                     </button>
                     }
-
-                    <!-- Objection Button -->
-                    @if (match.status === MatchStatus.FINISHED || match.status === MatchStatus.CANCELLED) {
-                    <button class="action-btn objection-btn"
-                        (click)="$event.stopPropagation(); submitObjection(match.id)">
-                        <app-icon name="report" class=" icon-sm"></app-icon>
-                        <span>تقديم اعتراض</span>
-                    </button>
-                    }
                 </div>
 
 
@@ -79,6 +70,3 @@
 }
 
 <!-- Modals -->
-
-
-<app-objection-modal [match]="activeMatch" [(visible)]="showObjectionModal" />

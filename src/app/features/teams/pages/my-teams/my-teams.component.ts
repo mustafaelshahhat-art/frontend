@@ -150,7 +150,10 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 // Case 3: User has a team id - check if we need to load it
                 const storeTeam = this.teamStore.getTeamById(user.teamId);
 
-                if (!storeTeam && !teamsOverviewData) {
+                // Check error flag to prevent infinite loops
+                const hasError = untracked(() => this.hasLoadingError);
+
+                if (!storeTeam && !teamsOverviewData && !hasError) {
                     // Team not in store and no overview data - fetch it
                     this.loadTeamData();
                 } else if (teamsOverviewData && this.loading()) {
@@ -162,6 +165,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private subscriptions = new Subscription();
+    private hasLoadingError = false;
 
     ngOnInit(): void {
         this.currentUser = this.authService.getCurrentUser();
@@ -231,7 +235,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Use actionHandler directly instead of template to avoid OnPush change detection issues
         setTimeout(() => {
-            this.layoutOrchestrator.setActionHandler(() => this.openCreateTeamModal());
+            this.layoutOrchestrator.setActionHandler(() => this.openCreateTeamModal(), 'إنشاء فريق', 'add');
         });
     }
 
@@ -305,7 +309,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     loadTeamData(): void {
-        if (this.isLoadingTeam) return;
+        if (this.isLoadingTeam || this.hasLoadingError) return;
 
         if (!this.currentUser) {
             this.teamData.set(null);
@@ -315,6 +319,8 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.isLoadingTeam = true;
+        this.hasLoadingError = false; // Reset error flag before new attempt
+
         if (!this.loading()) {
             queueMicrotask(() => this.loading.set(true));
         }
@@ -328,6 +334,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
+                    this.hasLoadingError = false;
                     this.teamsOverview.set(overview);
                     this.pendingInvitations.set(overview.pendingInvitations);
 
@@ -374,6 +381,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 queueMicrotask(() => {
                     this.isLoadingTeam = false;
                     this.loading.set(false);
+                    this.hasLoadingError = true; // Set error flag
                     this.teamsOverview.set(null);
                     this.teamData.set(null);
                     this.uiFeedback.error('خطأ في التحميل', 'فشل في تحميل بيانات الفرق. يرجى المحاولة مرة أخرى.');

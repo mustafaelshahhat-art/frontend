@@ -1,61 +1,71 @@
-import { Injectable, inject, TemplateRef } from '@angular/core';
-import { AdminLayoutService } from './admin-layout.service';
-import { CaptainLayoutService } from './captain-layout.service';
-import { TournamentCreatorLayoutService } from './tournament-creator-layout.service';
-
+import { Injectable, signal, TemplateRef } from '@angular/core';
 
 @Injectable({
     providedIn: 'root'
 })
 export class LayoutOrchestratorService {
-    private adminLayout = inject(AdminLayoutService);
-    private captainLayout = inject(CaptainLayoutService);
-    private creatorLayout = inject(TournamentCreatorLayoutService);
+    // Page Metadata
+    readonly title = signal<string>('');
+    readonly subtitle = signal<string>('');
+    readonly showBack = signal<boolean>(false);
+    readonly backAction = signal<(() => void) | null>(null);
 
+    // Layout Slots
+    readonly actionsTemplate = signal<TemplateRef<unknown> | null>(null);
+    readonly filtersTemplate = signal<TemplateRef<unknown> | null>(null);
+
+    // Direct action handler (alternative to templates)
+    readonly actionHandler = signal<(() => void) | null>(null);
+    readonly actionLabel = signal<string>('');
+    readonly actionIcon = signal<string>('add');
 
     setTitle(title: string): void {
-        this.adminLayout.setTitle(title);
-        this.captainLayout.setTitle(title);
-        this.creatorLayout.setTitle(title);
+        this.title.set(title);
     }
 
     setSubtitle(subtitle: string): void {
-        this.adminLayout.setSubtitle(subtitle);
-        this.captainLayout.setSubtitle(subtitle);
-        this.creatorLayout.setSubtitle(subtitle);
+        this.subtitle.set(subtitle);
     }
 
     setBackAction(action: (() => void) | null): void {
-        this.adminLayout.setBackAction(action);
-        this.captainLayout.setBackAction(action);
-        this.creatorLayout.setBackAction(action);
+        this.showBack.set(!!action);
+        this.backAction.set(action);
     }
 
     setShowBack(show: boolean): void {
-        this.adminLayout.setShowBack(show);
-        this.captainLayout.setShowBack(show);
-        this.creatorLayout.setShowBack(show);
+        this.showBack.set(show);
+    }
+
+    onBack(): void {
+        const action = this.backAction();
+        if (action) {
+            action();
+        }
     }
 
     setActions(template: TemplateRef<unknown> | null): void {
-        this.adminLayout.setActions(template);
-        this.captainLayout.setActions(template);
-        this.creatorLayout.setActions(template);
+        this.actionsTemplate.set(template);
     }
 
     setFilters(template: TemplateRef<unknown> | null): void {
-        this.adminLayout.setFilters(template);
-        this.captainLayout.setFilters(template);
-        this.creatorLayout.setFilters(template);
+        this.filtersTemplate.set(template);
     }
 
-    setActionHandler(handler: (() => void) | null): void {
-        this.captainLayout.setActionHandler(handler);
+    setActionHandler(handler: (() => void) | null, label = '', icon = 'add'): void {
+        this.actionHandler.set(handler);
+        this.actionLabel.set(label);
+        this.actionIcon.set(icon);
     }
 
     reset(): void {
-        this.adminLayout.reset();
-        this.captainLayout.reset();
-        this.creatorLayout.reset();
+        this.title.set('');
+        this.subtitle.set('');
+        this.showBack.set(false);
+        this.backAction.set(null);
+        this.actionsTemplate.set(null);
+        this.filtersTemplate.set(null);
+        this.actionHandler.set(null);
+        this.actionLabel.set('');
+        this.actionIcon.set('add');
     }
 }

@@ -22,10 +22,7 @@ export enum Permission {
     MANAGE_TEAMS = 'MANAGE_TEAMS', // Admin level management
     MANAGE_MY_TEAM = 'MANAGE_MY_TEAM', // Captain level
 
-    // Objections
-    VIEW_OBJECTIONS = 'VIEW_OBJECTIONS',
-    MANAGE_OBJECTIONS = 'MANAGE_OBJECTIONS',
-    CREATE_OBJECTION = 'CREATE_OBJECTION',
+
 
     // Financials
     VIEW_PAYMENTS = 'VIEW_PAYMENTS',
@@ -43,8 +40,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_USERS, Permission.MANAGE_USERS,
         Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS,
         Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
-        Permission.VIEW_TEAMS, Permission.MANAGE_TEAMS,
-        Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
+        Permission.VIEW_TEAMS, Permission.MANAGE_TEAMS, Permission.MANAGE_MY_TEAM,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
         Permission.VIEW_LOGS, Permission.MANAGE_SETTINGS,
         Permission.VIEW_ADMIN_DASHBOARD,
@@ -55,13 +51,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_TOURNAMENTS, Permission.REGISTER_TOURNAMENT,
         Permission.VIEW_MATCHES,
         Permission.VIEW_TEAMS, Permission.MANAGE_MY_TEAM,
-        Permission.VIEW_OBJECTIONS, Permission.CREATE_OBJECTION
     ],
     [UserRole.TOURNAMENT_CREATOR]: [
         Permission.VIEW_TOURNAMENTS, Permission.MANAGE_TOURNAMENTS,
         Permission.VIEW_MATCHES, Permission.MANAGE_MATCHES, Permission.START_MATCH, Permission.END_MATCH, Permission.MANAGE_MATCH_EVENTS,
         Permission.VIEW_TEAMS,
-        Permission.VIEW_OBJECTIONS, Permission.MANAGE_OBJECTIONS,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
         Permission.VIEW_NOTIFICATIONS
     ]

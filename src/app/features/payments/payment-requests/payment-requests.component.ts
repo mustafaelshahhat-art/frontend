@@ -1,5 +1,6 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { AuthService } from '../../../core/services/auth.service';
 import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
@@ -36,6 +37,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly tournamentStore = inject(TournamentStore);
     private readonly layout = inject(LayoutOrchestratorService);
+    private readonly authService = inject(AuthService);
 
     currentFilter = 'all';
     showReceiptModal = false;
@@ -127,6 +129,12 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         const allRequests = this.requests();
         if (this.currentFilter === 'all') return allRequests;
         return allRequests.filter(r => r.registration.status === this.currentFilter);
+    }
+
+    canManageRequest(tournament: Tournament): boolean {
+        const user = this.authService.getCurrentUser();
+        if (!user || !tournament) return false;
+        return tournament.adminId === user.id || tournament.creatorUserId === user.id;
     }
 
     approve(request: { tournament: Tournament, registration: TeamRegistration }): void {

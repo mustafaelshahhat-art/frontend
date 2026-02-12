@@ -76,7 +76,7 @@ export class AuthStore {
   }
 
   isCaptain(): boolean {
-    return !!this.currentUser()?.isTeamOwner;
+    return this.currentUser()?.teamRole === 'Captain';
   }
 
   isPlayer(): boolean {

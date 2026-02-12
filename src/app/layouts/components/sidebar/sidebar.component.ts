@@ -3,9 +3,10 @@ import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy
 
 import { RouterModule } from '@angular/router';
 import { NavItem } from '../../../shared/models/nav-item.model';
-import { User } from '../../../core/models/user.model';
+import { User, TeamRole } from '../../../core/models/user.model';
 import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
+import { PermissionsService } from '../../../core/services/permissions.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -20,13 +21,15 @@ import { UIFeedbackService } from '../../../shared/services/ui-feedback.service'
 })
 export class SidebarComponent {
     private uiFeedback = inject(UIFeedbackService);
+    private permissionsService = inject(PermissionsService);
 
     @Input() isOpen = false;
     @Input() isMobile = false;
     @Input() navItems: NavItem[] = [];
     @Input() currentUser: User | null = null;
     @Input() brandSubtitle = 'لوحة التحكم';
-    @Input() userRoleLabel = 'مسؤول';
+    @Input() profileRoute = '/player/profile';
+    @Input() userRoleLabel = 'لاعب';
 
     @Output() closeSidebar = new EventEmitter<void>();
     @Output() logout = new EventEmitter<void>();
@@ -48,32 +51,11 @@ export class SidebarComponent {
         });
     }
 
-    getProfileRoute(): string {
-        if (!this.currentUser) return '/';
-
-        switch (this.currentUser.role) {
-            case 'Admin':
-                return '/admin/settings';
-            case 'TournamentCreator':
-                return '/captain/profile';
-
-            default:
-                // Both Player and Captain currently share the 'captain' layout routes
-                return '/captain/profile';
-        }
+    get roleLabel(): string {
+        return this.userRoleLabel;
     }
 
-    get roleLabel(): string {
-        if (!this.currentUser) return this.userRoleLabel;
-
-        switch (this.currentUser.role) {
-            case 'Admin': return 'مسؤول النظام';
-            case 'TournamentCreator': return 'منشئ بطولة';
-
-            case 'Player':
-                if (this.currentUser.isTeamOwner) return 'قائد الفريق';
-                return this.currentUser.teamId ? 'لاعب بالفريق' : 'لاعب حر';
-            default: return this.userRoleLabel;
-        }
+    get profileRouteValue(): string {
+        return this.profileRoute;
     }
 }

@@ -36,7 +36,7 @@ export class NotificationsDropdownComponent {
         switch (type) {
             case 'match': return 'sports_soccer';
             case 'tournament': return 'emoji_events';
-            case 'objection': return 'gavel';
+
             case 'payment': return 'payments';
             case 'team': return 'groups';
             case 'message': return 'mail';

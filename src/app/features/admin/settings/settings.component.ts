@@ -1,6 +1,6 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, OnInit, inject, signal, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { AdminLayoutService } from '../../../core/services/admin-layout.service';
+import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -12,7 +12,7 @@ import { finalize } from 'rxjs';
 @Component({
     selector: 'app-settings',
     standalone: true,
-    imports: [IconComponent, 
+    imports: [IconComponent,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -27,7 +27,7 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly settingsService = inject(SystemSettingsService);
-    private readonly adminLayout = inject(AdminLayoutService);
+    private readonly adminLayout = inject(LayoutOrchestratorService);
 
     settingsForm: FormGroup;
     isLoading = signal(false);

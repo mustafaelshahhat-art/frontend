@@ -152,7 +152,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         const icons: Record<string, string> = {
             'match': 'sports_soccer',
             'tournament': 'emoji_events',
-            'objection': 'gavel',
+
             'message': 'mail',
             'team': 'groups',
             'system': 'settings',
@@ -165,7 +165,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         const colors: Record<string, string> = {
             'match': '#3B82F6',
             'tournament': '#10B981',
-            'objection': '#EF4444',
+
             'message': '#3B82F6',
             'team': '#8B5CF6',
             'system': '#64748b',

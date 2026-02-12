@@ -63,13 +63,12 @@
 
 <!-- Action Template -->
 <ng-template #actionInfo let-row="row">
-    @if (row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+    @if (row.registration.status === RegistrationStatus.PENDING_PAYMENT_REVIEW && canManageRequest(row.tournament)) {
     <div class="action-buttons">
         <app-button (click)="approve(row)" variant="ghost" size="sm" icon="check_circle" class="text-primary" />
         <app-button (click)="reject(row)" variant="ghost" size="sm" icon="cancel" class="text-danger" />
     </div>
-    }
-    @if (row.registration.status !== RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+    } @else {
     <span class="text-muted text-xs">-</span>
     }
 </ng-template>

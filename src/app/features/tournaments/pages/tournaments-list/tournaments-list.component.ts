@@ -133,7 +133,11 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         const subtitle = isAdminView ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك';
         this.layoutOrchestrator.setTitle(title);
         this.layoutOrchestrator.setSubtitle(subtitle);
-        this.loadInitialData();
+
+        // Refresh profile to ensure latest teamId is fetched from backend
+        this.authService.refreshUserProfile().subscribe(() => {
+            this.loadInitialData();
+        });
     }
 
     ngAfterViewInit(): void {
@@ -244,8 +248,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     viewDetails(tournament: Tournament): void {
-        const isAdmin = this.navService.getRootPrefix() === '/admin';
-        const path = isAdmin ? 'tournaments' : 'championships';
+        const path = 'tournaments';
         this.navService.navigateTo([path, tournament.id]);
     }
 

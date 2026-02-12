@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
@@ -35,6 +35,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly uiFeedback = inject(UIFeedbackService);
     private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
     private readonly navService = inject(ContextNavigationService);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     isEditMode = signal(false);
     tournamentId = signal<string | null>(null);
@@ -125,51 +126,62 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     }
 
     loadTournament(id: string): void {
-        this.tournamentService.getTournamentById(id).subscribe(tournament => {
-            if (tournament) {
-                // Parse Payment JSON if exists to fill legacy/new fields
-                let walletLabel = 'محفظة إلكترونية';
-                let instaLabel = 'InstaPay';
+        this.tournamentService.getTournamentById(id).subscribe({
+            next: (tournament) => {
+                if (tournament) {
+                    // Parse Payment JSON if exists to fill legacy/new fields
+                    let walletLabel = 'محفظة إلكترونية';
+                    let instaLabel = 'InstaPay';
 
-                if (tournament.paymentMethodsJson) {
-                    try {
-                        const methods: PaymentMethodConfig[] = JSON.parse(tournament.paymentMethodsJson);
-                        const wallet = methods.find(m => m.type === 'E_WALLET');
-                        const insta = methods.find(m => m.type === 'INSTAPAY');
-                        if (wallet) walletLabel = wallet.label;
-                        if (insta) instaLabel = insta.label;
-                    } catch (e) { console.error('Error parsing payment json', e); }
+                    if (tournament.paymentMethodsJson) {
+                        try {
+                            const methods: PaymentMethodConfig[] = JSON.parse(tournament.paymentMethodsJson);
+                            const wallet = methods.find(m => m.type === 'E_WALLET');
+                            const insta = methods.find(m => m.type === 'INSTAPAY');
+                            if (wallet) walletLabel = wallet.label;
+                            if (insta) instaLabel = insta.label;
+                        } catch (e) { console.error('Error parsing payment json', e); }
+                    }
+
+                    this.tournamentForm.patchValue({
+                        name: tournament.name,
+                        description: tournament.description,
+                        startDate: this.formatDate(tournament.startDate),
+                        endDate: this.formatDate(tournament.endDate),
+                        registrationDeadline: this.formatDate(tournament.registrationDeadline),
+                        maxTeams: tournament.maxTeams,
+                        location: tournament.location,
+                        entryFee: tournament.entryFee,
+                        rules: tournament.rules,
+                        prizes: tournament.prizes,
+                        format: tournament.format || TournamentFormat.RoundRobin,
+                        matchType: tournament.matchType || TournamentLegType.SingleLeg,
+                        isHomeAwayEnabled: tournament.isHomeAwayEnabled || false,
+                        seedingMode: tournament.seedingMode || SeedingMode.ShuffleOnly,
+                        numberOfGroups: tournament.numberOfGroups || 0,
+                        qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
+                        walletNumber: tournament.walletNumber || '',
+                        walletLabel: walletLabel,
+                        instaPayNumber: tournament.instaPayNumber || '',
+                        instaPayLabel: instaLabel
+                    });
+
+                    // Trigger validator updates
+                    this.tournamentForm.get('format')?.updateValueAndValidity();
+                    this.cdr.detectChanges();
                 }
-
-                this.tournamentForm.patchValue({
-                    name: tournament.name,
-                    description: tournament.description,
-                    startDate: this.formatDate(tournament.startDate),
-                    endDate: this.formatDate(tournament.endDate),
-                    registrationDeadline: this.formatDate(tournament.registrationDeadline),
-                    maxTeams: tournament.maxTeams,
-                    location: tournament.location,
-                    entryFee: tournament.entryFee,
-                    rules: tournament.rules,
-                    prizes: tournament.prizes,
-                    format: tournament.format || TournamentFormat.RoundRobin,
-                    matchType: tournament.matchType || TournamentLegType.SingleLeg,
-                    isHomeAwayEnabled: tournament.isHomeAwayEnabled || false,
-                    seedingMode: tournament.seedingMode || SeedingMode.ShuffleOnly,
-                    numberOfGroups: tournament.numberOfGroups || 0,
-                    qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
-                    walletNumber: tournament.walletNumber || '',
-                    walletLabel: walletLabel,
-                    instaPayNumber: tournament.instaPayNumber || '',
-                    instaPayLabel: instaLabel
-                });
+            },
+            error: (err) => {
+                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات البطولة');
+                this.navService.navigateTo('tournaments');
             }
         });
     }
 
-    private formatDate(date: Date): string {
+    private formatDate(date: any): string {
+        if (!date) return '';
         const d = new Date(date);
-        return d.toISOString().split('T')[0];
+        return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
     }
 
     onSubmit(): void {
@@ -190,7 +202,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             paymentMethods.push({ type: 'INSTAPAY', label: formValue.instaPayLabel || 'InstaPay', accountNumber: formValue.instaPayNumber });
         }
 
-        const tournamentData: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'> = {
+        const tournamentData: Partial<Tournament> = {
             name: formValue.name,
             description: formValue.description,
             startDate: new Date(formValue.startDate),
@@ -209,11 +221,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             instaPayNumber: formValue.instaPayNumber,
             isHomeAwayEnabled: formValue.isHomeAwayEnabled,
             seedingMode: formValue.seedingMode,
-            paymentMethodsJson: JSON.stringify(paymentMethods),
-            status: TournamentStatus.DRAFT,
-            currentTeams: 0,
-            registrations: [],
-            adminId: ''
+            paymentMethodsJson: JSON.stringify(paymentMethods)
         };
 
         if (this.isEditMode()) {
@@ -222,15 +230,30 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                     this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات البطولة بنجاح');
                     this.navService.navigateTo(['tournaments', this.tournamentId()!]);
                 },
-                error: () => this.isSubmitting.set(false)
+                error: (err) => {
+                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل في تحديث البطولة');
+                    this.isSubmitting.set(false);
+                }
             });
         } else {
-            this.tournamentService.createTournament(tournamentData).subscribe({
+            // New tournaments start as DRAFT
+            const newTournament = {
+                ...tournamentData,
+                status: TournamentStatus.DRAFT,
+                currentTeams: 0,
+                registrations: [],
+                adminId: ''
+            } as Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>;
+
+            this.tournamentService.createTournament(newTournament).subscribe({
                 next: () => {
                     this.uiFeedback.success('تم الإنشاء', 'تم إنشاء البطولة بنجاح');
                     this.navService.navigateTo('tournaments');
                 },
-                error: () => this.isSubmitting.set(false)
+                error: (err) => {
+                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء البطولة');
+                    this.isSubmitting.set(false);
+                }
             });
         }
     }

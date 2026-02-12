@@ -120,7 +120,7 @@ export class UserStore {
           ...user,
           teamId: undefined,
           teamName: undefined,
-          isTeamOwner: false
+          teamRole: undefined
         };
       })
     }));

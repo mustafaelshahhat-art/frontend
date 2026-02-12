@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { User, UserRole } from '../../../../core/models/user.model';
+import { User, UserRole, TeamRole } from '../../../../core/models/user.model';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -17,6 +17,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
 import { LocationService } from '../../../../core/services/location.service';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
+import { PermissionsService } from '../../../../core/services/permissions.service';
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
@@ -50,6 +51,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
     private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly permissionsService = inject(PermissionsService);
 
     user: User | null = null;
     userRole: UserRole = UserRole.PLAYER;
@@ -339,7 +341,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     getRoleLabel(role: UserRole | undefined): string {
-        if (role === UserRole.PLAYER && this.user?.isTeamOwner) {
+        if (role === UserRole.PLAYER && this.permissionsService.isTeamCaptain()) {
             return 'قائد فريق';
         }
 
@@ -566,7 +568,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     isCaptain(): boolean {
-        return !!this.user?.isTeamOwner;
+        return this.permissionsService.isTeamCaptain();
     }
 
     get userInitial(): string {
