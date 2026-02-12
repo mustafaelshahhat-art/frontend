@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
-import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, SeedingMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, SeedingMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -54,9 +54,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         entryFee: [0, [Validators.required, Validators.min(0)]],
         rules: ['', [Validators.required]],
         prizes: ['', [Validators.required]],
-        format: [TournamentFormat.RoundRobin, [Validators.required]],
-        matchType: [TournamentLegType.SingleLeg, [Validators.required]],
-        isHomeAwayEnabled: [false],
+        mode: [TournamentMode.LeagueSingle, [Validators.required]],
         seedingMode: [SeedingMode.ShuffleOnly],
         numberOfGroups: [0],
         qualifiedTeamsPerGroup: [0],
@@ -68,16 +66,13 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         instaPayLabel: ['InstaPay']
     });
 
-    formats = [
-        { value: TournamentFormat.RoundRobin, label: 'دوري كامل (Round Robin)', icon: 'settings' },
-        { value: TournamentFormat.GroupsThenKnockout, label: 'مجموعات ثم إقصائيات', icon: 'grid_view' },
-        { value: TournamentFormat.KnockoutOnly, label: 'خروج المغلوب (Knockout)', icon: 'emoji_events' },
-        { value: TournamentFormat.GroupsWithHomeAwayKnockout, label: 'مجموعات + إقصائيات ذهاب وعودة', icon: 'event_repeat' }
-    ];
-
-    matchTypes = [
-        { value: TournamentLegType.SingleLeg, label: 'مباراة واحدة', icon: 'sports_soccer' },
-        { value: TournamentLegType.HomeAndAway, label: 'ذهاب وعودة', icon: 'sync' }
+    modes = [
+        { value: TournamentMode.LeagueSingle, label: 'دوري كامل - مباراة واحدة', icon: 'settings' },
+        { value: TournamentMode.LeagueHomeAway, label: 'دوري كامل - ذهاب وعودة', icon: 'sync' },
+        { value: TournamentMode.GroupsKnockoutSingle, label: 'مجموعات ثم إقصائيات (مباراة واحدة)', icon: 'grid_view' },
+        { value: TournamentMode.GroupsKnockoutHomeAway, label: 'مجموعات ثم إقصائيات (ذهاب وعودة)', icon: 'event_repeat' },
+        { value: TournamentMode.KnockoutSingle, label: 'خروج المغلوب (مباراة واحدة)', icon: 'emoji_events' },
+        { value: TournamentMode.KnockoutHomeAway, label: 'خروج المغلوب (ذهاب وعودة)', icon: 'sync_alt' }
     ];
 
     seedingModes = [
@@ -98,11 +93,11 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     }
 
     private setupValidators() {
-        this.tournamentForm.get('format')?.valueChanges.subscribe(format => {
+        this.tournamentForm.get('mode')?.valueChanges.subscribe(mode => {
             const groupsControl = this.tournamentForm.get('numberOfGroups');
             const qualifiedControl = this.tournamentForm.get('qualifiedTeamsPerGroup');
 
-            const needsGroups = (format === TournamentFormat.GroupsThenKnockout || format === TournamentFormat.GroupsWithHomeAwayKnockout);
+            const needsGroups = (mode === TournamentMode.GroupsKnockoutSingle || mode === TournamentMode.GroupsKnockoutHomeAway);
 
             if (needsGroups) {
                 groupsControl?.setValidators([Validators.required, Validators.min(1)]);
@@ -156,9 +151,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                         entryFee: tournament.entryFee,
                         rules: tournament.rules,
                         prizes: tournament.prizes,
-                        format: tournament.format || TournamentFormat.RoundRobin,
-                        matchType: tournament.matchType || TournamentLegType.SingleLeg,
-                        isHomeAwayEnabled: tournament.isHomeAwayEnabled || false,
+                        mode: tournament.mode || this.getEffectiveMode(tournament),
                         seedingMode: tournament.seedingMode || SeedingMode.ShuffleOnly,
                         numberOfGroups: tournament.numberOfGroups || 0,
                         qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
@@ -169,7 +162,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                     });
 
                     // Trigger validator updates
-                    this.tournamentForm.get('format')?.updateValueAndValidity();
+                    this.tournamentForm.get('mode')?.updateValueAndValidity();
                     this.cdr.detectChanges();
                 }
             },
@@ -178,6 +171,15 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                 this.navService.navigateTo('tournaments');
             }
         });
+    }
+
+    private getEffectiveMode(t: Tournament): TournamentMode {
+        if (t.format === TournamentFormat.GroupsThenKnockout) return TournamentMode.GroupsKnockoutSingle;
+        if (t.format === TournamentFormat.GroupsWithHomeAwayKnockout) return TournamentMode.GroupsKnockoutHomeAway;
+        if (t.format === TournamentFormat.KnockoutOnly) {
+            return (t.matchType === TournamentLegType.HomeAndAway || t.isHomeAwayEnabled) ? TournamentMode.KnockoutHomeAway : TournamentMode.KnockoutSingle;
+        }
+        return (t.matchType === TournamentLegType.HomeAndAway || t.isHomeAwayEnabled) ? TournamentMode.LeagueHomeAway : TournamentMode.LeagueSingle;
     }
 
     private formatDate(date: any): string {
@@ -215,13 +217,11 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             entryFee: formValue.entryFee,
             rules: formValue.rules,
             prizes: formValue.prizes,
-            format: formValue.format,
-            matchType: formValue.matchType,
+            mode: formValue.mode,
             numberOfGroups: formValue.numberOfGroups || 0,
             qualifiedTeamsPerGroup: formValue.qualifiedTeamsPerGroup || 0,
             walletNumber: formValue.walletNumber,
             instaPayNumber: formValue.instaPayNumber,
-            isHomeAwayEnabled: formValue.isHomeAwayEnabled,
             seedingMode: formValue.seedingMode,
             paymentMethodsJson: JSON.stringify(paymentMethods)
         };

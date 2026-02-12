@@ -21,14 +21,21 @@
 
 .form-section {
     position: relative;
+    z-index: 1;
+    transition: z-index 0.3s step-start;
+
+    &:focus-within {
+        z-index: 10;
+    }
 
     ::ng-deep .card {
         background: var(--bg-surface-glass);
         backdrop-filter: var(--blur-lg);
-        border: 1px solid var(--border-visible);
+        border: 1px solid var(--border-strong);
         border-radius: var(--radius-2xl);
         padding: var(--space-xl);
         box-shadow: var(--shadow-lg);
+        overflow: visible !important;
 
         @media (width <=640px) {
             padding: var(--space-lg);

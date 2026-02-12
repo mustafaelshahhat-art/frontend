@@ -1,0 +1,67 @@
+<div class="manual-draw-page">
+    @if (isLoading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>جاري تحميل البيانات...</p>
+    </div>
+    } @else {
+    <div class="draw-container" cdkDropListGroup>
+        <!-- Source: Unassigned Teams -->
+        <app-card class="unassigned-card" title="الفرق غير الموزعة">
+            <div cdkDropList [cdkDropListData]="unassignedTeams()" class="team-list source-list"
+                (cdkDropListDropped)="drop($event)">
+
+                @for (team of unassignedTeams(); track team.teamId) {
+                <div class="team-item animate-fade-in" cdkDrag>
+                    <div class="drag-placeholder" *cdkDragPlaceholder></div>
+                    <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
+                        [initials]="team.teamName.charAt(0)"></app-smart-image>
+                    <span>{{ team.teamName }}</span>
+                    <app-icon name="drag_indicator" class="drag-handle"></app-icon>
+                </div>
+                } @empty {
+                <div class="empty-hint items-center justify-center p-8">
+                    <app-icon name="check_circle" class="text-success icon-lg"></app-icon>
+                    <p>تم توزيع جميع الفرق!</p>
+                </div>
+                }
+            </div>
+        </app-card>
+
+        <!-- Targets: Groups -->
+        <div class="groups-grid">
+            @for (group of groupAssignments(); track group.id) {
+            <app-card [title]="group.name" class="group-card">
+                <div cdkDropList [cdkDropListData]="group.teams" class="team-list target-list"
+                    (cdkDropListDropped)="drop($event)">
+
+                    @for (team of group.teams; track team.teamId) {
+                    <div class="team-item assigned animate-scale-in" cdkDrag>
+                        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+                        <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
+                            [initials]="team.teamName.charAt(0)"></app-smart-image>
+                        <span>{{ team.teamName }}</span>
+                        <app-icon name="close" class="remove-btn"
+                            (click)="unassignedTeams().push(group.teams.splice($index, 1)[0])"></app-icon>
+                    </div>
+                    } @empty {
+                    <div class="drop-placeholder items-center justify-center">
+                        <p>اسحب الفرق هنا</p>
+                    </div>
+                    }
+                </div>
+            </app-card>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="draw-actions">
+            <app-button variant="outline" (trigger)="cancel()">إلغاء</app-button>
+            <app-button variant="primary" [disabled]="unassignedTeams().length > 0 || isSubmitting()"
+                (trigger)="submitDraw()">
+                {{ isSubmitting() ? 'جاري الحفظ...' : 'اعتماد القرعة وبدء البطولة' }}
+            </app-button>
+        </div>
+    </div>
+    }
+</div>

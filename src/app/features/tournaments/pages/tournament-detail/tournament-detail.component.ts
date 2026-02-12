@@ -186,6 +186,13 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             matches.length === 0;
     });
 
+    canManageDraw = computed(() => {
+        const t = this.tournament();
+        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
+            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE);
+    });
+
     // Registration Computeds
     myRegistration = computed(() => {
         const user = this.authService.getCurrentUser();
@@ -637,5 +644,44 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 });
             }
         });
+    }
+
+    selectOpeningMatch(): void {
+        const t = this.tournament();
+        const matches = this.tournamentMatches();
+        if (!t || matches.length === 0) {
+            this.uiFeedback.warning('تنبيه', 'يجب توليد جدول المباريات أولاً لتتمكن من اختيار مباراة الافتتاح.');
+            return;
+        }
+
+        // Simplistic selection for now: Show list of scheduled matches
+        const scheduledMatches = matches.filter(m => m.status === MatchStatus.SCHEDULED);
+        if (scheduledMatches.length === 0) {
+            this.uiFeedback.warning('تنبيه', 'لا يوجد مباريات مجدولة حالياً.');
+            return;
+        }
+
+        this.uiFeedback.confirm('اختيار مباراة الافتتاح', 'سيتم نقل المباراة المختارة لتكون أول مباراة في الجدول الزمني للبطولة.', 'تأكيد', 'info')
+            .subscribe(confirmed => {
+                if (confirmed) {
+                    // For now, take the first scheduled match as opening if user confirms general action
+                    // In a real UI, this would show a list. 
+                    const firstMatch = scheduledMatches[0];
+                    this.tournamentService.setOpeningMatch(t.id, firstMatch.homeTeamId, firstMatch.awayTeamId).subscribe({
+                        next: () => {
+                            this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح وتحديث الجدول الزمني.');
+                            this.loadInitialData(t.id);
+                        },
+                        error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل تحديد مباراة الافتتاح')
+                    });
+                }
+            });
+    }
+
+    startManualDraw(): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.navService.navigateTo(['tournaments', t.id, 'manual-draw']);
     }
 }

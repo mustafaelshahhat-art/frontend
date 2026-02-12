@@ -76,7 +76,15 @@ export class TournamentService {
     }
 
     generateMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
-        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/matches/generate`, {});
+    }
+
+    setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${tournamentId}/opening-match`, { homeTeamId, awayTeamId });
+    }
+
+    manualDraw(tournamentId: string, request: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${tournamentId}/manual-draw`, request);
     }
 
     getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
@@ -136,11 +144,11 @@ export class TournamentService {
     }
 
     emergencyStart(tournamentId: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-start`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency/start`, {});
     }
 
     emergencyEnd(tournamentId: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-end`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency/end`, {});
     }
 }
 

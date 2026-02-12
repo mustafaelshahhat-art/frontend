@@ -39,24 +39,15 @@
                 <!-- Tournament System -->
                 <app-card title="نظام البطولة" class="form-section">
                     <div class="fields-grid">
-                        <app-select label="نظام البطولة" icon="settings" [options]="formats" formControlName="format"
+                        <app-select label="نظام البطولة" icon="settings" [options]="modes" formControlName="mode"
                             [required]="true" />
 
                         <app-select label="نظام القرعة والتصنيف" icon="shuffle" [options]="seedingModes"
                             formControlName="seedingMode" [required]="true" />
 
-                        <div class="checkbox-wrapper"
-                            style="display: flex; align-items: center; gap: 10px; margin-top: 28px;">
-                            <input type="checkbox" id="isHomeAwayEnabled" formControlName="isHomeAwayEnabled">
-                            <label for="isHomeAwayEnabled">تفعيل الذهاب والعودة (للمجموعات)</label>
-                        </div>
 
-                        <!-- Legacy MatchType kept if needed or can be hidden if IsHomeAwayEnabled replaces it for groups -->
-                        <app-select label="نوع المباريات (الافتراضي)" icon="sports_soccer" [options]="matchTypes"
-                            formControlName="matchType" [required]="true" />
-
-                        @if (tournamentForm.get('format')?.value === 'GroupsThenKnockout' ||
-                        tournamentForm.get('format')?.value === 'GroupsWithHomeAwayKnockout') {
+                        @if (tournamentForm.get('mode')?.value === 3 ||
+                        tournamentForm.get('mode')?.value === 4) {
                         <app-form-control label="عدد المجموعات" iconLeft="grid_view" type="number"
                             formControlName="numberOfGroups" [control]="tournamentForm.get('numberOfGroups')" />
 

@@ -1,0 +1,163 @@
+.manual-draw-page {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        gap: 1rem;
+        color: var(--text-muted);
+    }
+}
+
+.draw-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+    align-items: start;
+
+    @media (max-width: 992px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.unassigned-card {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 150px);
+    overflow-y: auto;
+}
+
+.team-list {
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem;
+
+    &.source-list {
+        min-height: 300px;
+    }
+
+    &.target-list {
+        min-height: 150px;
+        border: 2px dashed var(--border-color);
+        border-radius: var(--radius-md);
+        transition: all 0.3s ease;
+
+        &:hover {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-rgb), 0.02);
+        }
+    }
+}
+
+.team-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: grab;
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+    }
+
+    &.cdk-drag-preview {
+        box-shadow: var(--shadow-lg);
+        opacity: 0.9;
+        z-index: 1000;
+    }
+
+    .drag-handle {
+        margin-right: auto;
+        color: var(--text-muted);
+        opacity: 0.5;
+    }
+
+    &.assigned {
+        background: rgba(var(--primary-rgb), 0.05);
+        border-color: rgba(var(--primary-rgb), 0.2);
+
+        .remove-btn {
+            margin-right: auto;
+            cursor: pointer;
+            color: var(--danger-color);
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.drop-placeholder {
+    display: flex;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+
+.draw-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

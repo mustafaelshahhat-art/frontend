@@ -81,6 +81,22 @@
                             </app-button>
                             }
 
+                            <!-- Manual Draw Button -->
+                            @if (canManageDraw() && t.seedingMode === 1 && tournamentMatches().length === 0) {
+                            <app-button variant="gold" size="md" shadow="glow" icon="auto_fix_high"
+                                (click)="startManualDraw()">
+                                إجراء القرعة اليدوية
+                            </app-button>
+                            }
+
+                            <!-- Select Opening Match -->
+                            @if (canManageDraw() && tournamentMatches().length > 0) {
+                            <app-button variant="primary" size="md" shadow="glow" icon="star"
+                                (click)="selectOpeningMatch()">
+                                اختيار مباراة الافتتاح
+                            </app-button>
+                            }
+
                             <!-- Delete Tournament Button -->
                             <app-button variant="ghost" size="md" icon="delete" class="text-danger"
                                 (click)="deleteTournament()">

@@ -31,6 +31,15 @@ export enum TournamentLegType {
     HomeAndAway = 'HomeAndAway'
 }
 
+export enum TournamentMode {
+    LeagueSingle = 1,
+    LeagueHomeAway = 2,
+    GroupsKnockoutSingle = 3,
+    GroupsKnockoutHomeAway = 4,
+    KnockoutSingle = 5,
+    KnockoutHomeAway = 6
+}
+
 export enum RegistrationStatus {
     PENDING_PAYMENT_REVIEW = 'PendingPaymentReview',
     APPROVED = 'Approved',
@@ -92,6 +101,8 @@ export interface Tournament {
     seedingMode?: SeedingMode;
     paymentMethodsJson?: string;
     paymentMethods?: PaymentMethodConfig[]; // Parsed helper
+    mode?: TournamentMode;
+    openingMatchId?: string;
 
 
     winnerTeamId?: string;
@@ -257,4 +268,26 @@ export interface GenerateMatchesResponse {
 export interface PendingPaymentResponse {
     tournament: Tournament;
     registration: TeamRegistration;
+}
+
+export interface ManualDrawRequest {
+    groupAssignments?: GroupAssignment[];
+    knockoutPairings?: KnockoutPairing[];
+}
+
+export interface GroupAssignment {
+    groupId: number;
+    teamIds: string[];
+}
+
+export interface KnockoutPairing {
+    homeTeamId: string;
+    awayTeamId: string;
+    roundNumber: number;
+    stageName: string;
+}
+
+export interface OpeningMatchRequest {
+    homeTeamId: string;
+    awayTeamId: string;
 }

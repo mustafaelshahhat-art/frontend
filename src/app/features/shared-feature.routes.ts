@@ -97,6 +97,11 @@ export function tournamentManagementRoutes(): Routes {
             path: 'tournaments/:id',
             loadComponent: () => import('./tournaments/pages/tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent),
             data: { breadcrumb: 'تفاصيل البطولة' }
+        },
+        {
+            path: 'tournaments/:id/manual-draw',
+            loadComponent: () => import('./tournaments/pages/manual-draw/manual-draw.component').then(m => m.ManualDrawComponent),
+            data: { breadcrumb: 'القرعة اليدوية' }
         }
     ];
 }
