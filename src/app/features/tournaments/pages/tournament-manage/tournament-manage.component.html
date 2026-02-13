@@ -58,6 +58,21 @@
                     </div>
                 </app-card>
 
+                <!-- Registration Policy -->
+                <app-card title="سياسة التسجيل" class="form-section">
+                    <div class="fields-grid">
+                        <div class="checkbox-container full-width" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="allowLateRegistration" formControlName="allowLateRegistration">
+                            <label for="allowLateRegistration">السماح بالتسجيل المتأخر (بعد اكتمال العدد أو انتهاء الموعد)</label>
+                        </div>
+
+                        @if (tournamentForm.get('allowLateRegistration')?.value) {
+                            <app-select label="نوع التسجيل المتأخر" icon="history_edu" [options]="lateRegistrationModes"
+                                formControlName="lateRegistrationMode" [required]="true" />
+                        }
+                    </div>
+                </app-card>
+
                 <!-- Financials & Rules -->
                 <app-card title="الرسوم والقوانين" class="form-section">
                     <div class="fields-grid">

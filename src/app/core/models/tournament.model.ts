@@ -1,10 +1,11 @@
 export enum TournamentStatus {
-    DRAFT = 'draft',
-    REGISTRATION_OPEN = 'registration_open',
-    REGISTRATION_CLOSED = 'registration_closed',
-    ACTIVE = 'active',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled'
+    DRAFT = 'Draft',
+    REGISTRATION_OPEN = 'RegistrationOpen',
+    REGISTRATION_CLOSED = 'RegistrationClosed',
+    ACTIVE = 'Active',
+    WAITING_FOR_OPENING_MATCH_SELECTION = 'WaitingForOpeningMatchSelection',
+    COMPLETED = 'Completed',
+    CANCELLED = 'Cancelled'
 }
 
 export enum TournamentFormat {
@@ -31,6 +32,12 @@ export enum TournamentLegType {
     HomeAndAway = 'HomeAndAway'
 }
 
+export enum LateRegistrationMode {
+    None = 0,
+    WaitingList = 1,
+    ReplaceIfNoMatchPlayed = 2
+}
+
 export enum TournamentMode {
     LeagueSingle = 1,
     LeagueHomeAway = 2,
@@ -45,7 +52,9 @@ export enum RegistrationStatus {
     APPROVED = 'Approved',
     REJECTED = 'Rejected',
     ELIMINATED = 'Eliminated',
-    WITHDRAWN = 'Withdrawn'
+    WITHDRAWN = 'Withdrawn',
+    WAITING_LIST = 'WaitingList',
+    PENDING_PAYMENT = 'PendingPayment'
 }
 
 export interface TeamRegistration {
@@ -103,7 +112,10 @@ export interface Tournament {
     paymentMethods?: PaymentMethodConfig[]; // Parsed helper
     mode?: TournamentMode;
     openingMatchId?: string;
-
+    openingMatchHomeTeamId?: string;
+    openingMatchAwayTeamId?: string;
+    allowLateRegistration?: boolean;
+    lateRegistrationMode?: LateRegistrationMode;
 
     winnerTeamId?: string;
     winnerTeamName?: string;

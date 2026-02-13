@@ -20,6 +20,7 @@ export class StatusLabelPipe implements PipeTransform {
         [TournamentStatus.REGISTRATION_OPEN]: 'التسجيل مفتوح',
         [TournamentStatus.REGISTRATION_CLOSED]: 'التسجيل مغلق',
         [TournamentStatus.ACTIVE]: 'جارية',
+        [TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION]: 'في انتظار اختيار مباراة الافتتاح',
         [TournamentStatus.COMPLETED]: 'مكتملة',
         [TournamentStatus.CANCELLED]: 'ملغية'
     };

@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
-import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, SeedingMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, SeedingMode, LateRegistrationMode, PaymentMethodConfig } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -58,6 +58,8 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         seedingMode: [SeedingMode.ShuffleOnly],
         numberOfGroups: [0],
         qualifiedTeamsPerGroup: [0],
+        allowLateRegistration: [false],
+        lateRegistrationMode: [LateRegistrationMode.None],
 
         // Payment
         walletNumber: [''],
@@ -79,6 +81,12 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         { value: SeedingMode.ShuffleOnly, label: 'عشوائي بالكامل (Shuffle)', icon: 'shuffle' },
         { value: SeedingMode.Manual, label: 'يدوي (قريباً)', icon: 'edit' }, // Placeholder
         { value: SeedingMode.RankBased, label: 'حسب التصنيف', icon: 'monitoring' }
+    ];
+
+    lateRegistrationModes = [
+        { value: LateRegistrationMode.None, label: 'غير مسموح', icon: 'block' },
+        { value: LateRegistrationMode.WaitingList, label: 'قائمة انتظار (يدوي)', icon: 'hourglass_empty' },
+        { value: LateRegistrationMode.ReplaceIfNoMatchPlayed, label: 'استبدال فريق لم يلعب', icon: 'swap_horiz' }
     ];
 
     ngOnInit(): void {
@@ -108,6 +116,20 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             }
             groupsControl?.updateValueAndValidity();
             qualifiedControl?.updateValueAndValidity();
+        });
+
+        this.tournamentForm.get('allowLateRegistration')?.valueChanges.subscribe(allowed => {
+            const modeControl = this.tournamentForm.get('lateRegistrationMode');
+            if (allowed) {
+                modeControl?.setValidators([Validators.required]);
+                if (modeControl?.value === LateRegistrationMode.None) {
+                    modeControl?.setValue(LateRegistrationMode.WaitingList);
+                }
+            } else {
+                modeControl?.clearValidators();
+                modeControl?.setValue(LateRegistrationMode.None);
+            }
+            modeControl?.updateValueAndValidity();
         });
     }
 
@@ -158,7 +180,9 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                         walletNumber: tournament.walletNumber || '',
                         walletLabel: walletLabel,
                         instaPayNumber: tournament.instaPayNumber || '',
-                        instaPayLabel: instaLabel
+                        instaPayLabel: instaLabel,
+                        allowLateRegistration: tournament.allowLateRegistration || false,
+                        lateRegistrationMode: tournament.lateRegistrationMode || LateRegistrationMode.None
                     });
 
                     // Trigger validator updates
@@ -223,6 +247,8 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             walletNumber: formValue.walletNumber,
             instaPayNumber: formValue.instaPayNumber,
             seedingMode: formValue.seedingMode,
+            allowLateRegistration: formValue.allowLateRegistration,
+            lateRegistrationMode: formValue.lateRegistrationMode,
             paymentMethodsJson: JSON.stringify(paymentMethods)
         };
 

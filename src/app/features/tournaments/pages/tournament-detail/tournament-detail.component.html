@@ -17,7 +17,9 @@
                 <div class="tournament-main-info">
                     <div class="top-meta">
                         <app-badge
-                            [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 'neutral')"
+                            [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : 
+                                   (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 
+                                   (t.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION ? 'warning' : 'neutral'))"
                             class="status-badge">
                             <span class="dot"></span>
                             {{ getStatusLabel(t.status) }}
@@ -90,10 +92,15 @@
                             }
 
                             <!-- Select Opening Match -->
-                            @if (canManageDraw() && tournamentMatches().length > 0) {
+                            @if (t.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION) {
                             <app-button variant="primary" size="md" shadow="glow" icon="star"
                                 (click)="selectOpeningMatch()">
                                 اختيار مباراة الافتتاح
+                            </app-button>
+
+                            <app-button variant="gold" size="md" shadow="glow" icon="auto_fix_high"
+                                (click)="generateMatches()" [disabled]="isGeneratingMatches()">
+                                {{ isGeneratingMatches() ? 'جاري التوليد...' : 'توليد الأدوار الإقصائية' }}
                             </app-button>
                             }
 
@@ -141,6 +148,14 @@
                                         <app-icon name="check_circle" class="text-success icon-sm"></app-icon>
                                         <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration()?.status || '')
                                             }})</span>
+
+                                        @if (t.status === TournamentStatus.REGISTRATION_OPEN || t.status ===
+                                        TournamentStatus.REGISTRATION_CLOSED) {
+                                        <app-button variant="ghost" size="sm" class="text-danger"
+                                            (click)="withdrawTeam(myRegistration()!)">
+                                            انسحاب
+                                        </app-button>
+                                        }
                                     </div>
 
                                     <!-- Temporary Registration Banner -->
@@ -432,16 +447,30 @@
                             </app-badge>
                         </div>
 
-                        <!-- Admin Actions: Eliminate Team -->
-                        @if (t.status !== TournamentStatus.COMPLETED && reg.status !== RegistrationStatus.ELIMINATED &&
-                        reg.status === RegistrationStatus.APPROVED) {
-                        <app-button *appHasPermission="Permission.MANAGE_TOURNAMENTS" variant="ghost" size="sm"
-                            icon="person_remove" class="text-danger"
-                            (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
-                            title="إقصاء الفريق">
-                            إقصاء
-                        </app-button>
-                        }
+                        <!-- Admin Actions -->
+                        <div *appHasPermission="Permission.MANAGE_TOURNAMENTS" class="admin-team-actions flex gap-1">
+                            @if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+                            <app-button variant="outline" size="sm" icon="check"
+                                (click)="approveRegistration(reg)">قبول</app-button>
+                            <app-button variant="danger" size="sm" icon="close"
+                                (click)="rejectRegistration(reg)">رفض</app-button>
+                            }
+
+                            @if (reg.status === RegistrationStatus.WAITING_LIST && t.currentTeams < t.maxTeams) {
+                                <app-button variant="primary" size="sm" icon="upgrade" (click)="promoteTeam(reg)">
+                                ترقية</app-button>
+                                }
+
+                                @if (t.status !== TournamentStatus.COMPLETED && reg.status !==
+                                RegistrationStatus.ELIMINATED &&
+                                reg.status === RegistrationStatus.APPROVED) {
+                                <app-button variant="ghost" size="sm" icon="person_remove" class="text-danger"
+                                    (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
+                                    title="إقصاء الفريق">
+                                    إقصاء
+                                </app-button>
+                                }
+                        </div>
                     </div>
                 </div>
                 } @empty {

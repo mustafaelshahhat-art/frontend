@@ -186,6 +186,14 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             matches.length === 0;
     });
 
+    canGenerateKnockout = computed(() => {
+        const t = this.tournament();
+        const matches = this.tournamentMatches();
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
+            t?.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION &&
+            matches.some(m => !m.groupId); // Some knockout matches might already exist if we clicked generate once.
+    });
+
     canManageDraw = computed(() => {
         const t = this.tournament();
         const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
@@ -394,6 +402,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             [TournamentStatus.REGISTRATION_OPEN]: 'التسجيل مفتوح',
             [TournamentStatus.REGISTRATION_CLOSED]: 'التسجيل مغلق',
             [TournamentStatus.ACTIVE]: 'جارية الآن',
+            [TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION]: 'بانتظار اختيار الافتتاح',
             [TournamentStatus.COMPLETED]: 'منتهية',
             [TournamentStatus.CANCELLED]: 'ملغاة'
         };
@@ -554,12 +563,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             if (confirmed) {
                 this.isLoading.set(true);
                 this.tournamentService.eliminateTeam(t.id, teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: (updatedTournament) => {
-                        if (updatedTournament) {
-                            this.tournamentStore.upsertTournament(updatedTournament);
-                        } else {
-                            this.loadInitialData(t.id);
-                        }
+                    next: () => {
+                        this.loadInitialData(t.id);
                         this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${teamName} بنجاح`);
                         this.isLoading.set(false);
                         this.cdr.detectChanges();
@@ -683,5 +688,64 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (!t) return;
 
         this.navService.navigateTo(['tournaments', t.id, 'manual-draw']);
+    }
+
+    approveRegistration(reg: TeamRegistration): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.tournamentService.approveRegistration(t.id, reg.teamId).subscribe({
+            next: (updatedReg) => {
+                this.uiFeedback.success('تم التأكيد', `تم تأكيد تسجيل فريق ${reg.teamName} بنجاح`);
+                this.loadInitialData(t.id);
+            },
+            error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل تأكيد التسجيل')
+        });
+    }
+
+    rejectRegistration(reg: TeamRegistration): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        const reason = window.prompt('يرجى إدخال سبب الرفض:');
+        if (reason) {
+            this.tournamentService.rejectRegistration(t.id, reg.teamId, reason).subscribe({
+                next: () => {
+                    this.uiFeedback.success('تم الرفض', `تم رفض تسجيل فريق ${reg.teamName}`);
+                    this.loadInitialData(t.id);
+                },
+                error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل رفض التسجيل')
+            });
+        }
+    }
+
+    promoteTeam(reg: TeamRegistration): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.tournamentService.promoteWaitingTeam(t.id, reg.teamId).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم الترقية', `تم نقل فريق ${reg.teamName} من قائمة الانتظار للمشاركة`);
+                this.loadInitialData(t.id);
+            },
+            error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل ترقية الفريق')
+        });
+    }
+
+    withdrawTeam(reg: TeamRegistration): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.uiFeedback.confirm('انسحاب من البطولة', `هل أنت متأكد من رغبتك في الانسحاب من بطولة ${t.name}؟`, 'تأكيد الانسحاب', 'danger').subscribe(confirmed => {
+            if (confirmed) {
+                this.tournamentService.withdrawTeam(t.id, reg.teamId).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم الانسحاب', 'تم سحب فريقك من البطولة بنجاح');
+                        this.loadInitialData(t.id);
+                    },
+                    error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل الانسحاب')
+                });
+            }
+        });
     }
 }

@@ -53,12 +53,28 @@ export class TournamentService {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/payment`, formData);
     }
 
-    approvePayment(tournamentId: string, teamId: string): Observable<TeamRegistration> {
+    approveRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/approve`, {});
     }
 
-    rejectPayment(tournamentId: string, teamId: string, reason: string): Observable<TeamRegistration> {
+    rejectRegistration(tournamentId: string, teamId: string, reason: string): Observable<TeamRegistration> {
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/reject`, { reason });
+    }
+
+    approvePayment(tournamentId: string, teamId: string): Observable<TeamRegistration> {
+        return this.approveRegistration(tournamentId, teamId);
+    }
+
+    rejectPayment(tournamentId: string, teamId: string, reason: string): Observable<TeamRegistration> {
+        return this.rejectRegistration(tournamentId, teamId, reason);
+    }
+
+    promoteWaitingTeam(tournamentId: string, teamId: string): Observable<TeamRegistration> {
+        return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/promote`, {});
+    }
+
+    withdrawTeam(tournamentId: string, teamId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/withdraw`, {});
     }
 
     getPendingPaymentApprovals(): Observable<PendingPaymentResponse[]> {
@@ -139,8 +155,8 @@ export class TournamentService {
         return this.requestTournamentRegistration(tournamentId, teamId);
     }
 
-    eliminateTeam(tournamentId: string, teamId: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/eliminate`, {});
+    eliminateTeam(tournamentId: string, teamId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/eliminate/${teamId}`, {});
     }
 
     emergencyStart(tournamentId: string): Observable<Tournament> {
