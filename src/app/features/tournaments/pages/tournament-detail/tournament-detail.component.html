@@ -42,24 +42,24 @@
 
                     <div class="tournament-meta">
                         <div class="meta-item">
-                            <app-icon name="calendar_today" class=" icon-sm"></app-icon>
+                            <app-icon name="calendar_today" class="icon-sm"></app-icon>
                             <div class="meta-text-wrapper">
                                 <span class="label">البداية</span>
-                                <span>{{ t.startDate | date:'yyyy/MM/dd' }}</span>
+                                <span class="value">{{ t.startDate | date:'yyyy/MM/dd' }}</span>
                             </div>
                         </div>
                         <div class="meta-item">
-                            <app-icon name="location_on" class=" icon-sm"></app-icon>
+                            <app-icon name="location_on" class="icon-sm"></app-icon>
                             <div class="meta-text-wrapper">
                                 <span class="label">الموقع</span>
-                                <span>{{ t.location || 'غير محدد' }}</span>
+                                <span class="value">{{ t.location || 'غير محدد' }}</span>
                             </div>
                         </div>
                         <div class="meta-item">
-                            <app-icon name="payments" class=" icon-sm"></app-icon>
+                            <app-icon name="payments" class="icon-sm"></app-icon>
                             <div class="meta-text-wrapper">
                                 <span class="label">الاشتراك</span>
-                                <span>{{ t.entryFee }} ريال</span>
+                                <span class="value">{{ t.entryFee }} ريال</span>
                             </div>
                         </div>
                     </div>
