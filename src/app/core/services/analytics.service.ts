@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 export interface DashboardStats {
@@ -59,8 +60,8 @@ export class AnalyticsService {
     }
 
     getRecentActivities(): Observable<Activity[]> {
-        return this.http.get<unknown[]>(`${this.apiUrl}/activities`).pipe(
-            map(data => (data || []).map(item => {
+        return this.http.get<PagedResult<any>>(`${this.apiUrl}/activities`).pipe(
+            map(paged => (paged.items || []).map(item => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
                 const it = item as any;
                 return {

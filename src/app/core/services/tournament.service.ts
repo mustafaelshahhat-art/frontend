@@ -84,16 +84,22 @@ export class TournamentService {
 
     getPendingPaymentApprovals(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/pending
-        return this.http.get<PendingPaymentResponse[]>(`${this.apiUrl}/payments/pending`);
+        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/pending`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getAllPaymentRequests(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/all - returns pending, approved, and rejected
-        return this.http.get<PendingPaymentResponse[]>(`${this.apiUrl}/payments/all`);
+        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/all`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getRegistrations(tournamentId: string): Observable<TeamRegistration[]> {
-        return this.http.get<TeamRegistration[]>(`${this.apiUrl}/${tournamentId}/registrations`);
+        return this.http.get<PagedResult<TeamRegistration>>(`${this.apiUrl}/${tournamentId}/registrations`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     generateMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
@@ -111,11 +117,15 @@ export class TournamentService {
     getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
         const params: any = {};
         if (groupId) params.groupId = groupId;
-        return this.http.get<TournamentStanding[]>(`${this.apiUrl}/${tournamentId}/standings`, { params });
+        return this.http.get<PagedResult<TournamentStanding>>(`${this.apiUrl}/${tournamentId}/standings`, { params }).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getGroups(tournamentId: string): Observable<Group[]> {
-        return this.http.get<Group[]>(`${this.apiUrl}/${tournamentId}/groups`);
+        return this.http.get<PagedResult<Group>>(`${this.apiUrl}/${tournamentId}/groups`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getBracket(tournamentId: string): Observable<BracketDto> {

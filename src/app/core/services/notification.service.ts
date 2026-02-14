@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 
 
 import { Notification } from '../models/tournament.model';
+import { PagedResult } from '../models/pagination.model';
 import { SignalRService } from './signalr.service';
 import { AuthService } from './auth.service';
 import { AuthStore } from '../stores/auth.store';
@@ -129,9 +130,9 @@ export class NotificationService {
 
     loadNotifications(): void {
         this.notificationStore.setLoading(true);
-        this.http.get<Notification[]>(this.apiUrl).subscribe({
-            next: (notifications) => {
-                this.notificationStore.setNotifications(notifications);
+        this.http.get<PagedResult<Notification>>(this.apiUrl).subscribe({
+            next: (paged) => {
+                this.notificationStore.setNotifications(paged.items);
             },
             error: (error) => {
                 this.notificationStore.setError('Failed to load notifications');

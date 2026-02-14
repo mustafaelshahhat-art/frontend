@@ -92,8 +92,10 @@ export class TeamService {
         );
     }
 
-    getTeamRequests(teamId: string): Observable<unknown[]> {
-        return this.http.get<unknown[]>(`${this.apiUrl}/${teamId}/requests`);
+    getTeamRequests(teamId: string): Observable<JoinRequest[]> {
+        return this.http.get<PagedResult<JoinRequest>>(`${this.apiUrl}/${teamId}/requests`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     invitePlayerByDisplayId(teamId: string, displayId: string): Observable<{ playerName: string }> {
@@ -109,15 +111,21 @@ export class TeamService {
     }
 
     getTeamPlayers(teamId: string): Observable<Player[]> {
-        return this.http.get<Player[]>(`${this.apiUrl}/${teamId}/players`);
+        return this.http.get<PagedResult<Player>>(`${this.apiUrl}/${teamId}/players`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getTeamMatches(teamId: string): Observable<ApiTeamMatch[]> {
-        return this.http.get<ApiTeamMatch[]>(`${this.apiUrl}/${teamId}/matches`);
+        return this.http.get<PagedResult<ApiTeamMatch>>(`${this.apiUrl}/${teamId}/matches`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     getTeamFinancials(teamId: string): Observable<ApiTeamFinance[]> {
-        return this.http.get<ApiTeamFinance[]>(`${this.apiUrl}/${teamId}/financials`);
+        return this.http.get<PagedResult<ApiTeamFinance>>(`${this.apiUrl}/${teamId}/financials`).pipe(
+            map(paged => paged.items)
+        );
     }
 
     disableTeam(teamId: string): Observable<unknown> {
