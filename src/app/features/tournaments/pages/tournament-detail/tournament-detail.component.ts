@@ -186,6 +186,13 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             matches.length === 0;
     });
 
+    canStartRegistration = computed(() => {
+        const t = this.tournament();
+        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
+            t?.status === TournamentStatus.DRAFT;
+    });
+
     canGenerateKnockout = computed(() => {
         const t = this.tournament();
         const matches = this.tournamentMatches();
@@ -491,7 +498,23 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         this.isLoading.set(true);
 
-        if (t.status === TournamentStatus.REGISTRATION_OPEN) {
+        if (t.status === TournamentStatus.DRAFT) {
+            // PROD-FIX: Transition from Draft to RegistrationOpen
+            this.tournamentService.updateTournament(t.id, { status: TournamentStatus.REGISTRATION_OPEN }).subscribe({
+                next: (updatedTournament) => {
+                    this.tournamentStore.updateTournament(updatedTournament);
+                    this.isLoading.set(false);
+                    this.uiFeedback.success('تم التحديث', 'تم فتح باب التسجيل بنجاح');
+                    this.cdr.detectChanges();
+                },
+                error: (err: any) => {
+                    this.isLoading.set(false);
+                    const msg = err.error?.message || 'خطأ غير معروف';
+                    this.uiFeedback.error('خطأ', 'فشل فتح التسجيل: ' + msg);
+                    this.cdr.detectChanges();
+                }
+            });
+        } else if (t.status === TournamentStatus.REGISTRATION_OPEN) {
             this.tournamentService.closeRegistration(t.id).subscribe({
                 next: (updatedTournament) => {
                     this.tournamentStore.updateTournament(updatedTournament);

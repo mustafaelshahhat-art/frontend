@@ -75,6 +75,14 @@
                             </app-button>
                             }
 
+                            <!-- Start Registration Button -->
+                            @if (canStartRegistration()) {
+                            <app-button variant="gold" size="md" shadow="glow" icon="rocket_launch"
+                                (click)="toggleStatus()">
+                                بدء التسجيل (نشر البطولة)
+                            </app-button>
+                            }
+
                             <!-- Generate Matches Button (Emergency Only) -->
                             @if (canGenerateMatches()) {
                             <app-button variant="outline" size="md" icon="warning" class="emergency-action"

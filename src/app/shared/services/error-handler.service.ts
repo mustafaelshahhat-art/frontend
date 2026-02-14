@@ -66,10 +66,6 @@ export class ErrorHandlerService {
                 code = 'NETWORK_ERROR';
                 message = 'لا يمكن الاتصال بالخادم. تحقق من اتصالك بالإنترنت.';
                 break;
-            case 400:
-                code = 'BAD_REQUEST';
-                message = error.error?.message || 'طلب غير صالح';
-                break;
             case 401:
                 code = error.error?.code || 'UNAUTHORIZED';
                 message = error.error?.message || 'غير مصرح. يرجى تسجيل الدخول مرة أخرى.';
@@ -82,13 +78,29 @@ export class ErrorHandlerService {
                 code = 'NOT_FOUND';
                 message = error.error?.message || 'المورد المطلوب غير موجود.';
                 break;
-            case 409:
-                code = 'CONFLICT';
-                message = error.error?.message || 'تعارض في البيانات';
-                break;
+            case 400:
             case 422:
-                code = 'VALIDATION_ERROR';
-                message = error.error?.message || 'خطأ في البيانات المدخلة';
+                code = error.error?.code || (error.status === 400 ? 'BAD_REQUEST' : 'VALIDATION_ERROR');
+                // Check for detailed validation errors (standard ASP.NET Core or custom)
+                const validationErrors = error.error?.details || error.error?.errors;
+                if (validationErrors && typeof validationErrors === 'object') {
+                    const allErrors: string[] = [];
+                    Object.values(validationErrors as object).forEach(err => {
+                        if (Array.isArray(err)) {
+                            allErrors.push(...err);
+                        } else if (typeof err === 'string') {
+                            allErrors.push(err);
+                        }
+                    });
+
+                    if (allErrors.length > 0) {
+                        message = allErrors.join(' | ');
+                    } else {
+                        message = error.error?.message || 'خطأ في البيانات';
+                    }
+                } else {
+                    message = error.error?.message || (error.status === 400 ? 'طلب غير صالح' : 'خطأ في التحقق من البيانات');
+                }
                 break;
             case 429:
                 code = 'TOO_MANY_REQUESTS';
@@ -134,6 +146,10 @@ export class ErrorHandlerService {
      */
     private logError(error: AppError): void {
         console.error(`[${error.code}] ${error.message}`, error.details);
+        // PROD-DEBUG: Log raw error for model binding debugging
+        if (error.details && (error.details as any).error) {
+            console.log('RAW SERVER ERROR:', (error.details as any).error);
+        }
     }
 
     /**

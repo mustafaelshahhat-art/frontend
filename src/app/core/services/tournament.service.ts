@@ -103,7 +103,7 @@ export class TournamentService {
     }
 
     generateMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
-        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/matches/generate`, {});
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
     }
 
     setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<any> {
@@ -158,11 +158,11 @@ export class TournamentService {
     }
 
     emergencyStart(tournamentId: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency/start`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-start`, {});
     }
 
     emergencyEnd(tournamentId: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency/end`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${tournamentId}/emergency-end`, {});
     }
 }
 

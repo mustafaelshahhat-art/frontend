@@ -74,7 +74,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         { value: TournamentMode.GroupsKnockoutSingle, label: 'مجموعات ثم إقصائيات (مباراة واحدة)', icon: 'grid_view' },
         { value: TournamentMode.GroupsKnockoutHomeAway, label: 'مجموعات ثم إقصائيات (ذهاب وعودة)', icon: 'event_repeat' },
         { value: TournamentMode.KnockoutSingle, label: 'خروج المغلوب (مباراة واحدة)', icon: 'emoji_events' },
-        { value: TournamentMode.KnockoutHomeAway, label: 'خروج المغلوب (ذهاب وعودة)', icon: 'sync_alt' }
+        { value: TournamentMode.KnockoutHomeAway, label: 'خروج المغلوب (ذهاب وعودة)', icon: 'sync' }
     ];
 
     seedingModes = [
@@ -218,8 +218,55 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.isSubmitting.set(true);
         const formValue = this.tournamentForm.value;
+
+        // Client-side validation for dates
+        const start = new Date(formValue.startDate);
+        const deadline = new Date(formValue.registrationDeadline);
+        if (deadline > start) {
+            this.uiFeedback.error('خطأ في التاريخ', 'آخر موعد للتسجيل لا يمكن أن يكون بعد تاريخ بداية البطولة');
+            return;
+        }
+
+        this.isSubmitting.set(true);
+
+        // Derive format and matchType from mode
+        let format = TournamentFormat.RoundRobin;
+        let matchType = TournamentLegType.SingleLeg;
+        let isHomeAway = false;
+
+        switch (formValue.mode) {
+            case TournamentMode.LeagueSingle:
+                format = TournamentFormat.RoundRobin;
+                matchType = TournamentLegType.SingleLeg;
+                isHomeAway = false;
+                break;
+            case TournamentMode.LeagueHomeAway:
+                format = TournamentFormat.RoundRobin;
+                matchType = TournamentLegType.HomeAndAway;
+                isHomeAway = true;
+                break;
+            case TournamentMode.GroupsKnockoutSingle:
+                format = TournamentFormat.GroupsThenKnockout;
+                matchType = TournamentLegType.SingleLeg;
+                isHomeAway = false;
+                break;
+            case TournamentMode.GroupsKnockoutHomeAway:
+                format = TournamentFormat.GroupsWithHomeAwayKnockout;
+                matchType = TournamentLegType.HomeAndAway;
+                isHomeAway = true;
+                break;
+            case TournamentMode.KnockoutSingle:
+                format = TournamentFormat.KnockoutOnly;
+                matchType = TournamentLegType.SingleLeg;
+                isHomeAway = false;
+                break;
+            case TournamentMode.KnockoutHomeAway:
+                format = TournamentFormat.KnockoutOnly;
+                matchType = TournamentLegType.HomeAndAway;
+                isHomeAway = true;
+                break;
+        }
 
         // Construct Payment JSON
         const paymentMethods: PaymentMethodConfig[] = [];
@@ -233,15 +280,18 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         const tournamentData: Partial<Tournament> = {
             name: formValue.name,
             description: formValue.description,
-            startDate: new Date(formValue.startDate),
+            startDate: start,
             endDate: new Date(formValue.endDate),
-            registrationDeadline: new Date(formValue.registrationDeadline),
+            registrationDeadline: deadline,
             maxTeams: formValue.maxTeams,
             location: formValue.location,
             entryFee: formValue.entryFee,
             rules: formValue.rules,
             prizes: formValue.prizes,
             mode: formValue.mode,
+            format: format,
+            matchType: matchType,
+            isHomeAwayEnabled: isHomeAway,
             numberOfGroups: formValue.numberOfGroups || 0,
             qualifiedTeamsPerGroup: formValue.qualifiedTeamsPerGroup || 0,
             walletNumber: formValue.walletNumber,
@@ -258,8 +308,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                     this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات البطولة بنجاح');
                     this.navService.navigateTo(['tournaments', this.tournamentId()!]);
                 },
-                error: (err) => {
-                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل في تحديث البطولة');
+                error: () => {
                     this.isSubmitting.set(false);
                 }
             });
@@ -278,8 +327,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                     this.uiFeedback.success('تم الإنشاء', 'تم إنشاء البطولة بنجاح');
                     this.navService.navigateTo('tournaments');
                 },
-                error: (err) => {
-                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء البطولة');
+                error: () => {
                     this.isSubmitting.set(false);
                 }
             });
