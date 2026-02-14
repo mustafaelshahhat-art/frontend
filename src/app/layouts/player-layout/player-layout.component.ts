@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
@@ -19,29 +19,24 @@ import { ButtonComponent } from '../../shared/components/button/button.component
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PlayerLayoutComponent extends BaseLayout {
-    get navItems(): NavItem[] {
-        const items: NavItem[] = [
-            { label: 'إدارة الفريق', icon: 'groups', route: '/player/team-management', exact: false },
-            { label: 'المباريات', icon: 'sports_soccer', route: '/player/matches', exact: false },
-            { label: 'البطولات', icon: 'emoji_events', route: '/player/tournaments', exact: false },
+    navItems: NavItem[] = [
+        { label: 'إدارة الفريق', icon: 'groups', route: '/player/team-management', exact: false },
+        { label: 'المباريات', icon: 'sports_soccer', route: '/player/matches', exact: false },
+        { label: 'البطولات', icon: 'emoji_events', route: '/player/tournaments', exact: false },
+        { label: 'الإشعارات', icon: 'notifications', route: '/player/notifications' },
+        { label: 'الحساب الشخصي', icon: 'person', route: '/player/profile' }
+    ];
 
-            { label: 'الإشعارات', icon: 'notifications', route: '/player/notifications' },
-            { label: 'الحساب الشخصي', icon: 'person', route: '/player/profile' }
-        ];
+    brandSubtitle = computed(() =>
+        this.permissionsService.isTeamCaptain() ? 'إدارة الفريق' : 'حساب اللاعب'
+    );
 
-        return items;
-    }
-
-    get brandSubtitle(): string {
-        return this.permissionsService.isTeamCaptain() ? 'إدارة الفريق' : 'حساب اللاعب';
-    }
-
-    get userRoleLabel(): string {
+    userRoleLabel = computed(() => {
         const user = this.currentUser();
         if (this.permissionsService.isTeamCaptain()) return 'قائد فريق';
         if (user?.teamId) return 'لاعب فريق';
         return 'لاعب حر';
-    }
+    });
 
     viewAllNotifications(): void {
         this.showNotifications = false;

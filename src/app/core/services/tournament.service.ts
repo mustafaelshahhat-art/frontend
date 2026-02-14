@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto } from '../models/tournament.model';
+import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -15,8 +16,12 @@ export class TournamentService {
 
 
 
-    getTournaments(): Observable<Tournament[]> {
-        return this.http.get<Tournament[]>(this.apiUrl);
+    getTournaments(pageNumber = 1, pageSize = 20): Observable<PagedResult<Tournament>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
+
+        return this.http.get<PagedResult<Tournament>>(this.apiUrl, { params });
     }
 
     getTournamentById(id: string): Observable<Tournament | undefined> {

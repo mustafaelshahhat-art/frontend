@@ -152,7 +152,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                     // Best-effort locations load using whatever user data we have
                     this.loadLocations();
-                    this.cdr.detectChanges();
                 }
             });
         }
@@ -168,7 +167,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                     icon: 'location_on'
                 }));
                 this.isLocationsLoading = false;
-                this.cdr.detectChanges();
 
                 // If user has a governorate, load cities
                 if (this.user?.governorate) {
@@ -178,7 +176,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             error: (error) => {
                 console.error('Error loading governorates:', error);
                 this.isLocationsLoading = false;
-                this.cdr.detectChanges();
             }
         });
     }
@@ -195,7 +192,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                     icon: 'location_city'
                 }));
                 this.isLocationsLoading = false;
-                this.cdr.detectChanges();
 
                 // If user has a city, load districts
                 if (this.user?.city) {
@@ -222,7 +218,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                     icon: 'home'
                 }));
                 this.isLocationsLoading = false;
-                this.cdr.detectChanges();
             },
             error: (error) => {
                 console.error('Error loading districts:', error);
@@ -233,50 +228,36 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Location change handlers
-    onGovernorateChange(governorate: string | SelectOption | null): void {
-        let value = '';
-        if (typeof governorate === 'string') {
-            value = governorate;
-        } else if (governorate && 'value' in governorate) {
-            value = String(governorate.value);
-        }
+    onGovernorateChange(value: any): void {
+        const governorate = typeof value === 'object' && value !== null ? value.value : value;
 
-        this.profileForm.get('governorate')?.setValue(value);
-        this.profileForm.get('city')?.setValue('');
-        this.profileForm.get('neighborhood')?.setValue('');
+        this.profileForm.patchValue({
+            city: '',
+            neighborhood: ''
+        });
         this.cityOptions = [];
         this.districtOptions = [];
 
-        if (value) {
-            this.loadCities(value);
+        if (governorate) {
+            this.loadCities(governorate);
         }
     }
 
-    onCityChange(city: string | SelectOption | null): void {
-        let value = '';
-        if (typeof city === 'string') {
-            value = city;
-        } else if (city && 'value' in city) {
-            value = String(city.value);
-        }
+    onCityChange(value: any): void {
+        const city = typeof value === 'object' && value !== null ? value.value : value;
 
-        this.profileForm.get('city')?.setValue(value);
-        this.profileForm.get('neighborhood')?.setValue('');
+        this.profileForm.patchValue({
+            neighborhood: ''
+        });
         this.districtOptions = [];
 
-        if (value) {
-            this.loadDistricts(value);
+        if (city) {
+            this.loadDistricts(city);
         }
     }
 
-    onDistrictChange(district: string | SelectOption | null): void {
-        let value = '';
-        if (typeof district === 'string') {
-            value = district;
-        } else if (district && 'value' in district) {
-            value = String(district.value);
-        }
-        this.profileForm.get('neighborhood')?.setValue(value);
+    onDistrictChange(value: any): void {
+        // Handled by formControlName but kept for future side effects if needed
     }
 
     private initForm(): void {
@@ -412,15 +393,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.profileForm) {
             Object.keys(this.profileForm.controls).forEach(key => {
                 const control = this.profileForm.get(key);
-                if (control) {
-                    control.disable();
-                }
+                control?.disable();
             });
-            // Re-enable username and nationalId which should always be disabled
-            const usernameControl = this.profileForm.get('username');
-            const nationalIdControl = this.profileForm.get('nationalId');
-            if (usernameControl) usernameControl.disable();
-            if (nationalIdControl) nationalIdControl.disable();
         }
     }
 

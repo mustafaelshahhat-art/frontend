@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Team, Player, JoinRequest, ApiTeamMatch, ApiTeamFinance } from '../models/team.model';
 import { User } from '../models/user.model';
+import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -14,15 +15,17 @@ export class TeamService {
     private readonly apiUrl = `${environment.apiUrl}/teams`;
 
     getTeamByCaptainId(captainId: string): Observable<Team | undefined> {
-        return this.http.get<Team[]>(this.apiUrl, { params: { captainId } }).pipe(
-            map(teams => teams && teams.length > 0 ? teams[0] : undefined),
+        const params = new HttpParams().set('captainId', captainId);
+        return this.http.get<PagedResult<Team>>(this.apiUrl, { params }).pipe(
+            map(paged => paged.items && paged.items.length > 0 ? paged.items[0] : undefined),
             catchError(() => of(undefined))
         );
     }
 
     getTeamByPlayerId(playerId: string): Observable<Team | undefined> {
-        return this.http.get<Team[]>(this.apiUrl, { params: { playerId } }).pipe(
-            map(teams => teams && teams.length > 0 ? teams[0] : undefined),
+        const params = new HttpParams().set('playerId', playerId);
+        return this.http.get<PagedResult<Team>>(this.apiUrl, { params }).pipe(
+            map(paged => paged.items && paged.items.length > 0 ? paged.items[0] : undefined),
             catchError(() => of(undefined))
         );
     }
@@ -49,8 +52,11 @@ export class TeamService {
         );
     }
 
-    getAllTeams(): Observable<Team[]> {
-        return this.http.get<Team[]>(this.apiUrl);
+    getAllTeams(pageNumber = 1, pageSize = 20): Observable<PagedResult<Team>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
+        return this.http.get<PagedResult<Team>>(this.apiUrl, { params });
     }
 
     createTeam(user: User, teamName: string): Observable<{ team: Team, updatedUser: User }> {

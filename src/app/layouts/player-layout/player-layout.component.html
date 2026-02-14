@@ -8,7 +8,7 @@
 
     <!-- Sidebar -->
     <app-sidebar [isOpen]="isSidebarOpen" [isMobile]="isMobile" [navItems]="navItems" [currentUser]="currentUser()"
-        [brandSubtitle]="brandSubtitle" [userRoleLabel]="userRoleLabel" [profileRoute]="'/player/profile'"
+        [brandSubtitle]="brandSubtitle()" [userRoleLabel]="userRoleLabel()" [profileRoute]="'/player/profile'"
         (closeSidebar)="closeSidebar()" (logout)="handleLogout()" />
 
     <!-- Main Content Area -->

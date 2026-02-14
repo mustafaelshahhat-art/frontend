@@ -81,48 +81,43 @@
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <app-form-control formControlName="name" label="الاسم الكامل"
-                                [control]="profileForm.get('name')" [disabled]="isFormDisabled" />
+                                [control]="profileForm.get('name')" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="email" label="البريد الإلكتروني" type="email"
-                                [control]="profileForm.get('email')" [disabled]="isFormDisabled" />
+                                [control]="profileForm.get('email')" />
                         </div>
 
                         <div class="form-group">
                             <app-form-control formControlName="phone" label="رقم الجوال" placeholder="05XXXXXXXX"
-                                type="tel" [control]="profileForm.get('phone')" [disabled]="isFormDisabled" />
+                                type="tel" [control]="profileForm.get('phone')" />
                         </div>
 
                         <div class="form-group">
-                            <app-form-control formControlName="username" label="اسم المستخدم" [disabled]="true"
+                            <app-form-control formControlName="username" label="اسم المستخدم"
                                 [control]="profileForm.get('username')" />
                         </div>
 
                         <div class="form-group">
-                            <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)" [disabled]="true"
+                            <app-form-control formControlName="nationalId" label="رقم الهوية (محمي)"
                                 [control]="profileForm.get('nationalId')" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="governorateOptions" [ngModel]="profileForm.get('governorate')?.value"
-                                (ngModelChange)="onGovernorateChange($event)" label="المحافظة"
-                                placeholder="اختر المحافظة" [disabled]="isFormDisabled"
-                                [ngModelOptions]="{standalone: true}" />
+                            <app-select [options]="governorateOptions" formControlName="governorate"
+                                (selectionChange)="onGovernorateChange($event)" label="المحافظة"
+                                placeholder="اختر المحافظة" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="cityOptions" [ngModel]="profileForm.get('city')?.value"
-                                (ngModelChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
-                                [disabled]="isFormDisabled || !profileForm.get('governorate')?.value"
-                                [ngModelOptions]="{standalone: true}" />
+                            <app-select [options]="cityOptions" formControlName="city"
+                                (selectionChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="districtOptions" [ngModel]="profileForm.get('neighborhood')?.value"
-                                (ngModelChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
-                                [disabled]="isFormDisabled || !profileForm.get('city')?.value"
-                                [ngModelOptions]="{standalone: true}" />
+                            <app-select [options]="districtOptions" formControlName="neighborhood"
+                                (selectionChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي" />
                         </div>
                     </div>
 

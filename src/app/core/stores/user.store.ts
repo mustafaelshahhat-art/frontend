@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { User, UserRole, UserStatus } from '../../core/models/user.model';
+import { PagedResult } from '../../core/models/pagination.model';
 
 export interface UserState {
   users: User[];
@@ -46,11 +47,13 @@ export class UserStore {
     this.state.update(state => ({ ...state, error }));
   }
 
-  setUsers(users: User[]): void {
+  setUsers(result: PagedResult<User> | User[]): void {
+    const users = Array.isArray(result) ? result : result.items;
+    const totalCount = Array.isArray(result) ? result.length : result.totalCount;
     this.state.update(state => ({
       ...state,
       users,
-      totalUserCount: users.length,
+      totalUserCount: totalCount,
       isLoading: false,
       error: null
     }));

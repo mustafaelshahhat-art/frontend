@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Tournament, TournamentStatus, TeamRegistration } from '../../core/models/tournament.model';
+import { PagedResult } from '../../core/models/pagination.model';
 
 export interface TournamentState {
   tournaments: Tournament[];
@@ -44,7 +45,8 @@ export class TournamentStore {
     this.state.update(state => ({ ...state, error }));
   }
 
-  setTournaments(tournaments: Tournament[]): void {
+  setTournaments(result: PagedResult<Tournament> | Tournament[]): void {
+    const tournaments = Array.isArray(result) ? result : result.items;
     this.state.update(state => ({ ...state, tournaments, isLoading: false, error: null }));
   }
 

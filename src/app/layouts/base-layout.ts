@@ -23,8 +23,8 @@ export abstract class BaseLayout implements OnInit {
     windowSize = window.innerWidth;
     showNotifications = false;
 
-    notifications = toSignal(this.notificationService.notifications, { initialValue: [] });
-    unreadCount = toSignal(this.notificationService.unreadCount, { initialValue: 0 });
+    notifications = this.notificationService.notifications;
+    unreadCount = this.notificationService.unreadCount;
 
     currentUser = this.authStore.currentUser;
     isAuthenticated = this.authStore.isAuthenticated;

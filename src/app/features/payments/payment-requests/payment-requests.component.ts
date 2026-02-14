@@ -117,7 +117,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         this.tournamentStore.setLoading(true);
         this.tournamentService.getTournaments().subscribe({
             next: (data) => {
-                this.tournamentStore.setTournaments(data);
+                this.tournamentStore.setTournaments(data.items);
             },
             error: () => {
                 this.tournamentStore.setLoading(false);

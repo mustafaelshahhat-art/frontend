@@ -14,6 +14,7 @@ import { TableComponent, TableColumn } from '../../../shared/components/table/ta
 import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
 import { TeamStore } from '../../../core/stores/team.store';
+import { PagedResult } from '../../../core/models/pagination.model';
 
 import { StatusConfig } from '../../../shared/utils/status-labels';
 
@@ -108,7 +109,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
     loadTeams(): void {
         this.teamStore.setLoading(true);
         this.teamService.getAllTeams().subscribe({
-            next: (data) => {
+            next: (data: PagedResult<Team>) => {
                 this.teamStore.setTeams(data);
                 // cdr handled by signal updates
             },

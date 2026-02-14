@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { User } from '../models/user.model';
+import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 export interface CreateAdminRequest {
@@ -23,12 +24,20 @@ export class UserService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/Users`;
 
-    getUsers(): Observable<User[]> {
-        return this.http.get<User[]>(this.apiUrl);
+    getUsers(pageNumber = 1, pageSize = 20): Observable<PagedResult<User>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
+
+        return this.http.get<PagedResult<User>>(this.apiUrl, { params });
     }
 
-    getUsersByRole(role: string): Observable<User[]> {
-        return this.http.get<User[]>(`${this.apiUrl}/role/${role}`);
+    getUsersByRole(role: string, pageNumber = 1, pageSize = 20): Observable<PagedResult<User>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
+
+        return this.http.get<PagedResult<User>>(`${this.apiUrl}/role/${role}`, { params });
     }
 
     getUserById(id: string): Observable<User> {

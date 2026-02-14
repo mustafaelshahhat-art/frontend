@@ -30,14 +30,9 @@ export class NotificationService {
 
     private isConnected = toSignal(this.signalRService.isConnected$, { initialValue: false });
 
-    // Expose store signals as observables for backward compatibility
-    get notifications(): Observable<Notification[]> {
-        return toObservable(this.notificationStore.notifications);
-    }
-
-    get unreadCount(): Observable<number> {
-        return toObservable(this.notificationStore.unreadCount);
-    }
+    // Expose store signals directly
+    readonly notifications = this.notificationStore.notifications;
+    readonly unreadCount = this.notificationStore.unreadCount;
 
     get joinRequestUpdate(): Observable<void> {
         return this.joinRequestUpdate$.asObservable();

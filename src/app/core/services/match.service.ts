@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Match, MatchStatus, Card, Goal, MatchEvent } from '../models/tournament.model';
+import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -21,8 +22,11 @@ export class MatchService {
         this.matchUpdatedSubject.next(match);
     }
 
-    getMatches(): Observable<Match[]> {
-        return this.http.get<Match[]>(this.apiUrl);
+    getMatches(pageNumber = 1, pageSize = 20): Observable<PagedResult<Match>> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber.toString())
+            .set('pageSize', pageSize.toString());
+        return this.http.get<PagedResult<Match>>(this.apiUrl, { params });
     }
 
 
@@ -32,29 +36,29 @@ export class MatchService {
     }
 
     getMatchesByTournament(tournamentId: string): Observable<Match[]> {
-        // If backend does not have specific endpoint, filter locally
-        return this.getMatches().pipe(
-            map(matches => matches.filter(m => m.tournamentId === tournamentId))
+        // Updated to use the base paged method but we'll take a large page for filtering if needed, 
+        // or rely on component to call correct endpoint if backend supports one.
+        // For Scale Protection, we unwrap items since the signature expects Match[]
+        return this.getMatches(1, 100).pipe(
+            map(paged => paged.items.filter(m => m.tournamentId === tournamentId))
         );
     }
 
-
-
     getMatchesByTeam(teamId: string): Observable<Match[]> {
-        return this.getMatches().pipe(
-            map(matches => matches.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId))
+        return this.getMatches(1, 100).pipe(
+            map(paged => paged.items.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId))
         );
     }
 
     getLiveMatches(): Observable<Match[]> {
-        return this.getMatches().pipe(
-            map(matches => matches.filter(m => m.status === MatchStatus.LIVE))
+        return this.getMatches(1, 100).pipe(
+            map(paged => paged.items.filter(m => m.status === MatchStatus.LIVE))
         );
     }
 
     getUpcomingMatches(): Observable<Match[]> {
-        return this.getMatches().pipe(
-            map(matches => matches.filter(m => m.status === MatchStatus.SCHEDULED)) // Assuming Scheduled exists
+        return this.getMatches(1, 100).pipe(
+            map(paged => paged.items.filter(m => m.status === MatchStatus.SCHEDULED))
         );
     }
 

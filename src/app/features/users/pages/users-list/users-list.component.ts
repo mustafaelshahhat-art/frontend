@@ -141,7 +141,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.userStore.setLoading(true);
         this.userService.getUsers().subscribe({
             next: (data) => {
-                this.userStore.setUsers(data);
+                this.userStore.setUsers(data.items);
             },
             error: (err) => {
                 this.userStore.setError(err.message);

@@ -11,6 +11,7 @@ import { UserRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { AuthStore } from '../../../../core/stores/auth.store';
+import { PagedResult } from '../../../../core/models/pagination.model';
 
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
@@ -160,7 +161,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
     loadMatches(): void {
         this.matchStore.setLoading(true);
 
-        const handleSuccess = (data: Match[]) => {
+        const handleSuccess = (data: PagedResult<Match> | Match[]) => {
             this.matchStore.setMatches(data);
         };
 

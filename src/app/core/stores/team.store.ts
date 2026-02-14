@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Team } from '../../core/models/team.model';
+import { PagedResult } from '../../core/models/pagination.model';
 
 export interface TeamState {
   teams: Team[];
@@ -31,7 +32,8 @@ export class TeamStore {
     this.state.update(state => ({ ...state, error }));
   }
 
-  setTeams(teams: Team[]): void {
+  setTeams(result: PagedResult<Team> | Team[]): void {
+    const teams = Array.isArray(result) ? result : result.items;
     this.state.update(state => ({ ...state, teams, isLoading: false, error: null }));
   }
 

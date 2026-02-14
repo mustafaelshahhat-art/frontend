@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Match, MatchStatus } from '../../core/models/tournament.model';
+import { PagedResult } from '../../core/models/pagination.model';
 
 export interface MatchState {
   matches: Match[];
@@ -44,7 +45,8 @@ export class MatchStore {
     this.state.update(state => ({ ...state, error }));
   }
 
-  setMatches(matches: Match[]): void {
+  setMatches(result: PagedResult<Match> | Match[]): void {
+    const matches = Array.isArray(result) ? result : result.items;
     this.state.update(state => ({ ...state, matches, isLoading: false, error: null }));
   }
 
