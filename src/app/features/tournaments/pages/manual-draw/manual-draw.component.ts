@@ -42,6 +42,17 @@ export class ManualDrawComponent implements OnInit {
     unassignedTeams = signal<TeamRegistration[]>([]);
     groupAssignments = signal<{ id: number, name: string, teams: TeamRegistration[] }[]>([]);
 
+    // Knockout Specific
+    knockoutPairings = signal<{ home: TeamRegistration | null, away: TeamRegistration | null }[]>([]);
+    homeToPair = signal<TeamRegistration | null>(null);
+    awayToPair = signal<TeamRegistration | null>(null);
+
+    isKnockout = computed(() => {
+        const t = this.tournament();
+        if (!t) return false;
+        return t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway';
+    });
+
     ngOnInit(): void {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -70,13 +81,19 @@ export class ManualDrawComponent implements OnInit {
         this.layoutOrchestrator.setTitle('إجراء القرعة يدوياً');
         this.layoutOrchestrator.setSubtitle(t.name);
 
-        // Initialize groups based on tournament config
-        const numGroups = t.numberOfGroups || 1;
-        const initialGroups = [];
-        for (let i = 1; i <= numGroups; i++) {
-            initialGroups.push({ id: i, name: `المجموعة ${i}`, teams: [] });
+        if (t.format === 'GroupsThenKnockout' || t.format === 'GroupsWithHomeAwayKnockout' || t.format === 'RoundRobin') {
+            const numGroups = t.numberOfGroups || 1;
+            const initialGroups = [];
+            for (let i = 1; i <= numGroups; i++) {
+                initialGroups.push({ id: i, name: `المجموعة ${i}`, teams: [] });
+            }
+            this.groupAssignments.set(initialGroups);
+        } else {
+            // Knockout setup
+            this.knockoutPairings.set([]);
+            this.homeToPair.set(null);
+            this.awayToPair.set(null);
         }
-        this.groupAssignments.set(initialGroups);
     }
 
     loadRegistrations(id: string): void {
@@ -104,32 +121,104 @@ export class ManualDrawComponent implements OnInit {
         }
     }
 
+    onTeamDropped(event: CdkDragDrop<any>, slot: 'home' | 'away'): void {
+        const team = event.item.data as TeamRegistration;
+
+        if (slot === 'home') {
+            if (this.homeToPair()) {
+                this.unassignedTeams.update(teams => [...teams, this.homeToPair()!]);
+            }
+            this.homeToPair.set(team);
+        } else {
+            if (this.awayToPair()) {
+                this.unassignedTeams.update(teams => [...teams, this.awayToPair()!]);
+            }
+            this.awayToPair.set(team);
+        }
+
+        // Remove from source
+        this.unassignedTeams.update(teams => teams.filter(t => t.teamId !== team.teamId));
+
+        // If both filled, pair them
+        if (this.homeToPair() && this.awayToPair()) {
+            this.addPairing(this.homeToPair()!, this.awayToPair()!);
+            this.homeToPair.set(null);
+            this.awayToPair.set(null);
+        }
+    }
+
+    addPairing(home: TeamRegistration, away: TeamRegistration): void {
+        this.knockoutPairings.update(p => [...p, { home, away }]);
+    }
+
+    removePairing(index: number): void {
+        const pairing = this.knockoutPairings()[index];
+        if (pairing.home) this.unassignedTeams.update(teams => [...teams, pairing.home!]);
+        if (pairing.away) this.unassignedTeams.update(teams => [...teams, pairing.away!]);
+        this.knockoutPairings.update(p => p.filter((_, i) => i !== index));
+    }
+
     submitDraw(): void {
         const t = this.tournament();
         if (!t) return;
 
         if (this.unassignedTeams().length > 0) {
-            this.uiFeedback.warning('تنبيه', 'يجب توزيع جميع الفرق على المجموعات أولاً.');
+            this.uiFeedback.warning('تنبيه', 'يجب توزيع جميع الفرق أولاً.');
             return;
         }
 
         this.isSubmitting.set(true);
 
-        const request: ManualDrawRequest = {
-            groupAssignments: this.groupAssignments().map(g => ({
-                groupId: g.id,
-                teamIds: g.teams.map(team => team.teamId)
-            }))
-        };
+        if (this.isKnockout()) {
+            this.submitKnockoutDraw(t);
+        } else {
+            this.submitGroupDraw(t);
+        }
+    }
 
-        this.tournamentService.manualDraw(t.id, request).subscribe({
+    private submitGroupDraw(t: Tournament): void {
+        const assignments = this.groupAssignments().map(g => ({
+            groupId: g.id,
+            teamIds: g.teams.map(team => team.teamId)
+        }));
+
+        this.tournamentService.assignGroups(t.id, assignments).subscribe({
             next: () => {
-                this.uiFeedback.success('تم بنجاح', 'تم إجراء القرعة وتوليد المباريات بنجاح.');
+                // Now generate matches
+                this.tournamentService.generateManualGroupMatches(t.id).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم بنجاح', 'تم توزيع الفرق وتوليد مباريات المجموعات بنجاح.');
+                        this.router.navigate(['/tournaments', t.id]);
+                    },
+                    error: (err) => {
+                        this.isSubmitting.set(false);
+                        this.uiFeedback.error('خطأ في توليد المباريات', err.error?.message || 'فشل توليد المواجهات');
+                    }
+                });
+            },
+            error: (err) => {
+                this.isSubmitting.set(false);
+                this.uiFeedback.error('خطأ في التوزيع', err.error?.message || 'فشل في حفظ المجموعات');
+            }
+        });
+    }
+
+    private submitKnockoutDraw(t: Tournament): void {
+        const pairings = this.knockoutPairings().map(p => ({
+            homeTeamId: p.home?.teamId,
+            awayTeamId: p.away?.teamId,
+            roundNumber: 1,
+            stageName: 'Round 1'
+        }));
+
+        this.tournamentService.createManualKnockoutMatches(t.id, pairings).subscribe({
+            next: () => {
+                this.uiFeedback.success('تم بنجاح', 'تم إنشاء مواجهات خروج المغلوب بنجاح.');
                 this.router.navigate(['/tournaments', t.id]);
             },
             error: (err) => {
                 this.isSubmitting.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حفظ القرعة');
+                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المواجهات');
             }
         });
     }

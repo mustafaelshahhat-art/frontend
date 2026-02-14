@@ -45,6 +45,9 @@
                         <app-select label="نظام القرعة والتصنيف" icon="shuffle" [options]="seedingModes"
                             formControlName="seedingMode" [required]="true" />
 
+                        <app-select label="طريقة جدولة المباريات" icon="edit_calendar" [options]="schedulingModes"
+                            formControlName="schedulingMode" [required]="true" />
+
 
                         @if (tournamentForm.get('mode')?.value === 3 ||
                         tournamentForm.get('mode')?.value === 4) {
@@ -61,14 +64,16 @@
                 <!-- Registration Policy -->
                 <app-card title="سياسة التسجيل" class="form-section">
                     <div class="fields-grid">
-                        <div class="checkbox-container full-width" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <div class="checkbox-container full-width"
+                            style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                             <input type="checkbox" id="allowLateRegistration" formControlName="allowLateRegistration">
-                            <label for="allowLateRegistration">السماح بالتسجيل المتأخر (بعد اكتمال العدد أو انتهاء الموعد)</label>
+                            <label for="allowLateRegistration">السماح بالتسجيل المتأخر (بعد اكتمال العدد أو انتهاء
+                                الموعد)</label>
                         </div>
 
                         @if (tournamentForm.get('allowLateRegistration')?.value) {
-                            <app-select label="نوع التسجيل المتأخر" icon="history_edu" [options]="lateRegistrationModes"
-                                formControlName="lateRegistrationMode" [required]="true" />
+                        <app-select label="نوع التسجيل المتأخر" icon="history_edu" [options]="lateRegistrationModes"
+                            formControlName="lateRegistrationMode" [required]="true" />
                         }
                     </div>
                 </app-card>

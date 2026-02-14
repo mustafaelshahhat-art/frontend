@@ -21,6 +21,11 @@ export enum SeedingMode {
     RankBased = 2
 }
 
+export enum SchedulingMode {
+    Random = 0,
+    Manual = 1
+}
+
 export interface PaymentMethodConfig {
     type: 'E_WALLET' | 'INSTAPAY';
     label: string;
@@ -112,10 +117,13 @@ export interface Tournament {
     paymentMethods?: PaymentMethodConfig[]; // Parsed helper
     mode?: TournamentMode;
     openingMatchId?: string;
-    openingMatchHomeTeamId?: string;
-    openingMatchAwayTeamId?: string;
+    openingMatchHomeTeamId?: string; // Legacy alias
+    openingMatchAwayTeamId?: string; // Legacy alias
+    openingTeamAId?: string;
+    openingTeamBId?: string;
     allowLateRegistration?: boolean;
     lateRegistrationMode?: LateRegistrationMode;
+    schedulingMode?: SchedulingMode;
 
     winnerTeamId?: string;
     winnerTeamName?: string;

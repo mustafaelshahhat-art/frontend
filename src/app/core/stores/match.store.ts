@@ -90,6 +90,10 @@ export class MatchStore {
     }));
   }
 
+  clearTournamentMatches(tournamentId: string): void {
+    this.removeMatchesByTournament(tournamentId);
+  }
+
   removeMatchesByTeam(teamId: string): void {
     this.state.update(state => ({
       ...state,

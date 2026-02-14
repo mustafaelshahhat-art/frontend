@@ -44,6 +44,14 @@ export class TournamentService {
         return this.http.post<Tournament>(`${this.apiUrl}/${id}/close-registration`, {});
     }
 
+    startTournament(id: string): Observable<Tournament> {
+        return this.http.post<Tournament>(`${this.apiUrl}/${id}/start`, {});
+    }
+
+    openRegistration(id: string): Observable<Tournament> {
+        return this.http.patch<Tournament>(`${this.apiUrl}/${id}`, { status: 'RegistrationOpen' });
+    }
+
     requestTournamentRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         // According to TournamentsController: POST {id}/register
         return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId });
@@ -130,6 +138,22 @@ export class TournamentService {
 
     getBracket(tournamentId: string): Observable<BracketDto> {
         return this.http.get<BracketDto>(`${this.apiUrl}/${tournamentId}/bracket`);
+    }
+
+    assignGroups(tournamentId: string, assignments: any[]): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/assign-groups`, assignments);
+    }
+
+    generateManualGroupMatches(tournamentId: string): Observable<any[]> {
+        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/generate-manual-group-matches`, {});
+    }
+
+    createManualKnockoutMatches(tournamentId: string, pairings: any[]): Observable<any[]> {
+        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/manual-knockout-pairings`, pairings);
+    }
+
+    resetSchedule(tournamentId: string): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/reset-schedule`, {});
     }
 
     // Helper methods (mock replacement)

@@ -83,6 +83,21 @@
                             </app-button>
                             }
 
+                            <!-- Close Registration Button -->
+                            @if (canCloseRegistration()) {
+                            <app-button variant="gold" size="md" shadow="glow" icon="lock" (click)="toggleStatus()">
+                                إغلاق التسجيل
+                            </app-button>
+                            }
+
+                            <!-- Generate Schedule Button (Random Mode) -->
+                            @if (canGenerateSchedule()) {
+                            <app-button variant="primary" size="md" shadow="glow" icon="schedule"
+                                (click)="generateMatches()" [disabled]="isGeneratingMatches()">
+                                {{ isGeneratingMatches() ? 'جاري التوليد...' : 'توليد الجدول' }}
+                            </app-button>
+                            }
+
                             <!-- Generate Matches Button (Emergency Only) -->
                             @if (canGenerateMatches()) {
                             <app-button variant="outline" size="md" icon="warning" class="emergency-action"
@@ -91,24 +106,38 @@
                             </app-button>
                             }
 
-                            <!-- Manual Draw Button -->
-                            @if (canManageDraw() && t.seedingMode === 1 && tournamentMatches().length === 0) {
-                            <app-button variant="gold" size="md" shadow="glow" icon="auto_fix_high"
-                                (click)="startManualDraw()">
-                                إجراء القرعة اليدوية
+                            <!-- Start Tournament Button -->
+                            @if (canStartTournament()) {
+                            <app-button variant="primary" size="md" shadow="glow" icon="play_arrow"
+                                (click)="startTournament()">
+                                بدء锦标赛
                             </app-button>
                             }
 
-                            <!-- Select Opening Match -->
-                            @if (t.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION) {
-                            <app-button variant="primary" size="md" shadow="glow" icon="star"
-                                (click)="selectOpeningMatch()">
-                                اختيار مباراة الافتتاح
+                            <!-- Manual Draw Button -->
+                            @if (canManageDraw() && t.schedulingMode === SchedulingMode.Manual &&
+                            tournamentMatches().length === 0) {
+                            <app-button variant="gold" size="md" shadow="glow" icon="edit_calendar"
+                                (click)="startManualDraw()">
+                                {{ (t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway') ? 'تحديد مواجهات
+                                الإقصائيات' : 'توزيع المجموعات والجدولة' }}
                             </app-button>
+                            }
 
-                            <app-button variant="gold" size="md" shadow="glow" icon="auto_fix_high"
-                                (click)="generateMatches()" [disabled]="isGeneratingMatches()">
-                                {{ isGeneratingMatches() ? 'جاري التوليد...' : 'توليد الأدوار الإقصائية' }}
+                            <!-- Reset Schedule Button -->
+                            @if (canResetSchedule()) {
+                            <app-button variant="outline" size="md" icon="restart_alt" class="text-danger"
+                                (click)="resetSchedule()">
+                                حذف الجدول وإعادة القرعة
+                            </app-button>
+                            }
+
+                            <!-- Select Opening Match (Pre-Draw) -->
+                            @if (canSelectOpeningMatch()) {
+                            <app-button [variant]="(t.openingTeamAId || t.openingMatchHomeTeamId) ? 'gold' : 'primary'"
+                                size="md" shadow="glow" icon="star" (click)="selectOpeningMatch()">
+                                {{ (t.openingTeamAId || t.openingMatchHomeTeamId) ? 'تغيير مباراة الافتتاح' : 'تحديد
+                                مباراة الافتتاح' }}
                             </app-button>
                             }
 
@@ -494,5 +523,11 @@
 </div>
 
 <!-- Registration Modal (Shared) -->
-<app-team-registration-modal [tournament]="tournament()" [isVisible]="isRegisterModalVisible"
+<app-team-registration-modal [tournament]="tournament()!" [isVisible]="isRegisterModalVisible"
     (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()" />
+
+<!-- Opening Match Selection Modal -->
+@if(canSelectOpeningMatch() && tournament()) {
+<app-opening-match-modal [tournament]="tournament()!" [isVisible]="isOpeningMatchModalVisible"
+    (close)="closeOpeningMatchModal()" (submit)="onOpeningMatchSelected($event)" />
+}

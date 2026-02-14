@@ -5,14 +5,14 @@
         <p>جاري تحميل البيانات...</p>
     </div>
     } @else {
-    <div class="draw-container" cdkDropListGroup>
+    <div class="draw-container" [class.knockout-mode]="isKnockout()" cdkDropListGroup>
         <!-- Source: Unassigned Teams -->
         <app-card class="unassigned-card" title="الفرق غير الموزعة">
             <div cdkDropList [cdkDropListData]="unassignedTeams()" class="team-list source-list"
                 (cdkDropListDropped)="drop($event)">
 
                 @for (team of unassignedTeams(); track team.teamId) {
-                <div class="team-item animate-fade-in" cdkDrag>
+                <div class="team-item animate-fade-in" cdkDrag [cdkDragData]="team">
                     <div class="drag-placeholder" *cdkDragPlaceholder></div>
                     <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
                         [initials]="team.teamName.charAt(0)"></app-smart-image>
@@ -28,6 +28,7 @@
             </div>
         </app-card>
 
+        @if (!isKnockout()) {
         <!-- Targets: Groups -->
         <div class="groups-grid">
             @for (group of groupAssignments(); track group.id) {
@@ -53,13 +54,73 @@
             </app-card>
             }
         </div>
+        } @else {
+        <!-- Targets: Knockout Pairings -->
+        <div class="pairings-grid">
+            <div class="pairings-list">
+                @for (pair of knockoutPairings(); track $index) {
+                <div class="pairing-row animate-slide-in">
+                    <div class="team-slot home">
+                        <app-smart-image [src]="pair.home?.teamLogoUrl" type="team" size="sm"></app-smart-image>
+                        <span>{{ pair.home?.teamName }}</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="team-slot away">
+                        <app-smart-image [src]="pair.away?.teamLogoUrl" type="team" size="sm"></app-smart-image>
+                        <span>{{ pair.away?.teamName }}</span>
+                    </div>
+                    <app-icon name="delete" class="delete-pair" (click)="removePairing($index)"></app-icon>
+                </div>
+                } @empty {
+                <div class="empty-pairings">
+                    <p>لم يتم إنشاء مواجهات بعد. اسحب الفرق لتكوين أزواج.</p>
+                </div>
+                }
+            </div>
+
+            <!-- Drop zones for new pairing -->
+            <div class="new-pairing-zone">
+                <app-card title="إنشاء مواجهة جديدة">
+                    <div class="pairing-builder">
+                        <div class="drop-slot home" cdkDropList [cdkDropListData]="[]"
+                            (cdkDropListDropped)="onTeamDropped($event, 'home')">
+                            @if (homeToPair()) {
+                            <div class="team-preview">
+                                <app-smart-image [src]="homeToPair()?.teamLogoUrl" type="team"
+                                    size="sm"></app-smart-image>
+                                <span>{{ homeToPair()?.teamName }}</span>
+                            </div>
+                            } @else {
+                            <p>الفريق الأول</p>
+                            <span class="hint">اسحب هنا</span>
+                            }
+                        </div>
+                        <div class="vs-text">ضد</div>
+                        <div class="drop-slot away" cdkDropList [cdkDropListData]="[]"
+                            (cdkDropListDropped)="onTeamDropped($event, 'away')">
+                            @if (awayToPair()) {
+                            <div class="team-preview">
+                                <app-smart-image [src]="awayToPair()?.teamLogoUrl" type="team"
+                                    size="sm"></app-smart-image>
+                                <span>{{ awayToPair()?.teamName }}</span>
+                            </div>
+                            } @else {
+                            <p>الفريق الثاني</p>
+                            <span class="hint">اسحب هنا</span>
+                            }
+                        </div>
+                    </div>
+                </app-card>
+            </div>
+        </div>
+        }
 
         <!-- Actions -->
         <div class="draw-actions">
             <app-button variant="outline" (trigger)="cancel()">إلغاء</app-button>
             <app-button variant="primary" [disabled]="unassignedTeams().length > 0 || isSubmitting()"
                 (trigger)="submitDraw()">
-                {{ isSubmitting() ? 'جاري الحفظ...' : 'اعتماد القرعة وبدء البطولة' }}
+                {{ isSubmitting() ? 'جاري الحفظ...' : 'اعتماد القرعة وتوليد المباريات' }}
             </app-button>
         </div>
     </div>
