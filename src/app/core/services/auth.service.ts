@@ -56,13 +56,14 @@ export class AuthService {
     }
 
     private mapRoleToBackend(role: string | number): number {
-        // Backend UserRole: Player = 0, Admin = 2
+        // Backend UserRole: Player = 0, Admin = 1, TournamentCreator = 2
         if (typeof role === 'number') return role;
 
         const r = role?.toLowerCase();
-        if (r === 'admin') return 2;
+        if (r === 'admin') return 1;
+        if (r === 'tournamentcreator' || r === 'creator') return 2;
 
-        return 0; // Default to Player (Captain role removed)
+        return 0; // Default to Player
     }
 
     login(request: LoginRequest): Observable<AuthResponse> {

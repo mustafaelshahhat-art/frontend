@@ -18,7 +18,7 @@ export class TournamentService {
 
     getTournaments(pageNumber = 1, pageSize = 20): Observable<PagedResult<Tournament>> {
         const params = new HttpParams()
-            .set('pageNumber', pageNumber.toString())
+            .set('page', pageNumber.toString())
             .set('pageSize', pageSize.toString());
 
         return this.http.get<PagedResult<Tournament>>(this.apiUrl, { params });
@@ -133,32 +133,15 @@ export class TournamentService {
     }
 
     // Helper methods (mock replacement)
-    getTeamActiveTournament(): Observable<Tournament | null> {
-        // This logic usually requires a specific endpoint "active-tournament-for-team".
-        // Or client filters all tournaments.
-        // For now, assume generic fetch and filter locally or return null if not easy.
-        // Or better, let component handle it. I'll implementation generic logic for MVP.
-        return this.getTournaments().pipe(
-            map(() => {
-                // This is heavy, but MVP acceptable. ideally backend provides this.
-                // Or we fetch registrations for each? No.
-                // Skipping for now, returning null to force manual check or implement later.
-                return null;
-            })
+    getTeamActiveTournament(teamId: string): Observable<Tournament | null> {
+        return this.http.get<Tournament>(`${this.apiUrl}/active/team/${teamId}`).pipe(
+            catchError(() => of(null))
         );
     }
 
     getTeamRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration | null> {
-        // Fetch all registrations for tournament and find team?
-        // Or get specific? Backend might not expose get-single-reg.
-        // Controller exposes: GET {id}/registrations (Admin only).
-        // If regular user needs this, backend needs "my-registration" endpoint.
-        // Assuming Admin for management views, or Captain view?
-        // Let's use getRegistrations if user is admin, otherwise this is tricky.
-        // I will implement fetching registrations and finding.
-        return this.getRegistrations(tournamentId).pipe(
-            map(regs => regs.find(r => r.teamId === teamId) || null),
-            catchError(() => of(null)) // if 403 or fail
+        return this.http.get<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registration/team/${teamId}`).pipe(
+            catchError(() => of(null))
         );
     }
 

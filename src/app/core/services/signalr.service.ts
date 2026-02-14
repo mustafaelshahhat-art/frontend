@@ -77,4 +77,42 @@ export class SignalRService {
         }
         this.connectionStatus$.next(false);
     }
+    async subscribeToGroup(hubPath: string, groupName: string): Promise<void> {
+        const connection = this.hubs.get(hubPath);
+        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+            try {
+                // Determine hub method based on group name prefix
+                let method = '';
+                if (groupName.startsWith('tournament:')) method = 'SubscribeToTournament';
+                else if (groupName.startsWith('match:')) method = 'SubscribeToMatch';
+                else if (groupName.startsWith('role:')) method = 'SubscribeToRole';
+
+                if (method) {
+                    const id = groupName.split(':')[1];
+                    await connection.invoke(method, id);
+                }
+            } catch (err) {
+                console.error(`SignalR: Error subscribing to ${groupName}:`, err);
+            }
+        }
+    }
+
+    async unsubscribeFromGroup(hubPath: string, groupName: string): Promise<void> {
+        const connection = this.hubs.get(hubPath);
+        if (connection && connection.state === signalR.HubConnectionState.Connected) {
+            try {
+                let method = '';
+                if (groupName.startsWith('tournament:')) method = 'UnsubscribeFromTournament';
+                else if (groupName.startsWith('match:')) method = 'UnsubscribeFromMatch';
+                else if (groupName.startsWith('role:')) method = 'UnsubscribeFromRole';
+
+                if (method) {
+                    const id = groupName.split(':')[1];
+                    await connection.invoke(method, id);
+                }
+            } catch (err) {
+                console.error(`SignalR: Error unsubscribing from ${groupName}:`, err);
+            }
+        }
+    }
 }

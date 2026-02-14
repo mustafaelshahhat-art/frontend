@@ -85,6 +85,7 @@ export interface Tournament {
     location: string;
     entryFee: number;
     maxTeams: number;
+    imageUrl?: string;
     minTeams?: number;
     currentTeams: number;
     registrations: TeamRegistration[]; // Team registrations with payment status
@@ -95,9 +96,8 @@ export interface Tournament {
     startDate: Date;
     endDate: Date;
     rules: string;
-    adminId: string;
+    adminId?: string; // Sync with backend AdminId
     creatorUserId?: string;
-    imageUrl?: string;
 
     // New Fields
     format?: string;
