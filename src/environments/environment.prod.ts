@@ -9,5 +9,4 @@ export const environment = {
     logLevel: 'error'
 };
 
-// كسم الهكر
 // مع تحيات عمك مصطفي ويوسف
