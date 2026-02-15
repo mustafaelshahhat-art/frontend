@@ -1,6 +1,6 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter" (filterChange)="setFilter($event)" />
+    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
 </ng-template>
 
 <!-- Main Content -->
@@ -12,14 +12,14 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && filteredRequests.length === 0) {
+    @if (!isLoading() && filteredRequests().length === 0) {
     <app-empty-state icon="payments" title="لا توجد طلبات دفع" description="لا توجد طلبات دفع في هذا التصنيف حالياً" />
     }
 
     <!-- Table -->
-    @if (!isLoading() && filteredRequests.length > 0) {
+    @if (!isLoading() && filteredRequests().length > 0) {
     <div class="card p-0 overflow-hidden">
-        <app-table [data]="filteredRequests" [columns]="columns" [loading]="isLoading()" />
+        <app-table [data]="filteredRequests()" [columns]="columns" [loading]="isLoading()" />
     </div>
     }
 </div>

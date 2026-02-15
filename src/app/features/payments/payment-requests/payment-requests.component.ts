@@ -1,5 +1,5 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
@@ -39,12 +39,14 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     private readonly layout = inject(LayoutOrchestratorService);
     private readonly authService = inject(AuthService);
 
-    currentFilter = 'all';
+    currentFilter = signal<string>('all');
     showReceiptModal = false;
     selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
 
 
-    // ✅ FIXED: Compute requests from TournamentStore instead of local state
+    // ✅ FIXED: Using direct source from store or local state
+    // We'll keep the store as source for SignalR reactivity, 
+    // but the initial load will now use the correct endpoint.
     requests = computed(() => {
         const tournaments = this.tournamentStore.tournaments();
         const result: { tournament: Tournament, registration: TeamRegistration }[] = [];
@@ -52,6 +54,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         tournaments.forEach(tournament => {
             if (tournament.registrations) {
                 tournament.registrations.forEach(reg => {
+                    // Include all relevant statuses for the management view
                     if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW ||
                         reg.status === RegistrationStatus.APPROVED ||
                         reg.status === RegistrationStatus.REJECTED) {
@@ -68,8 +71,17 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     filters = [
         { value: 'all', label: 'الكل' },
         { value: RegistrationStatus.PENDING_PAYMENT_REVIEW, label: 'معلق' },
-        { value: RegistrationStatus.APPROVED, label: 'مقبول' }
+        { value: RegistrationStatus.APPROVED, label: 'مقبول' },
+        { value: RegistrationStatus.REJECTED, label: 'مرفوض' }
     ];
+
+    // ✅ FIXED: Compute filtered requests to ensure local reactivity
+    filteredRequests = computed(() => {
+        const allRequests = this.requests();
+        const filter = this.currentFilter();
+        if (filter === 'all') return allRequests;
+        return allRequests.filter(r => r.registration.status === filter);
+    });
 
     columns: TableColumn[] = [];
 
@@ -112,24 +124,31 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         this.layout.reset();
     }
 
-    // ✅ FIXED: Load tournaments ONCE on init to populate store
+    // ✅ FIXED: Use getAllPaymentRequests to get FULL registration data including Rejected ones
     private loadInitialData(): void {
         this.tournamentStore.setLoading(true);
-        this.tournamentService.getTournaments().subscribe({
+        this.tournamentService.getAllPaymentRequests().subscribe({
             next: (data) => {
-                this.tournamentStore.setTournaments(data.items);
+                // Mapping flat responses back to Tournament objects for the store
+                const tournamentMap = new Map<string, Tournament>();
+                data.forEach(req => {
+                    const existing = tournamentMap.get(req.tournament.id);
+                    if (existing) {
+                        existing.registrations = [...(existing.registrations || []), req.registration];
+                    } else {
+                        const tournament = { ...req.tournament, registrations: [req.registration] };
+                        tournamentMap.set(tournament.id, tournament);
+                    }
+                });
+                this.tournamentStore.setTournaments(Array.from(tournamentMap.values()));
             },
-            error: () => {
+            error: (err) => {
+                console.error('Error loading payment requests:', err);
                 this.tournamentStore.setLoading(false);
             }
         });
     }
 
-    get filteredRequests(): { tournament: Tournament, registration: TeamRegistration }[] {
-        const allRequests = this.requests();
-        if (this.currentFilter === 'all') return allRequests;
-        return allRequests.filter(r => r.registration.status === this.currentFilter);
-    }
 
     canManageRequest(tournament: Tournament): boolean {
         const user = this.authService.getCurrentUser();
@@ -168,7 +187,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     setFilter(filter: unknown): void {
-        this.currentFilter = filter as string;
+        this.currentFilter.set(filter as string);
     }
 
     getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {
