@@ -44,7 +44,9 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
 
 
-    // ✅ FIXED: Compute requests from TournamentStore instead of local state
+    // ✅ FIXED: Using direct source from store or local state
+    // We'll keep the store as source for SignalR reactivity, 
+    // but the initial load will now use the correct endpoint.
     requests = computed(() => {
         const tournaments = this.tournamentStore.tournaments();
         const result: { tournament: Tournament, registration: TeamRegistration }[] = [];
@@ -52,6 +54,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         tournaments.forEach(tournament => {
             if (tournament.registrations) {
                 tournament.registrations.forEach(reg => {
+                    // Include all relevant statuses for the management view
                     if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW ||
                         reg.status === RegistrationStatus.APPROVED ||
                         reg.status === RegistrationStatus.REJECTED) {
@@ -121,14 +124,26 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         this.layout.reset();
     }
 
-    // ✅ FIXED: Load tournaments ONCE on init to populate store
+    // ✅ FIXED: Use getAllPaymentRequests to get FULL registration data including Rejected ones
     private loadInitialData(): void {
         this.tournamentStore.setLoading(true);
-        this.tournamentService.getTournaments().subscribe({
+        this.tournamentService.getAllPaymentRequests().subscribe({
             next: (data) => {
-                this.tournamentStore.setTournaments(data.items);
+                // Mapping flat responses back to Tournament objects for the store
+                const tournamentMap = new Map<string, Tournament>();
+                data.forEach(req => {
+                    const existing = tournamentMap.get(req.tournament.id);
+                    if (existing) {
+                        existing.registrations = [...(existing.registrations || []), req.registration];
+                    } else {
+                        const tournament = { ...req.tournament, registrations: [req.registration] };
+                        tournamentMap.set(tournament.id, tournament);
+                    }
+                });
+                this.tournamentStore.setTournaments(Array.from(tournamentMap.values()));
             },
-            error: () => {
+            error: (err) => {
+                console.error('Error loading payment requests:', err);
                 this.tournamentStore.setLoading(false);
             }
         });
