@@ -8,15 +8,47 @@
     }
 
     app-page-header {
+        ::ng-deep .header-actions {
+            align-self: center !important;
+            margin-inline-start: auto;
+            /* Push to the far left (in RTL) */
+            display: flex;
+            align-items: center;
+        }
+
         @media (width <=640px) {
             ::ng-deep .header-actions {
-                align-self: flex-end; // Overriding parent layout alignment for mobile header actions
-                width: auto;
-                margin-top: -0.5rem;
-            }
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: flex-end !important;
+                /* Move content to Left side in RTL */
+                align-items: center !important;
+                gap: 1rem !important;
+                margin-top: 0 !important;
 
-            .actions {
-                justify-content: flex-end;
+                /* Reset the shared component's aggressive full-width stack */
+                ::ng-deep app-button,
+                ::ng-deep button {
+                    width: auto !important;
+                    flex: none !important;
+                    display: inline-flex !important;
+
+                    /* Ensure Chat button is the Leftmost item (Last in visual order of RTL-End alignment) */
+                    &[icon="chat"] {
+                        order: 2;
+                    }
+                }
+
+                ::ng-deep app-badge {
+                    order: 1;
+                }
+
+                ::ng-deep .actions {
+                    width: auto !important;
+                    display: contents !important;
+                    /* Flatten structure for the grid/flex above */
+                }
             }
         }
     }
@@ -36,8 +68,9 @@
     }
 
     @media (width <=640px) {
-        padding: var(--space-md);
-        border-radius: var(--radius-3xl);
+        padding: var(--space-5) var(--space-3);
+        /* Increased padding for better breathing room */
+        border-radius: var(--radius-2xl);
     }
 
     &.is-live {
@@ -95,41 +128,93 @@
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
-        gap: var(--space-3);
+        gap: var(--space-1);
+        /* Significantly reduced gap to pull logos inward */
+        padding: 0 var(--space-1);
+        /* Add internal horizontal padding to keep away from edges */
     }
 }
 
 .team-block {
     flex: 1;
+    flex-basis: 0;
+    /* Ensure equal width distribution regardless of content */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+    width: 100%;
+    /* Ensure it takes full cell width */
 
     @media (width <=640px) {
         gap: var(--space-2);
     }
 
-    /* Team logo wrapper is inline-styled in template; override with higher specificity on mobile */
-    @media (width <=640px) {
-        .match-score-summary .team-logo-container {
-            width: 56px;
-            height: 56px;
-            margin-bottom: 0;
-        }
-    }
-
-    .team-shield {
+    // ========== ROBUST LOGO CONTAINER ==========
+    .team-logo-container {
+        // Desktop Base Styles
         width: 80px;
         height: 80px;
-        background: var(--bg-input, rgb(255 255 255 / 5%));
+        position: relative;
+        overflow: hidden;
+        margin-bottom: var(--space-3);
+
+        // Background & Border
+        background: var(--bg-input, rgba(255, 255, 255, 0.05));
         border-radius: var(--radius-2xl);
+        border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
+        padding: 0.75rem;
+        /* Padding prevents logo from touching edges */
+
+        // Flex Centering
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: var(--space-3);
 
+        // Force image scaling via ::ng-deep 
+        ::ng-deep app-smart-image {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
 
+            ::ng-deep img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: contain !important;
+                /* CRITICAL: Prevents cropping */
+                object-position: center !important;
+            }
+
+            ::ng-deep .smart-image-fallback {
+                width: 100% !important;
+                height: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 1.5rem !important;
+                font-weight: bold;
+            }
+        }
+    }
+
+    // Mobile Overrides for Logo and Text
+    @media (width <=640px) {
+        .team-logo-container {
+            width: 56px;
+            /* Restore reasonable size for visibility */
+            height: 56px;
+            margin-bottom: 0.5rem;
+            padding: 0.35rem;
+            /* Proportionate padding */
+
+            ::ng-deep app-smart-image {
+                ::ng-deep .smart-image-fallback {
+                    font-size: 1rem !important;
+                }
+            }
+        }
     }
 
     h2 {
@@ -139,9 +224,13 @@
         margin-bottom: var(--space-1);
 
         @media (width <=640px) {
-            font-size: var(--text-lg);
-            margin-bottom: 0;
+            font-size: var(--text-xs);
+            /* Compact font size */
+            margin-bottom: 0.25rem;
             line-height: 1.2;
+            width: 100%;
+            white-space: normal;
+            overflow: visible;
         }
     }
 
@@ -158,6 +247,10 @@
 }
 
 .score-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 
     @media (width <=640px) {
@@ -167,6 +260,7 @@
     .score-numbers {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: var(--space-4);
         font-size: 4rem;
         font-weight: 800;
@@ -180,8 +274,9 @@
 
         @media (width <=640px) {
             justify-content: center;
-            font-size: var(--text-4xl);
-            gap: var(--space-2);
+            font-size: 1.8rem;
+            /* Reduced from 2.5rem to fit better */
+            gap: var(--space-1);
         }
     }
 
@@ -189,6 +284,8 @@
 
     .score-divider {
         color: var(--text-muted);
+        padding-bottom: 0.5rem;
+        /* Slight optical adjustment for vertical centering of colon */
     }
 
     .score-status {
@@ -201,8 +298,9 @@
 
 .match-detail-main-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 2fr 1.2fr;
     gap: var(--space-xl);
+    align-items: start;
 
     @media (width <=992px) {
         grid-template-columns: 1fr;
@@ -460,30 +558,51 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: rgb(var(--color-primary-rgb, 59, 130, 246), 0.1);
-    border: 1px solid rgb(var(--color-primary-rgb, 59, 130, 246), 0.2);
-    border-radius: var(--radius-md);
-    color: var(--color-primary);
-    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    /* Less margin to sit tighter under score */
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-primary-light);
+    /* Elegant muted primary */
+    font-size: 0.95rem;
     font-weight: 500;
+    letter-spacing: 0.5px;
+    font-family: 'Outfit', sans-serif;
+    /* Consistent with numbers */
 
-    span {
-        font-size: 1.25rem;
+    app-icon {
+        font-size: 1.1rem;
+        opacity: 0.8;
     }
 
     @media (width <=640px) {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.75rem;
+        font-size: 0.6rem;
+        /* Slightly smaller */
+        margin-top: 0.15rem;
+        white-space: nowrap;
+        /* Keep on one line but allow full width */
+        width: auto;
+        overflow: visible;
+        display: flex;
+        /* Flex handles icon + text better than block */
+        align-items: center;
+        justify-content: center;
+
+        .desktop-label {
+            display: none;
+        }
+
+        app-icon {
+            font-size: 0.9rem;
+            /* Scale icon appropriately */
+            vertical-align: middle;
+            margin-inline-end: 2px;
+        }
     }
 }
 
-.team-logo-container {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1rem;
-}
+
 
 .w-full {
     width: 100%;
@@ -505,6 +624,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+
+    @media (width <=640px) {
+        gap: 0.5rem;
+    }
 }
 
 .admin-grid-full {
@@ -528,7 +651,8 @@
 }
 
 .status-grid-flex {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
 }
 

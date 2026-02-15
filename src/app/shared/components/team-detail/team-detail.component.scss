@@ -637,3 +637,27 @@
         gap: var(--space-6);
     }
 }
+
+// ==========================================================================
+// ADD PLAYER MODAL
+// ==========================================================================
+
+.mode-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-primary-5);
+    border: 1px solid var(--color-primary-15);
+    border-radius: var(--radius-xl);
+    border-inline-start: 3px solid var(--color-primary);
+
+    app-icon {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    p {
+        line-height: var(--leading-relaxed);
+    }
+}

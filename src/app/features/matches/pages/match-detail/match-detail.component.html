@@ -1,13 +1,10 @@
 ﻿<ng-template #headerActions>
     @if (match() ; as matchData) {
     <div class="actions flex-center-gap">
-        @if (matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED) {
         <app-button
             *appHasPermission="[AppPermission.MANAGE_MATCHES, AppPermission.START_MATCH, AppPermission.MANAGE_MY_TEAM]"
             [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
-            المحادثة
         </app-button>
-        }
 
 
 
@@ -41,12 +38,7 @@
         [class.is-finished]="matchData.status === MatchStatus.FINISHED"
         [class.is-cancelled]="matchData.status === MatchStatus.CANCELLED">
 
-        @if (matchData.status === MatchStatus.LIVE) {
-        <div class="live-banner">
-            <span class="pulse-dot"></span>
-            مباراة جارية الآن
-        </div>
-        }
+
 
         <div class="score-card-content">
             <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
@@ -68,7 +60,8 @@
                 @if (matchData.date) {
                 <div class="match-time-banner">
                     <app-icon name="calendar_today" class=" icon-sm"></app-icon>
-                    موعد اللقاء: {{ matchData.date | date:'yyyy/MM/dd' }} - {{ matchData.date | date:'hh:mm a' }}
+                    <span class="desktop-label">موعد اللقاء:</span> {{ matchData.date | date:'yyyy/MM/dd' }} - {{
+                    matchData.date | date:'hh:mm a' }}
                 </div>
                 }
 

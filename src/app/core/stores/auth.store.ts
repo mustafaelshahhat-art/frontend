@@ -30,6 +30,7 @@ export class AuthStore {
   userId = computed(() => this.currentUser()?.id);
   userName = computed(() => this.currentUser()?.name);
   userTeamId = computed(() => this.currentUser()?.teamId);
+  joinedTeamIds = computed(() => this.currentUser()?.joinedTeamIds || []);
 
   // Mutations
   setLoading(loading: boolean): void {

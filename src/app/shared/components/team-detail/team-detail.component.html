@@ -300,70 +300,57 @@
                 </div>
             </div>
             }
-
-            <!-- Requests/Invitations Tab -->
-            @case ('requests') {
-            <div class="flex-col gap-4">
-                @if (!team.invitations || team.invitations.length === 0) {
-                <div class="empty-state p-xl text-center">
-                    <app-icon name="mail_outline" class="text-4xl opacity-20 mb-4 icon-sm"></app-icon>
-                    <p class="text-muted">لا يوجد طلبات أو دعوات معلقة حالياً</p>
-                </div>
-                }
-
-                @for (request of team.invitations; track request.id) {
-                <div class="card p-md flex-between items-center animate-fade-in">
-                    <div class="flex items-center gap-3">
-                        <app-smart-image [src]="null" type="avatar" size="sm"
-                            [initials]="request.playerName.charAt(0) || 'P'" />
-                        <div class="flex-col">
-                            <span class="font-bold">{{ request.playerName }}</span>
-                            <span class="text-xs text-muted">أرسلت في: {{ request.requestDate | date:'y/MM/dd'
-                                }}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <app-badge [type]="request.status === 'pending' ? 'warning' : 'success'">
-                            {{ request.status === 'pending' ? 'بانتظار الرد' : request.status }}
-                        </app-badge>
-
-                        @if (canManageInvitations && request.status === 'pending') {
-                        <div class="flex gap-1">
-                            <app-button (click)="onRespondRequest(request, true)" variant="ghost" size="sm" icon="check"
-                                class="text-success" />
-                            <app-button (click)="onRespondRequest(request, false)" variant="ghost" size="sm"
-                                icon="close" class="text-danger" />
-                        </div>
-                        }
-                    </div>
-                </div>
-                }
-            </div>
-            }
             }
 
         </div>
     </div>
 
-    <!-- Modal: Add Player by ID -->
-    <app-modal [visible]="isInviteModalOpen" title="إضافة لاعب جديد" (closeRequest)="closeInviteModal()">
+    <!-- Modal: Add Player -->
+    <app-modal [visible]="isInviteModalOpen" title="إضافة لاعب جديد" icon="person_add"
+        (closeRequest)="closeInviteModal()" size="md">
 
-        <div class="flex-col gap-4">
-            <p class="text-muted text-sm mb-2">
-                يرجى إدخال الرقم التعريفي للاعب (Display ID) المسجل في المنصة لإرسال دعوة انضمام له.
-            </p>
+        <div class="flex-col gap-lg">
 
-            <app-form-control label="الرقم التعريفي للاعب" [formControl]="displayIdControl" placeholder="مثال: #123456"
-                iconLeft="badge" />
+            <!-- Mode Filter Toggle -->
+            <app-filter [items]="playerModes" [activeValue]="playerMode" (filterChange)="onPlayerModeChange($event)" />
+
+            <!-- Registered Player Mode -->
+            @if (playerMode === 'registered') {
+            <div class="flex-col gap-4 animate-fade-in">
+                <div class="mode-hint">
+                    <app-icon name="info" class="icon-sm text-primary"></app-icon>
+                    <p class="text-muted text-sm mb-0">
+                        أدخل الرقم التعريفي للاعب المسجّل في المنصة لإرسال دعوة انضمام.
+                    </p>
+                </div>
+                <app-form-control label="الرقم التعريفي للاعب" [formControl]="displayIdControl"
+                    placeholder="مثال: #123456" iconLeft="badge" />
+            </div>
+            }
+
+            <!-- Guest Player Mode -->
+            @if (playerMode === 'guest') {
+            <div class="flex-col gap-4 animate-fade-in">
+                <div class="mode-hint">
+                    <app-icon name="info" class="icon-sm text-primary"></app-icon>
+                    <p class="text-muted text-sm mb-0">
+                        أضف لاعباً بالاسم فقط بدون الحاجة لحساب مسجّل. يمكنك ربطه بحساب لاحقاً.
+                    </p>
+                </div>
+                <app-form-control label="اسم اللاعب" [formControl]="guestNameControl" placeholder="أدخل الاسم الكامل"
+                    iconLeft="person" />
+
+            </div>
+            }
         </div>
 
         <div footer class="flex gap-3 w-full">
             <app-button variant="outline" class="flex-1" (click)="closeInviteModal()">
                 إلغاء
             </app-button>
-            <app-button variant="primary" class="flex-1" icon="send" [isLoading]="isInviteLoading"
-                (click)="submitAddPlayer()">
-                إرسال الدعوة
+            <app-button variant="primary" class="flex-1" [icon]="playerMode === 'registered' ? 'send' : 'person_add'"
+                [isLoading]="isInviteLoading" (click)="submitAddPlayer()">
+                {{ playerMode === 'registered' ? 'إرسال الدعوة' : 'إضافة لاعب' }}
             </app-button>
         </div>
     </app-modal>

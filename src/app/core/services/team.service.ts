@@ -106,6 +106,10 @@ export class TeamService {
         return this.http.delete<{ teamRemoved: boolean, playerId: string, teamId: string }>(`${this.apiUrl}/${teamId}/players/${playerId}`);
     }
 
+    addGuestPlayer(teamId: string, name: string, number?: number, position?: string): Observable<Player> {
+        return this.http.post<Player>(`${this.apiUrl}/${teamId}/add-guest-player`, { name, number, position });
+    }
+
     updateTeam(updatedTeam: Partial<Team>): Observable<Team> {
         return this.http.patch<Team>(`${this.apiUrl}/${updatedTeam.id}`, updatedTeam);
     }

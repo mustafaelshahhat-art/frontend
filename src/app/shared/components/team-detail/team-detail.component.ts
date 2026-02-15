@@ -119,6 +119,7 @@ export class TeamDetailComponent implements OnChanges, OnInit {
     @Output() backClicked = new EventEmitter<void>();
     @Output() editName = new EventEmitter<string>();
     @Output() addPlayer = new EventEmitter<string>();
+    @Output() addGuestPlayer = new EventEmitter<{ name: string, number?: number, position?: string }>();
     @Output() deleteTeam = new EventEmitter<void>();
     @Output() disableTeam = new EventEmitter<void>();
     @Output() activateTeam = new EventEmitter<void>();
@@ -138,7 +139,6 @@ export class TeamDetailComponent implements OnChanges, OnInit {
 
     private updateFilteredTabs(): void {
         this.filteredTabs = this.tabs.filter(tab => {
-            if (tab.value === 'requests') return this.canSeeRequests;
             if (tab.value === 'finances') return this.canSeeFinances;
             return true;
         });
@@ -148,12 +148,11 @@ export class TeamDetailComponent implements OnChanges, OnInit {
         { value: 'overview', label: 'نظرة عامة', icon: 'dashboard' },
         { value: 'players', label: 'قائمة اللاعبين', icon: 'groups' },
         { value: 'matches', label: 'المباريات', icon: 'sports_soccer' },
-        { value: 'requests', label: 'طلبات الانضمام', icon: 'mail' },
         { value: 'finances', label: 'المالية', icon: 'payments' }
     ];
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['canSeeRequests'] || changes['canSeeFinances']) {
+        if (changes['canSeeFinances']) {
             this.updateFilteredTabs();
         }
 
@@ -192,26 +191,52 @@ export class TeamDetailComponent implements OnChanges, OnInit {
 
     // Modal State
     isInviteModalOpen = false;
+    playerMode: 'registered' | 'guest' = 'registered';
     displayIdControl = new FormControl('', [Validators.required]);
+    guestNameControl = new FormControl('', [Validators.required, Validators.minLength(2)]);
+
+
+    playerModes = [
+        { value: 'registered', label: 'لاعب مسجّل', icon: 'person_search' },
+        { value: 'guest', label: 'لاعب غير مسجّل', icon: 'person_add' }
+    ];
 
     onAddPlayerClick(): void {
         this.isInviteModalOpen = true;
+        this.playerMode = 'registered';
         this.displayIdControl.reset();
+        this.guestNameControl.reset();
+
     }
 
     closeInviteModal(): void {
         this.isInviteModalOpen = false;
         this.displayIdControl.reset();
+        this.guestNameControl.reset();
+
+    }
+
+    onPlayerModeChange(mode: unknown): void {
+        this.playerMode = mode as 'registered' | 'guest';
     }
 
     submitAddPlayer(): void {
-        if (this.displayIdControl.invalid) {
-            this.uiFeedback.warning('تنبيه', 'يرجى إدخال الرقم التعريفي للاعب');
-            return;
+        if (this.playerMode === 'registered') {
+            if (this.displayIdControl.invalid) {
+                this.uiFeedback.warning('تنبيه', 'يرجى إدخال الرقم التعريفي للاعب');
+                return;
+            }
+            const playerId = this.displayIdControl.value || '';
+            this.addPlayer.emit(playerId);
+        } else {
+            if (this.guestNameControl.invalid) {
+                this.uiFeedback.warning('تنبيه', 'يرجى إدخال اسم اللاعب (على الأقل حرفين)');
+                return;
+            }
+            this.addGuestPlayer.emit({
+                name: this.guestNameControl.value || ''
+            });
         }
-
-        const playerId = this.displayIdControl.value || '';
-        this.addPlayer.emit(playerId);
     }
 
     navigateBack(): void {
