@@ -8,3 +8,6 @@ export const environment = {
     enableDebugTools: false,
     logLevel: 'error'
 };
+
+// كسم الهكر
+// مع تحيات عمك مصطفي ويوسف
