@@ -1,7 +1,7 @@
 import { IconComponent } from '../icon/icon.component';
-import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, forwardRef, HostListener, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms';
 
 export interface SelectOption {
     label: string;
@@ -25,6 +25,7 @@ export interface SelectOption {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectComponent implements ControlValueAccessor {
+    private readonly cdr = inject(ChangeDetectorRef);
     private _options: SelectOption[] = [];
 
     @Input()
@@ -42,6 +43,7 @@ export class SelectComponent implements ControlValueAccessor {
     @Input() loading = false;
     @Input() error?: string;
     @Input() required = false;
+    @Input() control?: AbstractControl | null;
 
     @Output() selectionChange = new EventEmitter<unknown>();
 
@@ -53,6 +55,14 @@ export class SelectComponent implements ControlValueAccessor {
 
     onChange: (value: unknown) => void = () => { /* empty */ };
     onTouched: () => void = () => { /* empty */ };
+
+    get errorMessage(): string | null {
+        if (this.control && this.control.invalid && (this.control.dirty || this.control.touched)) {
+            if (this.control.errors?.['required']) return 'هذا الحقل مطلوب';
+            return 'قيمة غير صالحة';
+        }
+        return this.error || null;
+    }
 
     toggle(): void {
         if (this.disabled || this.loading) return;
@@ -70,6 +80,7 @@ export class SelectComponent implements ControlValueAccessor {
     writeValue(value: unknown): void {
         this.selectedValue = value;
         this.syncSelectedLabel(true);
+        this.cdr.markForCheck();
     }
 
     private syncSelectedLabel(allowValueFallback = false): void {
@@ -86,6 +97,7 @@ export class SelectComponent implements ControlValueAccessor {
         }
 
         this.selectedLabel = '';
+        this.cdr.markForCheck();
     }
 
     registerOnChange(fn: (value: unknown) => void): void {
@@ -98,6 +110,7 @@ export class SelectComponent implements ControlValueAccessor {
 
     setDisabledState(isDisabled: boolean): void {
         this.disabled = isDisabled;
+        this.cdr.markForCheck();
     }
 
     @HostListener('document:click', ['$event'])

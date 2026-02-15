@@ -226,3 +226,11 @@
         margin-left: 0;
     }
 }
+
+.error-text {
+    color: var(--color-danger);
+    font-size: var(--text-xs);
+    margin-top: var(--space-1);
+    padding-right: var(--space-1);
+    font-weight: var(--font-medium);
+}

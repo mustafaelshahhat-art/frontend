@@ -59,7 +59,7 @@
                             <app-icon name="payments" class="icon-sm"></app-icon>
                             <div class="meta-text-wrapper">
                                 <span class="label">الاشتراك</span>
-                                <span class="value">{{ t.entryFee }} ريال</span>
+                                <span class="value">{{ t.entryFee }} ج.م</span>
                             </div>
                         </div>
                     </div>
@@ -118,7 +118,8 @@
                             @if (canManageDraw() && isManualMode() && tournamentMatches().length === 0) {
                             <app-button variant="gold" size="md" shadow="glow" icon="edit_calendar"
                                 (click)="startManualDraw()">
-                                {{ (t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway') ? 'تحديد مواجهات الإقصائيات' : 'توزيع المجموعات والجدولة' }}
+                                {{ (t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway') ? 'تحديد مواجهات
+                                الإقصائيات' : 'توزيع المجموعات والجدولة' }}
                             </app-button>
                             }
 

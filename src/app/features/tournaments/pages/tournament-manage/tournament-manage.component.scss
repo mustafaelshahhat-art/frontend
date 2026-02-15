@@ -77,18 +77,39 @@
 
 .form-actions {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
     gap: var(--space-md);
     padding: var(--space-xl) 0;
     margin-top: var(--space-lg);
     border-top: 1px solid var(--border-subtle);
 
-    @media (width <=480px) {
-        flex-direction: column-reverse;
+    .submit-feedback {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-sm) var(--space-md);
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        border-radius: var(--radius-lg);
+        font-size: var(--text-sm);
+        animation: fadeIn 0.3s ease-out;
+    }
 
-        button,
-        app-button {
+    .actions-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-md);
+    }
+
+    @media (width <=480px) {
+        .actions-group {
+            flex-direction: column-reverse;
             width: 100%;
+
+            button,
+            app-button {
+                width: 100%;
+            }
         }
     }
 }

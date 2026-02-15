@@ -10,6 +10,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent } from '../../../../shared/components/select/select.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { LayoutOrchestratorService } from '../../../../core/services/layout-orch
         ButtonComponent,
         CardComponent,
         FormControlComponent,
-        SelectComponent
+        SelectComponent,
+        IconComponent
     ],
     templateUrl: './tournament-manage.component.html',
     styleUrls: ['./tournament-manage.component.scss'],
@@ -30,7 +32,6 @@ import { LayoutOrchestratorService } from '../../../../core/services/layout-orch
 })
 export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly fb = inject(FormBuilder);
-    // ... (rest of injects same)
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly tournamentService = inject(TournamentService);
@@ -57,8 +58,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         mode: [TournamentMode.LeagueSingle, [Validators.required]],
         numberOfGroups: [0],
         qualifiedTeamsPerGroup: [0],
-        allowLateRegistration: [false],
-        lateRegistrationMode: [LateRegistrationMode.None],
         schedulingMode: [SchedulingMode.Random],
 
         // Payment
@@ -77,16 +76,9 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         { value: TournamentMode.KnockoutHomeAway, label: 'خروج المغلوب (ذهاب وعودة)', icon: 'sync' }
     ];
 
-
     schedulingModes = [
-        { value: SchedulingMode.Random, label: 'توزيع عشوائي (اختيار اللقاء الافتتاحي)', icon: 'auto_mode' },
+        { value: SchedulingMode.Random, label: 'توزيع عشوائي (اختيار اللقاء الافتتاحي)', icon: 'bolt' },
         { value: SchedulingMode.Manual, label: 'توزيع الفرق يدوياً (توليد مباريات تلقائي)', icon: 'groups' }
-    ];
-
-    lateRegistrationModes = [
-        { value: LateRegistrationMode.None, label: 'غير مسموح', icon: 'block' },
-        { value: LateRegistrationMode.WaitingList, label: 'قائمة انتظار (يدوي)', icon: 'hourglass_empty' },
-        { value: LateRegistrationMode.ReplaceIfNoMatchPlayed, label: 'استبدال فريق لم يلعب', icon: 'swap_horiz' }
     ];
 
     ngOnInit(): void {
@@ -117,23 +109,8 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             groupsControl?.updateValueAndValidity();
             qualifiedControl?.updateValueAndValidity();
         });
-
-        this.tournamentForm.get('allowLateRegistration')?.valueChanges.subscribe(allowed => {
-            const modeControl = this.tournamentForm.get('lateRegistrationMode');
-            if (allowed) {
-                modeControl?.setValidators([Validators.required]);
-                if (modeControl?.value === LateRegistrationMode.None) {
-                    modeControl?.setValue(LateRegistrationMode.WaitingList);
-                }
-            } else {
-                modeControl?.clearValidators();
-                modeControl?.setValue(LateRegistrationMode.None);
-            }
-            modeControl?.updateValueAndValidity();
-        });
     }
 
-    // ... (updateLayout same)
     private updateLayout(): void {
         this.layoutOrchestrator.setTitle(this.isEditMode() ? 'تعديل البطولة' : 'إنشاء بطولة جديدة');
         this.layoutOrchestrator.setSubtitle(this.isEditMode() ? 'تحديث بيانات وقوانين البطولة' : 'قم بإدخال تفاصيل البطولة الجديدة لبدء التسجيل');
@@ -148,7 +125,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         this.tournamentService.getTournamentById(id).subscribe({
             next: (tournament) => {
                 if (tournament) {
-                    // Parse Payment JSON if exists to fill legacy/new fields
                     let walletLabel = 'محفظة إلكترونية';
                     let instaLabel = 'InstaPay';
 
@@ -180,12 +156,9 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                         walletLabel: walletLabel,
                         instaPayNumber: tournament.instaPayNumber || '',
                         instaPayLabel: instaLabel,
-                        allowLateRegistration: tournament.allowLateRegistration || false,
-                        lateRegistrationMode: tournament.lateRegistrationMode || LateRegistrationMode.None,
                         schedulingMode: tournament.schedulingMode ?? SchedulingMode.Random
                     });
 
-                    // Trigger validator updates
                     this.tournamentForm.get('mode')?.updateValueAndValidity();
                     this.cdr.detectChanges();
                 }
@@ -219,10 +192,9 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         }
 
         const formValue = this.tournamentForm.value;
-
-        // Client-side validation for dates
         const start = new Date(formValue.startDate);
         const deadline = new Date(formValue.registrationDeadline);
+
         if (deadline > start) {
             this.uiFeedback.error('خطأ في التاريخ', 'آخر موعد للتسجيل لا يمكن أن يكون بعد تاريخ بداية البطولة');
             return;
@@ -230,7 +202,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
 
         this.isSubmitting.set(true);
 
-        // Derive format and matchType from mode
         let format = TournamentFormat.RoundRobin;
         let matchType = TournamentLegType.SingleLeg;
         let isHomeAway = false;
@@ -268,7 +239,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                 break;
         }
 
-        // Construct Payment JSON
         const paymentMethods: PaymentMethodConfig[] = [];
         if (formValue.walletNumber) {
             paymentMethods.push({ type: 'E_WALLET', label: formValue.walletLabel || 'محفظة', accountNumber: formValue.walletNumber });
@@ -296,8 +266,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             qualifiedTeamsPerGroup: formValue.qualifiedTeamsPerGroup || 0,
             walletNumber: formValue.walletNumber,
             instaPayNumber: formValue.instaPayNumber,
-            allowLateRegistration: formValue.allowLateRegistration,
-            lateRegistrationMode: formValue.lateRegistrationMode,
             schedulingMode: formValue.schedulingMode,
             paymentMethodsJson: JSON.stringify(paymentMethods)
         };
@@ -313,7 +281,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                 }
             });
         } else {
-            // New tournaments start as DRAFT
             const newTournament = {
                 ...tournamentData,
                 status: TournamentStatus.DRAFT,

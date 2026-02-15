@@ -40,11 +40,12 @@
                 <app-card title="نظام البطولة" class="form-section">
                     <div class="fields-grid">
                         <app-select label="نظام البطولة" icon="settings" [options]="modes" formControlName="mode"
-                            [required]="true" />
+                            [required]="true" [control]="tournamentForm.get('mode')" />
 
 
-                        <app-select label="نظام توزيع الفرق والجدولة" icon="edit_calendar" [options]="schedulingModes"
-                            formControlName="schedulingMode" [required]="true" />
+                        <app-select label="نظام توزيع الفرق والجدولة" icon="calendar_month" [options]="schedulingModes"
+                            formControlName="schedulingMode" [required]="true"
+                            [control]="tournamentForm.get('schedulingMode')" />
 
 
                         @if (tournamentForm.get('mode')?.value === 3 ||
@@ -59,34 +60,18 @@
                     </div>
                 </app-card>
 
-                <!-- Registration Policy -->
-                <app-card title="سياسة التسجيل" class="form-section">
-                    <div class="fields-grid">
-                        <div class="checkbox-container full-width"
-                            style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="allowLateRegistration" formControlName="allowLateRegistration">
-                            <label for="allowLateRegistration">السماح بالتسجيل المتأخر (بعد اكتمال العدد أو انتهاء
-                                الموعد)</label>
-                        </div>
 
-                        @if (tournamentForm.get('allowLateRegistration')?.value) {
-                        <app-select label="نوع التسجيل المتأخر" icon="history_edu" [options]="lateRegistrationModes"
-                            formControlName="lateRegistrationMode" [required]="true" />
-                        }
-                    </div>
-                </app-card>
 
                 <!-- Financials & Rules -->
                 <app-card title="الرسوم والقوانين" class="form-section">
                     <div class="fields-grid">
-                        <app-form-control label="رسوم الاشتراك (ريال)" iconLeft="payments" type="number"
-                            formControlName="entryFee" [control]="tournamentForm.get('entryFee')" />
+                        <app-form-control label="رسوم الاشتراك (ج.م)" iconLeft="payments" type="number"
+                            formControlName="entryFee" [control]="tournamentForm.get('entryFee')" class="full-width" />
 
                         <!-- Wallet -->
                         <div class="payment-group" style="display: contents;">
-                            <app-form-control label="اسم وسيلة الدفع 1 (محفظة)" iconLeft="label"
-                                formControlName="walletLabel" [control]="tournamentForm.get('walletLabel')"
-                                placeholder="فودافون كاش" />
+                            <app-form-control label="اسم وسيلة الدفع 1" iconLeft="label" formControlName="walletLabel"
+                                [control]="tournamentForm.get('walletLabel')" placeholder="فودافون كاش" />
 
                             <app-form-control label="رقم المحفظة" iconLeft="account_balance_wallet"
                                 formControlName="walletNumber" [control]="tournamentForm.get('walletNumber')"
@@ -95,9 +80,8 @@
 
                         <!-- InstaPay -->
                         <div class="payment-group" style="display: contents;">
-                            <app-form-control label="اسم وسيلة الدفع 2 (InstaPay)" iconLeft="label"
-                                formControlName="instaPayLabel" [control]="tournamentForm.get('instaPayLabel')"
-                                placeholder="InstaPay" />
+                            <app-form-control label="اسم وسيلة الدفع 2" iconLeft="label" formControlName="instaPayLabel"
+                                [control]="tournamentForm.get('instaPayLabel')" placeholder="InstaPay" />
 
                             <app-form-control label="عنوان الدفع (VPA)" iconLeft="currency_exchange"
                                 formControlName="instaPayNumber" [control]="tournamentForm.get('instaPayNumber')"
@@ -110,16 +94,24 @@
 
                         <app-form-control label="جوائز البطولة" iconLeft="workspace_premium" type="textarea"
                             class="full-width" formControlName="prizes" [control]="tournamentForm.get('prizes')"
-                            [rows]="3" placeholder="مثلاً: المركز الأول: 5000 ريال، المركز الثاني: 3000 ريال..." />
+                            [rows]="3" placeholder="مثلاً: المركز الأول: 5000 ج.م، المركز الثاني: 3000 ج.م..." />
                     </div>
                 </app-card>
 
                 <!-- Action Buttons -->
                 <div class="form-actions">
-                    <app-button variant="outline" type="button" (trigger)="cancel()">إلغاء</app-button>
-                    <app-button variant="primary" type="submit" [disabled]="tournamentForm.invalid || isSubmitting()">
-                        {{ isSubmitting() ? 'جاري الحفظ...' : (isEditMode() ? 'حفظ التغييرات' : 'إنشاء البطولة') }}
-                    </app-button>
+                    <div class="submit-feedback" *ngIf="tournamentForm.invalid && tournamentForm.touched">
+                        <app-icon name="error_outline" class="icon-sm text-danger"></app-icon>
+                        <span class="text-danger">يرجى إكمال جميع الحقول المطلوبة بشكل صحيح لتتمكن من إنشاء
+                            البطولة.</span>
+                    </div>
+
+                    <div class="actions-group">
+                        <app-button variant="outline" type="button" (trigger)="cancel()">إلغاء</app-button>
+                        <app-button variant="primary" type="submit" [disabled]="isSubmitting()">
+                            {{ isSubmitting() ? 'جاري الحفظ...' : (isEditMode() ? 'حفظ التغييرات' : 'إنشاء البطولة') }}
+                        </app-button>
+                    </div>
                 </div>
             </div>
         </form>

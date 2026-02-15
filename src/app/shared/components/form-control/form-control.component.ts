@@ -1,5 +1,5 @@
 import { IconComponent } from '../icon/icon.component';
-import { Component, Input, forwardRef, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, forwardRef, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 
@@ -21,6 +21,8 @@ let uniqueId = 0;
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormControlComponent implements ControlValueAccessor {
+    private readonly cdr = inject(ChangeDetectorRef);
+
     @Input() id = `form-control-${uniqueId++}`;
     @Input() name?: string;
     @Input() label?: string;
@@ -85,6 +87,7 @@ export class FormControlComponent implements ControlValueAccessor {
 
     writeValue(value: unknown): void {
         this.value = value;
+        this.cdr.markForCheck();
     }
 
     registerOnChange(fn: (value: unknown) => void): void {
@@ -97,6 +100,7 @@ export class FormControlComponent implements ControlValueAccessor {
 
     setDisabledState?(isDisabled: boolean): void {
         this.disabled = isDisabled;
+        this.cdr.markForCheck();
     }
 
     onInput(event: Event): void {
