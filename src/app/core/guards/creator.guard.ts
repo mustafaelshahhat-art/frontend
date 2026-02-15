@@ -15,7 +15,9 @@ export const creatorGuard: CanActivateFn = () => {
     }
 
     // Strictly for Admins and Tournament Creators
-    if (user.role === UserRole.ADMIN || user.role === UserRole.TOURNAMENT_CREATOR) {
+    // PENDING users cannot access creator dashboard
+    if ((user.role === UserRole.ADMIN || user.role === UserRole.TOURNAMENT_CREATOR) &&
+        user.status !== 'Pending') {
         return true;
     }
 

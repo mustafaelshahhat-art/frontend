@@ -56,8 +56,9 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
     }
 
     private decodeEmail(value: string): string {
+        if (!value) return '';
+        if (value.includes('@')) return value;
         try {
-            if (value.includes('@')) return value;
             return atob(value);
         } catch {
             return value;
@@ -171,14 +172,19 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
 
         const otp = this.otpDigits.map(key => this.verifyForm.get(key)?.value).join('');
 
-        this.authService.verifyEmail(this.email, otp)
+        if (!this.email) {
+            this.errorMessage.set('حدث خطأ: البريد الإلكتروني غير موجود');
+            return;
+        }
+
+        this.authService.verifyEmail(this.email.trim(), otp)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
                     this.isLoading.set(false);
-                    this.successMessage.set('تم تفعيل الحساب بنجاح. جاري التحويل...');
+                    this.successMessage.set('تم تأكيد بريدك الإلكتروني بنجاح! حسابك الآن قيد المراجعة من الإدارة. سيتم إعلامك عند تفعيل حسابك.');
 
-                    timer(2000)
+                    timer(4000)
                         .pipe(takeUntilDestroyed(this.destroyRef))
                         .subscribe(() => {
                             this.router.navigate(['/auth/login']);
@@ -198,7 +204,7 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
         this.errorMessage.set(null);
         this.successMessage.set(null);
 
-        this.authService.resendOtp(this.email, 'EMAIL_VERIFY')
+        this.authService.resendOtp(this.email.trim(), 'EMAIL_VERIFY')
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {

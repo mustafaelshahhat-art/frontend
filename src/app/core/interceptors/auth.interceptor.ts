@@ -13,8 +13,20 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
     const token = authService.getToken();
 
-    // Skip auth header for login/register/refresh endpoints
-    if (req.url.includes('/auth/')) {
+    // Public endpoints that strictly do NOT need a token
+    const publicEndpoints = [
+        '/auth/login',
+        '/auth/register',
+        '/auth/refresh-token',
+        '/auth/verify-email',
+        '/auth/forgot-password',
+        '/auth/reset-password',
+        '/auth/resend-otp'
+    ];
+
+    const isPublic = publicEndpoints.some(endpoint => req.url.includes(endpoint));
+
+    if (isPublic) {
         return next(req);
     }
 

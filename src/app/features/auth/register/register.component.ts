@@ -155,17 +155,17 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.isLoading.set(true);
 
     const formData = {
-      name: this.form.name(),
-      email: this.form.email(),
-      phone: this.form.phone(),
+      name: this.form.name().trim(),
+      email: this.form.email().trim(),
+      phone: this.form.phone()?.trim(),
       age: this.form.age(),
-      nationalId: this.form.nationalId(),
-      governorate: this.form.governorate(),
-      city: this.form.city(),
-      neighborhood: this.form.neighborhood(),
+      nationalId: this.form.nationalId()?.trim(),
+      governorate: this.form.governorate()?.trim(),
+      city: this.form.city()?.trim(),
+      neighborhood: this.form.neighborhood()?.trim(),
       role: 'Player',
-      password: this.form.password(),
-      confirmPassword: this.form.confirmPassword(),
+      password: this.form.password().trim(),
+      confirmPassword: this.form.confirmPassword().trim(),
       idFront: this.form.idFront(),
       idBack: this.form.idBack()
     };
@@ -175,10 +175,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.authService.register(formData).subscribe({
       next: () => {
         this.isLoading.set(false);
-        const encodedEmail = btoa(this.form.email());
+        // Use plain text email to avoid encoding issues
         this.router.navigate(['/auth/verify-email'], {
           queryParams: {
-            email: encodedEmail,
+            email: formData.email,
             registered: 'true'
           }
         });

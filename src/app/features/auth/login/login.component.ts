@@ -94,12 +94,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
                     // Check error.error.code because HttpClient returns HttpErrorResponse
                     // where the actual backend JSON body is in the 'error' property.
                     if (error.error?.code === 'EMAIL_NOT_VERIFIED') {
-                        // Redirect to verify-email with the obfuscated email
                         const email = this.loginForm.value.email?.trim();
-                        const encodedEmail = btoa(email);
                         this.router.navigate(['/auth/verify-email'], {
-                            queryParams: { email: encodedEmail },
-                            state: { message: 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني' }
+                            queryParams: { email: email },
+                            state: { message: 'يرجى تأكيد بريدك الإلكتروني للمتابعة' }
                         });
                         return;
                     }

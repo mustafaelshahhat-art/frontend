@@ -16,6 +16,7 @@ export const playerGuard: CanActivateFn = () => {
 
     // Players, Creators, and Admins can access player routes
     // (Essentially any authenticated user with a valid role)
+    // NOTE: Pending users ARE allowed here (Read-Only mode)
     if (Object.values(UserRole).includes(user.role as UserRole)) {
         return true;
     }
