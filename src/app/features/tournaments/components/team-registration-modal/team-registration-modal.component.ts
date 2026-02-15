@@ -59,7 +59,7 @@ export class TeamRegistrationModalComponent {
     // Load teams where user is captain
     private loadUserTeams() {
         const user = this.authService.getCurrentUser();
-        if (user) {
+        if (user && user.id !== 'guest') {
             this.teamService.getTeamsOverview().subscribe((overview: any) => {
                 // Only allow teams where user is OWNER (Captain)
                 this.availableTeams = overview.ownedTeams || [];

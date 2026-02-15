@@ -24,6 +24,15 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
                         <img src="assets/images/logo-kz.png" alt="Logo" class="nav-logo">
                         <span class="brand-text">KoraZone<span class="text-primary">365</span></span>
                     </div>
+
+                    <!-- Desktop Menu -->
+                    <div class="nav-menu desktop-only">
+                        <a routerLink="/" class="nav-link">الرئيسية</a>
+                        <a routerLink="/guest/tournaments" class="nav-link active">البطولات</a>
+                        <a routerLink="/" fragment="about" class="nav-link">من نحن</a>
+                        <a routerLink="/" fragment="faq" class="nav-link">الأسئلة الشائعة</a>
+                        <a routerLink="/" fragment="contact" class="nav-link">تواصل معنا</a>
+                    </div>
                     
                     <div class="nav-actions">
                         <button class="btn-logout-minimal" (click)="handleLogout()">
@@ -31,7 +40,31 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
                             <app-icon name="logout"></app-icon>
                         </button>
                     </div>
+
+                     <!-- Mobile Menu Button -->
+                     <button class="hamburger-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
                 </div>
+
+                <!-- Mobile Menu Overlay -->
+                 @if (isMobileMenuOpen) {
+                    <div class="mobile-menu-overlay" (click)="toggleMobileMenu()">
+                        <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+                             <a routerLink="/" class="mobile-link" (click)="toggleMobileMenu()">الرئيسية</a>
+                            <a routerLink="/guest/tournaments" class="mobile-link active" (click)="toggleMobileMenu()">البطولات</a>
+                            <a routerLink="/" fragment="about" class="mobile-link" (click)="toggleMobileMenu()">من نحن</a>
+                            <a routerLink="/" fragment="faq" class="mobile-link" (click)="toggleMobileMenu()">الأسئلة الشائعة</a>
+                            <a routerLink="/" fragment="contact" class="mobile-link" (click)="toggleMobileMenu()">تواصل معنا</a>
+                            
+                            <button class="btn-logout-mobile" (click)="handleLogout()">
+                                تسجيل الخروج
+                            </button>
+                        </div>
+                    </div>
+                 }
             </nav>
 
             <main class="guest-main-content">
@@ -72,6 +105,33 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
             <!-- Background Decorations -->
             <div class="bg-blur-circle circle-1"></div>
             <div class="bg-blur-circle circle-2"></div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="content-container footer-content">
+                    <div class="footer-brand">
+                        <div class="footer-logo">KoraZone365</div>
+                        <p class="footer-desc">المنصة الأولى لعشاق كرة القدم وتنظيم البطولات الاحترافية.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4>روابط سريعة</h4>
+                        <ul>
+                            <li><a routerLink="/">الرئيسية</a></li>
+                            <li><a routerLink="/guest/tournaments">البطولات</a></li>
+                            <li><a routerLink="/" fragment="about">من نحن</a></li>
+                            <li><a routerLink="/auth/register">إنشاء حساب</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-contact">
+                        <h4>معلومات التواصل</h4>
+                        <p>المنصورة، جمهورية مصر العربية</p>
+                        <p>korazone365@gmail.com</p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; {{ currentYear }} KoraZone365 - All Rights Reserved</p>
+                </div>
+            </footer>
         </div>
     `,
     styles: [`
@@ -90,30 +150,43 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
             position: relative;
             overflow-x: hidden;
             font-family: 'Tajawal', sans-serif;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Ambient Background */
         .bg-blur-circle {
             position: fixed;
-            width: 500px;
-            height: 500px;
+            width: 800px;
+            height: 800px;
             border-radius: 50%;
-            filter: blur(120px);
+            filter: blur(140px);
             z-index: 0;
-            opacity: 0.15;
+            opacity: 0.12;
             pointer-events: none;
         }
 
-        .circle-1 { top: -100px; right: -100px; background: var(--primary); }
-        .circle-2 { bottom: -100px; left: -100px; background: #06b6d4; }
+        .circle-1 { 
+            top: -250px; 
+            right: -200px; 
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+        }
+        
+        .circle-2 { 
+            bottom: -250px; 
+            left: -200px; 
+            background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+        }
 
         /* Navbar */
         .guest-navbar {
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 100;
-            padding: 1.5rem 0;
-            background: rgba(10, 10, 10, 0.8);
+            left: 0;
+            width: 100%;
+            z-index: 400; /* var(--z-header) */
+            padding: 1rem 0;
+            background: rgba(10, 10, 10, 0.9);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
         }
@@ -132,11 +205,48 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
             align-items: center;
             gap: 12px;
             cursor: pointer;
+            z-index: 102; /* Above mobile menu */
         }
 
-        .nav-logo { height: 45px; width: auto; }
+        .nav-logo { height: 40px; width: auto; }
         .brand-text { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
         .text-primary { color: var(--primary-light); }
+
+        /* Desktop Menu */
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+
+            &.desktop-only {
+                @media (max-width: 992px) {
+                    display: none;
+                }
+            }
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            font-size: 1rem;
+
+            &:hover, &.active {
+                color: var(--primary-light);
+            }
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 102; /* Above mobile menu */
+
+            @media (max-width: 992px) {
+                display: none; /* Hide logout on mobile header, move to menu */
+            }
+        }
 
         .btn-logout-minimal {
             background: transparent;
@@ -158,11 +268,94 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
             }
         }
 
+        /* Hamburger Button */
+        .hamburger-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 102; /* Above mobile menu */
+            padding: 0;
+
+            @media (max-width: 992px) {
+                display: flex;
+            }
+
+            span {
+                width: 100%;
+                height: 2px;
+                background: white;
+                transition: all 0.3s ease;
+                border-radius: 2px;
+            }
+
+            &.active {
+                span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+                span:nth-child(2) { opacity: 0; }
+                span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+            }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 101;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .mobile-menu-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            width: 100%;
+            padding: 2rem;
+        }
+
+        .mobile-link {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+
+            &:hover, &.active {
+                color: var(--primary-light);
+            }
+        }
+
+        .btn-logout-mobile {
+            margin-top: 2rem;
+            background: rgba(255, 59, 59, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 59, 59, 0.2);
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background: rgba(255, 59, 59, 0.2);
+            }
+        }
+
         /* Main Content */
         .guest-main-content {
             position: relative;
             z-index: 1;
-            padding: 4rem 0;
+            padding: 6rem 0 4rem; /* Increased top padding to account for fixed navbar */
+            flex: 1; /* Push footer down */
         }
 
         .content-container {
@@ -283,6 +476,95 @@ import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Footer */
+        .footer {
+            background: #020202;
+            padding: 60px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto; /* Push footer to bottom */
+            position: relative;
+            z-index: 10;
+
+            .footer-content {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 40px;
+                margin-bottom: 40px;
+            }
+
+            .footer-brand {
+                max-width: 300px;
+                
+                .footer-logo {
+                    font-size: 1.8rem;
+                    font-weight: 900;
+                    margin-bottom: 1rem;
+                    background: linear-gradient(135deg, #60a5fa 0%, #06b6d4 100%);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .footer-desc {
+                    color: rgba(255, 255, 255, 0.5);
+                    line-height: 1.6;
+                }
+            }
+
+            h4 {
+                color: white;
+                margin-bottom: 1.2rem;
+                font-size: 1.1rem;
+                position: relative;
+                padding-bottom: 8px;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
+                    width: 30px;
+                    height: 2px;
+                    background: var(--primary);
+                }
+            }
+
+            ul {
+                list-style: none;
+                padding: 0;
+                
+                li {
+                    margin-bottom: 12px;
+                    
+                    a {
+                        text-decoration: none;
+                        color: rgba(255, 255, 255, 0.6);
+                        transition: all 0.3s;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: white;
+                            padding-right: 5px;
+                        }
+                    }
+                }
+            }
+
+            .footer-contact p {
+                color: rgba(255, 255, 255, 0.6);
+                margin-bottom: 12px;
+            }
+
+            .footer-bottom {
+                text-align: center;
+                padding-top: 2rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                color: rgba(255, 255, 255, 0.4);
+                font-size: 0.9rem;
+            }
+        }
     `],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -294,6 +576,8 @@ export class GuestLayoutComponent implements OnInit {
     currentUser = this.authStore.currentUser;
     isMobile = false;
     windowSize = window.innerWidth;
+    isMobileMenuOpen = false;
+    currentYear = new Date().getFullYear();
 
     ngOnInit(): void {
         this.checkScreenSize();
@@ -307,6 +591,13 @@ export class GuestLayoutComponent implements OnInit {
     private checkScreenSize(): void {
         this.windowSize = window.innerWidth;
         this.isMobile = this.windowSize < 992;
+        if (!this.isMobile) {
+            this.isMobileMenuOpen = false; // Close menu on resize to desktop
+        }
+    }
+
+    toggleMobileMenu(): void {
+        this.isMobileMenuOpen = !this.isMobileMenuOpen;
     }
 
     handleLogout(): void {
