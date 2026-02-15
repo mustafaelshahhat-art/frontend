@@ -1,5 +1,5 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, computed, OnDestroy, ChangeDetectionStrategy, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
@@ -39,7 +39,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     private readonly layout = inject(LayoutOrchestratorService);
     private readonly authService = inject(AuthService);
 
-    currentFilter = 'all';
+    currentFilter = signal<string>('all');
     showReceiptModal = false;
     selectedRequest: { tournament: Tournament, registration: TeamRegistration } | null = null;
 
@@ -68,8 +68,17 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     filters = [
         { value: 'all', label: 'الكل' },
         { value: RegistrationStatus.PENDING_PAYMENT_REVIEW, label: 'معلق' },
-        { value: RegistrationStatus.APPROVED, label: 'مقبول' }
+        { value: RegistrationStatus.APPROVED, label: 'مقبول' },
+        { value: RegistrationStatus.REJECTED, label: 'مرفوض' }
     ];
+
+    // ✅ FIXED: Compute filtered requests to ensure local reactivity
+    filteredRequests = computed(() => {
+        const allRequests = this.requests();
+        const filter = this.currentFilter();
+        if (filter === 'all') return allRequests;
+        return allRequests.filter(r => r.registration.status === filter);
+    });
 
     columns: TableColumn[] = [];
 
@@ -125,11 +134,6 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         });
     }
 
-    get filteredRequests(): { tournament: Tournament, registration: TeamRegistration }[] {
-        const allRequests = this.requests();
-        if (this.currentFilter === 'all') return allRequests;
-        return allRequests.filter(r => r.registration.status === this.currentFilter);
-    }
 
     canManageRequest(tournament: Tournament): boolean {
         const user = this.authService.getCurrentUser();
@@ -168,7 +172,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     setFilter(filter: unknown): void {
-        this.currentFilter = filter as string;
+        this.currentFilter.set(filter as string);
     }
 
     getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {
