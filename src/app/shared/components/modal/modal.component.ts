@@ -18,6 +18,7 @@ export class ModalComponent {
     @Input() theme: 'default' | 'danger' = 'default';
     @Input() hasFooter = true;
     @Input() closeOnOverlay = true;
+    @Input() allowOverflow = false;
 
     @Output() closeRequest = new EventEmitter<void>();
 

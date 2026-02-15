@@ -5,11 +5,13 @@ import { Tournament, RegistrationStatus } from '../../../../core/models/tourname
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 
 @Component({
     selector: 'app-opening-match-modal',
     standalone: true,
-    imports: [CommonModule, FormsModule, IconComponent, ButtonComponent, BadgeComponent],
+    imports: [CommonModule, FormsModule, IconComponent, ButtonComponent, BadgeComponent, ModalComponent, SelectComponent],
     templateUrl: './opening-match-modal.component.html',
     styleUrls: ['./opening-match-modal.component.scss']
 })
@@ -30,7 +32,8 @@ export class OpeningMatchModalComponent implements OnChanges {
         if (changes['tournament'] && this.tournament) {
             this.availableTeams = (this.tournament.registrations || [])
                 .filter(r => r.status === RegistrationStatus.APPROVED)
-                .sort((a, b) => a.teamName.localeCompare(b.teamName));
+                .map(r => ({ label: r.teamName, value: r.teamId }))
+                .sort((a, b) => a.label.localeCompare(b.label));
         }
 
         // Reset logic when modal opens

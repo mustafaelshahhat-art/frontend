@@ -1,6 +1,7 @@
 @if (visible) {
 <div class="modal-overlay" (click)="onBackdropClick($event)" (keydown.escape)="closeOnOverlay && close()" tabindex="0">
-    <div class="modal-box" [class]="'modal-' + size" [class.theme-danger]="theme === 'danger'">
+    <div class="modal-box" [class]="'modal-' + size" [class.theme-danger]="theme === 'danger'"
+        [class.allow-overflow]="allowOverflow">
         <!-- Header -->
         <div class="modal-header">
             @if (icon) {
@@ -13,7 +14,7 @@
         </div>
 
         <!-- Body -->
-        <div class="modal-body">
+        <div class="modal-body" [class.allow-overflow]="allowOverflow">
             <ng-content />
         </div>
 

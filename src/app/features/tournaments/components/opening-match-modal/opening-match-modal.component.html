@@ -1,73 +1,71 @@
-<div class="modal-overlay" [class.visible]="isVisible" (click)="close.emit()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>تحديد مباراة الافتتاح</h3>
-            <button class="close-btn" (click)="close.emit()"><app-icon name="close"></app-icon></button>
+<app-modal [visible]="isVisible" title="تحديد مباراة الافتتاح" size="lg" [allowOverflow]="true"
+    (closeRequest)="close.emit()">
+
+    <div class="modal-body-custom">
+        @if (tournament.openingTeamAId && tournament.openingTeamBId) {
+        <div class="text-center mb-4">
+            <app-badge type="success" size="sm">تم اختيار مباراة الافتتاح سابقاً</app-badge>
+        </div>
+        }
+
+        <div class="premium-alert">
+            <div class="alert-icon">
+                <app-icon name="info"></app-icon>
+            </div>
+            <div class="alert-content">
+                <p>قواعد مباراة الافتتاح</p>
+                <span class="sub-text">سيتم استبعاد الفريقين المختارين من القرعة ووضعهما معاً في المجموعة الأولى
+                    رسمياً.</span>
+            </div>
         </div>
 
-        <div class="modal-body">
-            @if (tournament.openingTeamAId && tournament.openingTeamBId) {
-            <div class="existing-selection">
-                <app-badge type="success" size="sm">تم اختيار مباراة الافتتاح سابقاً</app-badge>
-                <p class="mt-2 text-muted">سيؤدي اختيار فرق جديدة إلى استبدال الخيار السابق.</p>
-            </div>
-            }
-
-            <div class="alert-box warning">
-                <app-icon name="warning" class="text-warning"></app-icon>
-                <div class="text">
-                    <p><strong>تنبيه هام:</strong> سيتم استبعاد الفريقين المختارين من القرعة العشوائية ووضعهما معاً في
-                        نفس المجموعة.</p>
-                    <p class="secondary-text">ستكون مباراتهما هي المباراة الأولى في البطولة وتعتبر الافتتاح الرسمي.</p>
+        <div class="match-stage">
+            <!-- Home Team -->
+            <div class="team-card home">
+                <span class="team-label">صاحب الأرض</span>
+                <div class="avatar-placeholder" [class.active]="teamAId">
+                    <app-icon name="shield"></app-icon>
+                </div>
+                <div class="select-wrapper">
+                    <app-select [(ngModel)]="teamAId" [options]="availableTeams" placeholder="اختر الفريق">
+                    </app-select>
                 </div>
             </div>
 
-            <div class="selection-grid">
-                <!-- Team A -->
-                <div class="team-select">
-                    <label>الفريق الأول (صاحب الأرض)</label>
-                    <div class="select-wrapper">
-                        <select [(ngModel)]="teamAId">
-                            <option [ngValue]="null" disabled>-- اختر الفريق --</option>
-                            @for(team of availableTeams; track team.teamId) {
-                            <option [value]="team.teamId" [disabled]="team.teamId === teamBId">
-                                {{ team.teamName }}
-                            </option>
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <div class="vs-badge">VS</div>
-
-                <!-- Team B -->
-                <div class="team-select">
-                    <label>الفريق الثاني (الضيف)</label>
-                    <div class="select-wrapper">
-                        <select [(ngModel)]="teamBId">
-                            <option [ngValue]="null" disabled>-- اختر الفريق --</option>
-                            @for(team of availableTeams; track team.teamId) {
-                            <option [value]="team.teamId" [disabled]="team.teamId === teamAId">
-                                {{ team.teamName }}
-                            </option>
-                            }
-                        </select>
-                    </div>
+            <!-- VS Center -->
+            <div class="vs-container">
+                <div class="vs-circle" [class.highlight]="teamAId && teamBId">
+                    VS
                 </div>
             </div>
 
+            <!-- Away Team -->
+            <div class="team-card away">
+                <span class="team-label">الضيف</span>
+                <div class="avatar-placeholder" [class.active]="teamBId">
+                    <app-icon name="person"></app-icon>
+                </div>
+                <div class="select-wrapper">
+                    <app-select [(ngModel)]="teamBId" [options]="availableTeams" placeholder="اختر الفريق">
+                    </app-select>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-container">
             @if(errorMessage) {
-            <p class="error-msg text-center">{{ errorMessage }}</p>
+            <span class="error-msg">
+                <app-icon name="error_outline" size="xs"></app-icon>
+                {{ errorMessage }}
+            </span>
             }
-
-        </div>
-
-        <div class="modal-footer">
-            <app-button variant="ghost" (click)="close.emit()">إلغاء</app-button>
-            <app-button variant="primary" [disabled]="!canSubmit()" (click)="onSubmit()">
-                <app-icon name="check_circle"></app-icon>
-                تثبيت مباراة الافتتاح
-            </app-button>
         </div>
     </div>
-</div>
+
+    <div modal-footer class="footer-actions">
+        <app-button variant="ghost" (click)="close.emit()">إلغاء</app-button>
+        <app-button variant="primary" [disabled]="!canSubmit()" (click)="onSubmit()">
+            تثبيت الافتتاح
+        </app-button>
+    </div>
+</app-modal>

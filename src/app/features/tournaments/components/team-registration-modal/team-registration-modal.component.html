@@ -1,4 +1,5 @@
-<app-modal [visible]="isVisible" title="تسجيل الفريق" icon="rocket_launch" size="md" (closeRequest)="close()">
+<app-modal [visible]="isVisible" title="تسجيل الفريق" icon="rocket_launch" size="md" [allowOverflow]="true"
+    (closeRequest)="close()">
 
     <div class="registration-form-body">
 

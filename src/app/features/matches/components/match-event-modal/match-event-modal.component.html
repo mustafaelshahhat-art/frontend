@@ -1,4 +1,5 @@
-<app-modal [visible]="visible" title="تسجيل حدث جديد" icon="edit_note" (closeRequest)="cancel()" size="lg">
+<app-modal [visible]="visible" title="تسجيل حدث جديد" icon="edit_note" [allowOverflow]="true" (closeRequest)="cancel()"
+    size="lg">
     <div class="form-grid">
         <!-- Event Type -->
         <div class="form-field">

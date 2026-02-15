@@ -24,6 +24,10 @@
     animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     overflow: hidden;
 
+    &.allow-overflow {
+        overflow: visible !important;
+    }
+
     &.modal-sm {
         max-width: var(--width-modal-sm, 25rem);
     }
@@ -58,6 +62,10 @@
 .modal-body {
     padding: var(--space-6);
     overflow-y: auto;
+
+    &.allow-overflow {
+        overflow: visible !important;
+    }
 }
 
 .modal-footer {
