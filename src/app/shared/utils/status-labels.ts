@@ -60,7 +60,6 @@ export enum MatchEventType {
     YELLOW_CARD = 'YELLOW_CARD',
     RED_CARD = 'RED_CARD',
     PENALTY = 'PENALTY',
-    OWN_GOAL = 'OWN_GOAL',
     SUBSTITUTION = 'SUBSTITUTION'
 }
 
@@ -87,11 +86,6 @@ export const MATCH_EVENT_LABELS: Record<string, StatusConfig> = {
     [MatchEventType.PENALTY]: {
         label: 'ركلة جزاء',
         variant: 'info',
-        icon: 'sports_soccer'
-    },
-    [MatchEventType.OWN_GOAL]: {
-        label: 'هدف عكسي',
-        variant: 'danger',
         icon: 'sports_soccer'
     }
     // Substitution can be added if needed

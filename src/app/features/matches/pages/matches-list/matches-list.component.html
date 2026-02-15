@@ -30,17 +30,6 @@
         <app-match-card [match]="match" (click)="viewMatch(match.id)" class="clickable-match-card">
 
             <div class="match-card-actions" actions>
-                <!-- Admin: Update Score -->
-                <app-button *appHasPermission="Permission.MANAGE_MATCHES"
-                    (click)="$event.stopPropagation(); updateScore(match)" size="sm" variant="outline"
-                    icon="scoreboard">
-                    تحديث النتيجة
-                </app-button>
-
-
-
-
-
                 <!-- Captain/Player Actions -->
                 <div class="player-actions">
                     <!-- Details Button -->

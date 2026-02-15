@@ -15,9 +15,7 @@
             <div class="event-info">
                 <div class="event-top-row">
                     <span class="event-type-label">{{ getEventLabel(event.type) }}</span>
-                    @if (event.minute) {
-                    <span class="event-time">{{ event.minute }}'</span>
-                    }
+
                 </div>
 
                 <h4 class="player-name">{{ event.playerName || 'لاعب غير معروف' }}</h4>

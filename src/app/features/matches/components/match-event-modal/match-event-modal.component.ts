@@ -39,8 +39,7 @@ export class MatchEventModalComponent implements OnChanges {
         type: MatchEventType.GOAL,
         playerId: '',
         teamId: '',
-        description: '',
-        minute: 0
+        description: ''
     };
 
     // Select Options
@@ -48,8 +47,7 @@ export class MatchEventModalComponent implements OnChanges {
         { label: 'هدف', value: MatchEventType.GOAL, icon: 'sports_soccer' },
         { label: 'بطاقة صفراء', value: MatchEventType.YELLOW_CARD, icon: 'content_copy' },
         { label: 'بطاقة حمراء', value: MatchEventType.RED_CARD, icon: 'content_copy' },
-        { label: 'ركلة جزاء', value: MatchEventType.PENALTY, icon: 'sports_soccer' },
-        { label: 'هدف في مرماه', value: MatchEventType.OWN_GOAL, icon: 'block' }
+        { label: 'ركلة جزاء', value: MatchEventType.PENALTY, icon: 'sports_soccer' }
     ];
 
     teamOptions: SelectOption[] = [];
@@ -61,8 +59,7 @@ export class MatchEventModalComponent implements OnChanges {
                 type: MatchEventType.GOAL,
                 playerId: '',
                 teamId: this.match.homeTeamId,
-                description: '',
-                minute: 0
+                description: ''
             };
 
             this.teamOptions = [
@@ -122,7 +119,7 @@ export class MatchEventModalComponent implements OnChanges {
             playerId: this.eventForm.playerId,
             teamId: this.eventForm.teamId,
             description: this.eventForm.description,
-            minute: this.eventForm.minute
+            minute: 0 // Default for legacy/simple tracking if needed, or omit if API allows null
         }).subscribe({
             next: (updatedMatch) => {
                 this.uiFeedback.success('تم الإضافة', 'تم إضافة الحدث');

@@ -100,9 +100,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
 
 
-    // Admin: Score update
-    showScoreModal = signal(false);
-    scoreForm = { homeScore: 0, awayScore: 0 };
+
 
 
 
@@ -121,8 +119,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         effect(() => {
             const m = this.match();
             if (m) {
-                this.scoreForm.homeScore = m.homeScore;
-                this.scoreForm.awayScore = m.awayScore;
+                // No score update sync needed here anymore
             }
         });
     }
@@ -378,38 +375,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
 
 
 
-    openScoreModal(): void {
-        const currentMatch = this.match();
-        if (currentMatch) {
-            this.scoreForm.homeScore = currentMatch.homeScore;
-            this.scoreForm.awayScore = currentMatch.awayScore;
-        }
-        this.showScoreModal.set(true);
-    }
 
-    closeScoreModal(): void {
-        this.showScoreModal.set(false);
-    }
-
-    updateScore(): void {
-        const currentMatch = this.match();
-        if (!currentMatch) return;
-
-        this.matchService.updateMatchScore(currentMatch.id, this.scoreForm.homeScore, this.scoreForm.awayScore)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (success: boolean) => {
-                    if (success) {
-                        const updated = { ...currentMatch, homeScore: this.scoreForm.homeScore, awayScore: this.scoreForm.awayScore };
-                        this.matchStore.updateMatch(updated);
-                        this.uiFeedback.success('تم بنجاح', 'تم تحديث النتيجة');
-                    }
-                    this.closeScoreModal();
-                    this.cdr.detectChanges();
-                },
-                error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث النتيجة')
-            });
-    }
 
 
 

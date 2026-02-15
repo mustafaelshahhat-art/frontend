@@ -204,7 +204,7 @@
     justify-content: center;
     margin-bottom: var(--space-lg);
 
-    
+
 }
 
 .chat-empty-title {
@@ -256,6 +256,21 @@
     font-weight: var(--font-bold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
+
+    &.captain-role {
+        background: var(--color-primary-10);
+        color: var(--color-primary);
+    }
+
+    &.admin-role {
+        background: var(--color-danger-10);
+        color: var(--color-danger);
+    }
+
+    &.organizer-role {
+        background: var(--color-gold-10);
+        color: var(--color-gold);
+    }
 }
 
 .chat-bubble {

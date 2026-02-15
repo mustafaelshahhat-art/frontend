@@ -49,12 +49,13 @@
 
                 <div class="chat-message-sender" [class.chat-message-sender-reversed]="isMe(msg)">
                     <span class="chat-message-name">{{ msg.senderName }}</span>
-                    @if (msg.senderRole) {
-                    <span class="chat-message-role" [class.bg-primary-subtle]="msg.senderRole === 'captain'"
-                        [class.text-primary]="msg.senderRole === 'captain'">
-                        {{ msg.senderRole }}
+                    <span class="chat-message-role" [class.captain-role]="msg.senderRole === 'captain'"
+                        [class.admin-role]="msg.senderRole === 'admin'"
+                        [class.organizer-role]="msg.senderRole === 'organizer' || msg.senderRole === 'tournamentcreator'">
+                        {{ msg.senderRole === 'captain' ? 'قائد' :
+                        msg.senderRole === 'admin' ? 'مشرف' :
+                        (msg.senderRole === 'organizer' || msg.senderRole === 'tournamentcreator') ? 'منظم' : 'لاعب' }}
                     </span>
-                    }
                 </div>
 
                 <div class="chat-bubble" [class.chat-bubble-me]="isMe(msg)" [class.chat-bubble-other]="!isMe(msg)">

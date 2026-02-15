@@ -141,6 +141,7 @@ export interface Match {
     id: string;
     tournamentId: string;
     tournamentName?: string;
+    tournamentCreatorId?: string;
     homeTeamId: string;
     awayTeamId: string;
     homeTeamName: string;
@@ -205,8 +206,7 @@ export enum MatchEventType {
     GOAL = 'Goal',
     YELLOW_CARD = 'YellowCard',
     RED_CARD = 'RedCard',
-    PENALTY = 'Penalty',
-    OWN_GOAL = 'OwnGoal'
+    PENALTY = 'Penalty'
 }
 
 export interface MatchEvent {

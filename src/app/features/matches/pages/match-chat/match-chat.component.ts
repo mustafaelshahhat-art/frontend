@@ -148,8 +148,10 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Captain or Player of one of the teams
-        if (this.currentUser.teamId === this.match.homeTeamId || this.currentUser.teamId === this.match.awayTeamId) {
+        // Captain or Player of one of the teams, OR the Tournament Creator
+        if (this.currentUser.teamId === this.match.homeTeamId ||
+            this.currentUser.teamId === this.match.awayTeamId ||
+            this.currentUser.id === this.match.tournamentCreatorId) {
             this.isAuthorized = true;
             return;
         }
@@ -164,8 +166,15 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         this.participants = [
             {
                 id: 'system-admin',
-                name: 'الـمشرف',
+                name: 'الـمشرف الأساسي',
                 avatarInitial: 'م',
+                role: ChatParticipantRole.ADMIN,
+                isOnline: true
+            },
+            {
+                id: this.match.tournamentCreatorId || 'organizer',
+                name: 'مـنظم البطولة',
+                avatarInitial: 'ن',
                 role: ChatParticipantRole.ADMIN,
                 isOnline: true
             },
@@ -269,9 +278,18 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             text: m.content,
             senderId: m.senderId,
             senderName: m.senderName,
-            senderRole: m.role?.toLowerCase() || 'player',
+            senderRole: this.translateRole(m.role),
             timestamp: new Date(m.timestamp)
         }));
+    }
+
+    private translateRole(role?: string): string {
+        if (!role) return 'player';
+        const r = role.toLowerCase();
+        if (r === 'admin') return 'admin';
+        if (r === 'tournamentcreator') return 'organizer';
+        if (r === 'captain') return 'captain';
+        return 'player';
     }
 
     goBack(): void {
@@ -285,8 +303,9 @@ export class MatchChatComponent implements OnInit, OnDestroy {
 
     // Check if current user can schedule match (Admin only)
     canScheduleMatch(): boolean {
-        if (!this.currentUser) return false;
-        return this.currentUser.role === UserRole.ADMIN;
+        if (!this.currentUser || !this.match) return false;
+        return this.currentUser.role === UserRole.ADMIN ||
+            this.currentUser.id === this.match.tournamentCreatorId;
     }
 
     // Open schedule modal

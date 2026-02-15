@@ -127,12 +127,7 @@
                 </div>
 
                 <div class="admin-content">
-                    <!-- Main Action: Score -->
-                    <div class="admin-main-actions mb-4">
-                        <app-button (click)="openScoreModal()" icon="scoreboard" class="w-full">
-                            تحديث النتيجة
-                        </app-button>
-                    </div>
+
 
                     <!-- Management Grid -->
                     <div class="admin-grid-two">
@@ -191,24 +186,7 @@
     }
 </div>
 
-<!-- Score Modal -->
-<app-modal [visible]="showScoreModal()" title="تحديث النتيجة" icon="scoreboard" (closeRequest)="closeScoreModal()">
-    <div class="score-form">
-        <div class="score-team-input">
-            <span class="form-label mb-2 block">{{ match()?.homeTeamName }}</span>
-            <app-form-control type="number" [(ngModel)]="scoreForm.homeScore" [min]="0" />
-        </div>
-        <span class="score-colon">:</span>
-        <div class="score-team-input">
-            <span class="form-label mb-2 block">{{ match()?.awayTeamName }}</span>
-            <app-form-control type="number" [(ngModel)]="scoreForm.awayScore" [min]="0" />
-        </div>
-    </div>
-    <div modal-footer class="flex justify-end gap-3 w-full">
-        <app-button (click)="closeScoreModal()" variant="ghost">إلغاء</app-button>
-        <app-button (click)="updateScore()" variant="primary">حفظ</app-button>
-    </div>
-</app-modal>
+
 
 <!-- Centralized End Match Confirmation Dialog -->
 <app-end-match-confirm [matchId]="match()?.id || ''" [visible]="showEndMatchConfirm()"

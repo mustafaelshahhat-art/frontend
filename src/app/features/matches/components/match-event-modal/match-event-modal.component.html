@@ -25,11 +25,7 @@
                 (ngModelChange)="onPlayerChange($event)" placeholder="اختر اللاعب" [disabled]="isPlayersLoading" />
         </div>
 
-        <!-- Minute -->
-        <div class="form-field flex-1">
-            <span class="form-label">الدقيقة</span>
-            <input type="number" [(ngModel)]="eventForm.minute" class="form-input" min="0" max="150" placeholder="0">
-        </div>
+
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">
