@@ -15,11 +15,6 @@ export enum TournamentFormat {
     GroupsWithHomeAwayKnockout = 'GroupsWithHomeAwayKnockout'
 }
 
-export enum SeedingMode {
-    ShuffleOnly = 0,
-    Manual = 1,
-    RankBased = 2
-}
 
 export enum SchedulingMode {
     Random = 0,
@@ -112,7 +107,6 @@ export interface Tournament {
     walletNumber?: string;
     instaPayNumber?: string;
     isHomeAwayEnabled?: boolean;
-    seedingMode?: SeedingMode;
     paymentMethodsJson?: string;
     paymentMethods?: PaymentMethodConfig[]; // Parsed helper
     mode?: TournamentMode;

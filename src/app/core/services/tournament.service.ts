@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto } from '../models/tournament.model';
+import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto, Match } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
@@ -114,8 +114,8 @@ export class TournamentService {
         return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
     }
 
-    setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<any> {
-        return this.http.post(`${this.apiUrl}/${tournamentId}/opening-match`, { homeTeamId, awayTeamId });
+    setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<Match[]> {
+        return this.http.post<Match[]>(`${this.apiUrl}/${tournamentId}/opening-match`, { homeTeamId, awayTeamId });
     }
 
     manualDraw(tournamentId: string, request: any): Observable<any> {

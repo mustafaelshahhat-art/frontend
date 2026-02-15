@@ -44,7 +44,6 @@ export class TournamentCardComponent {
     @Input() showRegisterButton = false;
     @Input() showNonOwnerHint = false; // Show hint for non-captain players
     @Input() isClickable = true;
-    @Input() isBusy = false; // Registered in another tournament
     @Input() isTeamDisabled = false; // Team disabled by admin
 
     @Output() viewDetails = new EventEmitter<Tournament>();
@@ -127,7 +126,6 @@ export class TournamentCardComponent {
     get isRegisterDisabled(): boolean {
         return this.isUserPending ||
             (this.isRegistered && this.myRegistration?.status !== RegistrationStatus.REJECTED) ||
-            this.isBusy ||
             this.isTeamDisabled;
     }
 
@@ -177,9 +175,6 @@ export class TournamentCardComponent {
         }
         if (this.isTeamDisabled) {
             return 'تم تعطيل الفريق بواسطة الإدارة';
-        }
-        if (this.isBusy && !this.isRegistered) {
-            return 'فريقك مسجل بالفعل في بطولة أخرى';
         }
         if (this.myRegistration?.status === RegistrationStatus.APPROVED) {
             return 'فريقك مسجل ومُوافَق عليه';

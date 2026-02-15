@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
-import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, SeedingMode, LateRegistrationMode, PaymentMethodConfig, SchedulingMode } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, LateRegistrationMode, PaymentMethodConfig, SchedulingMode } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -55,7 +55,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         rules: ['', [Validators.required]],
         prizes: ['', [Validators.required]],
         mode: [TournamentMode.LeagueSingle, [Validators.required]],
-        seedingMode: [SeedingMode.ShuffleOnly],
         numberOfGroups: [0],
         qualifiedTeamsPerGroup: [0],
         allowLateRegistration: [false],
@@ -78,15 +77,10 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         { value: TournamentMode.KnockoutHomeAway, label: 'خروج المغلوب (ذهاب وعودة)', icon: 'sync' }
     ];
 
-    seedingModes = [
-        { value: SeedingMode.ShuffleOnly, label: 'توزيع عشوائي (Shuffle)', icon: 'shuffle' },
-        { value: SeedingMode.Manual, label: 'توزيع يدوي للفرق', icon: 'groups' },
-        { value: SeedingMode.RankBased, label: 'حسب التصنيف', icon: 'stars' }
-    ];
 
     schedulingModes = [
-        { value: SchedulingMode.Random, label: 'جدولة تلقائية (نظام الجولات)', icon: 'auto_mode' },
-        { value: SchedulingMode.Manual, label: 'جدولة يدوية للمباريات', icon: 'edit_calendar' }
+        { value: SchedulingMode.Random, label: 'توزيع عشوائي (اختيار اللقاء الافتتاحي)', icon: 'auto_mode' },
+        { value: SchedulingMode.Manual, label: 'توزيع الفرق يدوياً (توليد مباريات تلقائي)', icon: 'groups' }
     ];
 
     lateRegistrationModes = [
@@ -180,7 +174,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                         rules: tournament.rules,
                         prizes: tournament.prizes,
                         mode: tournament.mode || this.getEffectiveMode(tournament),
-                        seedingMode: tournament.seedingMode || SeedingMode.ShuffleOnly,
                         numberOfGroups: tournament.numberOfGroups || 0,
                         qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
                         walletNumber: tournament.walletNumber || '',
@@ -303,7 +296,6 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
             qualifiedTeamsPerGroup: formValue.qualifiedTeamsPerGroup || 0,
             walletNumber: formValue.walletNumber,
             instaPayNumber: formValue.instaPayNumber,
-            seedingMode: formValue.seedingMode,
             allowLateRegistration: formValue.allowLateRegistration,
             lateRegistrationMode: formValue.lateRegistrationMode,
             schedulingMode: formValue.schedulingMode,

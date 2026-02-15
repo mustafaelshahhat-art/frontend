@@ -35,7 +35,7 @@
 <div class="tournaments-grid">
     @for (tournament of filteredTournaments(); track tournament.id) {
     <app-tournament-card [tournament]="tournament" [showRegisterButton]="isCaptain()"
-        [showNonOwnerHint]="!isCaptain() && hasTeam()" [isBusy]="isTeamBusy()" [isTeamDisabled]="isTeamDisabled()"
+        [showNonOwnerHint]="!isCaptain() && hasTeam()" [isTeamDisabled]="isTeamDisabled()"
         (viewDetails)="viewDetails($event)" (register)="registerTeam($event)" />
     }
 </div>

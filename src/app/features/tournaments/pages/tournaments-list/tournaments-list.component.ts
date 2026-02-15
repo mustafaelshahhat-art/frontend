@@ -116,17 +116,6 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         return result;
     });
 
-    // Compute if user's team is registered in ANY active/pending tournament
-    isTeamBusy = computed(() => {
-        const teamId = this.authService.getCurrentUser()?.teamId;
-        if (!teamId) return false;
-
-        // Return true if team is in ANY tournament with a non-rejected status
-        return this.tournaments().some(t =>
-            t.registrations?.some(r => r.teamId === teamId && r.status !== 'Rejected')
-        );
-    });
-
     ngOnInit(): void {
         const isAdminView = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS);
         const title = isAdminView ? 'إدارة البطولات' : 'البطولات المتاحة';
@@ -263,11 +252,6 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         if (!user?.teamId) {
             this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
             this.navService.navigateTo('team');
-            return;
-        }
-
-        if (this.isTeamBusy()) {
-            this.uiFeedback.error('تنبيه', 'لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت');
             return;
         }
 

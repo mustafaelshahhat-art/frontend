@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { Tournament, TeamRegistration, TournamentMode, GroupAssignment, ManualDrawRequest } from '../../../../core/models/tournament.model';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -32,6 +33,7 @@ export class ManualDrawComponent implements OnInit {
     private tournamentService = inject(TournamentService);
     private uiFeedback = inject(UIFeedbackService);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
+    private navService = inject(ContextNavigationService);
 
     tournament = signal<Tournament | null>(null);
     registeredTeams = signal<TeamRegistration[]>([]);
@@ -66,14 +68,16 @@ export class ManualDrawComponent implements OnInit {
             next: (t) => {
                 if (!t) {
                     this.uiFeedback.error('خطأ', 'البطولة غير موجودة');
-                    this.router.navigate(['/tournaments']);
                     return;
                 }
                 this.tournament.set(t);
                 this.setupLayout(t);
                 this.loadRegistrations(id);
             },
-            error: () => this.isLoading.set(false)
+            error: (err) => {
+                this.isLoading.set(false);
+                this.uiFeedback.error('خطأ في تحميل البطولة', err.error?.message || 'فشل في تحميل بيانات البطولة');
+            }
         });
     }
 
@@ -188,7 +192,9 @@ export class ManualDrawComponent implements OnInit {
                 this.tournamentService.generateManualGroupMatches(t.id).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم بنجاح', 'تم توزيع الفرق وتوليد مباريات المجموعات بنجاح.');
-                        this.router.navigate(['/tournaments', t.id]);
+                        // Navigate back to tournament detail using context-aware navigation
+                        this.layoutOrchestrator.reset();
+                        this.navService.navigateTo(['tournaments', t.id]);
                     },
                     error: (err) => {
                         this.isSubmitting.set(false);
@@ -214,7 +220,9 @@ export class ManualDrawComponent implements OnInit {
         this.tournamentService.createManualKnockoutMatches(t.id, pairings).subscribe({
             next: () => {
                 this.uiFeedback.success('تم بنجاح', 'تم إنشاء مواجهات خروج المغلوب بنجاح.');
-                this.router.navigate(['/tournaments', t.id]);
+                // Navigate back to tournament detail using context-aware navigation
+                this.layoutOrchestrator.reset();
+                this.navService.navigateTo(['tournaments', t.id]);
             },
             error: (err) => {
                 this.isSubmitting.set(false);
@@ -226,9 +234,11 @@ export class ManualDrawComponent implements OnInit {
     cancel(): void {
         const t = this.tournament();
         if (t) {
-            this.router.navigate(['/tournaments', t.id]);
+            this.layoutOrchestrator.reset();
+            this.navService.navigateTo(['tournaments', t.id]);
         } else {
-            this.router.navigate(['/tournaments']);
+            this.layoutOrchestrator.reset();
+            this.navService.navigateTo('tournaments');
         }
     }
 }

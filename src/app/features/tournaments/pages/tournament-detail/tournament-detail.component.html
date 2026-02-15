@@ -110,17 +110,15 @@
                             @if (canStartTournament()) {
                             <app-button variant="primary" size="md" shadow="glow" icon="play_arrow"
                                 (click)="startTournament()">
-                                بدء锦标赛
+                                بدء البطولة
                             </app-button>
                             }
 
                             <!-- Manual Draw Button -->
-                            @if (canManageDraw() && t.schedulingMode === SchedulingMode.Manual &&
-                            tournamentMatches().length === 0) {
+                            @if (canManageDraw() && isManualMode() && tournamentMatches().length === 0) {
                             <app-button variant="gold" size="md" shadow="glow" icon="edit_calendar"
                                 (click)="startManualDraw()">
-                                {{ (t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway') ? 'تحديد مواجهات
-                                الإقصائيات' : 'توزيع المجموعات والجدولة' }}
+                                {{ (t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway') ? 'تحديد مواجهات الإقصائيات' : 'توزيع المجموعات والجدولة' }}
                             </app-button>
                             }
 
@@ -172,9 +170,9 @@
                             <div class="captain-actions-container">
                                 @if (!isRegistered() && isCaptain()) {
                                 <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
-                                    (click)="registerTeam()" [disabled]="isUserPending() || isBusyElsewhere"
-                                    [title]="isUserPending() ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : isBusyElsewhere ? 'فريقك مسجل بالفعل في بطولة أخرى' : ''">
-                                    {{ isBusyElsewhere ? 'مسجل في بطولة أخرى' : (myRegistration()?.status ===
+                                    (click)="registerTeam()" [disabled]="isUserPending()"
+                                    [title]="isUserPending() ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : ''">
+                                    {{ (myRegistration()?.status ===
                                     RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
                                 </app-button>
                                 }
@@ -211,12 +209,7 @@
                                     يجب تفعيل حسابك لتتمكن من التسجيل
                                 </p>
                                 }
-                                @if (isBusyElsewhere && !isRegistered()) {
-                                <p class="pending-hint">
-                                    <app-icon name="info" class=" icon-sm"></app-icon>
-                                    لا يمكنك التسجيل في أكثر من بطولة نشطة في نفس الوقت
-                                </p>
-                                }
+
                             </div>
                             }
                         </div>

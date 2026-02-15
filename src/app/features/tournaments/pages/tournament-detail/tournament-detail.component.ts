@@ -102,7 +102,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     isGeneratingMatches = signal<boolean>(false);
 
     // Additional Properties
-    isBusyElsewhere: boolean = false;
+
     standings = signal<TournamentStanding[]>([]);
 
     // Computed
@@ -177,7 +177,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
             t?.requiresAdminIntervention &&
             (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
-            matches.length === 0;
+            matches.length === 0 &&
+            t?.schedulingMode === SchedulingMode.Manual; // Only show for Manual mode, not Random
     });
 
     canEditTournament = computed(() => {
@@ -219,18 +220,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
     });
 
     canGenerateSchedule = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-        // Show Generate Schedule if:
-        // 1. User has permission
-        // 2. Tournament is in RegistrationClosed status
-        // 3. No matches exist yet
-        // 4. Scheduling mode is Random (or not set, default to Random)
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            t?.status === TournamentStatus.REGISTRATION_CLOSED &&
-            matches.length === 0 &&
-            (t?.schedulingMode === SchedulingMode.Random || t?.schedulingMode === undefined);
+        return false; // Replaced by automated flow via setOpeningMatch
     });
 
     canStartTournament = computed(() => {
@@ -390,7 +380,6 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                             }
                         });
                         this.isLoading.set(false);
-                        this.checkGlobalBusyStatus();
                     },
                     error: () => this.isLoading.set(false)
                 });
@@ -635,25 +624,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
     }
 
-    checkGlobalBusyStatus(): void {
-        const user = this.authService.getCurrentUser();
-        if (!user?.teamId) return;
 
-        const store = this.tournamentStore as any;
-        try {
-            const allTournaments = store.tournaments();
-            const t = this.tournament();
-
-            if (allTournaments.length > 0 && t) {
-                this.isBusyElsewhere = allTournaments.some((other: any) =>
-                    other.id !== t.id &&
-                    other.registrations?.some((r: any) => r.teamId === user.teamId && r.status !== RegistrationStatus.REJECTED)
-                );
-            }
-        } catch (e) {
-            console.warn('Could not check global busy status', e);
-        }
-    }
 
     eliminateTeam(teamId: string, teamName: string): void {
         const t = this.tournament();
@@ -764,8 +735,14 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
 
         return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            t?.status === TournamentStatus.REGISTRATION_CLOSED &&
-            matches.length === 0;
+            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION) &&
+            matches.length === 0 &&
+            ((t?.schedulingMode as any) === 'Random' || (t?.schedulingMode as any) === 0); // Only show for Random mode
+    });
+
+    isManualMode = computed(() => {
+        const t = this.tournament();
+        return (t?.schedulingMode as any) === 'Manual' || (t?.schedulingMode as any) === 1;
     });
 
     openOpeningMatchModal(): void {
@@ -782,12 +759,31 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         this.isLoading.set(true);
         this.tournamentService.setOpeningMatch(t.id, event.homeTeamId, event.awayTeamId).subscribe({
-            next: () => {
+            next: (matches) => {
                 this.isOpeningMatchModalVisible = false;
-                this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح بنجاح. سيتم تطبيقها عند توليد الجدول.');
-                this.loadInitialData(t.id);
-                this.isLoading.set(false);
-                this.cdr.detectChanges();
+                
+                // Add generated matches to the store if any were returned (Random mode)
+                if (matches && matches.length > 0) {
+                    matches.forEach((match: Match) => {
+                        if (!this.matchStore.getMatchById(match.id)) {
+                            this.matchStore.addMatch(match);
+                        } else {
+                            this.matchStore.updateMatch(match);
+                        }
+                    });
+                    
+                    // Show success message with match count
+                    this.uiFeedback.success('تم بنجاح', `تم تحديد مباراة الافتتاح وتوليد ${matches.length} مباراة بنجاح.`);
+                } else {
+                    this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح بنجاح.');
+                }
+                
+                // Wait a moment before reloading to ensure backend has processed everything
+                setTimeout(() => {
+                    this.loadInitialData(t.id);
+                    this.isLoading.set(false);
+                    this.cdr.detectChanges();
+                }, 1000);
             },
             error: (err) => {
                 this.isOpeningMatchModalVisible = false;
