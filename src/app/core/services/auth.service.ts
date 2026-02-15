@@ -79,6 +79,10 @@ export class AuthService {
             headers: { 'X-Skip-Error-Handler': 'true' }
         }).pipe(
             tap(() => {
+                // Clear any existing auth tokens to prevent 401s on subsequent requests
+                localStorage.removeItem(this.TOKEN_KEY);
+                localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+
                 const guestUser: User = {
                     id: 'guest',
                     displayId: 'GUEST',
@@ -237,6 +241,11 @@ export class AuthService {
     refreshUserProfile(): Observable<User | null> {
         const user = this.getCurrentUser();
         if (!user) return of(null);
+
+        // Guest users do not have a backend profile to refresh
+        if (user.id === 'guest' || user.role === UserRole.GUEST) {
+            return of(user);
+        }
 
         const profileUrl = `${environment.apiUrl}/users/${user.id}`;
         return this.http.get<User>(profileUrl).pipe(

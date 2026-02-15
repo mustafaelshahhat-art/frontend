@@ -301,7 +301,8 @@
 /* Tabs */
 .tab-filter {
     position: sticky;
-    top: var(--space-4);
+    top: 6rem;
+    /* Adjust for fixed navbar height */
     z-index: var(--z-sticky);
     backdrop-filter: blur(var(--blur-md));
     background: var(--bg-glass);

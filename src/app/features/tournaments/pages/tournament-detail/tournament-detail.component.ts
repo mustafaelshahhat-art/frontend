@@ -429,6 +429,12 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     navigateBack(): void {
         const prefix = this.navService.getRootPrefix();
+        // If guest, ensure we stay in guest context
+        if (prefix === '/guest') {
+            this.router.navigate(['/guest/tournaments']);
+            return;
+        }
+
         if (prefix === '/admin') {
             this.navService.navigateTo('tournaments');
         } else if (prefix === '/creator') {
@@ -440,6 +446,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     getBackRoute(): string {
         const prefix = this.navService.getRootPrefix();
+        if (prefix === '/guest') return '/guest/tournaments';
         if (prefix === '/admin') return `${prefix}/tournaments`;
         if (prefix === '/creator') return `${prefix}/tournaments`;
         return '/player/tournaments';
