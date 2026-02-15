@@ -1,8 +1,8 @@
 export const environment = {
     production: true,
-    apiUrl: '/api/v1', // Relative path often used behind reverse proxies in PROD
-    imageBaseUrl: '',
-    hubUrl: '/hubs',
+    apiUrl: 'https://korazoneapi.runasp.net/api/v1',
+    imageBaseUrl: 'https://korazoneapi.runasp.net',
+    hubUrl: 'https://korazoneapi.runasp.net/hubs',
     appName: 'نظام إدارة البطولات - الإنتاج',
     version: '1.0.0',
     enableDebugTools: false,
