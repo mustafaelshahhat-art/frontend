@@ -95,19 +95,21 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     private setupValidators() {
         this.tournamentForm.get('mode')?.valueChanges.subscribe(mode => {
             const groupsControl = this.tournamentForm.get('numberOfGroups');
-            const qualifiedControl = this.tournamentForm.get('qualifiedTeamsPerGroup');
+            const schedulingControl = this.tournamentForm.get('schedulingMode');
+
+            // League Modes (1 & 2): Always Random Scheduling
+            if (mode === TournamentMode.LeagueSingle || mode === TournamentMode.LeagueHomeAway) {
+                schedulingControl?.setValue(SchedulingMode.Random);
+            }
 
             const needsGroups = (mode === TournamentMode.GroupsKnockoutSingle || mode === TournamentMode.GroupsKnockoutHomeAway);
 
             if (needsGroups) {
                 groupsControl?.setValidators([Validators.required, Validators.min(1)]);
-                qualifiedControl?.setValidators([Validators.required, Validators.min(1), Validators.max(3)]);
             } else {
                 groupsControl?.clearValidators();
-                qualifiedControl?.clearValidators();
             }
             groupsControl?.updateValueAndValidity();
-            qualifiedControl?.updateValueAndValidity();
         });
     }
 

@@ -123,13 +123,7 @@
                             </app-button>
                             }
 
-                            <!-- Reset Schedule Button -->
-                            @if (canResetSchedule()) {
-                            <app-button variant="outline" size="md" icon="restart_alt" class="text-danger"
-                                (click)="resetSchedule()">
-                                حذف الجدول وإعادة القرعة
-                            </app-button>
-                            }
+
 
                             <!-- Select Opening Match (Pre-Draw) -->
                             @if (canSelectOpeningMatch()) {

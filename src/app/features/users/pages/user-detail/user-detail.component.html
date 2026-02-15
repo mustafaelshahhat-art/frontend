@@ -144,7 +144,6 @@
                             </div>
                         </div>
 
-                        <!-- Identity Documents -->
                         <div class="glass-card animate-fade-in-up animate-delay-200">
                             <div class="card-header">
                                 <div class="card-icon">
@@ -158,10 +157,12 @@
                                         <app-icon name="credit_card" class=" icon-sm"></app-icon>
                                         <span>وجه البطاقة</span>
                                     </div>
-                                    <div class="doc-image">
+                                    <div class="doc-image cursor-pointer hover:opacity-90 transition-opacity"
+                                        (click)="openImage(user.idFrontUrl)">
                                         <app-smart-image [src]="user.idFrontUrl" type="id" size="custom" />
                                         <div class="doc-overlay">
-                                            <app-icon name="zoom_in" class=" icon-sm"></app-icon>
+                                            <app-icon name="zoom_in"
+                                                class=" icon-sm text-white drop-shadow-md"></app-icon>
                                         </div>
                                     </div>
                                 </div>
@@ -170,10 +171,12 @@
                                         <app-icon name="credit_card" class=" icon-sm"></app-icon>
                                         <span>ظهر البطاقة</span>
                                     </div>
-                                    <div class="doc-image">
+                                    <div class="doc-image cursor-pointer hover:opacity-90 transition-opacity"
+                                        (click)="openImage(user.idBackUrl)">
                                         <app-smart-image [src]="user.idBackUrl" type="id" size="custom" />
                                         <div class="doc-overlay">
-                                            <app-icon name="zoom_in" class=" icon-sm"></app-icon>
+                                            <app-icon name="zoom_in"
+                                                class=" icon-sm text-white drop-shadow-md"></app-icon>
                                         </div>
                                     </div>
                                 </div>
@@ -185,4 +188,18 @@
         </ng-container>
         }
     </div>
+
+    <!-- Image Viewer Modal -->
+    @if (selectedImage()) {
+    <div class="image-viewer-overlay" (click)="closeImage()">
+
+        <button class="viewer-close-btn" (click)="closeImage()">
+            <app-icon name="close" class="icon-md"></app-icon>
+        </button>
+
+        <div class="viewer-content" (click)="$event.stopPropagation()">
+            <app-smart-image [src]="selectedImage()" type="id" size="custom" />
+        </div>
+    </div>
+    }
 </div>

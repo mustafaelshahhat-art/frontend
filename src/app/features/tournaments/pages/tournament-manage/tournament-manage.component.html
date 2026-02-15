@@ -43,9 +43,11 @@
                             [required]="true" [control]="tournamentForm.get('mode')" />
 
 
+                        @if (tournamentForm.get('mode')?.value > 2) {
                         <app-select label="نظام توزيع الفرق والجدولة" icon="calendar_month" [options]="schedulingModes"
                             formControlName="schedulingMode" [required]="true"
                             [control]="tournamentForm.get('schedulingMode')" />
+                        }
 
 
                         @if (tournamentForm.get('mode')?.value === 3 ||
@@ -53,9 +55,6 @@
                         <app-form-control label="عدد المجموعات" iconLeft="grid_view" type="number"
                             formControlName="numberOfGroups" [control]="tournamentForm.get('numberOfGroups')" />
 
-                        <app-form-control label="المتأهلين من كل مجموعة" iconLeft="filter_1" type="number"
-                            formControlName="qualifiedTeamsPerGroup"
-                            [control]="tournamentForm.get('qualifiedTeamsPerGroup')" placeholder="1, 2, أو 3" />
                         }
                     </div>
                 </app-card>

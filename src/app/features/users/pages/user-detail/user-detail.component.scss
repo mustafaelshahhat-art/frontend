@@ -775,3 +775,67 @@
 .animate-delay-200 {
     animation-delay: 200ms;
 }
+
+// ==========================================================================
+// IMAGE VIEWER MODAL
+// ==========================================================================
+
+.image-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    padding: var(--space-xl);
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.viewer-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    app-smart-image {
+        /* Target the img element inside app-smart-image or the host itself if it has display block */
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%; 
+        max-height: 90vh;
+        
+        ::ng-deep img {
+             object-fit: contain !important;
+             max-height: 90vh !important;
+             width: auto !important;
+        }
+    }
+}
+
+.viewer-close-btn {
+    position: absolute;
+    top: var(--space-xl);
+    right: var(--space-xl);
+    z-index: 100;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-base);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+    }
+}

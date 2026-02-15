@@ -60,6 +60,18 @@ export class UserDetailComponent implements OnInit, OnDestroy {
         return activeAdmins.length === 1 && activeAdmins[0].id === u.id;
     });
 
+    selectedImage = signal<string | null>(null);
+
+    openImage(url: string | undefined | null): void {
+        if (url) {
+            this.selectedImage.set(url);
+        }
+    }
+
+    closeImage(): void {
+        this.selectedImage.set(null);
+    }
+
     isLoading = true;
 
     get user(): User | null {
