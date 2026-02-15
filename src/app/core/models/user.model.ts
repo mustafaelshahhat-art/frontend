@@ -37,6 +37,7 @@ export interface User {
     teamId?: string; // ID of the team the user belongs to
     teamName?: string;
     teamRole?: TeamRole;
+    joinedTeamIds?: string[]; // IDs of all teams the user belongs to
     isEmailVerified: boolean;
     createdAt: Date;
     activities?: Activity[];

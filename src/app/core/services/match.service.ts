@@ -22,10 +22,15 @@ export class MatchService {
         this.matchUpdatedSubject.next(match);
     }
 
-    getMatches(pageNumber = 1, pageSize = 20): Observable<PagedResult<Match>> {
-        const params = new HttpParams()
+    getMatches(pageNumber = 1, pageSize = 20, creatorId?: string): Observable<PagedResult<Match>> {
+        let params = new HttpParams()
             .set('pageNumber', pageNumber.toString())
             .set('pageSize', pageSize.toString());
+
+        if (creatorId) {
+            params = params.set('creatorId', creatorId);
+        }
+
         return this.http.get<PagedResult<Match>>(this.apiUrl, { params });
     }
 

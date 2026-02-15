@@ -40,12 +40,12 @@ import { TeamJoinRequest } from '../../../../core/models/team-request.model';
                 [canManageStatus]="canManageAdmin()"
                 [canManageInvitations]="isCaptain()"
                 [canDeleteTeam]="canManageAdmin() || isCaptain()"
-                [canSeeRequests]="isCaptain() || canManageAdmin()"
+                [isInviteLoading]="isInviteLoading()"
                 (playerAction)="handlePlayerAction($event)"
                 (editName)="handleEditName($event)"
                 (addPlayer)="handleAddPlayer($event)"
+                (addGuestPlayer)="handleAddGuestPlayer($event)"
                 (tabChanged)="handleTabChange($event)"
-                (respondRequest)="handleRespondRequest($event)"
                 (deleteTeam)="handleDeleteTeam()"
                 (disableTeam)="handleDisableTeam()"
                 (activateTeam)="handleActivateTeam()" />
@@ -90,6 +90,7 @@ export class TeamDetailPageComponent implements OnInit {
 
     teamId = signal<string | null>(null);
     isLoading = signal<boolean>(true);
+    isInviteLoading = signal<boolean>(false);
 
     // Permission Signals
     isCaptain = computed(() => {
@@ -293,12 +294,35 @@ export class TeamDetailPageComponent implements OnInit {
         const team = this.teamData();
         if (!team) return;
 
-        this.teamService.invitePlayerByDisplayId(team.id, displayId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.isInviteLoading.set(true);
+        this.teamService.invitePlayerByDisplayId(team.id, displayId).pipe(
+            takeUntilDestroyed(this.destroyRef),
+            finalize(() => this.isInviteLoading.set(false))
+        ).subscribe({
             next: (response: { playerName: string }) => {
                 this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
             },
             error: (err: { error?: { message?: string }, message?: string }) => {
                 this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
+            }
+        });
+    }
+
+    handleAddGuestPlayer(event: { name: string, number?: number, position?: string }): void {
+        const team = this.teamData();
+        if (!team) return;
+
+        this.isInviteLoading.set(true);
+        this.teamService.addGuestPlayer(team.id, event.name, event.number, event.position).pipe(
+            takeUntilDestroyed(this.destroyRef),
+            finalize(() => this.isInviteLoading.set(false))
+        ).subscribe({
+            next: () => {
+                this.uiFeedback.success('تمت الإضافة', `تم إضافة اللاعب "${event.name}" للفريق بنجاح.`);
+                this.loadInitialData(team.id);
+            },
+            error: (err: { error?: { message?: string }, message?: string }) => {
+                this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'فشل في إضافة اللاعب');
             }
         });
     }
@@ -326,9 +350,6 @@ export class TeamDetailPageComponent implements OnInit {
                         }
                     });
                 });
-                break;
-            case 'requests':
-                this.loadInvitations();
                 break;
         }
     }

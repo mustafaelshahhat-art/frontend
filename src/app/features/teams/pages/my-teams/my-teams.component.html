@@ -8,18 +8,19 @@
         @for (invite of teamsOverview()!.pendingInvitations; track invite.id) {
         <div class="team-card invite-card">
             <div class="team-header">
+                <div class="team-logo-container">
+                    <div class="icon-circle primary" style="width: 50px; height: 50px; margin: 0;">
+                        <app-icon name="mail" class="icon-sm"></app-icon>
+                    </div>
+                </div>
                 <div class="team-info">
                     <h3>{{ invite.teamName }}</h3>
-                    <p>دعوة للانضمام</p>
+                    <p class="team-role">دعوة انضمام مرسلة لك</p>
                 </div>
             </div>
             <div class="team-actions">
-                <app-button (click)="acceptInvite(invite.id)" (keydown.enter)="acceptInvite(invite.id)"
-                    (keydown.space)="acceptInvite(invite.id)" variant="primary" size="sm" icon="check"
-                    tabindex="0">قبول</app-button>
-                <app-button (click)="rejectInvite(invite.id)" (keydown.enter)="rejectInvite(invite.id)"
-                    (keydown.space)="rejectInvite(invite.id)" variant="outline" size="sm" icon="close"
-                    tabindex="0">رفض</app-button>
+                <app-button (click)="acceptInvite(invite.id)" variant="primary" size="sm" icon="check">قبول</app-button>
+                <app-button (click)="rejectInvite(invite.id)" variant="outline" size="sm" icon="close">رفض</app-button>
             </div>
         </div>
         }
@@ -33,26 +34,37 @@
     <h2 class="section-title">الفرق التي أملكها</h2>
     <div class="teams-grid">
         @for (team of teamsOverview()!.ownedTeams; track team.id) {
-        <div class="team-card owned-card" (click)="navigateToTeamDetail(team.id)"
-            (keydown.enter)="navigateToTeamDetail(team.id)" (keydown.space)="navigateToTeamDetail(team.id)" tabindex="0"
-            role="button">
+        <div class="team-card owned-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
             <div class="team-header">
-                <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                <div class="team-logo-container">
+                    <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                </div>
                 <div class="team-info">
                     <h3>{{ team.name }}</h3>
-                    <p>فريق مملوك</p>
-                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">{{ (team.playerCount || 0) >= 8 ?
-                        'فريق مكتمل' : 'فريق غير مكتمل' }}</span>
+                    <span class="team-role">فريق مملوك</span>
+                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">
+                        {{ (team.playerCount || 0) >= 8 ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
+                    </span>
                 </div>
             </div>
             <div class="team-stats">
                 <div class="stat">
-                    <span class="stat-value">{{ team.playerCount || 0 }}</span>
-                    <span class="stat-label">لاعب</span>
+                    <div class="stat-icon">
+                        <app-icon name="groups" class="icon-sm"></app-icon>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ team.playerCount || 0 }}</span>
+                        <span class="stat-label">لاعب</span>
+                    </div>
                 </div>
                 <div class="stat">
-                    <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
-                    <span class="stat-label">المدينة</span>
+                    <div class="stat-icon">
+                        <app-icon name="location_on" class="icon-sm"></app-icon>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
+                        <span class="stat-label">المدينة</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,26 +79,37 @@
     <h2 class="section-title">الفرق التي أنا منضم إليها</h2>
     <div class="teams-grid">
         @for (team of teamsOverview()!.memberTeams; track team.id) {
-        <div class="team-card member-card" (click)="navigateToTeamDetail(team.id)"
-            (keydown.enter)="navigateToTeamDetail(team.id)" (keydown.space)="navigateToTeamDetail(team.id)" tabindex="0"
-            role="button">
+        <div class="team-card member-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
             <div class="team-header">
-                <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                <div class="team-logo-container">
+                    <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
+                </div>
                 <div class="team-info">
                     <h3>{{ team.name }}</h3>
-                    <p>عضو في الفريق</p>
-                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">{{ (team.playerCount || 0) >= 8 ?
-                        'فريق مكتمل' : 'فريق غير مكتمل' }}</span>
+                    <span class="team-role">عضو في الفريق</span>
+                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">
+                        {{ (team.playerCount || 0) >= 8 ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
+                    </span>
                 </div>
             </div>
             <div class="team-stats">
                 <div class="stat">
-                    <span class="stat-value">{{ team.playerCount || 0 }}</span>
-                    <span class="stat-label">لاعب</span>
+                    <div class="stat-icon">
+                        <app-icon name="groups" class="icon-sm"></app-icon>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ team.playerCount || 0 }}</span>
+                        <span class="stat-label">لاعب</span>
+                    </div>
                 </div>
                 <div class="stat">
-                    <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
-                    <span class="stat-label">المدينة</span>
+                    <div class="stat-icon">
+                        <app-icon name="location_on" class="icon-sm"></app-icon>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
+                        <span class="stat-label">المدينة</span>
+                    </div>
                 </div>
             </div>
         </div>

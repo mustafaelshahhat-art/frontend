@@ -171,7 +171,10 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
         };
 
         if (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS)) {
-            this.matchService.getMatches().subscribe({ next: handleSuccess, error: handleError });
+            const user = this.currentUser();
+            // If user is a creator, filter by their ID
+            const creatorId = (this.userRole() === UserRole.TOURNAMENT_CREATOR && user) ? user.id : undefined;
+            this.matchService.getMatches(1, 100, creatorId).subscribe({ next: handleSuccess, error: handleError });
 
         } else {
             const teamId = this.currentUser()?.teamId;

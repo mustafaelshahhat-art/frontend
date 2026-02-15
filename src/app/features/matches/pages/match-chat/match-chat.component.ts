@@ -148,10 +148,12 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // Captain or Player of one of the teams, OR the Tournament Creator
-        if (this.currentUser.teamId === this.match.homeTeamId ||
-            this.currentUser.teamId === this.match.awayTeamId ||
-            this.currentUser.id === this.match.tournamentCreatorId) {
+        // Captain or Player of one of the teams participating in the match
+        const isHomePlayer = this.currentUser.teamId === this.match.homeTeamId || (this.currentUser.joinedTeamIds?.includes(this.match.homeTeamId));
+        const isAwayPlayer = this.currentUser.teamId === this.match.awayTeamId || (this.currentUser.joinedTeamIds?.includes(this.match.awayTeamId));
+        const isCreator = this.currentUser.id === this.match.tournamentCreatorId;
+
+        if (isHomePlayer || isAwayPlayer || isCreator) {
             this.isAuthorized = true;
             return;
         }
