@@ -36,7 +36,7 @@ export class SignalRService {
                 transport: signalR.HttpTransportType.WebSockets
             })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Information)
+            .configureLogging(environment.production ? signalR.LogLevel.Warning : signalR.LogLevel.Information)
             .build();
 
         this.hubs.set(hubPath, connection);

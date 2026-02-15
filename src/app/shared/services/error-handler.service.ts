@@ -18,9 +18,25 @@ export class ErrorHandlerService {
     /**
      * Handle HTTP errors and show appropriate toast messages
      */
+    /**
+     * Handle HTTP errors and show appropriate toast messages
+     */
     handleHttpError(error: HttpErrorResponse): AppError {
         const appError = this.parseHttpError(error);
-        this.showErrorToast(appError);
+
+        // DO NOT show toast for errors that don't "stop" or break the user flow, 
+        // or errors that are handled automatically (like redirects)
+        const shouldSuppressToast =
+            error.status === 401 || // Handled by redirect to login
+            error.status === 403 || // Handled by redirect to unauthorized
+            (error.status === 404 && appError.code === 'NOT_FOUND'); // Often non-fatal data misses
+
+        if (!shouldSuppressToast) {
+            this.showErrorToast(appError);
+        } else {
+            console.warn(`[Suppressed Toast for Status ${error.status}] ${appError.message}`);
+        }
+
         this.logError(appError);
         return appError;
     }
