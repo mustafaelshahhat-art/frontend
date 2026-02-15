@@ -1,0 +1,230 @@
+<div class="landing-page rtl">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-content">
+      <div class="logo-container">
+        <!-- Using a placeholder for now, user to replace or I will generate -->
+        <img src="assets/images/logo-kz.png" alt="Kora Zone 365" class="logo-img">
+        <span class="logo-text">Kora Zone <span class="highlight">365</span></span>
+      </div>
+
+      <nav class="nav-menu">
+        <a (click)="scrollTo('hero')" class="nav-link active">الرئيسية</a>
+        <a (click)="scrollTo('tournaments')" class="nav-link">البطولات</a>
+        <a (click)="scrollTo('about')" class="nav-link">من نحن</a>
+        <a (click)="scrollTo('contact')" class="nav-link">تواصل معنا</a>
+      </nav>
+
+      <div class="auth-buttons">
+        <a routerLink="/auth/login" class="btn btn-login-nav">تسجيل الدخول</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="hero" class="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="container hero-content">
+      <div class="hero-text">
+        <img src="assets/images/logo-kz.png" alt="Kora Zone 365 Logo" class="hero-logo-large">
+        <h2 class="hero-slogan">حلم البطولة يبدأ من هنا</h2>
+        <div class="hero-actions mt-4">
+          <a routerLink="/auth/login" class="btn btn-hero-login">
+            <span class="btn-icon">🚀</span> ابدأ رحلتك الآن
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative Ramadan Elements -->
+    <div class="decor-moon"></div>
+    <div class="decor-lanterns"></div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <h2 class="section-title">لماذا Kora Zone 365؟</h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="features-grid">
+        <!-- Card 1 -->
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-trophy feature-icon"></i>
+          </div>
+          <h3 class="feature-title">إدارة بطولات ذكية</h3>
+          <p class="feature-desc">أدوات متكاملة لإنشاء الجداول، إدارة المباريات، وتحديث النتائج تلقائيًا.</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-stopwatch feature-icon"></i>
+          </div>
+          <h3 class="feature-title">متابعة لحظة بلحظة</h3>
+          <p class="feature-desc">تحديثات مباشرة للنتائج والأحداث أثناء المباريات ليعيش الجميع أجواء المنافسة.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-users feature-icon"></i>
+          </div>
+          <h3 class="feature-title">تسجيل فرق متكامل</h3>
+          <p class="feature-desc">نظام سهل لتسجيل الفرق واللاعبين مع ملفات تعريف احترافية لكل لاعب.</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-chart-bar feature-icon"></i>
+          </div>
+          <h3 class="feature-title">ترتيب وإحصائيات</h3>
+          <p class="feature-desc">جداول ترتيب آلية وإحصائيات مفصلة للهدافين وأفضل اللاعبين.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about-section">
+    <div class="container about-grid">
+      <div class="about-content">
+        <h2 class="section-title text-start">من نحن</h2>
+        <div class="section-divider align-left"></div>
+        <p class="about-text">
+          نحن في <span class="highlight">Kora Zone 365</span> نؤمن بأن كرة القدم أكثر من مجرد لعبة؛ إنها شغف يجمعنا.
+          رؤيتنا هي تمكين منظمي البطولات من تقديم تجربة احترافية تليق باللاعبين والجماهير.
+        </p>
+        <p class="about-text">
+          من خلال منصتنا، نسعى لرفع مستوى تنظيم البطولات المحلية والهواة إلى مستوى الاحتراف العالمي،
+          مع ضمان العدالة والدقة في كل تفصيل، من صافرة البداية وحتى التتويج.
+        </p>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-number">+500</span>
+            <span class="stat-label">بطولة منظمة</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">+10k</span>
+            <span class="stat-label">لاعب مسجل</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-image">
+        <!-- Placeholder for about image or graphic -->
+        <div class="stadium-graphic">
+          <img src="assets/images/logo-kz.png" alt="Kora Zone Logo" class="stadium-logo">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="steps-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <h2 class="section-title">كيف تعمل المنصة</h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <h3 class="step-title">أنشئ حسابك</h3>
+          <p class="step-desc">سجل دخولك بسهولة كمنظم أو لاعب للبدء في رحلتك الكروية.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <h3 class="step-title">اختر دورك</h3>
+          <p class="step-desc">قم بإنشاء بطولتك الخاصة ودعوة الفرق، أو ابحث عن بطولة للانضمام إليها.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <h3 class="step-title">نافس وتألق</h3>
+          <p class="step-desc">العب مبارياتك وتابع النتائج والإحصائيات وتصدر قائمة الهدافين.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact-section">
+    <div class="container">
+      <div class="contact-card">
+        <div class="contact-info">
+          <h3 class="contact-title">تواصل معنا</h3>
+          <p>لدينا فريق دعم جاهز للإجابة على استفساراتكم ومساعدتكم في تنظيم بطولاتكم.</p>
+
+          <div class="info-list">
+            <div class="info-item">
+              <i class="contact-icon fas fa-envelope"></i>
+              <span>korazone365@gmail.com</span>
+            </div>
+            <div class="info-item">
+              <i class="contact-icon fas fa-phone"></i>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <span dir="ltr">01097673063</span>
+                <span dir="ltr">01015029792</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+          </div>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-group">
+            <label>الاسم</label>
+            <input type="text" class="form-control" placeholder="أدخل اسمك الكريم">
+          </div>
+          <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" class="form-control" placeholder="example@email.com">
+          </div>
+          <div class="form-group">
+            <label>الرسالة</label>
+            <textarea class="form-control" rows="4" placeholder="كيف يمكننا مساعدتك؟"></textarea>
+          </div>
+          <button type="submit" class="btn btn-submit">إرسال الرسالة</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">KZ 365</div>
+        <p class="footer-desc">المنصة الأولى لعشاق كرة القدم وتنظيم البطولات الاحترافية.</p>
+      </div>
+      <div class="footer-links">
+        <h4>روابط سريعة</h4>
+        <ul>
+          <li><a (click)="scrollTo('hero')">الرئيسية</a></li>
+          <li><a (click)="scrollTo('tournaments')">البطولات</a></li>
+          <li><a (click)="scrollTo('about')">من نحن</a></li>
+          <li><a routerLink="/auth/register">إنشاء حساب</a></li>
+        </ul>
+      </div>
+      <div class="footer-contact">
+        <h4>معلومات التواصل</h4>
+        <p>الرياض، المملكة العربية السعودية</p>
+        <p>korazone365@gmail.com</p>
+      </div>
+    </div>
+    <div class="footer-bottom text-center">
+      <p>&copy; {{ currentYear }} Kora Zone 365 - All Rights Reserved</p>
+    </div>
+  </footer>
+</div>
