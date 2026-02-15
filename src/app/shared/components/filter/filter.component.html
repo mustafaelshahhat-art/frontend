@@ -4,7 +4,7 @@
         @if (item.icon) {
         <app-icon [name]=" item.icon " class=" icon-sm"></app-icon>
         }
-        {{ getLabel(item) }}
+        <span class="filter-label">{{ getLabel(item) }}</span>
         <span class="tab-indicator"></span>
     </button>
     }

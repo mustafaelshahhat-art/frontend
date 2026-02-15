@@ -41,12 +41,7 @@ export class MatchService {
     }
 
     getMatchesByTournament(tournamentId: string): Observable<Match[]> {
-        // Updated to use the base paged method but we'll take a large page for filtering if needed, 
-        // or rely on component to call correct endpoint if backend supports one.
-        // For Scale Protection, we unwrap items since the signature expects Match[]
-        return this.getMatches(1, 100).pipe(
-            map(paged => paged.items.filter(m => m.tournamentId === tournamentId))
-        );
+        return this.http.get<Match[]>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`);
     }
 
     getMatchesByTeam(teamId: string): Observable<Match[]> {

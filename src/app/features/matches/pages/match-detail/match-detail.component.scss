@@ -7,51 +7,7 @@
         padding: var(--space-lg);
     }
 
-    app-page-header {
-        ::ng-deep .header-actions {
-            align-self: center !important;
-            margin-inline-start: auto;
-            /* Push to the far left (in RTL) */
-            display: flex;
-            align-items: center;
-        }
-
-        @media (width <=640px) {
-            ::ng-deep .header-actions {
-                width: 100% !important;
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: flex-end !important;
-                /* Move content to Left side in RTL */
-                align-items: center !important;
-                gap: 1rem !important;
-                margin-top: 0 !important;
-
-                /* Reset the shared component's aggressive full-width stack */
-                ::ng-deep app-button,
-                ::ng-deep button {
-                    width: auto !important;
-                    flex: none !important;
-                    display: inline-flex !important;
-
-                    /* Ensure Chat button is the Leftmost item (Last in visual order of RTL-End alignment) */
-                    &[icon="chat"] {
-                        order: 2;
-                    }
-                }
-
-                ::ng-deep app-badge {
-                    order: 1;
-                }
-
-                ::ng-deep .actions {
-                    width: auto !important;
-                    display: contents !important;
-                    /* Flatten structure for the grid/flex above */
-                }
-            }
-        }
-    }
+    // Layout moved to title-addon slot, no CSS overrides needed.
 }
 
 .score-card-hero {

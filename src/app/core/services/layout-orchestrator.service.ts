@@ -57,6 +57,13 @@ export class LayoutOrchestratorService {
         this.actionIcon.set(icon);
     }
 
+    // Custom template to be rendered next to the title (e.g. badges, status indicators)
+    readonly titleAddonTemplate = signal<TemplateRef<unknown> | null>(null);
+
+    setTitleAddon(template: TemplateRef<unknown> | null): void {
+        this.titleAddonTemplate.set(template);
+    }
+
     reset(): void {
         this.title.set('');
         this.subtitle.set('');
@@ -67,5 +74,6 @@ export class LayoutOrchestratorService {
         this.actionHandler.set(null);
         this.actionLabel.set('');
         this.actionIcon.set('add');
+        this.titleAddonTemplate.set(null);
     }
 }

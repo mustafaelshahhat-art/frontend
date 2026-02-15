@@ -18,33 +18,30 @@
     /* No scrolling */
 
     @media (width <=640px) {
-        flex-direction: row; // Keep horizontal
-        overflow-x: auto; // Allow scrolling
+        flex-direction: row;
+        overflow-x: hidden;
+        /* Disable scrolling */
+        flex-wrap: nowrap;
+        /* Force single line */
         padding: var(--space-1);
         gap: var(--space-1);
-
-        // Hide scrollbar
-        -webkit-overflow-scrolling: touch;
-
-        &::-webkit-scrollbar {
-            display: none;
-        }
+        justify-content: space-between;
+        /* Distribute items */
     }
 }
 
 .filter-tab {
-    flex: 1 1 auto;
-
-    /* Grow, Shrink, and basis 0 to distribute equally */
-    min-width: auto;
-
+    flex: 1 1 0px;
+    /* Distribute space equally */
+    min-width: 0;
     /* Allow shrinking below content size */
+
     padding: var(--space-3) var(--space-4);
     background: transparent;
     border: none;
     border-radius: var(--radius-xl);
 
-    /* Fluid font size: scales between 14px and 16px usually, but we'll override on mobile */
+    /* Fluid font size */
     font-size: var(--text-sm);
     font-weight: var(--font-black);
     color: var(--text-muted);
@@ -52,52 +49,88 @@
     transition: var(--transition-premium);
     position: relative;
     white-space: nowrap;
+    /* Reverted to nowrap to keep clean look, will rely on font shrinking */
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    /* Ensure text centering */
     gap: var(--space-2);
     letter-spacing: var(--tracking-wide);
 
     .app-icon {
         @media (width <=500px) {
             display: none;
-            /* Hide icons earlier to give text more room */
         }
     }
 
-    span:not(.app-icon) {
+    .filter-label {
         overflow: hidden;
         text-overflow: ellipsis;
         display: block;
+        text-align: center;
+        width: 100%;
+        line-height: inherit;
+    }
+
+    .tab-indicator {
+        display: none;
+    }
+
+    /* Override any generic span rules if necessary */
+    span:not(.app-icon):not(.filter-label):not(.tab-indicator) {
+        max-width: 0;
+        overflow: hidden;
+        display: none;
     }
 
     &:hover {
         color: var(--text-primary);
         background: var(--bg-surface-light);
-
-
     }
 
     &.active {
         background: var(--gradient-primary);
         color: var(--bg-dark);
         box-shadow: var(--shadow-glow-sm);
-
-
     }
 
     @media (width <=640px) {
-        padding: var(--space-2-5) var(--space-1-5);
-        font-size: clamp(var(--text-3xs), 2.5vw, var(--text-2xs));
+        /* Force single line on mobile */
+        white-space: nowrap;
+
+        /* Reduce padding drastically to fit text */
+        padding: 4px 1px;
+        /* Minimal padding */
+
+        /* Font size scaling - go smaller if needed */
+        font-size: clamp(8px, 2.5vw, 11px);
+
         border-radius: var(--radius-lg);
-        letter-spacing: normal;
-        gap: var(--space-1);
+        letter-spacing: -0.2px;
+        gap: 2px;
+
+        /* Ensure Flex centering works perfect */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        /* Ensure row */
+
+        .filter-label {
+            display: inline-block;
+            width: auto;
+            text-overflow: clip;
+            /* Prefer clipping over hiding with ellipsis */
+            text-align: center;
+            line-height: 1;
+            /* Match line height to avoid offsets */
+        }
     }
 
     @media (width <=400px) {
-        /* Extra small screens: highly aggressive scaling */
-        font-size: clamp(0.5rem, 3vw, var(--text-3xs));
-        padding: var(--space-2) var(--space-0-5);
+        /* Extra small - allow tiny font if really needed */
+        font-size: clamp(7px, 2.2vw, 10px);
     }
 }
 

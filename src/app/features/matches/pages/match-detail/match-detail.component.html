@@ -1,6 +1,6 @@
 ﻿<ng-template #headerActions>
     @if (match() ; as matchData) {
-    <div class="actions flex-center-gap">
+    <div class="actions flex items-center gap-2">
         <app-button
             *appHasPermission="[AppPermission.MANAGE_MATCHES, AppPermission.START_MATCH, AppPermission.MANAGE_MY_TEAM]"
             [routerLink]="getChatRoute()" variant="ghost" icon="chat" title="فتح المحادثة">
@@ -136,7 +136,7 @@
                         }
 
                         @if (matchData.status === MatchStatus.LIVE) {
-                        <app-button variant="danger" icon="stop" (click)="onEndMatchClick()">
+                        <app-button variant="danger" icon="stop_circle" (click)="onEndMatchClick()">
                             إنهاء المباراة
                         </app-button>
                         }

@@ -35,6 +35,7 @@
           (back)="layout.onBack()">
           <!-- Actions Slot -->
           <ng-container *ngTemplateOutlet="layout.actionsTemplate() || null" />
+          <ng-container *ngTemplateOutlet="layout.titleAddonTemplate() || null" title-addon />
         </app-page-header>
         }
 

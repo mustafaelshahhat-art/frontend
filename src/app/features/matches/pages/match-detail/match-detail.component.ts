@@ -166,7 +166,9 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
         this.layoutOrchestrator.setTitle(m.tournamentName || 'تفاصيل المباراة');
         this.layoutOrchestrator.setSubtitle(`${m.homeTeamName} vs ${m.awayTeamName}`);
         this.layoutOrchestrator.setBackAction(() => this.navigateBack());
-        this.layoutOrchestrator.setActions(this.headerActions);
+        // Use setTitleAddon to place actions next to the title (Left side in RTL)
+        this.layoutOrchestrator.setTitleAddon(this.headerActions);
+        this.layoutOrchestrator.setActions(null);
         this.layoutOrchestrator.setFilters(null);
     }
 
