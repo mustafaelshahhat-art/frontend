@@ -21,6 +21,7 @@ export class HeaderComponent {
     @Input() title = '';
     @Input() unreadCount = 0;
     @Input() notifications: Notification[] = [];
+    @Input() showSidebarToggle = true;
 
     @Output() toggleSidebar = new EventEmitter<void>();
     @Output() viewNotification = new EventEmitter<Notification>();

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterRequest } from '../models/user.model';
+import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterRequest, UserRole } from '../models/user.model';
 import { Team } from '../models/team.model';
 import { environment } from '../../../environments/environment';
 import { AuthStore } from '../stores/auth.store';
@@ -71,6 +71,28 @@ export class AuthService {
             headers: { 'X-Skip-Error-Handler': 'true' }
         }).pipe(
             tap(response => this.handleAuthResponse(response))
+        );
+    }
+
+    loginAsGuest(): Observable<any> {
+        return this.http.post(`${this.apiUrl}/login-guest`, {}, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        }).pipe(
+            tap(() => {
+                const guestUser: User = {
+                    id: 'guest',
+                    displayId: 'GUEST',
+                    name: 'زائر',
+                    email: 'guest@korazone365.com',
+                    role: UserRole.GUEST,
+                    status: UserStatus.ACTIVE,
+                    isEmailVerified: true,
+                    createdAt: new Date()
+                };
+                localStorage.setItem(this.USER_KEY, JSON.stringify(guestUser));
+                this.userSubject.next(guestUser);
+                this.authStore.setCurrentUser(guestUser);
+            })
         );
     }
 

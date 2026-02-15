@@ -2,7 +2,7 @@
 
   <div class="header-main-group">
     <!-- Menu Button (Mobile) -->
-    @if (isMobile) {
+    @if (isMobile && showSidebarToggle) {
     <button (click)="handleToggleSidebar()" class="header-menu-btn">
       <app-icon name="menu_open" class=" icon-sm"></app-icon>
     </button>

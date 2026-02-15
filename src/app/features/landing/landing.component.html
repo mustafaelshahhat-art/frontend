@@ -1,24 +1,48 @@
 <div class="landing-page rtl">
 
   <!-- Header -->
-  <header class="header">
+  <header class="header" [class.menu-open]="isMenuOpen">
     <div class="container header-content">
       <div class="logo-container">
-        <!-- Using a placeholder for now, user to replace or I will generate -->
         <img src="assets/images/logo-kz.png" alt="Kora Zone 365" class="logo-img">
         <span class="logo-text">Kora Zone <span class="highlight">365</span></span>
       </div>
 
-      <nav class="nav-menu">
-        <a (click)="scrollTo('hero')" class="nav-link active">الرئيسية</a>
-        <a (click)="scrollTo('tournaments')" class="nav-link">البطولات</a>
+      <!-- Desktop Navigation -->
+      <nav class="nav-menu desktop-only">
+        <a routerLink="/" class="nav-link active">الرئيسية</a>
+        <a (click)="continueAsGuest()" class="nav-link">البطولات</a>
         <a (click)="scrollTo('about')" class="nav-link">من نحن</a>
+        <a (click)="scrollTo('faq')" class="nav-link">الأسئلة الشائعة</a>
         <a (click)="scrollTo('contact')" class="nav-link">تواصل معنا</a>
       </nav>
 
-      <div class="auth-buttons">
-        <a routerLink="/auth/login" class="btn btn-login-nav">تسجيل الدخول</a>
+      <div class="header-actions-wrapper">
+        <div class="auth-buttons desktop-only">
+          <a routerLink="/auth/login" class="btn btn-login-nav">تسجيل الدخول</a>
+        </div>
+
+        <!-- Hamburger Button -->
+        <button class="hamburger" (click)="toggleMenu()" [class.active]="isMenuOpen" aria-label="القائمة">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
       </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" [class.active]="isMenuOpen">
+      <nav class="mobile-nav">
+        <a routerLink="/" (click)="closeMenu()" class="mobile-link">الرئيسية</a>
+        <a (click)="continueAsGuest(); closeMenu()" class="mobile-link">البطولات</a>
+        <a (click)="scrollTo('about'); closeMenu()" class="mobile-link">من نحن</a>
+        <a (click)="scrollTo('faq'); closeMenu()" class="mobile-link">الأسئلة الشائعة</a>
+        <a (click)="scrollTo('contact'); closeMenu()" class="mobile-link">تواصل معنا</a>
+        <div class="mobile-auth">
+          <a routerLink="/auth/login" (click)="closeMenu()" class="btn btn-login-nav w-full">تسجيل الدخول</a>
+        </div>
+      </nav>
     </div>
   </header>
 
@@ -33,6 +57,9 @@
           <a routerLink="/auth/login" class="btn btn-hero-login">
             <span class="btn-icon">🚀</span> ابدأ رحلتك الآن
           </a>
+          <button (click)="continueAsGuest()" class="btn btn-hero-guest">
+            <span class="btn-icon">👁️</span> دخول كزائر
+          </button>
         </div>
       </div>
     </div>
@@ -85,6 +112,30 @@
           </div>
           <h3 class="feature-title">ترتيب وإحصائيات</h3>
           <p class="feature-desc">جداول ترتيب آلية وإحصائيات مفصلة للهدافين وأفضل اللاعبين.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Counter Section -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">+{{ playersCount }}</div>
+          <div class="stat-label">لاعب كروي</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">+{{ teamsCount }}</div>
+          <div class="stat-label">فريق مسجل</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">+{{ tournamentsCount }}</div>
+          <div class="stat-label">بطولة ناجحة</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">+{{ matchesCount }}</div>
+          <div class="stat-label">مباراة ملعوبة</div>
         </div>
       </div>
     </div>
@@ -201,18 +252,63 @@
     </div>
   </section>
 
+  <!-- FAQ Section -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <h2 class="section-title">الأجابة على استفساراتكم</h2>
+        <div class="section-divider"></div>
+      </div>
+
+      <div class="faq-container">
+        <ng-container *ngFor="let faq of faqs; let i = index">
+          <div class="faq-item" *ngIf="i < 5 || showAllFaqs" [class.active]="activeFaq === i" (click)="toggleFaq(i)">
+            <div class="faq-question">
+              <span>{{ i + 1 }}. {{ faq.question }}</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>{{ faq.answer }}</p>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="text-center" style="margin-top: 40px;" *ngIf="faqs.length > 5">
+        <button class="btn-show-more" (click)="toggleShowAllFaqs(); $event.stopPropagation()">
+          {{ showAllFaqs ? 'عرض أقل' : 'عرض المزيد من الأسئلة' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Section -->
+  <section class="final-cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-content">
+          <h2 class="cta-title">هل أنت مستعد لبدء قصتك الخاصة؟</h2>
+          <p class="cta-subtitle">انضم إلينا الآن وكن جزءاً من منصة الأبطال في Kora Zone 365</p>
+          <a routerLink="/auth/register" class="btn-cta">
+            ابدأ الآن مجاناً <span class="btn-icon">✨</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-content">
       <div class="footer-brand">
-        <div class="footer-logo">KZ 365</div>
+        <div class="footer-logo">KoraZone365</div>
         <p class="footer-desc">المنصة الأولى لعشاق كرة القدم وتنظيم البطولات الاحترافية.</p>
       </div>
       <div class="footer-links">
         <h4>روابط سريعة</h4>
         <ul>
           <li><a (click)="scrollTo('hero')">الرئيسية</a></li>
-          <li><a (click)="scrollTo('tournaments')">البطولات</a></li>
+          <li><a (click)="continueAsGuest()">البطولات</a></li>
           <li><a (click)="scrollTo('about')">من نحن</a></li>
           <li><a routerLink="/auth/register">إنشاء حساب</a></li>
         </ul>
@@ -224,7 +320,7 @@
       </div>
     </div>
     <div class="footer-bottom text-center">
-      <p>&copy; {{ currentYear }} Kora Zone 365 - All Rights Reserved</p>
+      <p>&copy; {{ currentYear }} KoraZone365 - All Rights Reserved</p>
     </div>
   </footer>
 </div>

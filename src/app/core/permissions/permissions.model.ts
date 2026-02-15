@@ -58,5 +58,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         Permission.VIEW_TEAMS,
         Permission.VIEW_PAYMENTS, Permission.MANAGE_PAYMENTS,
         Permission.VIEW_NOTIFICATIONS
+    ],
+    [UserRole.GUEST]: [
+        Permission.VIEW_TOURNAMENTS,
+        Permission.VIEW_MATCHES,
+        Permission.VIEW_TEAMS,
     ]
 };

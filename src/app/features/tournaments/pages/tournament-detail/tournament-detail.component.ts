@@ -295,8 +295,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             base.push({ value: 'bracket', label: 'الأدوار الإقصائية' });
         }
 
-        base.push({ value: 'matches', label: 'المباريات' });
-        base.push({ value: 'teams', label: 'الفرق المشاركة' });
+        const user = this.authService.getCurrentUser();
+        if (user?.role !== UserRole.GUEST) {
+            base.push({ value: 'matches', label: 'المباريات' });
+            base.push({ value: 'teams', label: 'الفرق المشاركة' });
+        }
 
         return base;
     });
@@ -761,7 +764,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.tournamentService.setOpeningMatch(t.id, event.homeTeamId, event.awayTeamId).subscribe({
             next: (matches) => {
                 this.isOpeningMatchModalVisible = false;
-                
+
                 // Add generated matches to the store if any were returned (Random mode)
                 if (matches && matches.length > 0) {
                     matches.forEach((match: Match) => {
@@ -771,13 +774,13 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                             this.matchStore.updateMatch(match);
                         }
                     });
-                    
+
                     // Show success message with match count
                     this.uiFeedback.success('تم بنجاح', `تم تحديد مباراة الافتتاح وتوليد ${matches.length} مباراة بنجاح.`);
                 } else {
                     this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح بنجاح.');
                 }
-                
+
                 // Wait a moment before reloading to ensure backend has processed everything
                 setTimeout(() => {
                     this.loadInitialData(t.id);

@@ -27,6 +27,11 @@ export const routes: Routes = [
         loadChildren: () => import('./features/player/player.routes').then(m => m.playerRoutes),
         canActivate: [playerGuard]
     },
+    {
+        path: 'guest',
+        loadComponent: () => import('./layouts/guest-layout.component').then(m => m.GuestLayoutComponent),
+        loadChildren: () => import('./features/guest-feature.routes').then(m => m.guestRoutes)
+    },
 
 
     // ─── Shared utility routes ───────────────────────

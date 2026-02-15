@@ -1,7 +1,8 @@
 export enum UserRole {
     ADMIN = 'Admin',
     PLAYER = 'Player',
-    TOURNAMENT_CREATOR = 'TournamentCreator'
+    TOURNAMENT_CREATOR = 'TournamentCreator',
+    GUEST = 'Guest'
 }
 
 export enum TeamRole {
