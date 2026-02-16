@@ -48,11 +48,12 @@
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 400;
-    padding: 1rem 0;
-    background: rgba(10, 10, 10, 0.9);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--glass-border);
+    z-index: 1000;
+    padding: 15px 0;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
 }
 
 .nav-container {
@@ -69,7 +70,7 @@
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    z-index: 102;
+    z-index: 1001;
 }
 
 .nav-logo { height: 40px; width: auto; }
@@ -99,6 +100,12 @@
     &:hover, &.active {
         color: var(--primary-light);
     }
+}
+
+.header-actions-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .nav-actions {
@@ -132,74 +139,95 @@
     }
 }
 
-/* Hamburger Button */
-.hamburger-btn {
+/* Hamburger Button — matches landing page style */
+.hamburger {
     display: none;
     flex-direction: column;
     justify-content: space-between;
     width: 30px;
-    height: 20px;
+    height: 21px;
     background: transparent;
     border: none;
     cursor: pointer;
-    z-index: 102;
     padding: 0;
+    z-index: 1002;
 
     @media (max-width: 992px) {
         display: flex;
     }
 
-    span {
+    .bar {
         width: 100%;
-        height: 2px;
-        background: white;
-        transition: all 0.3s ease;
-        border-radius: 2px;
+        height: 3px;
+        background-color: white;
+        border-radius: 10px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: left;
     }
 
     &.active {
-        span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-        span:nth-child(2) { opacity: 0; }
-        span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+        .bar:nth-child(1) { transform: rotate(45deg); }
+        .bar:nth-child(2) { opacity: 0; transform: translateX(20px); }
+        .bar:nth-child(3) { transform: rotate(-45deg); }
     }
 }
 
-/* Mobile Menu */
-.mobile-menu-overlay {
+/* Mobile Menu — matches landing page style */
+.mobile-menu {
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 101;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    animation: fadeIn 0.3s ease-out;
-}
-
-.mobile-menu-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 2rem;
-}
+    height: 100vh;
+    background: rgba(5, 5, 5, 0.98);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    transform: translateY(-100%);
 
-.mobile-link {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
-    text-decoration: none;
-    transition: color 0.3s ease;
+    &.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
 
-    &:hover, &.active {
-        color: var(--primary-light);
+    .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        padding: 40px;
+        width: 100%;
+
+        .mobile-link {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+
+            &:hover {
+                color: var(--primary-light);
+            }
+        }
+
+        .mobile-auth {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            justify-content: center;
+        }
     }
 }
 
 .btn-logout-mobile {
-    margin-top: 2rem;
     background: rgba(255, 59, 59, 0.1);
     color: #ff6b6b;
     border: 1px solid rgba(255, 59, 59, 0.2);
@@ -208,6 +236,8 @@
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
 
     &:hover {
         background: rgba(255, 59, 59, 0.2);

@@ -17,37 +17,38 @@
                 <a routerLink="/" fragment="contact" class="nav-link">تواصل معنا</a>
             </div>
             
-            <div class="nav-actions">
-                <button class="btn-logout-minimal" (click)="handleLogout()">
-                    <span>تسجيل الخروج</span>
-                    <app-icon name="logout"></app-icon>
+            <div class="header-actions-wrapper">
+                <div class="nav-actions">
+                    <button class="btn-logout-minimal" (click)="handleLogout()">
+                        <span>تسجيل الخروج</span>
+                        <app-icon name="logout"></app-icon>
+                    </button>
+                </div>
+
+                <!-- Hamburger Button -->
+                <button class="hamburger" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen" aria-label="القائمة">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
                 </button>
             </div>
-
-             <!-- Mobile Menu Button -->
-             <button class="hamburger-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
 
-        <!-- Mobile Menu Overlay -->
-         @if (isMobileMenuOpen) {
-            <div class="mobile-menu-overlay" (click)="toggleMobileMenu()">
-                <div class="mobile-menu-content" (click)="$event.stopPropagation()">
-                     <a routerLink="/" class="mobile-link" (click)="toggleMobileMenu()">الرئيسية</a>
-                    <a routerLink="/guest/tournaments" class="mobile-link active" (click)="toggleMobileMenu()">البطولات</a>
-                    <a routerLink="/" fragment="about" class="mobile-link" (click)="toggleMobileMenu()">من نحن</a>
-                    <a routerLink="/" fragment="faq" class="mobile-link" (click)="toggleMobileMenu()">الأسئلة الشائعة</a>
-                    <a routerLink="/" fragment="contact" class="mobile-link" (click)="toggleMobileMenu()">تواصل معنا</a>
-                    
-                    <button class="btn-logout-mobile" (click)="handleLogout()">
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" [class.active]="isMobileMenuOpen">
+            <nav class="mobile-nav">
+                <a routerLink="/" (click)="toggleMobileMenu()" class="mobile-link">الرئيسية</a>
+                <a routerLink="/guest/tournaments" (click)="toggleMobileMenu()" class="mobile-link">البطولات</a>
+                <a routerLink="/" fragment="about" (click)="toggleMobileMenu()" class="mobile-link">من نحن</a>
+                <a routerLink="/" fragment="faq" (click)="toggleMobileMenu()" class="mobile-link">الأسئلة الشائعة</a>
+                <a routerLink="/" fragment="contact" (click)="toggleMobileMenu()" class="mobile-link">تواصل معنا</a>
+                <div class="mobile-auth">
+                    <button class="btn-logout-mobile" (click)="handleLogout(); toggleMobileMenu()">
                         تسجيل الخروج
                     </button>
                 </div>
-            </div>
-         }
+            </nav>
+        </div>
     </nav>
 
     <main class="guest-main-content">
