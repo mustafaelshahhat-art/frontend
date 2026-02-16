@@ -1,140 +1,155 @@
+// ==========================================================================
+// FILTER COMPONENT — Segmented-control / Grid
+// ==========================================================================
+// Desktop  (>=992px) : horizontal segmented control, equal-width pills
+// Tablet   (768–991) : wrapping horizontal pills
+// Mobile   (<768px)  : 2-column grid, icon above label, 44px min touch
+// ==========================================================================
+
 :host {
     display: block;
     width: 100%;
 }
 
-.filter-tabs {
+// ─── Bar (container) ─────────────────────────────────────────────────────
+.filter-bar {
     display: flex;
-    background: var(--bg-surface-glass);
-    backdrop-filter: var(--blur-lg);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-2xl);
-    padding: var(--space-1-5);
+    flex-wrap: nowrap;
+    align-items: stretch;
     gap: var(--space-1-5);
+    padding: var(--space-1-5);
     width: 100%;
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
 
-    /* No scrolling */
+    // Surface
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-sm);
 
-    @media (width <=640px) {
-        flex-direction: row;
-        overflow-x: hidden;
-        /* Disable scrolling */
-        flex-wrap: nowrap;
-        /* Force single line */
-        padding: var(--space-1);
-        gap: var(--space-1);
-        justify-content: space-between;
-        /* Distribute items */
+    // ── Tablet: allow wrapping ──
+    @media (max-width: 991px) {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-1-5);
+    }
+
+    // ── Mobile: 2-column grid ──
+    @media (max-width: 767px) {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-2);
+        padding: var(--space-2);
+        border-radius: var(--radius-xl);
     }
 }
 
-.filter-tab {
-    flex: 1 1 0px;
-    /* Distribute space equally */
-    min-width: 0;
-    /* Allow shrinking below content size */
-
-    padding: var(--space-3) var(--space-4);
-    background: transparent;
+// ─── Individual button ───────────────────────────────────────────────────
+.filter-btn {
+    // Reset
+    appearance: none;
     border: none;
-    border-radius: var(--radius-xl);
-
-    /* Fluid font size */
-    font-size: var(--text-sm);
-    font-weight: var(--font-black);
-    color: var(--text-muted);
+    outline: none;
     cursor: pointer;
-    transition: var(--transition-premium);
-    position: relative;
-    white-space: nowrap;
-    /* Reverted to nowrap to keep clean look, will rely on font shrinking */
-    display: flex;
+    font-family: inherit;
+
+    // Layout — desktop: equal-width; tablet/mobile: auto
+    flex: 1 1 0%;
+    min-width: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    /* Ensure text centering */
     gap: var(--space-2);
+
+    // Sizing
+    padding: var(--space-2-5) var(--space-4);
+    border-radius: var(--radius-xl);
+
+    // Typography
+    font-size: var(--text-sm);
+    font-weight: var(--font-bold);
+    color: var(--text-muted);
+    white-space: nowrap;
     letter-spacing: var(--tracking-wide);
+    line-height: var(--leading-snug);
 
-    .app-icon {
-        @media (width <=500px) {
-            display: none;
+    // Transition — 140ms for snappy feel
+    transition:
+        background 140ms cubic-bezier(0.4, 0, 0.2, 1),
+        color 140ms cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 140ms cubic-bezier(0.4, 0, 0.2, 1),
+        transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    // ── Hover (desktop only) ──
+    @media (hover: hover) and (pointer: fine) {
+        &:not(.is-active):hover {
+            color: var(--text-primary);
+            background: var(--bg-surface-light);
         }
     }
 
-    .filter-label {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-        text-align: center;
-        width: 100%;
-        line-height: inherit;
+    // ── Focus-visible for keyboard users ──
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
     }
 
-    .tab-indicator {
-        display: none;
-    }
-
-    /* Override any generic span rules if necessary */
-    span:not(.app-icon):not(.filter-label):not(.tab-indicator) {
-        max-width: 0;
-        overflow: hidden;
-        display: none;
-    }
-
-    &:hover {
-        color: var(--text-primary);
-        background: var(--bg-surface-light);
-    }
-
-    &.active {
+    // ── Active state ──
+    &.is-active {
         background: var(--gradient-primary);
-        color: var(--bg-dark);
+        color: var(--text-inverse);
+        font-weight: var(--font-extrabold);
         box-shadow: var(--shadow-glow-sm);
-    }
+        transform: scale(1.03);
 
-    @media (width <=640px) {
-        /* Force single line on mobile */
-        white-space: nowrap;
-
-        /* Reduce padding drastically to fit text */
-        padding: 4px 1px;
-        /* Minimal padding */
-
-        /* Font size scaling - go smaller if needed */
-        font-size: clamp(8px, 2.5vw, 11px);
-
-        border-radius: var(--radius-lg);
-        letter-spacing: -0.2px;
-        gap: 2px;
-
-        /* Ensure Flex centering works perfect */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: row;
-        /* Ensure row */
-
-        .filter-label {
-            display: inline-block;
-            width: auto;
-            text-overflow: clip;
-            /* Prefer clipping over hiding with ellipsis */
-            text-align: center;
-            line-height: 1;
-            /* Match line height to avoid offsets */
+        .filter-icon {
+            opacity: 1;
         }
     }
 
-    @media (width <=400px) {
-        /* Extra small - allow tiny font if really needed */
-        font-size: clamp(7px, 2.2vw, 10px);
+    // ── Tablet: auto-size but don't force equal ──
+    @media (max-width: 991px) {
+        flex: 0 1 auto;
+        padding: var(--space-2-5) var(--space-3-5);
+    }
+
+    // ── Mobile: vertical stack, icon on top ──
+    @media (max-width: 767px) {
+        flex: unset;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-3) var(--space-2);
+        min-height: 44px;
+        white-space: normal;
+        text-align: center;
+        border-radius: var(--radius-lg);
+        background: var(--bg-dark-lighter);
+
+        &.is-active {
+            background: var(--gradient-primary);
+        }
     }
 }
 
-/* RTL Adjustments */
-[dir="rtl"] .filter-tab {
-    font-family: var(--font-body);
+// ─── Icon inside button ──────────────────────────────────────────────────
+.filter-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 140ms ease;
+
+    .is-active & {
+        opacity: 1;
+    }
+}
+
+// ─── Label text ──────────────────────────────────────────────────────────
+.filter-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @media (max-width: 767px) {
+        font-size: var(--text-xs);
+        white-space: normal;
+        word-break: break-word;
+        line-height: var(--leading-snug);
+    }
 }

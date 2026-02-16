@@ -1,11 +1,17 @@
-<div class="filter-tabs">
-    @for (item of items; track getValue(item)) {
-    <button (click)="onSelect(getValue(item))" class="filter-tab" [class.active]="activeValue === getValue(item)">
+<div class="filter-bar" role="tablist" [attr.aria-label]="ariaLabel">
+    @for (item of items; track trackByValue($index, item)) {
+    <button
+        type="button"
+        role="tab"
+        class="filter-btn"
+        [class.is-active]="isActive(item)"
+        [attr.aria-selected]="isActive(item)"
+        [attr.tabindex]="isActive(item) ? 0 : -1"
+        (click)="onSelect(getValue(item))">
         @if (item.icon) {
-        <app-icon [name]=" item.icon " class=" icon-sm"></app-icon>
+        <app-icon [name]="item.icon" class="icon-xs filter-icon"></app-icon>
         }
         <span class="filter-label">{{ getLabel(item) }}</span>
-        <span class="tab-indicator"></span>
     </button>
     }
 </div>

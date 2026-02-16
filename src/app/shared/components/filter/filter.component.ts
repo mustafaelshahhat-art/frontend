@@ -3,9 +3,7 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from 
 import { CommonModule } from '@angular/common';
 
 /**
- * Interface representing a single choice in the filter component.
- * We use any here to allow for various specific types (unions, strings, numbers)
- * in components that implement this filter.
+ * A single selectable filter option.
  */
 export interface FilterItem {
     label?: string;
@@ -14,6 +12,15 @@ export interface FilterItem {
     [key: string]: any;
 }
 
+/**
+ * Accessible segmented-control filter.
+ *
+ * - Desktop  (>=992px): horizontal pill bar
+ * - Tablet   (768-991): wrapping horizontal pills
+ * - Mobile   (<768px) : 2-column grid, icon stacked above label
+ *
+ * Pure presentational. OnPush. No subscriptions. No side-effects.
+ */
 @Component({
     selector: 'app-filter',
     standalone: true,
@@ -27,6 +34,7 @@ export class FilterComponent {
     @Input() activeValue: unknown;
     @Input() valueKey = 'value';
     @Input() labelKey = 'label';
+    @Input() ariaLabel = 'عوامل التصفية';
     @Output() filterChange = new EventEmitter<unknown>();
 
     getValue(item: any): unknown {
@@ -37,7 +45,15 @@ export class FilterComponent {
         return item[this.labelKey] ?? item.label;
     }
 
+    isActive(item: any): boolean {
+        return this.activeValue === this.getValue(item);
+    }
+
     onSelect(value: unknown): void {
         this.filterChange.emit(value);
+    }
+
+    trackByValue(_index: number, item: any): unknown {
+        return item[this.valueKey] ?? item.value ?? _index;
     }
 }
