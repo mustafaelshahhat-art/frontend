@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges, HostBinding, ChangeDetectionStrategy, inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { IconService } from './icon.service';
 import { Observable, of } from 'rxjs';
 import { SafeHtml } from '@angular/platform-browser';
@@ -8,7 +7,7 @@ import { SafeHtml } from '@angular/platform-browser';
 @Component({
     selector: 'app-icon',
     standalone: true,
-    imports: [CommonModule, HttpClientModule],
+    imports: [CommonModule],
     template: `
     <span [innerHTML]="svgContent$ | async" 
           [class.rtl-mirror]="rtlFlip"

@@ -174,7 +174,8 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
             const user = this.currentUser();
             // If user is a creator, filter by their ID
             const creatorId = (this.userRole() === UserRole.TOURNAMENT_CREATOR && user) ? user.id : undefined;
-            this.matchService.getMatches(1, 100, creatorId).subscribe({ next: handleSuccess, error: handleError });
+            // PERF-FIX: Use proper page size instead of fetching 100 records
+            this.matchService.getMatches(1, 20, creatorId).subscribe({ next: handleSuccess, error: handleError });
 
         } else {
             const teamId = this.currentUser()?.teamId;

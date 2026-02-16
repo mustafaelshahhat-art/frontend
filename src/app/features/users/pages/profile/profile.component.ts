@@ -1,5 +1,5 @@
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, computed, ViewChild, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, computed, signal, ViewChild, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,47 +48,47 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private userService = inject(UserService);
     private locationService = inject(LocationService);
     private uiFeedback = inject(UIFeedbackService);
-    private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
     private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
     private readonly permissionsService = inject(PermissionsService);
 
-    user: User | null = null;
-    userRole: UserRole = UserRole.PLAYER;
+    // PERF-FIX F8: All mutable state converted to signals — removes 15× manual cdr.detectChanges()
+    user = signal<User | null>(null);
+    userRole = signal<UserRole>(UserRole.PLAYER);
     profileForm!: FormGroup;
     passwordForm!: FormGroup;
-    isLoading = false;
-    isPasswordLoading = false;
+    isLoading = signal(false);
+    isPasswordLoading = signal(false);
 
     // Reactive signal for UI status
     isPending = computed(() => this.authStore.currentUser()?.status?.toLowerCase() === 'pending');
 
     // Active section for navigation
-    activeSection: 'info' | 'password' = 'info';
+    activeSection = signal<'info' | 'password'>('info');
 
     // Profile picture
-    profilePicture: string | null = null;
-    isUploadingPicture = false;
+    profilePicture = signal<string | null>(null);
+    isUploadingPicture = signal(false);
 
     // Edit mode state
-    isEditing = false;
-    pendingAvatar: string | null = null;
-    avatarToDelete = false;
-    originalAvatar: string | null = null;
+    isEditing = signal(false);
+    pendingAvatar = signal<string | null>(null);
+    avatarToDelete = signal(false);
+    originalAvatar = signal<string | null>(null);
 
     // Location dropdowns
-    governorateOptions: SelectOption[] = [];
-    cityOptions: SelectOption[] = [];
-    districtOptions: SelectOption[] = [];
-    isLocationsLoading = false;
+    governorateOptions = signal<SelectOption[]>([]);
+    cityOptions = signal<SelectOption[]>([]);
+    districtOptions = signal<SelectOption[]>([]);
+    isLocationsLoading = signal(false);
 
     ngOnInit(): void {
         // Set layout page metadata
         this.layoutOrchestrator.setTitle(this.pageTitle);
         this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
 
-        this.user = this.authService.getCurrentUser();
-        this.userRole = this.user?.role || UserRole.PLAYER;
+        this.user.set(this.authService.getCurrentUser());
+        this.userRole.set(this.user()?.role || UserRole.PLAYER);
         // Initialize forms immediately to avoid formGroup binding errors
         this.initForm();
         this.initPasswordForm();
@@ -105,7 +105,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.layoutOrchestrator.setActions(this.actionsTemplate);
             }
         });
-        this.cdr.detectChanges();
     }
 
     ngOnDestroy(): void {
@@ -113,41 +112,39 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     refreshStatus(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.authService.refreshUserProfile().subscribe({
             next: (user) => {
-                this.isLoading = false;
+                this.isLoading.set(false);
                 if (user?.status?.toLowerCase() === 'active') {
                     this.uiFeedback.success('تم التفعيل', 'تم تفعيل حسابك بنجاح!');
                     this.loadUserProfile();
                 } else {
                     this.uiFeedback.info('لا يزال قيد المراجعة', 'حسابك لا يزال قيد المراجعة من قبل الإدارة.');
                 }
-                this.cdr.detectChanges();
             },
             error: () => {
-                this.isLoading = false;
+                this.isLoading.set(false);
                 this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الحساب');
-                this.cdr.detectChanges();
             }
         });
     }
 
     loadUserProfile(): void {
-        if (this.user?.id) {
-            this.userService.getUserById(this.user.id).subscribe({
+        const currentUser = this.user();
+        if (currentUser?.id) {
+            this.userService.getUserById(currentUser.id).subscribe({
                 next: (userData) => {
-                    this.user = userData;
+                    this.user.set(userData);
                     // Now populate the form with actual user data
                     this.populateForm();
                     // Ensure dependent location dropdowns are loaded for existing user values
                     this.loadLocations();
-                    this.cdr.detectChanges();
                 },
                 error: (error) => {
                     console.error('Error loading user profile:', error);
                     // Even on error, try to populate with whatever data we have
-                    if (this.user) {
+                    if (this.user()) {
                         this.populateForm();
                     }
                     // Best-effort locations load using whatever user data we have
@@ -158,24 +155,25 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadLocations(): void {
-        this.isLocationsLoading = true;
+        this.isLocationsLoading.set(true);
         this.locationService.getGovernorates().subscribe({
             next: (governorates) => {
-                this.governorateOptions = governorates.map(g => ({
+                this.governorateOptions.set(governorates.map(g => ({
                     label: g,
                     value: g,
                     icon: 'location_on'
-                }));
-                this.isLocationsLoading = false;
+                })));
+                this.isLocationsLoading.set(false);
 
                 // If user has a governorate, load cities
-                if (this.user?.governorate) {
-                    this.loadCities(this.user.governorate);
+                const currentUser = this.user();
+                if (currentUser?.governorate) {
+                    this.loadCities(currentUser.governorate);
                 }
             },
             error: (error) => {
                 console.error('Error loading governorates:', error);
-                this.isLocationsLoading = false;
+                this.isLocationsLoading.set(false);
             }
         });
     }
@@ -183,25 +181,25 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private loadCities(governorate: string): void {
         if (!governorate) return;
 
-        this.isLocationsLoading = true;
+        this.isLocationsLoading.set(true);
         this.locationService.getCities(governorate).subscribe({
             next: (cities) => {
-                this.cityOptions = cities.map(c => ({
+                this.cityOptions.set(cities.map(c => ({
                     label: c,
                     value: c,
                     icon: 'location_city'
-                }));
-                this.isLocationsLoading = false;
+                })));
+                this.isLocationsLoading.set(false);
 
                 // If user has a city, load districts
-                if (this.user?.city) {
-                    this.loadDistricts(this.user.city);
+                const currentUser = this.user();
+                if (currentUser?.city) {
+                    this.loadDistricts(currentUser.city);
                 }
             },
             error: (error) => {
                 console.error('Error loading cities:', error);
-                this.isLocationsLoading = false;
-                this.cdr.detectChanges();
+                this.isLocationsLoading.set(false);
             }
         });
     }
@@ -209,20 +207,19 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private loadDistricts(city: string): void {
         if (!city) return;
 
-        this.isLocationsLoading = true;
+        this.isLocationsLoading.set(true);
         this.locationService.getDistricts(city).subscribe({
             next: (districts) => {
-                this.districtOptions = districts.map(d => ({
+                this.districtOptions.set(districts.map(d => ({
                     label: d,
                     value: d,
                     icon: 'home'
-                }));
-                this.isLocationsLoading = false;
+                })));
+                this.isLocationsLoading.set(false);
             },
             error: (error) => {
                 console.error('Error loading districts:', error);
-                this.isLocationsLoading = false;
-                this.cdr.detectChanges();
+                this.isLocationsLoading.set(false);
             }
         });
     }
@@ -235,8 +232,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             city: '',
             neighborhood: ''
         });
-        this.cityOptions = [];
-        this.districtOptions = [];
+        this.cityOptions.set([]);
+        this.districtOptions.set([]);
 
         if (governorate) {
             this.loadCities(governorate);
@@ -249,7 +246,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.profileForm.patchValue({
             neighborhood: ''
         });
-        this.districtOptions = [];
+        this.districtOptions.set([]);
 
         if (city) {
             this.loadDistricts(city);
@@ -275,7 +272,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         // Set the profile picture from user avatar
-        this.profilePicture = this.user?.avatar || null;
+        this.profilePicture.set(this.user()?.avatar || null);
 
         // Disable all form fields initially (view mode)
         this.disableFormFields();
@@ -285,23 +282,24 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private populateForm(): void {
-        if (this.user && this.profileForm) {
+        const currentUser = this.user();
+        if (currentUser && this.profileForm) {
 
             this.profileForm.patchValue({
-                name: this.user.name || '',
-                username: this.user.username || this.user.email?.split('@')[0] || '',
-                email: this.user.email || '',
-                phone: this.user.phone || '',
-                nationalId: this.user.nationalId || '',
-                governorate: this.user.governorate || '',
-                city: this.user.city || '',
-                neighborhood: this.user.neighborhood || '',
+                name: currentUser.name || '',
+                username: currentUser.username || currentUser.email?.split('@')[0] || '',
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                nationalId: currentUser.nationalId || '',
+                governorate: currentUser.governorate || '',
+                city: currentUser.city || '',
+                neighborhood: currentUser.neighborhood || '',
                 bio: ''
             });
 
             // Set the profile picture from user avatar
-            this.profilePicture = this.user.avatar || null;
-            this.originalAvatar = this.user.avatar || null;
+            this.profilePicture.set(currentUser.avatar || null);
+            this.originalAvatar.set(currentUser.avatar || null);
 
         }
     }
@@ -317,9 +315,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     readonly pageTitle = 'الملف الشخصي';
     readonly pageSubtitle = 'إدارة البيانات الشخصية وتحديث معلومات التواصل';
 
-    get roleBadge(): string {
-        return this.getRoleLabel(this.userRole);
-    }
+    roleBadge = computed(() => this.getRoleLabel(this.userRole()));
 
     getRoleLabel(role: UserRole | undefined): string {
         if (role === UserRole.PLAYER && this.permissionsService.isTeamCaptain()) {
@@ -334,11 +330,11 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     setActiveSection(section: unknown): void {
-        this.activeSection = section as 'info' | 'password';
+        this.activeSection.set(section as 'info' | 'password');
     }
 
     toggleEditMode(): void {
-        if (this.isEditing) {
+        if (this.isEditing()) {
             this.saveProfile();
         } else {
             this.enterEditMode();
@@ -346,35 +342,32 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     enterEditMode(): void {
-        this.isEditing = true;
+        this.isEditing.set(true);
         this.enableFormFields();
         // Store current avatar state for potential rollback
-        this.pendingAvatar = this.profilePicture;
-        this.avatarToDelete = false;
+        this.pendingAvatar.set(this.profilePicture());
+        this.avatarToDelete.set(false);
 
         // Ensure form starts as pristine (no changes)
         if (this.profileForm) {
             this.profileForm.markAsPristine();
         }
-
-        this.cdr.detectChanges();
     }
 
     cancelEdit(): void {
-        this.isEditing = false;
+        this.isEditing.set(false);
         this.disableFormFields();
         // Restore original avatar
-        this.profilePicture = this.originalAvatar;
-        this.pendingAvatar = null;
-        this.avatarToDelete = false;
+        this.profilePicture.set(this.originalAvatar());
+        this.pendingAvatar.set(null);
+        this.avatarToDelete.set(false);
         // Reset form to original values
         this.populateForm();
-        this.cdr.detectChanges();
     }
 
     get hasChanges(): boolean {
         const isFormDirty = this.profileForm?.dirty || false;
-        const isAvatarChanged = (this.pendingAvatar !== this.originalAvatar && this.pendingAvatar !== null) || this.avatarToDelete;
+        const isAvatarChanged = (this.pendingAvatar() !== this.originalAvatar() && this.pendingAvatar() !== null) || this.avatarToDelete();
         return isFormDirty || isAvatarChanged;
     }
 
@@ -401,8 +394,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     saveProfile(): void {
 
 
-        if (this.profileForm.valid && this.user) {
-            this.isLoading = true;
+        if (this.profileForm.valid && this.user()) {
+            this.isLoading.set(true);
 
 
             // Prepare update data
@@ -419,35 +412,33 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
             // Handle avatar changes
-            if (this.avatarToDelete) {
+            if (this.avatarToDelete()) {
                 updateData['removeAvatar'] = true;
-            } else if (this.pendingAvatar && this.pendingAvatar !== this.originalAvatar) {
-                updateData['avatar'] = this.pendingAvatar;
+            } else if (this.pendingAvatar() && this.pendingAvatar() !== this.originalAvatar()) {
+                updateData['avatar'] = this.pendingAvatar();
             }
 
 
 
-            this.userService.updateUser(this.user.id, updateData).subscribe({
+            this.userService.updateUser(this.user()!.id, updateData).subscribe({
                 next: (updated) => {
 
-                    this.isLoading = false;
-                    this.user = updated;
+                    this.isLoading.set(false);
+                    this.user.set(updated);
                     this.authService.updateCurrentUser(updated);
-                    this.originalAvatar = updated.avatar || null;
-                    this.profilePicture = updated.avatar || null;
-                    this.isEditing = false;
+                    this.originalAvatar.set(updated.avatar || null);
+                    this.profilePicture.set(updated.avatar || null);
+                    this.isEditing.set(false);
                     this.disableFormFields();
-                    this.avatarToDelete = false;
-                    this.pendingAvatar = null;
+                    this.avatarToDelete.set(false);
+                    this.pendingAvatar.set(null);
                     this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات الملف الشخصي بنجاح');
-                    this.cdr.detectChanges();
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     const message = error.error?.message || 'حدث خطأ أثناء تحديث الملف الشخصي';
                     this.uiFeedback.error('خطأ', message);
-                    this.cdr.detectChanges();
                 }
             });
         } else {
@@ -469,19 +460,17 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 return;
             }
 
-            this.isPasswordLoading = true;
+            this.isPasswordLoading.set(true);
             this.authService.changePassword(currentPassword, newPassword).subscribe({
                 next: () => {
-                    this.isPasswordLoading = false;
+                    this.isPasswordLoading.set(false);
                     this.uiFeedback.success('تم التغيير', 'تم تغيير كلمة المرور بنجاح');
                     this.passwordForm.reset();
-                    this.cdr.detectChanges();
                 },
                 error: (error) => {
-                    this.isPasswordLoading = false;
+                    this.isPasswordLoading.set(false);
                     const message = error.error?.message || 'حدث خطأ أثناء تغيير كلمة المرور';
                     this.uiFeedback.error('خطأ', message);
-                    this.cdr.detectChanges();
                 }
             });
         }
@@ -510,32 +499,29 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 return;
             }
 
-            this.isUploadingPicture = true;
-            this.cdr.detectChanges();
+            this.isUploadingPicture.set(true);
 
             this.userService.uploadAvatar(file).subscribe({
                 next: (response) => {
-                    this.profilePicture = response.avatarUrl;
-                    this.pendingAvatar = response.avatarUrl;
-                    this.avatarToDelete = false;
-                    this.isUploadingPicture = false;
+                    this.profilePicture.set(response.avatarUrl);
+                    this.pendingAvatar.set(response.avatarUrl);
+                    this.avatarToDelete.set(false);
+                    this.isUploadingPicture.set(false);
                     this.uiFeedback.success('تم التحديث', 'تم تحميل الصورة الشخصية بنجاح');
-                    this.cdr.detectChanges();
                 },
                 error: (error) => {
-                    this.isUploadingPicture = false;
+                    this.isUploadingPicture.set(false);
                     const message = error.error?.message || 'حدث خطأ أثناء رفع الصورة';
                     this.uiFeedback.error('خطأ', message);
-                    this.cdr.detectChanges();
                 }
             });
         }
     }
 
     removePicture(): void {
-        this.profilePicture = null;
-        this.pendingAvatar = null;
-        this.avatarToDelete = true;
+        this.profilePicture.set(null);
+        this.pendingAvatar.set(null);
+        this.avatarToDelete.set(true);
         this.uiFeedback.success('تم التحديد', 'سيتم حذف الصورة عند حفظ التغييرات');
     }
 
@@ -545,19 +531,11 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         return this.permissionsService.isTeamCaptain();
     }
 
-    get userInitial(): string {
-        return this.user?.name?.charAt(0) || '?';
-    }
+    userInitial = computed(() => this.user()?.name?.charAt(0) || '?');
 
-    get displayId(): string {
-        return this.user?.displayId || this.user?.id || '';
-    }
+    displayId = computed(() => this.user()?.displayId || this.user()?.id || '');
 
-    get saveButtonLabel(): string {
-        return this.isEditing ? 'حفظ التغييرات' : 'تحديث الملف الشخصي';
-    }
+    saveButtonLabel = computed(() => this.isEditing() ? 'حفظ التغييرات' : 'تحديث الملف الشخصي');
 
-    get isFormDisabled(): boolean {
-        return !this.isEditing;
-    }
+    isFormDisabled = computed(() => !this.isEditing());
 }

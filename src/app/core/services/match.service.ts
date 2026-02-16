@@ -22,13 +22,19 @@ export class MatchService {
         this.matchUpdatedSubject.next(match);
     }
 
-    getMatches(pageNumber = 1, pageSize = 20, creatorId?: string): Observable<PagedResult<Match>> {
+    getMatches(pageNumber = 1, pageSize = 20, creatorId?: string, status?: string, teamId?: string): Observable<PagedResult<Match>> {
         let params = new HttpParams()
             .set('pageNumber', pageNumber.toString())
             .set('pageSize', pageSize.toString());
 
         if (creatorId) {
             params = params.set('creatorId', creatorId);
+        }
+        if (status) {
+            params = params.set('status', status);
+        }
+        if (teamId) {
+            params = params.set('teamId', teamId);
         }
 
         return this.http.get<PagedResult<Match>>(this.apiUrl, { params });
@@ -44,21 +50,22 @@ export class MatchService {
         return this.http.get<Match[]>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`);
     }
 
+    // PERF-FIX: Server-side filtering — eliminates fetching 100 records and filtering in browser
     getMatchesByTeam(teamId: string): Observable<Match[]> {
-        return this.getMatches(1, 100).pipe(
-            map(paged => paged.items.filter(m => m.homeTeamId === teamId || m.awayTeamId === teamId))
+        return this.getMatches(1, 50, undefined, undefined, teamId).pipe(
+            map(paged => paged.items)
         );
     }
 
     getLiveMatches(): Observable<Match[]> {
-        return this.getMatches(1, 100).pipe(
-            map(paged => paged.items.filter(m => m.status === MatchStatus.LIVE))
+        return this.getMatches(1, 50, undefined, 'Live').pipe(
+            map(paged => paged.items)
         );
     }
 
     getUpcomingMatches(): Observable<Match[]> {
-        return this.getMatches(1, 100).pipe(
-            map(paged => paged.items.filter(m => m.status === MatchStatus.SCHEDULED))
+        return this.getMatches(1, 50, undefined, 'Scheduled').pipe(
+            map(paged => paged.items)
         );
     }
 

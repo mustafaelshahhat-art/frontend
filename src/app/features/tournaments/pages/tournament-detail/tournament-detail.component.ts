@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -26,6 +28,8 @@ import { TeamRegistrationModalComponent } from '../../components/team-registrati
 import { OpeningMatchModalComponent } from '../../components/opening-match-modal/opening-match-modal.component';
 import { KnockoutBracketComponent } from '../../components/knockout-bracket/knockout-bracket.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
+// PERF-FIX F4: Extracted tournament status helpers into reusable utils
+import { getTournamentStatusLabel, getRegStatusLabel as _regStatusLabel, getRegStatusType as _regStatusType } from '../../utils/tournament-status.utils';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
@@ -347,54 +351,70 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.layoutOrchestrator.setBackAction(() => this.navigateBack());
     }
 
-    // Load Initial Data (Updated logic)
+    // PERF-FIX F2: forkJoin replaces waterfall API calls — all requests fire in parallel
     loadInitialData(id: string): void {
         this.isLoading.set(true);
 
-        // 1. Load Tournament
-        this.tournamentService.getTournamentById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (data) => {
-                if (data) {
-                    this.tournamentStore.upsertTournament(data);
-                    this.updateLayout();
-
-                    // Check for Bracket/Groups tabs
-                    if (data.format === TournamentFormat.GroupsThenKnockout || data.format === TournamentFormat.GroupsWithHomeAwayKnockout) {
-                        this.tournamentService.getGroups(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(g => {
-                            this.groups.set(g);
-                            if (g.length > 0 && !this.activeGroup()) this.activeGroup.set(g[0].id);
-                        });
-                    }
-
-                    if (data.format === TournamentFormat.GroupsThenKnockout ||
-                        data.format === TournamentFormat.GroupsWithHomeAwayKnockout ||
-                        data.format === TournamentFormat.KnockoutOnly) {
-                        this.tournamentService.getBracket(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(b => this.bracket.set(b));
-                    }
+        // 1. Load Tournament first (needed to determine which parallel calls to make)
+        this.tournamentService.getTournamentById(id).pipe(
+            takeUntilDestroyed(this.destroyRef),
+            switchMap((data) => {
+                if (!data) {
+                    this.isLoading.set(false);
+                    return of(null);
                 }
-                // ... (Load matches, standings same as before)
-                this.matchService.getMatchesByTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: (matches) => {
-                        matches.forEach((m: Match) => {
-                            if (!this.matchStore.getMatchById(m.id)) {
-                                this.matchStore.addMatch(m);
-                            } else {
-                                this.matchStore.updateMatch(m);
-                            }
-                        });
-                        this.isLoading.set(false);
-                    },
-                    error: () => this.isLoading.set(false)
+                this.tournamentStore.upsertTournament(data);
+                this.updateLayout();
+
+                // 2. Build parallel calls based on tournament format
+                const hasGroups = data.format === TournamentFormat.GroupsThenKnockout || 
+                                  data.format === TournamentFormat.GroupsWithHomeAwayKnockout;
+                const hasKnockout = hasGroups || data.format === TournamentFormat.KnockoutOnly;
+
+                return forkJoin({
+                    matches: this.matchService.getMatchesByTournament(id).pipe(catchError(() => of([]))),
+                    standings: this.tournamentService.getStandings(id).pipe(catchError(() => of([]))),
+                    groups: hasGroups 
+                        ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
+                        : of([]),
+                    bracket: hasKnockout 
+                        ? this.tournamentService.getBracket(id).pipe(catchError(() => of(null)))
+                        : of(null)
+                });
+            })
+        ).subscribe({
+            next: (result) => {
+                if (!result) return;
+
+                // Process matches
+                result.matches.forEach((m: Match) => {
+                    if (!this.matchStore.getMatchById(m.id)) {
+                        this.matchStore.addMatch(m);
+                    } else {
+                        this.matchStore.updateMatch(m);
+                    }
                 });
 
-                this.tournamentService.getStandings(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(standings => {
-                    this.standings.set(standings);
-                    const map = new Map<string, number>();
-                    standings.forEach(s => {
-                        if (s.groupId) map.set(s.teamId, s.groupId);
-                    });
-                    this.teamGroupMap.set(map);
+                // Process standings
+                this.standings.set(result.standings as TournamentStanding[]);
+                const map = new Map<string, number>();
+                (result.standings as TournamentStanding[]).forEach(s => {
+                    if (s.groupId) map.set(s.teamId, s.groupId);
                 });
+                this.teamGroupMap.set(map);
+
+                // Process groups
+                if (result.groups && (result.groups as Group[]).length > 0) {
+                    this.groups.set(result.groups as Group[]);
+                    if (!this.activeGroup()) this.activeGroup.set((result.groups as Group[])[0].id);
+                }
+
+                // Process bracket
+                if (result.bracket) {
+                    this.bracket.set(result.bracket as BracketDto);
+                }
+
+                this.isLoading.set(false);
             },
             error: () => this.isLoading.set(false)
         });
@@ -452,40 +472,17 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         return '/player/tournaments';
     }
 
+    // PERF-FIX F4: Delegate to extracted utility functions
     getStatusLabel(status: TournamentStatus | undefined): string {
-        if (!status) return '';
-        const labels: Record<TournamentStatus, string> = {
-            [TournamentStatus.DRAFT]: 'مسودة',
-            [TournamentStatus.REGISTRATION_OPEN]: 'التسجيل مفتوح',
-            [TournamentStatus.REGISTRATION_CLOSED]: 'التسجيل مغلق',
-            [TournamentStatus.ACTIVE]: 'جارية الآن',
-            [TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION]: 'بانتظار اختيار الافتتاح',
-            [TournamentStatus.COMPLETED]: 'منتهية',
-            [TournamentStatus.CANCELLED]: 'ملغاة'
-        };
-        return labels[status];
+        return getTournamentStatusLabel(status);
     }
 
     getRegStatusLabel(status: string): string {
-        switch (status) {
-            case 'PendingPaymentReview': return 'قيد المراجعة';
-            case 'Approved': return 'مؤكد';
-            case 'Rejected': return 'مرفوض';
-            case 'Eliminated': return 'مقصى';
-            case 'Withdrawn': return 'منسحب';
-            default: return status;
-        }
+        return _regStatusLabel(status);
     }
 
     getRegStatusType(status: string): 'primary' | 'gold' | 'danger' | 'info' | 'warning' | 'success' | 'muted' | 'neutral' | 'live' {
-        switch (status) {
-            case 'PendingPaymentReview': return 'info';
-            case 'Approved': return 'success';
-            case 'Rejected': return 'danger';
-            case 'Eliminated': return 'danger';
-            case 'Withdrawn': return 'neutral';
-            default: return 'neutral';
-        }
+        return _regStatusType(status);
     }
 
     getProgressPercent(): number {

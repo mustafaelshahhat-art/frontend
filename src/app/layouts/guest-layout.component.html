@@ -1,0 +1,118 @@
+<!-- PERF-FIX F10: Extracted from inline template for better IDE support & build caching -->
+<div class="guest-layout-wrapper">
+    <!-- Premium Floating Navbar -->
+    <nav class="guest-navbar">
+        <div class="nav-container">
+            <div class="brand" (click)="router.navigate(['/'])">
+                <img src="assets/images/logo-kz.png" alt="Logo" class="nav-logo">
+                <span class="brand-text">KoraZone<span class="text-primary">365</span></span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="nav-menu desktop-only">
+                <a routerLink="/" class="nav-link">الرئيسية</a>
+                <a routerLink="/guest/tournaments" class="nav-link active">البطولات</a>
+                <a routerLink="/" fragment="about" class="nav-link">من نحن</a>
+                <a routerLink="/" fragment="faq" class="nav-link">الأسئلة الشائعة</a>
+                <a routerLink="/" fragment="contact" class="nav-link">تواصل معنا</a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="btn-logout-minimal" (click)="handleLogout()">
+                    <span>تسجيل الخروج</span>
+                    <app-icon name="logout"></app-icon>
+                </button>
+            </div>
+
+             <!-- Mobile Menu Button -->
+             <button class="hamburger-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+         @if (isMobileMenuOpen) {
+            <div class="mobile-menu-overlay" (click)="toggleMobileMenu()">
+                <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+                     <a routerLink="/" class="mobile-link" (click)="toggleMobileMenu()">الرئيسية</a>
+                    <a routerLink="/guest/tournaments" class="mobile-link active" (click)="toggleMobileMenu()">البطولات</a>
+                    <a routerLink="/" fragment="about" class="mobile-link" (click)="toggleMobileMenu()">من نحن</a>
+                    <a routerLink="/" fragment="faq" class="mobile-link" (click)="toggleMobileMenu()">الأسئلة الشائعة</a>
+                    <a routerLink="/" fragment="contact" class="mobile-link" (click)="toggleMobileMenu()">تواصل معنا</a>
+                    
+                    <button class="btn-logout-mobile" (click)="handleLogout()">
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+         }
+    </nav>
+
+    <main class="guest-main-content">
+        <div class="content-container">
+            <!-- Elegant Header Section -->
+            <header class="guest-welcome-header">
+                <div class="header-badge">تصفح الضيوف</div>
+                <h1 class="welcome-title">مرحباً بك في عالم <span class="gradient-text">البطولات</span></h1>
+                <p class="welcome-subtitle">تصفح أقوى المنافسات، تابع النتائج، وعش أجواء المباريات لحظة بلحظة.</p>
+            </header>
+
+            <!-- Premium Notice Card -->
+            <div class="premium-notice-card">
+                <div class="notice-icon-wrapper">
+                    <app-icon name="info"></app-icon>
+                </div>
+                <div class="notice-text">
+                    <h3>وضع المشاهدة فقط</h3>
+                    <p>أنت تتصفح المنصة كضيف. استمتع بمتابعة البطولات والنتائج الحية. للتفاعل والمشاركة، يرجى إنشاء حساب.</p>
+                </div>
+                <a routerLink="/auth/register" class="btn-notice-cta">سجل الآن</a>
+            </div>
+
+            <!-- Dynamic Page Header from Layout Service -->
+            @if (layout.title()) {
+                <div class="page-header-minimal">
+                    <h2 class="title">{{ layout.title() }}</h2>
+                    <p class="subtitle" *ngIf="layout.subtitle()">{{ layout.subtitle() }}</p>
+                </div>
+            }
+
+            <div class="main-router-content">
+                <router-outlet />
+            </div>
+        </div>
+    </main>
+
+    <!-- Background Decorations -->
+    <div class="bg-blur-circle circle-1"></div>
+    <div class="bg-blur-circle circle-2"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="content-container footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">KoraZone365</div>
+                <p class="footer-desc">المنصة الأولى لعشاق كرة القدم وتنظيم البطولات الاحترافية.</p>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <ul>
+                    <li><a routerLink="/">الرئيسية</a></li>
+                    <li><a routerLink="/guest/tournaments">البطولات</a></li>
+                    <li><a routerLink="/" fragment="about">من نحن</a></li>
+                    <li><a routerLink="/auth/register">إنشاء حساب</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>معلومات التواصل</h4>
+                <p>المنصورة، جمهورية مصر العربية</p>
+                <p>korazone365@gmail.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ currentYear }} KoraZone365 - All Rights Reserved</p>
+        </div>
+    </footer>
+</div>

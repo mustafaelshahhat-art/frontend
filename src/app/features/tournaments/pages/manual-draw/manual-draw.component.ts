@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
@@ -25,7 +26,8 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
         IconComponent
     ],
     templateUrl: './manual-draw.component.html',
-    styleUrls: ['./manual-draw.component.scss']
+    styleUrls: ['./manual-draw.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ManualDrawComponent implements OnInit {
     private route = inject(ActivatedRoute);
@@ -34,6 +36,7 @@ export class ManualDrawComponent implements OnInit {
     private uiFeedback = inject(UIFeedbackService);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
+    private destroyRef = inject(DestroyRef);
 
     tournament = signal<Tournament | null>(null);
     registeredTeams = signal<TeamRegistration[]>([]);
@@ -64,7 +67,7 @@ export class ManualDrawComponent implements OnInit {
 
     loadTournament(id: string): void {
         this.isLoading.set(true);
-        this.tournamentService.getTournamentById(id).subscribe({
+        this.tournamentService.getTournamentById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (t) => {
                 if (!t) {
                     this.uiFeedback.error('خطأ', 'البطولة غير موجودة');
@@ -101,7 +104,7 @@ export class ManualDrawComponent implements OnInit {
     }
 
     loadRegistrations(id: string): void {
-        this.tournamentService.getRegistrations(id).subscribe({
+        this.tournamentService.getRegistrations(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (regs) => {
                 const approved = regs.filter(r => r.status === 'Approved');
                 this.registeredTeams.set(approved);

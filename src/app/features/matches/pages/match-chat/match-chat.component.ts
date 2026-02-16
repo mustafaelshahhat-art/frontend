@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
@@ -8,6 +8,7 @@ import { User, UserRole, TeamRole } from '../../../../core/models/user.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatBoxComponent } from '../../../../features/chat/components/chat-box/chat-box.component';
 import { ChatService } from '../../../../core/services/chat.service';
 import { MatchService } from '../../../../core/services/match.service';
@@ -63,6 +64,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
     private cdr = inject(ChangeDetectorRef);
     private navService = inject(ContextNavigationService);
     private permissionsService = inject(PermissionsService);
+    private destroyRef = inject(DestroyRef);
 
     ChatParticipantRole = ChatParticipantRole;
 
@@ -113,8 +115,10 @@ export class MatchChatComponent implements OnInit, OnDestroy {
                         });
                         this.loadParticipants();
 
-                        // SignalR Match Updates
-                        this.matchService.matchUpdated$.subscribe(updatedMatch => {
+                        // PERF-FIX F3: SignalR Match Updates — takeUntilDestroyed prevents memory leak
+                        this.matchService.matchUpdated$.pipe(
+                            takeUntilDestroyed(this.destroyRef)
+                        ).subscribe(updatedMatch => {
                             if (updatedMatch && updatedMatch.id === this.matchId) {
                                 this.match = updatedMatch;
                                 this.cdr.detectChanges();

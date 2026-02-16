@@ -149,4 +149,13 @@ export class KnockoutBracketComponent implements OnChanges {
         const matchId = pair.matches.find(m => m.status === MatchStatus.LIVE)?.id || pair.matches[pair.matches.length - 1].id;
         this.router.navigate([prefix, 'matches', matchId]);
     }
+
+    // PERF-FIX F5: trackBy functions to avoid unnecessary DOM recreation
+    trackByRound(index: number, round: BracketRoundView): number {
+        return round.roundNumber;
+    }
+
+    trackByPairing(index: number, pair: BracketPairing): string {
+        return pair.id;
+    }
 }

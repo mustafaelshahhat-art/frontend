@@ -1,7 +1,7 @@
 <div class="bracket-container" *ngIf="processedRounds.length > 0; else emptyState">
     <div class="bracket-scroll-view">
         <div class="bracket-tree">
-            <div class="bracket-round" *ngFor="let round of processedRounds; let i = index; let last = last">
+            <div class="bracket-round" *ngFor="let round of processedRounds; let i = index; let last = last; trackBy: trackByRound">
                 <div class="round-header" [class.is-final]="last">
                     <h3>{{ round.name }}</h3>
                     <span class="pairing-count" *ngIf="!last">{{ round.pairings.length }} مباريات</span>
@@ -9,7 +9,7 @@
                 </div>
 
                 <div class="pairings-container">
-                    <div class="pairing-node" *ngFor="let pair of round.pairings; let pIdx = index"
+                    <div class="pairing-node" *ngFor="let pair of round.pairings; let pIdx = index; trackBy: trackByPairing"
                         [class.has-next]="!last" [class.is-even]="pIdx % 2 === 0" [class.is-odd]="pIdx % 2 !== 0">
 
                         <div class="match-card" (click)="viewMatch(pair)" [class.is-live]="pair.status === 'Live'"

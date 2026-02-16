@@ -1,9 +1,9 @@
 <ng-template #actionsTemplate>
     <div class="action-buttons-wrapper flex items-center gap-3">
         @if (!isPending()) {
-        <app-button (trigger)="toggleEditMode()" [isLoading]="isLoading" [icon]="isEditing ? 'save' : 'edit'"
-            [disabled]="isLoading || (isEditing && !hasChanges)">
-            {{ saveButtonLabel }}
+        <app-button (trigger)="toggleEditMode()" [isLoading]="isLoading()" [icon]="isEditing() ? 'save' : 'edit'"
+            [disabled]="isLoading() || (isEditing() && !hasChanges)">
+            {{ saveButtonLabel() }}
         </app-button>
         }
     </div>
@@ -21,28 +21,28 @@
     <div class="profile-nav-wrapper">
         <app-filter
             [items]="[ {label: 'المعلومات الشخصية', value: 'info', icon: 'person'}, {label: 'كلمة المرور', value: 'password', icon: 'lock'} ]"
-            [activeValue]="activeSection" (filterChange)="setActiveSection($event)" />
+            [activeValue]="activeSection()" (filterChange)="setActiveSection($event)" />
     </div>
 
     <div class="profile-container">
         <!-- Sidebar -->
         <div class="profile-sidebar">
             <app-card class="avatar-card">
-                <div class="avatar-wrapper" [class.editable]="isEditing" (click)="isEditing && fileInput.click()"
-                    (keydown.enter)="isEditing && fileInput.click()"
-                    (keydown.space)="$event.preventDefault(); isEditing && fileInput.click()"
-                    [tabindex]="isEditing ? 0 : -1" [attr.role]="isEditing ? 'button' : undefined"
+                <div class="avatar-wrapper" [class.editable]="isEditing()" (click)="isEditing() && fileInput.click()"
+                    (keydown.enter)="isEditing() && fileInput.click()"
+                    (keydown.space)="$event.preventDefault(); isEditing() && fileInput.click()"
+                    [tabindex]="isEditing() ? 0 : -1" [attr.role]="isEditing() ? 'button' : undefined"
                     aria-label="تغيير الصورة الشخصية">
-                    <app-smart-image [src]="profilePicture || user?.avatar" type="avatar" size="custom"
-                        class="avatar-image" [initials]="userInitial" />
+                    <app-smart-image [src]="profilePicture() || user()?.avatar" type="avatar" size="custom"
+                        class="avatar-image" [initials]="userInitial()" />
 
-                    @if (isUploadingPicture) {
+                    @if (isUploadingPicture()) {
                     <div class="uploading-overlay">
                         <app-inline-loading />
                     </div>
                     }
 
-                    @if (isEditing && !isUploadingPicture) {
+                    @if (isEditing() && !isUploadingPicture()) {
                     <div class="edit-overlay" (click)="fileInput.click(); $event.stopPropagation()"
                         (keydown.enter)="fileInput.click(); $event.stopPropagation()"
                         (keydown.space)="$event.preventDefault(); fileInput.click(); $event.stopPropagation()"
@@ -54,11 +54,11 @@
                 </div>
                 <input #fileInput type="file" accept="image/*" (change)="onFileInputChange($event)"
                     class="hidden-input" />
-                <h2>{{ user?.name }}</h2>
-                <span class="username">@{{ user?.username }}</span>
+                <h2>{{ user()?.name }}</h2>
+                <span class="username">@{{ user()?.username }}</span>
 
                 <div class="avatar-actions">
-                    @if (profilePicture && !isUploadingPicture && isEditing) {
+                    @if (profilePicture() && !isUploadingPicture() && isEditing()) {
                     <app-button variant="ghost" size="sm" icon="delete" (trigger)="removePicture()" variant="danger">
                         حذف الصورة
                     </app-button>
@@ -67,7 +67,7 @@
 
                 <div class="membership-card">
                     <p class="membership-label">معرف العضوية</p>
-                    <p class="membership-id">{{ displayId || user?.username }}</p>
+                    <p class="membership-id">{{ displayId() || user()?.username }}</p>
                 </div>
             </app-card>
         </div>
@@ -75,7 +75,7 @@
         <!-- Content Area -->
         <div class="profile-content">
             <!-- Edit Info Section -->
-            @if (activeSection === 'info' && profileForm) {
+            @if (activeSection() === 'info' && profileForm) {
             <app-card title="المعلومات الشخصية" icon="settings_account_box">
                 <form [formGroup]="profileForm" (ngSubmit)="toggleEditMode()">
                     <div class="form-grid">
@@ -105,24 +105,24 @@
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="governorateOptions" formControlName="governorate"
+                            <app-select [options]="governorateOptions()" formControlName="governorate"
                                 (selectionChange)="onGovernorateChange($event)" label="المحافظة"
                                 placeholder="اختر المحافظة" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="cityOptions" formControlName="city"
+                            <app-select [options]="cityOptions()" formControlName="city"
                                 (selectionChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="districtOptions" formControlName="neighborhood"
+                            <app-select [options]="districtOptions()" formControlName="neighborhood"
                                 (selectionChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي" />
                         </div>
                     </div>
 
                     <!-- Cancel button only (Save is in layout header) -->
-                    @if (isEditing) {
+                    @if (isEditing()) {
                     <div class="form-actions">
                         <app-button type="button" (trigger)="cancelEdit()" variant="outline" icon="close">
                             إلغاء التعديل
@@ -134,7 +134,7 @@
             }
 
             <!-- Change Password Section -->
-            @if (activeSection === 'password' && passwordForm) {
+            @if (activeSection() === 'password' && passwordForm) {
             <app-card title="تغيير كلمة المرور" icon="key">
                 <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
                     <div class="password-form-container">
@@ -157,7 +157,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading" icon="lock_reset"
+                        <app-button type="submit" variant="primary" [isLoading]="isPasswordLoading()" icon="lock_reset"
                             [disabled]="passwordForm.invalid">
                             تحديث كلمة المرور
                         </app-button>

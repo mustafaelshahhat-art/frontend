@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, shareReplay, tap } from 'rxjs/operators';
 import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto, Match } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
@@ -13,43 +13,87 @@ export class TournamentService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/tournaments`;
 
+    // ── TTL-based HTTP response cache ──────────────────────────────
+    private readonly cache = new Map<string, { obs$: Observable<unknown>; expiry: number }>();
+    private static readonly DEFAULT_TTL_MS = 30_000; // 30 seconds
 
+    /**
+     * Returns a cached observable for the given key. If the cache entry
+     * is missing or expired a new request is created via `factory`,
+     * shared with `shareReplay(1)` and stored.
+     */
+    private cachedGet<T>(key: string, factory: () => Observable<T>, ttlMs = TournamentService.DEFAULT_TTL_MS): Observable<T> {
+        const entry = this.cache.get(key);
+        if (entry && entry.expiry > Date.now()) {
+            return entry.obs$ as Observable<T>;
+        }
+        const obs$ = factory().pipe(shareReplay({ bufferSize: 1, refCount: true }));
+        this.cache.set(key, { obs$, expiry: Date.now() + ttlMs });
+        return obs$;
+    }
 
+    /** Invalidate cache entries whose key starts with `prefix`, or all entries if omitted. */
+    invalidateCache(prefix?: string): void {
+        if (!prefix) {
+            this.cache.clear();
+            return;
+        }
+        for (const key of this.cache.keys()) {
+            if (key.startsWith(prefix)) this.cache.delete(key);
+        }
+    }
 
     getTournaments(pageNumber = 1, pageSize = 20): Observable<PagedResult<Tournament>> {
-        const params = new HttpParams()
-            .set('page', pageNumber.toString())
-            .set('pageSize', pageSize.toString());
-
-        return this.http.get<PagedResult<Tournament>>(this.apiUrl, { params });
+        const key = `list:${pageNumber}:${pageSize}`;
+        return this.cachedGet(key, () => {
+            const params = new HttpParams()
+                .set('page', pageNumber.toString())
+                .set('pageSize', pageSize.toString());
+            return this.http.get<PagedResult<Tournament>>(this.apiUrl, { params });
+        });
     }
 
     getTournamentById(id: string): Observable<Tournament | undefined> {
-        return this.http.get<Tournament>(`${this.apiUrl}/${id}`);
+        return this.cachedGet(`detail:${id}`, () =>
+            this.http.get<Tournament>(`${this.apiUrl}/${id}`)
+        );
     }
 
     createTournament(tournament: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>): Observable<Tournament> {
-        return this.http.post<Tournament>(this.apiUrl, tournament);
+        return this.http.post<Tournament>(this.apiUrl, tournament).pipe(
+            tap(() => this.invalidateCache('list'))
+        );
     }
 
     updateTournament(id: string, updates: Partial<Tournament>): Observable<Tournament> {
-        return this.http.patch<Tournament>(`${this.apiUrl}/${id}`, updates);
+        return this.http.patch<Tournament>(`${this.apiUrl}/${id}`, updates).pipe(
+            tap(() => { this.invalidateCache('list'); this.invalidateCache(`detail:${id}`); })
+        );
     }
 
     deleteTournament(id: string): Observable<boolean> {
-        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(map(() => true));
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            map(() => true),
+            tap(() => this.invalidateCache())
+        );
     }
 
     closeRegistration(id: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${id}/close-registration`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${id}/close-registration`, {}).pipe(
+            tap(() => this.invalidateCache(`detail:${id}`))
+        );
     }
 
     startTournament(id: string): Observable<Tournament> {
-        return this.http.post<Tournament>(`${this.apiUrl}/${id}/start`, {});
+        return this.http.post<Tournament>(`${this.apiUrl}/${id}/start`, {}).pipe(
+            tap(() => { this.invalidateCache('list'); this.invalidateCache(`detail:${id}`); })
+        );
     }
 
     openRegistration(id: string): Observable<Tournament> {
-        return this.http.patch<Tournament>(`${this.apiUrl}/${id}`, { status: 'RegistrationOpen' });
+        return this.http.patch<Tournament>(`${this.apiUrl}/${id}`, { status: 'RegistrationOpen' }).pipe(
+            tap(() => this.invalidateCache(`detail:${id}`))
+        );
     }
 
     requestTournamentRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {
@@ -111,7 +155,9 @@ export class TournamentService {
     }
 
     generateMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
-        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {});
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-matches`, {}).pipe(
+            tap(() => { this.invalidateCache(`standings:${tournamentId}`); this.invalidateCache(`bracket:${tournamentId}`); this.invalidateCache(`groups:${tournamentId}`); })
+        );
     }
 
     setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<Match[]> {
@@ -123,37 +169,52 @@ export class TournamentService {
     }
 
     getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
-        const params: any = {};
-        if (groupId) params.groupId = groupId;
-        return this.http.get<PagedResult<TournamentStanding>>(`${this.apiUrl}/${tournamentId}/standings`, { params }).pipe(
-            map(paged => paged.items)
-        );
+        const key = `standings:${tournamentId}:${groupId ?? 'all'}`;
+        return this.cachedGet(key, () => {
+            const params: any = {};
+            if (groupId) params.groupId = groupId;
+            return this.http.get<PagedResult<TournamentStanding>>(`${this.apiUrl}/${tournamentId}/standings`, { params }).pipe(
+                map(paged => paged.items)
+            );
+        });
     }
 
     getGroups(tournamentId: string): Observable<Group[]> {
-        return this.http.get<PagedResult<Group>>(`${this.apiUrl}/${tournamentId}/groups`).pipe(
-            map(paged => paged.items)
+        return this.cachedGet(`groups:${tournamentId}`, () =>
+            this.http.get<PagedResult<Group>>(`${this.apiUrl}/${tournamentId}/groups`).pipe(
+                map(paged => paged.items)
+            )
         );
     }
 
     getBracket(tournamentId: string): Observable<BracketDto> {
-        return this.http.get<BracketDto>(`${this.apiUrl}/${tournamentId}/bracket`);
+        return this.cachedGet(`bracket:${tournamentId}`, () =>
+            this.http.get<BracketDto>(`${this.apiUrl}/${tournamentId}/bracket`)
+        );
     }
 
     assignGroups(tournamentId: string, assignments: any[]): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/assign-groups`, assignments);
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/assign-groups`, assignments).pipe(
+            tap(() => { this.invalidateCache(`groups:${tournamentId}`); this.invalidateCache(`standings:${tournamentId}`); })
+        );
     }
 
     generateManualGroupMatches(tournamentId: string): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/generate-manual-group-matches`, {});
+        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/generate-manual-group-matches`, {}).pipe(
+            tap(() => this.invalidateCache(`standings:${tournamentId}`))
+        );
     }
 
     createManualKnockoutMatches(tournamentId: string, pairings: any[]): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/manual-knockout-pairings`, pairings);
+        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/manual-knockout-pairings`, pairings).pipe(
+            tap(() => this.invalidateCache(`bracket:${tournamentId}`))
+        );
     }
 
     resetSchedule(tournamentId: string): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/reset-schedule`, {});
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/reset-schedule`, {}).pipe(
+            tap(() => { this.invalidateCache(`standings:${tournamentId}`); this.invalidateCache(`groups:${tournamentId}`); this.invalidateCache(`bracket:${tournamentId}`); })
+        );
     }
 
     // Helper methods (mock replacement)
@@ -178,7 +239,9 @@ export class TournamentService {
     }
 
     eliminateTeam(tournamentId: string, teamId: string): Observable<void> {
-        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/eliminate/${teamId}`, {});
+        return this.http.post<void>(`${this.apiUrl}/${tournamentId}/eliminate/${teamId}`, {}).pipe(
+            tap(() => { this.invalidateCache(`standings:${tournamentId}`); this.invalidateCache(`bracket:${tournamentId}`); })
+        );
     }
 
     emergencyStart(tournamentId: string): Observable<Tournament> {
