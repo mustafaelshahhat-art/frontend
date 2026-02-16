@@ -150,7 +150,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Refresh to sync state
                         this.loadTeams();
                     },
-                    error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الفريق')
+                    error: () => this.uiFeedback.error('فشل التحديث', 'تعذّر تحديث حالة الفريق. يرجى المحاولة مرة أخرى.')
                 });
             }
         });
@@ -170,8 +170,8 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Store update happens via RealTime 'TeamDeleted' event automatically
                     },
                     error: (err) => {
-                        const msg = err.error?.detail || err.error?.message || 'فشل في حذف الفريق';
-                        this.uiFeedback.error('خطأ', msg);
+                        const msg = err.error?.detail || err.error?.message || 'تعذّر حذف الفريق. يرجى المحاولة مرة أخرى.';
+                        this.uiFeedback.error('فشل الحذف', msg);
                     }
                 });
             }

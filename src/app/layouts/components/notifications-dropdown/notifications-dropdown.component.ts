@@ -2,7 +2,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
-import { Notification } from '../../../core/models/tournament.model';
+import { Notification, NotificationCategory, NotificationType } from '../../../core/models/tournament.model';
 
 @Component({
     selector: 'app-notifications-dropdown',
@@ -32,20 +32,27 @@ export class NotificationsDropdownComponent {
         this.dropdownClosed.emit();
     }
 
-    getTypeIcon(type: string): string {
-        switch (type) {
-            case 'match': return 'sports_soccer';
-            case 'tournament': return 'emoji_events';
+    getCategoryIcon(category: NotificationCategory): string {
+        const icons: Record<NotificationCategory, string> = {
+            system: 'settings',
+            account: 'person',
+            payments: 'payments',
+            tournament: 'emoji_events',
+            match: 'sports_soccer',
+            team: 'groups',
+            administrative: 'admin_panel_settings',
+            security: 'security'
+        };
+        return icons[category] || 'notifications';
+    }
 
-            case 'payment': return 'payments';
-            case 'team': return 'groups';
-            case 'message': return 'mail';
-            case 'system': return 'settings';
-            case 'info': return 'info';
-            case 'warning': return 'warning';
-            case 'error': return 'error';
-            case 'success': return 'check_circle';
-            default: return 'notifications';
-        }
+    getTypeClass(type: NotificationType): string {
+        const classes: Record<NotificationType, string> = {
+            info: 'notification-icon-info',
+            success: 'notification-icon-success',
+            warning: 'notification-icon-warning',
+            error: 'notification-icon-error'
+        };
+        return classes[type] || 'notification-icon-info';
     }
 }

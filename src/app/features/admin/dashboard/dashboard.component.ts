@@ -116,16 +116,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     private loadActivities(): void {
-        this.analyticsService.getRecentActivities().subscribe({
-            next: (data) => {
+        this.analyticsService.getRecentActivities({ page: 1, pageSize: 10 }).subscribe({
+            next: (result) => {
+                const data = result.items || [];
                 // Transform analytics activities to store format
-                const storeActivities: StoreActivity[] = data.map(activity => ({
+                const storeActivities: StoreActivity[] = data.map((activity: Activity) => ({
                     id: this.generateUUID(),
                     userId: '',
                     userName: activity.userName || 'System',
                     action: activity.action || activity.type,
-                    entityType: 'System',
-                    entityId: '',
+                    entityType: activity.entityType || 'System',
+                    entityId: activity.entityId || '',
                     description: activity.message,
                     timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(Date.now())
                 }));

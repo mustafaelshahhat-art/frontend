@@ -1,40 +1,13 @@
-// Use global .page-container and .page-content classes from _layout.scss
-// Only add component-specific overrides here
-
-
-.admin-panel {
+.filters-row {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-
-        label {
-            font-weight: var(--font-semibold);
-            color: var(--text-primary);
-        }
-    }
-
-    .action-row {
-        margin-top: var(--space-6);
-        display: flex;
-        justify-content: flex-end;
-    }
+    flex-wrap: wrap;
+    gap: var(--space-3);
 }
 
 .notifications-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-}
-
-.loading-container {
-    text-align: center;
-    padding: var(--space-16);
-    color: var(--text-secondary);
 }
 
 .notification-item {
@@ -55,7 +28,7 @@
     display: flex;
     gap: var(--space-6);
 
-    @media (width <=480px) {
+    @media (width <= 480px) {
         gap: var(--space-3);
     }
 }
@@ -69,45 +42,38 @@
     justify-content: center;
     flex-shrink: 0;
 
-
-
-    // Dynamic types handled via data attribute in SCSS
-    &[data-type="match"] {
+    // Type-based coloring (severity)
+    &.type-info {
         background: var(--color-info-15);
         color: var(--color-info);
     }
 
-    &[data-type="tournament"] {
+    &.type-success {
         background: var(--color-primary-15);
         color: var(--color-primary);
     }
 
-
-
-    &[data-type="message"] {
-        background: var(--color-info-15);
-        color: var(--color-info);
+    &.type-warning {
+        background: var(--color-warning-15, var(--color-gold-15));
+        color: var(--color-warning, var(--color-gold));
     }
 
-    &[data-type="team"] {
-        background: var(--color-secondary-10);
-        color: var(--color-secondary);
-    }
-
-    &[data-type="system"] {
-        background: var(--color-gold-15);
-        color: var(--color-gold);
+    &.type-error {
+        background: var(--color-danger-15, var(--color-error-15));
+        color: var(--color-danger, var(--color-error));
     }
 }
 
 .notif-details {
     flex: 1;
+    min-width: 0;
 
     .notif-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: var(--space-1);
+        gap: var(--space-2);
 
         h3 {
             margin: 0;
@@ -120,8 +86,21 @@
             color: var(--text-muted);
             font-size: var(--text-xs);
             white-space: nowrap;
-            margin-right: var(--space-2);
         }
+    }
+
+    .notif-title-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+    }
+
+    .notif-meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-shrink: 0;
     }
 
     p {
@@ -129,5 +108,25 @@
         font-size: var(--text-sm);
         color: var(--text-secondary);
         line-height: var(--leading-relaxed);
+    }
+}
+
+.notif-delete-btn {
+    background: none;
+    border: none;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: var(--transition-fast);
+
+    .notification-item:hover & {
+        opacity: 1;
+    }
+
+    &:hover {
+        color: var(--color-danger);
+        background: var(--color-danger-10);
     }
 }

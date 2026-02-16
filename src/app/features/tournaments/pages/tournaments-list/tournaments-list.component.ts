@@ -258,7 +258,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
         const user = this.authService.getCurrentUser();
         if (!user?.teamId) {
-            this.uiFeedback.error('خطأ', 'يجب إنشاء فريق أولاً');
+            this.uiFeedback.error('فريق مطلوب', 'يجب إنشاء فريق أولاً قبل التسجيل في البطولة.');
             this.navService.navigateTo('team');
             return;
         }

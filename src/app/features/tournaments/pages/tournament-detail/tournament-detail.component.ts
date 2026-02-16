@@ -442,7 +442,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             },
             error: (err) => {
                 this.isGeneratingMatches.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل توليد المباريات.');
+                this.uiFeedback.error('فشل توليد الجدول', err.error?.message || 'تعذّر توليد المباريات. يرجى المحاولة مرة أخرى.');
             }
         });
     }
@@ -531,7 +531,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حذف البطولة');
+                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف البطولة. يرجى المحاولة مرة أخرى.');
                         this.cdr.detectChanges();
                     }
                 });
@@ -556,8 +556,8 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 },
                 error: (err: any) => {
                     this.isLoading.set(false);
-                    const msg = err.error?.message || 'خطأ غير معروف';
-                    this.uiFeedback.error('خطأ', 'فشل فتح التسجيل: ' + msg);
+                    const msg = err.error?.message || 'تعذّر فتح باب التسجيل. يرجى المحاولة مرة أخرى.';
+                    this.uiFeedback.error('فشل فتح التسجيل', msg);
                     this.cdr.detectChanges();
                 }
             });
@@ -571,7 +571,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 },
                 error: (err) => {
                     this.isLoading.set(false);
-                    this.uiFeedback.error('خطأ', 'فشل إغلاق التسجيل: ' + (err.error?.message || 'خطأ غير معروف'));
+                        this.uiFeedback.error('فشل إغلاق التسجيل', err.error?.message || 'تعذّر إغلاق باب التسجيل. يرجى المحاولة مرة أخرى.');
                     this.cdr.detectChanges();
                 }
             });
@@ -586,7 +586,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 },
                 error: (err) => {
                     this.isLoading.set(false);
-                    this.uiFeedback.error('خطأ', 'فشل تغيير حالة البطولة: ' + (err.error?.message || 'خطأ غير معروف'));
+                        this.uiFeedback.error('فشل تغيير الحالة', err.error?.message || 'تعذّر تغيير حالة البطولة. يرجى المحاولة مرة أخرى.');
                     this.cdr.detectChanges();
                 }
             });
@@ -609,14 +609,14 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     next: (updatedTournament) => {
                         this.tournamentStore.updateTournament(updatedTournament);
                         this.isLoading.set(false);
-                        this.uiFeedback.success('تم بنجاح', 'تم بدء锦标赛 بنجاح');
+                        this.uiFeedback.success('تم بنجاح', 'تم بدء البطولة بنجاح');
                         this.cdr.detectChanges();
                         // Refresh matches
                         this.loadInitialData(t.id);
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل بدء');
+                        this.uiFeedback.error('فشل بدء البطولة', err.error?.message || 'تعذّر بدء البطولة. يرجى التأكد من استيفاء جميع الشروط والمحاولة مرة أخرى.');
                         this.cdr.detectChanges();
                     }
                 });
@@ -654,7 +654,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل إقصاء الفريق');
+                        this.uiFeedback.error('فشل الإقصاء', err.error?.message || 'تعذّر إقصاء الفريق. يرجى المحاولة مرة أخرى.');
                         this.cdr.detectChanges();
                     }
                 });
@@ -697,7 +697,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل البدء الطارئ');
+                        this.uiFeedback.error('فشل البدء الطارئ', err.error?.message || 'تعذّر تنفيذ البدء الطارئ. يرجى المحاولة مرة أخرى.');
                         this.cdr.detectChanges();
                     }
                 });
@@ -726,7 +726,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل الإنهاء الطارئ');
+                        this.uiFeedback.error('فشل الإنهاء الطارئ', err.error?.message || 'تعذّر تنفيذ الإنهاء الطارئ. يرجى المحاولة مرة أخرى.');
                         this.cdr.detectChanges();
                     }
                 });
@@ -795,7 +795,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
             error: (err) => {
                 this.isOpeningMatchModalVisible = false;
                 this.isLoading.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل تحديد مباراة الافتتاح');
+                this.uiFeedback.error('فشل الافتتاحية', err.error?.message || 'تعذّر تحديد مباراة الافتتاح. يرجى المحاولة مرة أخرى.');
                 this.cdr.detectChanges();
             }
         });
@@ -831,7 +831,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 this.uiFeedback.success('تم التأكيد', `تم تأكيد تسجيل فريق ${reg.teamName} بنجاح`);
                 this.loadInitialData(t.id);
             },
-            error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل تأكيد التسجيل')
+            error: (err) => this.uiFeedback.error('فشل التأكيد', err.error?.message || 'تعذّر تأكيد تسجيل الفريق. يرجى المحاولة مرة أخرى.')
         });
     }
 
@@ -856,7 +856,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     },
                     error: (err) => {
                         this.isLoading.set(false);
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الجدول');
+                        this.uiFeedback.error('فشل حذف الجدول', err.error?.message || 'تعذّر حذف جدول المباريات. يرجى المحاولة مرة أخرى.');
                     }
                 });
             }
@@ -874,7 +874,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                     this.uiFeedback.success('تم الرفض', `تم رفض تسجيل فريق ${reg.teamName}`);
                     this.loadInitialData(t.id);
                 },
-                error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل رفض التسجيل')
+                error: (err) => this.uiFeedback.error('فشل الرفض', err.error?.message || 'تعذّر رفض التسجيل. يرجى المحاولة مرة أخرى.')
             });
         }
     }
@@ -888,7 +888,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                 this.uiFeedback.success('تم الترقية', `تم نقل فريق ${reg.teamName} من قائمة الانتظار للمشاركة`);
                 this.loadInitialData(t.id);
             },
-            error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل ترقية الفريق')
+            error: (err) => this.uiFeedback.error('فشل الترقية', err.error?.message || 'تعذّر نقل الفريق من قائمة الانتظار. يرجى المحاولة مرة أخرى.')
         });
     }
 
@@ -903,7 +903,7 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
                         this.uiFeedback.success('تم الانسحاب', 'تم سحب فريقك من البطولة بنجاح');
                         this.loadInitialData(t.id);
                     },
-                    error: (err) => this.uiFeedback.error('خطأ', err.error?.message || 'فشل الانسحاب')
+                    error: (err) => this.uiFeedback.error('فشل الانسحاب', err.error?.message || 'تعذّر الانسحاب من البطولة. يرجى المحاولة مرة أخرى.')
                 });
             }
         });

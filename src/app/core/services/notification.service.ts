@@ -1,9 +1,8 @@
 import { Injectable, inject, effect } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, catchError, throwError } from 'rxjs';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
-
 
 import { Notification } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
@@ -21,32 +20,37 @@ export class NotificationService {
     private readonly signalRService = inject(SignalRService);
     private readonly authService = inject(AuthService);
     private readonly authStore = inject(AuthStore);
-    private readonly notificationStore = inject(NotificationStore);
+    private readonly store = inject(NotificationStore);
     private readonly realTimeUpdate = inject(RealTimeUpdateService);
     private readonly apiUrl = `${environment.apiUrl}/notifications`;
 
     private joinRequestUpdate$ = new BehaviorSubject<void>(undefined);
+    private removedFromTeam$ = new BehaviorSubject<void>(undefined);
     private listenersBound = false;
     private currentSubscribedRole: string | null = null;
 
     private isConnected = toSignal(this.signalRService.isConnected$, { initialValue: false });
 
-    // Expose store signals directly
-    readonly notifications = this.notificationStore.notifications;
-    readonly unreadCount = this.notificationStore.unreadCount;
+    // ── Expose store signals ──
+    readonly notifications = this.store.notifications;
+    readonly unreadCount = this.store.unreadCount;
+    readonly isLoading = this.store.isLoading;
+    readonly totalPages = this.store.totalPages;
+    readonly currentPage = this.store.currentPage;
+    readonly hasNextPage = this.store.hasNextPage;
+    readonly hasPreviousPage = this.store.hasPreviousPage;
+    readonly isEmpty = this.store.isEmpty;
 
     get joinRequestUpdate(): Observable<void> {
         return this.joinRequestUpdate$.asObservable();
     }
 
-    private removedFromTeam$ = new BehaviorSubject<void>(undefined);
     get removedFromTeamAndRefresh(): Observable<void> {
         return this.removedFromTeam$.asObservable();
     }
 
-
     constructor() {
-        // Reactive subscription management
+        // Sync role subscription when user changes + connection is ready
         effect(() => {
             const user = this.authStore.currentUser();
             const connected = this.isConnected();
@@ -59,11 +63,12 @@ export class NotificationService {
             }
         });
 
-        // Effect for starting/stopping connection
+        // Connect hub + load data when user authenticates
         effect(() => {
             const user = this.authStore.currentUser();
             if (user) {
-                this.loadNotifications(); // Reload on user change
+                this.loadNotifications();
+                this.loadUnreadCount();
                 this.connectHub();
             } else {
                 this.disconnect();
@@ -71,50 +76,96 @@ export class NotificationService {
         });
     }
 
-    private async syncRoleSubscription(role: string): Promise<void> {
-        if (this.currentSubscribedRole === role) return;
+    // ── Data Loading ──
 
-        // If we were subscribed to another role, we could unsubscribe here
-        // but SignalR clean-up on stopAllConnections usually handles this.
+    loadNotifications(page = 1): void {
+        this.store.setLoading(true);
 
-        try {
-            await this.subscribeToRole(role);
-            this.currentSubscribedRole = role;
-            console.warn(`Successfully subscribed to role: ${role}`);
-        } catch (err: unknown) {
-            // Handle expected rejection / timing issue
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
-            const error = err as any;
-            if (error.message && error.message.includes('Unauthorized')) {
-                console.warn(`Transient role subscription failure for ${role}. Will be retried on next auth sync.`);
-            } else {
-                console.error(`Failed to subscribe to role ${role}:`, err);
+        const params = new HttpParams()
+            .set('page', page)
+            .set('pageSize', this.store.pageSize());
+
+        this.http.get<PagedResult<Notification>>(this.apiUrl, { params }).subscribe({
+            next: (paged) => {
+                this.store.setPage(paged.items, paged.totalCount, paged.pageNumber, paged.pageSize);
+            },
+            error: () => {
+                this.store.setError('فشل تحميل الإشعارات');
             }
-        }
+        });
     }
+
+    loadUnreadCount(): void {
+        this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`).subscribe({
+            next: (res) => this.store.setUnreadCount(res.count),
+            error: () => { /* silent — badge just stays stale */ }
+        });
+    }
+
+    loadPage(page: number): void {
+        this.loadNotifications(page);
+    }
+
+    // ── Actions ──
+
+    markAsRead(id: string): Observable<void> {
+        this.store.markAsRead(id);
+
+        return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
+            catchError((error: unknown) => {
+                // Revert
+                const notification = this.store.getNotificationById(id);
+                if (notification) {
+                    this.store.addNotification({ ...notification, isRead: false });
+                }
+                this.loadUnreadCount();
+                return throwError(() => error);
+            })
+        );
+    }
+
+    markAllAsRead(): Observable<void> {
+        const prevCount = this.store.unreadCount();
+        this.store.markAllAsRead();
+
+        return this.http.post<void>(`${this.apiUrl}/read-all`, {}).pipe(
+            catchError((error: unknown) => {
+                this.store.setUnreadCount(prevCount);
+                this.loadNotifications();
+                return throwError(() => error);
+            })
+        );
+    }
+
+    deleteNotification(id: string): Observable<void> {
+        this.store.removeNotification(id);
+
+        return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+            catchError((error: unknown) => {
+                this.loadNotifications();
+                return throwError(() => error);
+            })
+        );
+    }
+
+    // ── SignalR ──
 
     private async connectHub(): Promise<void> {
         this.realTimeUpdate.ensureInitialized();
         const connection = this.signalRService.createConnection('notifications');
+
         if (!this.listenersBound) {
             connection.on('ReceiveNotification', (notification: Notification) => {
-                this.notificationStore.addNotification(notification);
+                this.store.addNotification(notification);
 
-                // Check for removal/deletion keywords in team or system notifications
-                // This handles cases like "Team Deleted" by Admin or "Player Removed"
-                const isRemoval = (notification.type === 'team' || notification.type === 'system') &&
-                    (/remove|delete|kick|ban|left|استبعاد|حذف|طرد|مغادرة/.test(notification.message.toLowerCase()) ||
-                        /remove|delete|kick|ban|left|استبعاد|حذف|طرد|مغادرة/.test(notification.title.toLowerCase()));
-
-                if (isRemoval) {
-                    console.log('Removal notification received:', notification.title);
-                    this.removedFromTeam$.next();
-                } else if (notification.type === 'invite' || notification.type === 'join_request' ||
-                    notification.type === 'invite_accepted' || notification.type === 'invite_rejected' ||
-                    notification.type === 'join_accepted' || notification.type === 'join_rejected' ||
-                    notification.type === 'team') {
-                    // For general team updates or requests, just refresh the team data
-                    this.joinRequestUpdate$.next();
+                // Category-based side effects (replaces old regex matching)
+                if (notification.category === 'team') {
+                    const isRemoval = /إزالة|حذف|طرد|استبعاد/.test(notification.title);
+                    if (isRemoval) {
+                        this.removedFromTeam$.next();
+                    } else {
+                        this.joinRequestUpdate$.next();
+                    }
                 }
             });
 
@@ -125,62 +176,27 @@ export class NotificationService {
     }
 
     private disconnect(): void {
-        this.notificationStore.setNotifications([]);
+        this.store.reset();
     }
 
-    loadNotifications(): void {
-        this.notificationStore.setLoading(true);
-        this.http.get<PagedResult<Notification>>(this.apiUrl).subscribe({
-            next: (paged) => {
-                this.notificationStore.setNotifications(paged.items);
-            },
-            error: (error) => {
-                this.notificationStore.setError('Failed to load notifications');
-                this.notificationStore.setLoading(false);
-                console.error('Error loading notifications:', error);
+    private async syncRoleSubscription(role: string): Promise<void> {
+        if (this.currentSubscribedRole === role) return;
+
+        try {
+            await this.subscribeToRole(role);
+            this.currentSubscribedRole = role;
+        } catch (err: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
+            const error = err as any;
+            if (error.message?.includes('Unauthorized')) {
+                console.warn(`Transient role subscription failure for ${role}.`);
+            } else {
+                console.error(`Failed to subscribe to role ${role}:`, err);
             }
-        });
+        }
     }
 
-    markAsRead(id: string): Observable<void> {
-        // Optimistic update - update store immediately
-        this.notificationStore.markAsRead(id);
-
-        // Send to backend for persistence
-        return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
-            catchError((error: unknown) => {
-                console.error('Error marking notification as read:', error);
-                // Revert optimistic update on error
-                const notification = this.notificationStore.getNotificationById(id);
-                if (notification) {
-                    this.notificationStore.addNotification({ ...notification, isRead: false });
-                }
-                return throwError(() => error);
-            })
-        );
-    }
-
-    markAllAsRead(): Observable<void> {
-        // Optimistic update - update store immediately
-        const unreadNotifications = this.notificationStore.getUnreadNotifications();
-        this.notificationStore.markAllAsRead();
-
-        // Send to backend for persistence
-        return this.http.post<void>(`${this.apiUrl}/read-all`, {}).pipe(
-            catchError((error: unknown) => {
-                console.error('Error marking all notifications as read:', error);
-                // Revert optimistic update on error
-                unreadNotifications.forEach(n => {
-                    this.notificationStore.addNotification({ ...n, isRead: false });
-                });
-                return throwError(() => error);
-            })
-        );
-    }
-
-    // ========================================
-    // Group Management
-    // ========================================
+    // ── Group Management ──
 
     async subscribeToRole(role: string): Promise<void> {
         const connection = this.signalRService.createConnection('notifications');

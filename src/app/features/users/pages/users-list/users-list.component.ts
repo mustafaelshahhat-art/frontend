@@ -249,7 +249,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
                     },
                     error: (err) => {
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إيقاف المستخدم');
+                        this.uiFeedback.error('فشل الإيقاف', err.error?.message || 'تعذّر إيقاف المستخدم. يرجى المحاولة مرة أخرى.');
                     }
                 });
             }
@@ -276,7 +276,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.uiFeedback.success('تم التفعيل', 'تم تفعيل حساب المستخدم بنجاح');
                     },
                     error: (err) => {
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في تفعيل المستخدم');
+                        this.uiFeedback.error('فشل التفعيل', err.error?.message || 'تعذّر تفعيل حساب المستخدم. يرجى المحاولة مرة أخرى.');
                     }
                 });
             }
@@ -302,7 +302,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
                     },
                     error: (err) => {
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل في حذف المستخدم');
+                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف المستخدم. يرجى المحاولة مرة أخرى.');
                     }
                 });
             }
@@ -345,7 +345,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             error: (err) => {
                 this.isCreatingAdmin.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المشرف');
+                this.uiFeedback.error('فشل الإنشاء', err.error?.message || 'تعذّر إنشاء حساب المشرف. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
             }
         });
     }
@@ -386,7 +386,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             error: (err) => {
                 this.isCreatingCreator.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المستخدم');
+                this.uiFeedback.error('فشل الإنشاء', err.error?.message || 'تعذّر إنشاء الحساب. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
             }
         });
     }

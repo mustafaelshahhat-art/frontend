@@ -68,7 +68,7 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.settingsForm.patchValue(settings);
                 },
                 error: (err) => {
-                    this.uiFeedback.error('خطأ', 'فشل تحميل إعدادات النظام');
+                    this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل إعدادات النظام. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
                     console.error('Error loading settings:', err);
                 }
             });

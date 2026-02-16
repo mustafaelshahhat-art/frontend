@@ -321,7 +321,7 @@ export class RealTimeUpdateService {
         const currentUser = this.authService.getCurrentUser();
 
         if (event.type === 'USER_BLOCKED' && currentUser && userId === currentUser.id) {
-            this.uiFeedback.error('Account blocked', 'Your account was blocked by an administrator.');
+            this.uiFeedback.error('تم حظر حسابك', 'تم حظر حسابك بواسطة الإدارة. تواصل مع الدعم الفني إذا كنت تعتقد أن هذا خطأ.');
             setTimeout(() => {
                 this.authService.logout();
             }, 1500);

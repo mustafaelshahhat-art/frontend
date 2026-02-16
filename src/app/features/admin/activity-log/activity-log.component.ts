@@ -4,13 +4,12 @@ import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
-import { AnalyticsService, Activity } from '../../../core/services/analytics.service';
+import { AnalyticsService, Activity, ActivityFilterParams } from '../../../core/services/analytics.service';
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
-import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
 
 @Component({
     selector: 'app-activity-log',
@@ -34,39 +33,62 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly adminLayout = inject(LayoutOrchestratorService);
 
-    logs = signal<Activity[]>([]);
+    // ── Server-side pagination state ──
+    activities = signal<Activity[]>([]);
+    totalCount = signal(0);
+    currentPage = signal(1);
+    readonly pageSize = 20;
     isLoading = signal(true);
     columns: TableColumn[] = [];
 
-    filters = [
-        { label: 'الكل', value: 'all' },
-        { label: 'المستخدمين', value: 'user' },
-        { label: 'الفرق', value: 'team' },
-        { label: 'البطولات', value: 'tournament' },
-        { label: 'المباريات', value: 'match' },
+    // Computed pagination
+    totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
+    hasPreviousPage = computed(() => this.currentPage() > 1);
+    hasNextPage = computed(() => this.currentPage() < this.totalPages());
+    paginationSummary = computed(() => {
+        const total = this.totalCount();
+        const page = this.currentPage();
+        const start = (page - 1) * this.pageSize + 1;
+        const end = Math.min(page * this.pageSize, total);
+        return total > 0 ? `${start}-${end} من ${total}` : '';
+    });
 
-        { label: 'الدفع', value: 'payment' }
+    // ── Entity type filter (English values for API) ──
+    filters = [
+        { label: 'الكل', value: 'all', icon: 'all_inclusive' },
+        { label: 'المستخدمين', value: 'User', icon: 'person' },
+        { label: 'الفرق', value: 'Team', icon: 'groups' },
+        { label: 'البطولات', value: 'Tournament', icon: 'emoji_events' },
+        { label: 'المباريات', value: 'Match', icon: 'sports_soccer' },
+        { label: 'النظام', value: 'System', icon: 'admin_panel_settings' },
+        { label: 'المدفوعات', value: 'Payment', icon: 'payments' }
     ];
     currentFilter = signal('all');
 
-    filteredLogs = computed(() => {
-        const allLogs = this.logs();
-        const filter = this.currentFilter();
-        if (filter === 'all') return allLogs;
-        const f = filter.toLowerCase();
-        return allLogs.filter(log => {
-            const type = (log.type || '').toLowerCase();
-            const status = (log.status || '').toLowerCase();
-            return type.includes(f) || status.includes(f);
-        });
-    });
-
-    // Pagination — slices filteredLogs client-side
-    pager: PaginationSource<Activity> = createClientPagination(this.filteredLogs, { pageSize: 20 });
+    // ── Severity filter ──
+    severityFilters = [
+        { label: 'الكل', value: 'all', icon: 'all_inclusive' },
+        { label: 'معلومات', value: '0', icon: 'info' },
+        { label: 'تحذير', value: '1', icon: 'warning' },
+        { label: 'حرج', value: '2', icon: 'error' }
+    ];
+    currentSeverityFilter = signal('all');
 
     setFilter(value: unknown): void {
         this.currentFilter.set(value as string);
-        this.pager.loadPage(1);
+        this.currentPage.set(1);
+        this.loadLogs();
+    }
+
+    setSeverityFilter(value: unknown): void {
+        this.currentSeverityFilter.set(value as string);
+        this.currentPage.set(1);
+        this.loadLogs();
+    }
+
+    loadPage(page: number): void {
+        this.currentPage.set(page);
+        this.loadLogs();
     }
 
     @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
@@ -74,6 +96,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('actionInfo') actionInfo!: TemplateRef<unknown>;
     @ViewChild('timeInfo') timeInfo!: TemplateRef<unknown>;
     @ViewChild('statusInfo') statusInfo!: TemplateRef<unknown>;
+    @ViewChild('severityInfo') severityInfo!: TemplateRef<unknown>;
 
     ngOnInit(): void {
         this.adminLayout.setTitle('إحصائيات النشاط');
@@ -86,6 +109,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
             { key: 'userName', label: 'المستخدم', template: this.userInfo },
             { key: 'message', label: 'العملية', template: this.actionInfo },
             { key: 'time', label: 'الوقت', template: this.timeInfo },
+            { key: 'severity', label: 'الأهمية', template: this.severityInfo },
             { key: 'type', label: 'التصنيف', template: this.statusInfo }
         ];
 
@@ -104,55 +128,48 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadLogs(): void {
         this.isLoading.set(true);
-        this.analyticsService.getRecentActivities().subscribe({
-            next: (data) => {
-                this.logs.set(data);
+        const params: ActivityFilterParams = {
+            page: this.currentPage(),
+            pageSize: this.pageSize
+        };
+        const entityType = this.currentFilter();
+        if (entityType !== 'all') params.entityType = entityType;
+        const severity = this.currentSeverityFilter();
+        if (severity !== 'all') params.minSeverity = parseInt(severity, 10);
+
+        this.analyticsService.getRecentActivities(params).subscribe({
+            next: (result) => {
+                this.activities.set(result.items);
+                this.totalCount.set(result.totalCount);
                 this.isLoading.set(false);
             },
             error: () => {
-                this.logs.set([]);
+                this.activities.set([]);
+                this.totalCount.set(0);
                 this.isLoading.set(false);
             }
         });
     }
 
     getBadgeType(type: string): 'success' | 'warning' | 'danger' | 'neutral' {
-        const t = (type || '').toLowerCase();
-
-        // Critical / Danger
-        if (t.includes('inactive') || t.includes('disabled') || t.includes('deactivated') ||
-            t.includes('cancelled') || t.includes('removed') || t.includes('deleted') ||
-            t.includes('rejected')) return 'danger';
-
-        // Success
-        if (t.includes('active') || t.includes('activated') || t.includes('approved') ||
-            t.includes('login') || t.includes('registered') || t.includes('created') ||
-            t.includes('payment') || t.includes('started') || t.includes('submitted')) return 'success';
-
-        // Warning
-        if (t.includes('match') || t.includes('score') || t.includes('event') ||
-            t.includes('postponed') || t.includes('rescheduled') || t.includes('updated')) return 'warning';
-
-        return 'neutral';
+        const badgeMap: Record<string, 'success' | 'warning' | 'danger' | 'neutral'> = {
+            'مستخدم': 'success',
+            'فريق': 'neutral',
+            'بطولة': 'warning',
+            'مباراة': 'danger',
+            'إدارة': 'neutral',
+            'دفع': 'success',
+            'زائر': 'neutral',
+            'نظام': 'warning'
+        };
+        return badgeMap[type] ?? 'neutral';
     }
 
-    getStatusLabel(type: string): string {
-        const t = (type || '').toUpperCase(); // Codes are uppercase
-
-        if (t.includes('USER') || t.includes('ADMIN') || t.includes('PASSWORD') || t.includes('AVATAR')) return 'مستخدم';
-        if (t.includes('TEAM')) return 'فريق';
-        if (t.includes('TOURNAMENT')) return 'بطولة';
-        if (t.includes('MATCH')) return 'مباراة';
-
-        if (t.includes('PAYMENT')) return 'دفع';
-
-        // Legacy Fallback (Arabic or lowercase)
-        if (t.includes('مباراة') || t.includes('match')) return 'مباراة';
-        if (t.includes('فريق') || t.includes('team')) return 'فريق';
-        if (t.includes('مستخدم') || t.includes('user')) return 'مستخدم';
-        if (t.includes('بطولة') || t.includes('tournament')) return 'بطولة';
-
-        return type;
+    getSeverityBadge(severity?: string): { type: 'success' | 'warning' | 'danger' | 'neutral'; label: string } {
+        switch (severity) {
+            case 'critical': return { type: 'danger', label: 'حرج' };
+            case 'warning': return { type: 'warning', label: 'تحذير' };
+            default: return { type: 'neutral', label: 'معلومات' };
+        }
     }
 }
-

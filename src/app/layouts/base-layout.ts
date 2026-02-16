@@ -4,7 +4,7 @@ import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/services/auth.service';
 import { AuthStore } from '../core/stores/auth.store';
 import { NotificationService } from '../core/services/notification.service';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LayoutOrchestratorService } from '../core/services/layout-orchestrator.service';
 import { Notification } from '../core/models/tournament.model';
 import { PermissionsService } from '../core/services/permissions.service';
@@ -90,31 +90,14 @@ export abstract class BaseLayout implements OnInit {
     viewNotification(notification: Notification): void {
         this.notificationService.markAsRead(notification.id).subscribe();
         this.showNotifications = false;
+        if (notification.actionUrl) {
+            this.router.navigateByUrl(notification.actionUrl);
+        }
     }
 
     onNavLinkClick(): void {
         if (this.isMobile) {
             this.isSidebarOpen = false;
-        }
-    }
-
-    getTypeColor(type: string): string {
-        switch (type) {
-            case 'info': return 'var(--color-info)';
-            case 'warning': return 'var(--color-warning)';
-            case 'error': return 'var(--color-danger)';
-            case 'success': return 'var(--color-success)';
-            default: return 'var(--text-muted)';
-        }
-    }
-
-    getTypeIcon(type: string): string {
-        switch (type) {
-            case 'info': return 'info';
-            case 'warning': return 'warning';
-            case 'error': return 'error';
-            case 'success': return 'check_circle';
-            default: return 'notifications';
         }
     }
 }

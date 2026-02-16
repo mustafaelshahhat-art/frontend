@@ -1,6 +1,9 @@
 <!-- Filters Template -->
 <ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
+    <div class="flex flex-col gap-2">
+        <app-filter [items]="filters" [activeValue]="currentFilter()" (filterChange)="setFilter($event)" />
+        <app-filter [items]="severityFilters" [activeValue]="currentSeverityFilter()" (filterChange)="setSeverityFilter($event)" />
+    </div>
 </ng-template>
 
 <!-- Main Content -->
@@ -11,28 +14,23 @@
     }
 
     <!-- Empty State (No Logs at all) -->
-    @if (!isLoading() && logs().length === 0) {
-    <app-empty-state icon="history" title="لا توجد سجلات" description="لم يتم تسجيل أي نشاط بعد" />
-    }
-
-    <!-- Empty State (No Logs matching filter) -->
-    @if (!isLoading() && logs().length > 0 && pager.isEmpty()) {
+    @if (!isLoading() && activities().length === 0) {
     <app-empty-state icon="search_off" title="لا توجد نتائج" description="لا توجد سجلات تطابق الفلتر المختار" />
     }
 
     <!-- Table -->
-    @if (!isLoading() && !pager.isEmpty()) {
+    @if (!isLoading() && activities().length > 0) {
     <div class="card p-0 overflow-hidden">
-        <app-table [data]="pager.items()" [columns]="columns" [loading]="isLoading()" />
+        <app-table [data]="activities()" [columns]="columns" [loading]="isLoading()" />
 
         <!-- Pagination -->
         <app-pagination
-            [pageNumber]="pager.pageNumber"
-            [totalPages]="pager.totalPages"
-            [hasPreviousPage]="pager.hasPreviousPage"
-            [hasNextPage]="pager.hasNextPage"
-            [summary]="pager.summary"
-            (pageChange)="pager.loadPage($event)" />
+            [pageNumber]="currentPage"
+            [totalPages]="totalPages"
+            [hasPreviousPage]="hasPreviousPage"
+            [hasNextPage]="hasNextPage"
+            [summary]="paginationSummary"
+            (pageChange)="loadPage($event)" />
     </div>
     }
 </div>
@@ -60,9 +58,16 @@
     </div>
 </ng-template>
 
+<!-- Severity Template -->
+<ng-template #severityInfo let-row="row">
+    <app-badge [type]="getSeverityBadge(row.severity).type">
+        {{ getSeverityBadge(row.severity).label }}
+    </app-badge>
+</ng-template>
+
 <!-- Status Template -->
 <ng-template #statusInfo let-row="row">
-    <app-badge [type]="getBadgeType(row.status || row.type)">
-        {{ getStatusLabel(row.status || row.type) }}
+    <app-badge [type]="getBadgeType(row.type)">
+        {{ row.type }}
     </app-badge>
 </ng-template>

@@ -129,12 +129,12 @@ export class TeamRegistrationModalComponent {
 
     submit(): void {
         if (!this.registerForm.selectedTeamId) {
-            this.uiFeedback.error('خطأ', 'يرجى اختيار الفريق المشارك');
+            this.uiFeedback.error('فريق مطلوب', 'يرجى اختيار الفريق الذي تريد تسجيله في البطولة.');
             return;
         }
 
         if (!this.registerForm.fromNumber || !this.registerForm.transferType || !this.registerForm.receipt) {
-            this.uiFeedback.error('خطأ', 'يرجى تعبئة جميع الحقول المطلوبة');
+            this.uiFeedback.error('بيانات ناقصة', 'يرجى تعبئة جميع الحقول المطلوبة (رقم التحويل، نوع التحويل، إيصال الدفع).');
             return;
         }
 
@@ -143,7 +143,7 @@ export class TeamRegistrationModalComponent {
         // Validation: User must be captain of selected team
         const selectedTeam = this.availableTeams.find(t => t.id === this.registerForm.selectedTeamId);
         if (!selectedTeam) {
-            this.uiFeedback.error('خطأ', 'الفريق المختار غير صالح.');
+            this.uiFeedback.error('فريق غير صالح', 'الفريق المختار غير متاح. يرجى اختيار فريق آخر.');
             return;
         }
 
@@ -158,7 +158,7 @@ export class TeamRegistrationModalComponent {
                     this.uploadPayment(this.registerForm.selectedTeamId);
                 } else {
                     this.isSubmitting = false;
-                    this.uiFeedback.error('خطأ', err.error?.message || 'فشل تقديم طلب التسجيل');
+                    this.uiFeedback.error('فشل التسجيل', err.error?.message || 'تعذّر تقديم طلب التسجيل. يرجى المحاولة مرة أخرى.');
                 }
             }
         });

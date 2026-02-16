@@ -109,7 +109,7 @@ export class MatchEventModalComponent implements OnChanges {
 
     submit(): void {
         if (!this.match || !this.eventForm.playerId) {
-            this.uiFeedback.error('خطأ', 'يرجى اختيار اللاعب');
+            this.uiFeedback.error('لاعب مطلوب', 'يرجى اختيار اللاعب المعني بالحدث.');
             return;
         }
 
@@ -128,7 +128,7 @@ export class MatchEventModalComponent implements OnChanges {
                 this.close();
             },
             error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في إضافة الحدث');
+                this.uiFeedback.error('فشل الإضافة', 'تعذّر إضافة الحدث. يرجى المحاولة مرة أخرى.');
                 this.isSubmitting = false;
             }
         });

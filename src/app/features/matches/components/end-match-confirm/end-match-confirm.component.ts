@@ -52,7 +52,7 @@ export class EndMatchConfirmComponent {
                 });
             },
             error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في إنهاء المباراة');
+                this.uiFeedback.error('فشل إنهاء المباراة', 'تعذّر إنهاء المباراة. يرجى المحاولة مرة أخرى.');
                 this.isSubmitting = false;
             }
         });

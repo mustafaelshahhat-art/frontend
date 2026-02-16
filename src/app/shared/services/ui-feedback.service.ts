@@ -42,10 +42,40 @@ export class UIFeedbackService {
     readonly alerts = this._alerts.asReadonly();
     private alertId = 0;
 
+    /** Track recent alerts for dedup: key → timestamp */
+    private recentAlerts = new Map<string, number>();
+    /** Max visible toasts at once */
+    private readonly MAX_VISIBLE = 5;
+    /** Dedup window in ms — same message within this window is suppressed */
+    private readonly DEDUP_WINDOW = 3000;
+
     showAlert(type: FeedbackType, title: string, message?: string, duration = 5000): number {
+        // Dedup: suppress duplicate toasts within window
+        const dedupKey = `${type}::${title}::${message ?? ''}`;
+        const now = Date.now();
+        const lastShown = this.recentAlerts.get(dedupKey);
+        if (lastShown && (now - lastShown) < this.DEDUP_WINDOW) {
+            return -1; // Suppressed
+        }
+        this.recentAlerts.set(dedupKey, now);
+
+        // Cleanup old dedup entries periodically
+        if (this.recentAlerts.size > 50) {
+            for (const [key, ts] of this.recentAlerts) {
+                if (now - ts > this.DEDUP_WINDOW) this.recentAlerts.delete(key);
+            }
+        }
+
         const id = ++this.alertId;
         const alert: Alert = { id, type, title, message, dismissible: true, duration };
-        this._alerts.update(a => [...a, alert]);
+
+        // Anti-spam: limit visible toasts
+        this._alerts.update(a => {
+            const updated = [...a, alert];
+            return updated.length > this.MAX_VISIBLE 
+                ? updated.slice(updated.length - this.MAX_VISIBLE) 
+                : updated;
+        });
 
         if (duration > 0) {
             timer(duration).subscribe(() => this.dismissAlert(id));

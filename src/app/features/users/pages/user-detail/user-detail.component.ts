@@ -110,7 +110,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
             },
             error: () => {
                 this.isLoading = false;
-                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المستخدم');
+                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات المستخدم. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
                 this.cdr.detectChanges();
             }
         });
@@ -193,7 +193,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
                         this.cdr.detectChanges();
                     },
                     error: () => {
-                        this.uiFeedback.error('خطأ', `فشل في ${action} حساب المستخدم`);
+                        this.uiFeedback.error('فشل التحديث', `تعذّر ${action} حساب المستخدم. يرجى المحاولة مرة أخرى.`);
                     }
                 });
             }

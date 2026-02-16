@@ -143,12 +143,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   onSubmit(): void {
     if (this.form.password() !== this.form.confirmPassword()) {
-      this.uiFeedback.error('خطأ', 'كلمات المرور غير متطابقة');
+      this.uiFeedback.error('كلمة المرور غير متطابقة', 'كلمة المرور وتأكيدها غير متطابقين. يرجى إعادة الإدخال.');
       return;
     }
 
     if (!this.form.idFront() || !this.form.idBack()) {
-      this.uiFeedback.error('خطأ', 'يرجى رفع صور البطاقة');
+      this.uiFeedback.error('بطاقة مطلوبة', 'يرجى رفع صور بطاقة الهوية (الوجه والظهر) لإتمام التسجيل.');
       return;
     }
 

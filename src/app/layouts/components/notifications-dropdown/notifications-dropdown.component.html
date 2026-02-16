@@ -3,14 +3,16 @@
   aria-label="قائمة التنبيهات">
   <div class="notifications-header">
     <h3 class="notifications-title">التنبيهات</h3>
+    @if (unreadCount > 0) {
     <span class="badge badge-primary">{{ unreadCount }} جديدة</span>
+    }
   </div>
   <div class="notifications-list">
     <!-- Empty State -->
     @if (notifications.length === 0) {
     <div class="notification-empty">
       <div class="notification-empty-icon">
-        <app-icon name="notifications_off" class=" icon-sm"></app-icon>
+        <app-icon name="notifications_off" class="icon-sm"></app-icon>
       </div>
       <div class="text-center">
         <p class="text-primary font-bold mb-2">لا توجد تنبيهات</p>
@@ -19,11 +21,12 @@
     </div>
     }
     @for (n of notifications; track n.id) {
-    <div class="notification-item" (click)="handleViewNotification(n)" (keydown.enter)="handleViewNotification(n)"
+    <div class="notification-item" [class.unread]="!n.isRead"
+      (click)="handleViewNotification(n)" (keydown.enter)="handleViewNotification(n)"
       (keydown.space)="$event.preventDefault(); handleViewNotification(n)" tabindex="0" role="option"
       [aria-selected]="!n.isRead">
-      <div class="notification-icon" [class]="'notification-icon-' + n.type">
-        <app-icon [name]=" getTypeIcon(n.type) " class=" icon-sm"></app-icon>
+      <div class="notification-icon" [class]="getTypeClass(n.type)">
+        <app-icon [name]="getCategoryIcon(n.category)" class="icon-sm"></app-icon>
       </div>
       <div class="notification-content">
         <div class="flex-between mb-1">

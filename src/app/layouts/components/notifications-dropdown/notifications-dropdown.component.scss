@@ -105,19 +105,22 @@
     background: var(--color-primary-10);
 
     &[data-notification-type="SUCCESS"],
-    &[data-notification-type="success"] {
+    &[data-notification-type="success"],
+    &.notification-icon-success {
         background: var(--color-primary-10);
         color: var(--color-primary);
     }
 
     &[data-notification-type="WARNING"],
-    &[data-notification-type="warning"] {
+    &[data-notification-type="warning"],
+    &.notification-icon-warning {
         background: var(--color-warning-10);
         color: var(--color-warning);
     }
 
     &[data-notification-type="INFO"],
-    &[data-notification-type="info"] {
+    &[data-notification-type="info"],
+    &.notification-icon-info {
         background: var(--color-info-10);
         color: var(--color-info);
     }
@@ -125,7 +128,8 @@
     &[data-notification-type="ERROR"],
     &[data-notification-type="DANGER"],
     &[data-notification-type="danger"],
-    &[data-notification-type="error"] {
+    &[data-notification-type="error"],
+    &.notification-icon-error {
         background: var(--color-danger-10);
         color: var(--color-danger);
     }

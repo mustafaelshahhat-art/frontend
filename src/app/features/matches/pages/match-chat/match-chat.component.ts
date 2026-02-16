@@ -131,7 +131,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error('Load Match Error:', err);
-                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المباراة');
+                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات المباراة. يرجى تحديث الصفحة.');
                 this.isLoading = false;
                 this.cdr.detectChanges();
             }
@@ -270,7 +270,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
         if (!text?.trim() || !this.matchId) return;
 
         this.chatService.sendMessage(this.matchId, text.trim()).subscribe({
-            error: () => this.uiFeedback.error('خطأ', 'فشل في إرسال الرسالة')
+            error: () => this.uiFeedback.error('فشل الإرسال', 'تعذّر إرسال الرسالة. يرجى المحاولة مرة أخرى.')
         });
     }
 
@@ -369,7 +369,7 @@ export class MatchChatComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error('Schedule Save Error:', err);
-                this.uiFeedback.error('خطأ', 'فشل في حفظ الموعد');
+                this.uiFeedback.error('فشل الحفظ', 'تعذّر حفظ موعد المباراة. يرجى المحاولة مرة أخرى.');
                 this.isSavingSchedule = false;
                 this.cdr.detectChanges();
             }

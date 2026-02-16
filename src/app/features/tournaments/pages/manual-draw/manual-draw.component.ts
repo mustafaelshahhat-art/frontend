@@ -70,7 +70,7 @@ export class ManualDrawComponent implements OnInit {
         this.tournamentService.getTournamentById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (t) => {
                 if (!t) {
-                    this.uiFeedback.error('خطأ', 'البطولة غير موجودة');
+                    this.uiFeedback.error('غير موجودة', 'البطولة غير موجودة أو ربما تم حذفها.');
                     return;
                 }
                 this.tournament.set(t);
@@ -229,7 +229,7 @@ export class ManualDrawComponent implements OnInit {
             },
             error: (err) => {
                 this.isSubmitting.set(false);
-                this.uiFeedback.error('خطأ', err.error?.message || 'فشل في إنشاء المواجهات');
+                this.uiFeedback.error('فشل إنشاء المواجهات', err.error?.message || 'تعذّر إنشاء مواجهات خروج المغلوب. يرجى المحاولة مرة أخرى.');
             }
         });
     }

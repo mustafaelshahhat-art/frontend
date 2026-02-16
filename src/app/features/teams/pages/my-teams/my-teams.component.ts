@@ -640,7 +640,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.teamData.set({ ...current, name: updated.name });
                 this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
             },
-            error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث اسم الفريق')
+            error: () => this.uiFeedback.error('فشل التحديث', 'تعذّر تغيير اسم الفريق. يرجى المحاولة مرة أخرى.')
         });
     }
 

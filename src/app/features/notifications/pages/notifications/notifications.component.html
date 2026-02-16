@@ -1,16 +1,11 @@
-<!-- Filters Template -->
-<ng-template #filtersTemplate>
-    <app-filter [items]="filters" [activeValue]="selectedFilter()" (filterChange)="setFilter($event)" />
-</ng-template>
-
 <!-- Actions Template -->
 <ng-template #actionsTemplate>
     <div class="flex items-center gap-2">
-        @if (unreadCount > 0) {
+        @if (unreadCount() > 0) {
         <app-button variant="outline" size="sm" icon="done_all" (click)="markAllAsRead()">
             تحديد الكل كمقروء
         </app-button>
-        <app-badge type="danger" [pulse]="true">{{ unreadCount }} تنبيه جديد</app-badge>
+        <app-badge type="danger" [pulse]="true">{{ unreadCount() }} تنبيه جديد</app-badge>
         }
     </div>
 </ng-template>
@@ -23,26 +18,36 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && pager.isEmpty()) {
+    @if (isEmpty()) {
     <app-empty-state icon="notifications_off" title="لا توجد تنبيهات"
-        description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا." />
+        description="مركز التنبيهات الخاص بك فارغ حاليا. سنقوم بإبلاغك بأي مستجدات هنا." />
     }
 
     <!-- Notifications List -->
-    @if (!isLoading() && !pager.isEmpty()) {
+    @if (!isLoading() && notifications().length > 0) {
     <div class="notifications-list flex-col gap-md">
-        @for (notif of pager.items(); track notif.id) {
+        @for (notif of notifications(); track notif.id) {
         <app-card class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif)"
             [isClickable]="true">
 
             <div class="notification-content-wrapper">
-                <div class="notif-icon-box" [attr.data-type]="notif.type">
-                    <app-icon [name]=" getIcon(notif.type) " class=" icon-sm"></app-icon>
+                <div class="notif-icon-box" [attr.data-category]="notif.category" [class]="getTypeClass(notif.type)">
+                    <app-icon [name]="getCategoryIcon(notif.category)" class="icon-sm"></app-icon>
                 </div>
                 <div class="notif-details">
                     <div class="notif-header">
-                        <h3>{{ notif.title }}</h3>
-                        <span class="notif-time">{{ notif.createdAt | timeAgo }}</span>
+                        <div class="notif-title-row">
+                            <h3>{{ notif.title }}</h3>
+                            @if (getPriorityLabel(notif.priority); as priorityLabel) {
+                            <app-badge [type]="notif.priority === 'urgent' ? 'danger' : 'warning'">{{ priorityLabel }}</app-badge>
+                            }
+                        </div>
+                        <div class="notif-meta">
+                            <span class="notif-time">{{ notif.createdAt | timeAgo }}</span>
+                            <button type="button" class="notif-delete-btn" (click)="deleteNotification($event, notif)" title="حذف">
+                                <app-icon name="close" class="icon-xs"></app-icon>
+                            </button>
+                        </div>
                     </div>
                     <p>{{ notif.message }}</p>
                 </div>
@@ -51,13 +56,13 @@
         }
     </div>
 
-    <!-- Pagination -->
+    <!-- Server-side Pagination -->
     <app-pagination
-        [pageNumber]="pager.pageNumber"
-        [totalPages]="pager.totalPages"
-        [hasPreviousPage]="pager.hasPreviousPage"
-        [hasNextPage]="pager.hasNextPage"
-        [summary]="pager.summary"
-        (pageChange)="pager.loadPage($event)" />
+        [pageNumber]="currentPage"
+        [totalPages]="totalPages"
+        [hasPreviousPage]="hasPreviousPage"
+        [hasNextPage]="hasNextPage"
+        [summary]="summary"
+        (pageChange)="loadPage($event)" />
     }
 </div>

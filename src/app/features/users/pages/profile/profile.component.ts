@@ -125,7 +125,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             error: () => {
                 this.isLoading.set(false);
-                this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الحساب');
+                this.uiFeedback.error('فشل التحديث', 'تعذّر التحقق من حالة الحساب. يرجى المحاولة مرة أخرى.');
             }
         });
     }
@@ -437,8 +437,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 error: (error) => {
                     console.error('Error updating user:', error);
                     this.isLoading.set(false);
-                    const message = error.error?.message || 'حدث خطأ أثناء تحديث الملف الشخصي';
-                    this.uiFeedback.error('خطأ', message);
+                    const message = error.error?.message || 'تعذّر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.';
+                    this.uiFeedback.error('فشل التحديث', message);
                 }
             });
         } else {
@@ -456,7 +456,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
 
             if (newPassword !== confirmPassword) {
-                this.uiFeedback.error('خطأ', 'كلمة المرور الجديدة غير متطابقة');
+                this.uiFeedback.error('كلمة المرور غير متطابقة', 'كلمة المرور الجديدة وتأكيدها غير متطابقين. يرجى إعادة الإدخال.');
                 return;
             }
 
@@ -469,8 +469,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (error) => {
                     this.isPasswordLoading.set(false);
-                    const message = error.error?.message || 'حدث خطأ أثناء تغيير كلمة المرور';
-                    this.uiFeedback.error('خطأ', message);
+                    const message = error.error?.message || 'تعذّر تغيير كلمة المرور. تأكد من كلمة المرور الحالية وحاول مرة أخرى.';
+                    this.uiFeedback.error('فشل تغيير كلمة المرور', message);
                 }
             });
         }
@@ -490,12 +490,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             const file = files[0];
 
             if (!file.type.startsWith('image/')) {
-                this.uiFeedback.error('خطأ', 'يرجى اختيار ملف صورة صالح');
+                this.uiFeedback.error('صيغة غير مدعومة', 'يرجى اختيار ملف صورة صالح (JPG، PNG، أو GIF).');
                 return;
             }
 
             if (file.size > 2 * 1024 * 1024) {
-                this.uiFeedback.error('خطأ', 'حجم الصورة يجب أن يكون أقل من 2 ميجابايت');
+                this.uiFeedback.error('حجم كبير', 'حجم الصورة يجب أن يكون أقل من 2 ميجابايت. يرجى اختيار صورة أصغر.');
                 return;
             }
 
@@ -511,8 +511,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (error) => {
                     this.isUploadingPicture.set(false);
-                    const message = error.error?.message || 'حدث خطأ أثناء رفع الصورة';
-                    this.uiFeedback.error('خطأ', message);
+                    const message = error.error?.message || 'تعذّر رفع الصورة. يرجى المحاولة مرة أخرى.';
+                    this.uiFeedback.error('فشل رفع الصورة', message);
                 }
             });
         }

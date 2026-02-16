@@ -270,7 +270,7 @@ export class TeamDetailPageComponent implements OnInit {
                         this.goToTeamsList();
                     },
                     error: (err) => {
-                        this.uiFeedback.error('خطأ', err.error?.message || 'فشل حذف الفريق');
+                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف الفريق. يرجى المحاولة مرة أخرى.');
                     }
                 });
             }
@@ -286,7 +286,7 @@ export class TeamDetailPageComponent implements OnInit {
                 this.teamStore.upsertTeam(updated);
                 this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
             },
-            error: () => this.uiFeedback.error('خطأ', 'فشل في تحديث اسم الفريق')
+            error: () => this.uiFeedback.error('فشل التحديث', 'تعذّر تغيير اسم الفريق. يرجى المحاولة مرة أخرى.')
         });
     }
 
@@ -381,7 +381,7 @@ export class TeamDetailPageComponent implements OnInit {
                 this.loadInitialData(t.id);
             },
             error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في تعطيل الفريق');
+                this.uiFeedback.error('فشل التعطيل', 'تعذّر تعطيل الفريق. يرجى المحاولة مرة أخرى.');
             }
         });
     }
@@ -396,7 +396,7 @@ export class TeamDetailPageComponent implements OnInit {
                 this.loadInitialData(t.id);
             },
             error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في تفعيل الفريق');
+                this.uiFeedback.error('فشل التفعيل', 'تعذّر تفعيل الفريق. يرجى المحاولة مرة أخرى.');
             }
         });
     }
@@ -423,7 +423,7 @@ export class TeamDetailPageComponent implements OnInit {
                             this.loadInitialData(t.id);
                         },
                         error: () => {
-                            this.uiFeedback.error('خطأ', 'فشل في إزالة اللاعب');
+                            this.uiFeedback.error('فشل الإزالة', 'تعذّر إزالة اللاعب من الفريق. يرجى المحاولة مرة أخرى.');
                         }
                     });
                 } else {

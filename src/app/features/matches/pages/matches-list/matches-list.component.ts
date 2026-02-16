@@ -158,7 +158,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             error: () => {
                 this.matchStore.setLoading(false);
-                this.uiFeedback.error('خطأ', 'فشل في تحديث حالة الحساب');
+                this.uiFeedback.error('فشل التحديث', 'تعذّر التحقق من حالة الحساب. يرجى المحاولة مرة أخرى.');
                 this.cdr.detectChanges();
             }
         });

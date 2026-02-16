@@ -166,7 +166,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                 }
             },
             error: (err) => {
-                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات البطولة');
+                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات البطولة. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
                 this.navService.navigateTo('tournaments');
             }
         });

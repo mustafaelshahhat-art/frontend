@@ -192,7 +192,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 this.cdr.detectChanges();
             },
             error: () => {
-                this.uiFeedback.error('خطأ', 'فشل في تحميل بيانات المباراة');
+                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات المباراة. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
                 this.isLoading.set(false);
                 this.cdr.detectChanges();
             }
@@ -229,7 +229,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                 this.uiFeedback.success('تم البدء', 'انطلقت المباراة الآن! - الوضع المباشر');
                 this.cdr.detectChanges();
             },
-            error: () => this.uiFeedback.error('خطأ', 'فشل في بدء المباراة')
+            error: () => this.uiFeedback.error('فشل بدء المباراة', 'تعذّر بدء المباراة. يرجى المحاولة مرة أخرى.')
         });
     }
 
@@ -369,7 +369,7 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
                         this.uiFeedback.success('تم الحذف', 'تم حذف الحدث وتحديث البيانات');
                         this.cdr.detectChanges();
                     },
-                    error: () => this.uiFeedback.error('خطأ', 'فشل في حذف الحدث')
+                    error: () => this.uiFeedback.error('فشل الحذف', 'تعذّر حذف الحدث. يرجى المحاولة مرة أخرى.')
                 });
             }
         });
