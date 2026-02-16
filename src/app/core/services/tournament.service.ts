@@ -177,8 +177,8 @@ export class TournamentService {
     getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
         const key = `standings:${tournamentId}:${groupId ?? 'all'}`;
         return this.cachedGet(key, () => {
-            const params: any = {};
-            if (groupId) params.groupId = groupId;
+            let params = new HttpParams().set('pageSize', '200');
+            if (groupId) params = params.set('groupId', groupId.toString());
             return this.http.get<PagedResult<TournamentStanding>>(`${this.apiUrl}/${tournamentId}/standings`, { params }).pipe(
                 map(paged => paged.items)
             );
@@ -187,7 +187,9 @@ export class TournamentService {
 
     getGroups(tournamentId: string): Observable<Group[]> {
         return this.cachedGet(`groups:${tournamentId}`, () =>
-            this.http.get<PagedResult<Group>>(`${this.apiUrl}/${tournamentId}/groups`).pipe(
+            this.http.get<PagedResult<Group>>(`${this.apiUrl}/${tournamentId}/groups`, {
+                params: new HttpParams().set('pageSize', '50')
+            }).pipe(
                 map(paged => paged.items)
             )
         );
