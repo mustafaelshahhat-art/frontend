@@ -61,6 +61,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.systemSettings.getMaintenanceStatus().subscribe({
             next: (status) => {
                 this.isMaintenanceMode.set(status.maintenanceMode);
+            },
+            error: () => {
+                // Silently ignore — login page should always be usable.
+                // If backend is down, user will see an error on actual login attempt.
+                this.isMaintenanceMode.set(false);
             }
         });
     }

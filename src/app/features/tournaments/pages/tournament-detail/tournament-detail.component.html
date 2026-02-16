@@ -1,5 +1,4 @@
 <div class="tournament-detail-page">
-
     <div class="tournament-detail-container">
         <!-- Loading -->
         @if (isLoading()) {
@@ -17,8 +16,8 @@
                 <div class="tournament-main-info">
                     <div class="top-meta">
                         <app-badge
-                            [type]="t.status === TournamentStatus.COMPLETED ? 'gold' : 
-                                   (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' : 
+                            [type]="t.status === TournamentStatus.COMPLETED ? 'gold' :
+                                   (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' :
                                    (t.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION ? 'warning' : 'neutral'))"
                             class="status-badge">
                             <span class="dot"></span>
@@ -67,7 +66,6 @@
                     <div class="banner-actions">
                         <!-- Admin Actions -->
                         <ng-container *appHasPermission="Permission.MANAGE_TOURNAMENTS">
-                            <!-- Edit Tournament Button -->
                             @if (canEditTournament()) {
                             <app-button variant="primary" size="md" shadow="glow" icon="edit"
                                 (click)="editTournament()">
@@ -75,7 +73,6 @@
                             </app-button>
                             }
 
-                            <!-- Start Registration Button -->
                             @if (canStartRegistration()) {
                             <app-button variant="gold" size="md" shadow="glow" icon="rocket_launch"
                                 (click)="toggleStatus()">
@@ -83,14 +80,12 @@
                             </app-button>
                             }
 
-                            <!-- Close Registration Button -->
                             @if (canCloseRegistration()) {
                             <app-button variant="gold" size="md" shadow="glow" icon="lock" (click)="toggleStatus()">
                                 إغلاق التسجيل
                             </app-button>
                             }
 
-                            <!-- Generate Schedule Button (Random Mode) -->
                             @if (canGenerateSchedule()) {
                             <app-button variant="primary" size="md" shadow="glow" icon="schedule"
                                 (click)="generateMatches()" [disabled]="isGeneratingMatches()">
@@ -98,7 +93,6 @@
                             </app-button>
                             }
 
-                            <!-- Generate Matches Button (Emergency Only) -->
                             @if (canGenerateMatches()) {
                             <app-button variant="outline" size="md" icon="warning" class="emergency-action"
                                 (click)="generateMatches()" [disabled]="isGeneratingMatches()">
@@ -106,7 +100,6 @@
                             </app-button>
                             }
 
-                            <!-- Start Tournament Button -->
                             @if (canStartTournament()) {
                             <app-button variant="primary" size="md" shadow="glow" icon="play_arrow"
                                 (click)="startTournament()">
@@ -114,7 +107,6 @@
                             </app-button>
                             }
 
-                            <!-- Manual Draw Button -->
                             @if (canManageDraw() && isManualMode() && tournamentMatches().length === 0) {
                             <app-button variant="gold" size="md" shadow="glow" icon="edit_calendar"
                                 (click)="startManualDraw()">
@@ -123,9 +115,6 @@
                             </app-button>
                             }
 
-
-
-                            <!-- Select Opening Match (Pre-Draw) -->
                             @if (canSelectOpeningMatch()) {
                             <app-button [variant]="(t.openingTeamAId || t.openingMatchHomeTeamId) ? 'gold' : 'primary'"
                                 size="md" shadow="glow" icon="star" (click)="selectOpeningMatch()">
@@ -134,7 +123,14 @@
                             </app-button>
                             }
 
-                            <!-- Delete Tournament Button -->
+                            <!-- Reset Schedule -->
+                            @if (canResetSchedule()) {
+                            <app-button variant="outline" size="md" icon="restart_alt"
+                                (click)="resetSchedule()">
+                                إعادة تعيين الجدولة
+                            </app-button>
+                            }
+
                             <app-button variant="ghost" size="md" icon="delete" class="text-danger"
                                 (click)="deleteTournament()">
                                 حذف البطولة
@@ -143,8 +139,7 @@
                             <!-- Emergency Overrides -->
                             @if (t.requiresAdminIntervention) {
                             @if ((t.status === TournamentStatus.REGISTRATION_CLOSED || t.status ===
-                            TournamentStatus.DRAFT)
-                            && tournamentMatches().length > 0) {
+                            TournamentStatus.DRAFT) && tournamentMatches().length > 0) {
                             <app-button variant="outline" size="md" icon="warning" class="emergency-action"
                                 (click)="emergencyStart()">
                                 ⚠️ بدء طوارئ (Admin Override)
@@ -176,22 +171,20 @@
                                 <div class="registration-status-wrapper">
                                     <div class="registration-status-info">
                                         <app-icon name="check_circle" class="text-success icon-sm"></app-icon>
-                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration()?.status || '')
-                                            }})</span>
+                                        <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration()?.status || '') }})</span>
 
                                         @if (t.status === TournamentStatus.REGISTRATION_OPEN || t.status ===
                                         TournamentStatus.REGISTRATION_CLOSED) {
                                         <app-button variant="ghost" size="sm" class="text-danger"
-                                            (click)="withdrawTeam(myRegistration()!)">
+                                            (click)="withdrawTeam()">
                                             انسحاب
                                         </app-button>
                                         }
                                     </div>
 
-                                    <!-- Temporary Registration Banner -->
                                     @if (myRegistration()?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
                                     <div class="review-banner animate-pulse-subtle">
-                                        <app-icon name="info" class=" icon-sm"></app-icon>
+                                        <app-icon name="info" class="icon-sm"></app-icon>
                                         <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
                                     </div>
                                     }
@@ -200,11 +193,10 @@
 
                                 @if (isUserPending()) {
                                 <p class="pending-hint">
-                                    <app-icon name="info" class=" icon-sm"></app-icon>
+                                    <app-icon name="info" class="icon-sm"></app-icon>
                                     يجب تفعيل حسابك لتتمكن من التسجيل
                                 </p>
                                 }
-
                             </div>
                             }
                         </div>
@@ -222,7 +214,7 @@
                             </svg>
                         </div>
                         <div class="stat-pill">
-                            <app-icon name="sports_soccer" class=" icon-sm"></app-icon>
+                            <app-icon name="sports_soccer" class="icon-sm"></app-icon>
                             <span class="value">{{ tournamentMatches().length }}</span>
                             <span class="label">مباراة</span>
                         </div>
@@ -231,291 +223,44 @@
             </div>
         </app-card>
 
-        <!-- Navigation Tabs -->
+        <!-- ─── Sticky Navigation Filter ─── -->
         <app-filter [items]="tabs()" [activeValue]="activeTab()" (filterChange)="onTabChange($event)"
             class="tab-filter" />
 
-        <!-- Navigation Tabs Content -->
+        <!-- ─── Tab Content (conditional render based on mode) ─── -->
         <div class="tab-content">
             @switch (activeTab()) {
-            @case ('info') {
-            <div class="info-grid">
-                <app-card class="scorers-card">
-                    <div class="card-header-premium">
-                        <app-icon name="star" class=" icon-sm"></app-icon>
-                        <h3>هدافو البطولة</h3>
-                    </div>
-                    <div class="scorers-list">
-                        @for (s of scorers(); track s.teamId; let i = $index) {
-                        <div class="scorer-item">
-                            <span class="rank">{{ i + 1 }}</span>
-                            <div class="info items-start">
-                                <span class="name">{{ s.name }}</span>
-                                <span class="team">{{ s.team }}</span>
-                            </div>
-                            <div class="goals-badge">
-                                <span class="value">{{ s.goals }}</span>
-                                <span class="label">أهداف</span>
-                            </div>
-                        </div>
-                        } @empty {
-                        <app-empty-state icon="sports_soccer" title="لا يوجد هدافين"
-                            description="لم يتم تسجيل أي أهداف في هذه البطولة حتى الآن." />
-                        }
-                    </div>
-                </app-card>
-
-                <app-card class="rules-card">
-                    <div class="card-header-premium">
-                        <app-icon name="gavel" class=" icon-sm"></app-icon>
-                        <h3>قواعد البطولة</h3>
-                    </div>
-                    <div class="rules-list">
-                        @for (rule of rulesList(); track rule) {
-                        <div class="rule-item">
-                            <app-icon name="check_circle" class="check icon-sm"></app-icon>
-                            <p>{{ rule }}</p>
-                        </div>
-                        } @empty {
-                        <app-empty-state icon="gavel" title="لا يوجد قواعد"
-                            description="لم يتم تحدد قواعد خاصة لهذه البطولة بعد." />
-                        }
-                    </div>
-                </app-card>
-
-                <app-card class="prizes-card">
-                    <div class="card-header-premium">
-                        <app-icon name="workspace_premium" class=" icon-sm"></app-icon>
-                        <h3>جوائز البطولة</h3>
-                    </div>
-                    <div class="prizes-content">
-                        @if (t.prizes) {
-                        <p class="prizes-text">
-                            {{ t.prizes }}
-                        </p>
-                        } @else {
-                        <app-empty-state icon="military_tech" title="لا يوجد جوائز"
-                            description="لم يتم تحديد الجوائز لهذه البطولة بعد." />
-                        }
-                    </div>
-                </app-card>
-            </div>
-            }
-
-            @case ('standings') {
-            <div class="standings-wrapper">
-                @if (groups().length > 0) {
-                <app-filter [items]="groups()" [activeValue]="activeGroup()" valueKey="id" labelKey="name"
-                    (filterChange)="onGroupChange($event)" class="group-filter mb-4" />
+                @case ('info') {
+                    <app-info-tab />
                 }
-
-                <!-- Desktop Table -->
-                <div class="desktop-only">
-                    <ng-template #rankTemplate let-row>
-                        <div class="rank-cell">
-                            @if (t.winnerTeamId === row.teamId) {
-                            <app-icon name="military_tech" class="winner-icon icon-sm"></app-icon>
-                            }
-                            {{ row.rank }}
-                        </div>
-                    </ng-template>
-
-                    <ng-template #teamTemplate let-row>
-                        <div class="flex items-center gap-2">
-                            <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
-                                [initials]="row.teamName.charAt(0)" />
-                            <span>{{ row.teamName }}</span>
-                        </div>
-                    </ng-template>
-
-                    <ng-template #formTemplate let-row>
-                        <div class="form-dots-container">
-                            @for (r of row.form; track $index) {
-                            <span class="form-dot"
-                                [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')">{{ r }}</span>
-                            }
-                        </div>
-                    </ng-template>
-
-                    <app-table [columns]="tableColumns" [data]="groupedStandings()" [loading]="isLoading()" />
-                </div>
-
-                <!-- Mobile Shared Grid Design -->
-                <div class="mobile-data-grid">
-                    @for (s of groupedStandings(); track s.teamId; let i = $index) {
-                    <div class="mobile-data-card" [class.is-winner]="t.winnerTeamId === s.teamId">
-                        <div class="card-mobile-header">
-                            <div class="title-group items-center">
-                                <div class="rank-badge items-center justify-center">
-                                    @if (t.winnerTeamId === s.teamId) {
-                                    <app-icon name="military_tech" class=" icon-sm"></app-icon>
-                                    }
-                                    {{ i + 1 }}
-                                </div>
-                                <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                    [initials]="s.teamName.charAt(0)" />
-                                <h4>{{ s.teamName }}</h4>
-                            </div>
-                            <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">
-                                {{ s.points }} نقطة
-                            </app-badge>
-                        </div>
-
-                        <div class="card-mobile-stats">
-                            <div class="stat-box"><span class="label">لعب</span><span class="value">{{ s.played
-                                    }}</span></div>
-                            <div class="stat-box highlight"><span class="label">فاز</span><span class="value">{{ s.won
-                                    }}</span></div>
-                            <div class="stat-box"><span class="label">تعادل</span><span class="value">{{ s.drawn
-                                    }}</span></div>
-                            <div class="stat-box"><span class="label">خسر</span><span class="value">{{ s.lost }}</span>
-                            </div>
-                            <div class="stat-box"><span class="label">له</span><span class="value">{{ s.goalsFor
-                                    }}</span>
-                            </div>
-                            <div class="stat-box"><span class="label">عليه</span><span class="value">{{ s.goalsAgainst
-                                    }}</span>
-                            </div>
-                            <div class="stat-box"><span class="label">+/-</span><span class="value">{{ s.goalDifference
-                                    }}</span>
-                            </div>
-                            <div class="stat-box highlight"><span class="label">نقاط</span><span class="value">{{
-                                    s.points }}</span></div>
-                        </div>
-
-                        <div class="card-mobile-footer">
-                            <span class="footer-label">آخر 5 مباريات:</span>
-                            <div class="footer-content">
-                                @for (r of s.form; track $index) {
-                                <span class="form-dot"
-                                    [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')">{{ r }}</span>
-                                }
-                            </div>
-                        </div>
-                    </div>
+                @case ('standings') {
+                    @if (showStandings()) {
+                        <app-standings-tab />
                     }
-                </div>
-            </div>
-            }
-
-            @case ('bracket') {
-            <app-knockout-bracket [rounds]="liveBracket()?.rounds || []"></app-knockout-bracket>
-            }
-
-            @case ('matches') {
-            <div>
-                @if (tournamentMatches().length > 0) {
-                <div class="matches-grid">
-                    @for (match of tournamentMatches(); track match.id) {
-                    <app-match-card (click)="viewMatch(match.id)" class="clickable-match-card" [match]="match">
-
-                        <div class="match-card-actions" actions>
-                            <!-- Admin Actions -->
-                            <app-button *appHasPermission="Permission.MANAGE_MATCHES"
-                                (click)="$event.stopPropagation(); updateScore(match)" size="sm" variant="outline"
-                                icon="scoreboard">
-                                تحديث النتيجة
-                            </app-button>
-
-                            <!-- Captain/Player Actions -->
-                            <div class="player-actions">
-                                <button class="action-btn details-btn items-center justify-center"
-                                    (click)="$event.stopPropagation(); viewMatch(match.id)">
-                                    <app-icon name="info" class=" icon-sm"></app-icon>
-                                    <span>التفاصيل</span>
-                                </button>
-
-                                <!-- Chat Button (for non-finished, non-cancelled matches) -->
-                                @if (match.status !== MatchStatus.FINISHED && match.status !==
-                                MatchStatus.CANCELLED) {
-                                <button class="action-btn chat-btn items-center justify-center"
-                                    [class.chat-live]="match.status === MatchStatus.LIVE"
-                                    (click)="$event.stopPropagation(); openChat(match.id)">
-                                    <app-icon [name]=" match.status === MatchStatus.LIVE ?
-                                        'forum' : 'chat' " class=" icon-sm"></app-icon>
-                                    <span>{{ match.status === MatchStatus.LIVE ? 'المحادثة المباشرة' : 'المحادثة'
-                                        }}</span>
-                                </button>
-                                }
-                            </div>
-                        </div>
-                    </app-match-card>
+                }
+                @case ('bracket') {
+                    @if (showBracket()) {
+                        <app-bracket-tab />
                     }
-                </div>
-                } @else {
-                <app-empty-state icon="event_busy" title="لا توجد مباريات"
-                    description="لم يتم جدولة أي مباريات لهذه البطولة حتى الآن." />
                 }
-            </div>
-            }
-
-            @case ('teams') {
-            <div class="teams-grid">
-                @for (reg of t.registrations; track reg.teamId) {
-                <div class="team-card">
-                    <div class="team-logo items-center justify-center">
-                        <app-smart-image [src]="reg.teamLogoUrl" type="team" size="sm"
-                            [initials]="reg.teamName.charAt(0)" />
-                    </div>
-                    <div class="team-info">
-                        <h3>{{ reg.teamName }}</h3>
-                        <div class="captain-info items-center">
-                            <app-icon name="person" class=" icon-sm"></app-icon>
-                            <span>{{ reg.captainName }}</span>
-                        </div>
-                    </div>
-                    <div class="team-footer">
-                        <div class="flex-col gap-1 items-start">
-                            <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
-                            <app-badge [type]="getRegStatusType(reg.status)" size="sm">
-                                {{ getRegStatusLabel(reg.status) }}
-                            </app-badge>
-                        </div>
-
-                        <!-- Admin Actions -->
-                        <div *appHasPermission="Permission.MANAGE_TOURNAMENTS" class="admin-team-actions flex gap-1">
-                            @if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
-                            <app-button variant="outline" size="sm" icon="check"
-                                (click)="approveRegistration(reg)">قبول</app-button>
-                            <app-button variant="danger" size="sm" icon="close"
-                                (click)="rejectRegistration(reg)">رفض</app-button>
-                            }
-
-                            @if (reg.status === RegistrationStatus.WAITING_LIST && t.currentTeams < t.maxTeams) {
-                                <app-button variant="primary" size="sm" icon="upgrade" (click)="promoteTeam(reg)">
-                                ترقية</app-button>
-                                }
-
-                                @if (t.status !== TournamentStatus.COMPLETED && reg.status !==
-                                RegistrationStatus.ELIMINATED &&
-                                reg.status === RegistrationStatus.APPROVED) {
-                                <app-button variant="ghost" size="sm" icon="person_remove" class="text-danger"
-                                    (click)="$event.stopPropagation(); eliminateTeam(reg.teamId, reg.teamName)"
-                                    title="إقصاء الفريق">
-                                    إقصاء
-                                </app-button>
-                                }
-                        </div>
-                    </div>
-                </div>
-                } @empty {
-                <app-empty-state icon="groups" title="لا يوجد فرق"
-                    description="لم يتم تسجيل أي فرق في هذه البطولة حالياً." />
+                @case ('matches') {
+                    <app-matches-tab />
                 }
-            </div>
-            }
+                @case ('teams') {
+                    <app-teams-tab />
+                }
             }
         </div>
         }
     </div>
 </div>
 
-<!-- Registration Modal (Shared) -->
-<app-team-registration-modal [tournament]="tournament()!" [isVisible]="isRegisterModalVisible"
+<!-- Registration Modal -->
+<app-team-registration-modal [tournament]="tournament()!" [isVisible]="isRegisterModalVisible()"
     (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()" />
 
-<!-- Opening Match Selection Modal -->
-@if(canSelectOpeningMatch() && tournament()) {
-<app-opening-match-modal [tournament]="tournament()!" [isVisible]="isOpeningMatchModalVisible"
+<!-- Opening Match Modal -->
+@if (canSelectOpeningMatch() && tournament()) {
+<app-opening-match-modal [tournament]="tournament()!" [isVisible]="isOpeningMatchModalVisible()"
     (close)="closeOpeningMatchModal()" (submit)="onOpeningMatchSelected($event)" />
 }

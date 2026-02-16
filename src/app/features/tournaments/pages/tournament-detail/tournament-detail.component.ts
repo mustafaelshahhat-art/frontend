@@ -1,86 +1,102 @@
-import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, signal, computed, ChangeDetectionStrategy, OnDestroy, HostBinding, DestroyRef } from '@angular/core';
+import {
+    Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy,
+    HostBinding, DestroyRef, signal, computed
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
+
+// Core
+import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { TournamentStatus, Match, MatchStatus, RegistrationStatus, TeamRegistration, Group, BracketDto, TournamentFormat, BracketRound, TournamentStanding, MatchEventType, SchedulingMode } from '../../../../core/models/tournament.model';
-import { UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { MatchStore } from '../../../../core/stores/match.store';
 import { Permission } from '../../../../core/permissions/permissions.model';
-import { PermissionsService } from '../../../../core/services/permissions.service';
-import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import {
+    TournamentStatus, MatchStatus, RegistrationStatus,
+    SchedulingMode, TournamentFormat, Match, MatchEventType
+} from '../../../../core/models/tournament.model';
+import { UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
+
+// Store (component-scoped)
+import { TournamentDetailStore, DetailTab } from '../../stores/tournament-detail.store';
+
+// Shared UI
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { MatchCardComponent } from '../../../../shared/components/match-card/match-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
+
+// Modals
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
 import { OpeningMatchModalComponent } from '../../components/opening-match-modal/opening-match-modal.component';
-import { KnockoutBracketComponent } from '../../components/knockout-bracket/knockout-bracket.component';
-import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
-// PERF-FIX F4: Extracted tournament status helpers into reusable utils
+
+// Tab components
+import { InfoTabComponent } from '../../tabs/info-tab/info-tab.component';
+import { StandingsTabComponent } from '../../tabs/standings-tab/standings-tab.component';
+import { MatchesTabComponent } from '../../tabs/matches-tab/matches-tab.component';
+import { BracketTabComponent } from '../../tabs/bracket-tab/bracket-tab.component';
+import { TeamsTabComponent } from '../../tabs/teams-tab/teams-tab.component';
+
+// Utils
 import { getTournamentStatusLabel, getRegStatusLabel as _regStatusLabel, getRegStatusType as _regStatusType } from '../../utils/tournament-status.utils';
-import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
-import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
-import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-tournament-detail',
     standalone: true,
-    imports: [IconComponent,
-        CommonModule,
-        RouterModule,
-        FormsModule,
-        FilterComponent,
-        CardComponent,
-        BadgeComponent,
-        ButtonComponent,
-        MatchCardComponent,
-        EmptyStateComponent,
-        SmartImageComponent,
-        TeamRegistrationModalComponent,
-        OpeningMatchModalComponent,
-        TableComponent,
-        KnockoutBracketComponent,
-        HasPermissionDirective
+    imports: [
+        CommonModule, RouterModule, FormsModule,
+        FilterComponent, CardComponent, BadgeComponent, ButtonComponent,
+        EmptyStateComponent, SmartImageComponent, IconComponent,
+        HasPermissionDirective,
+        TeamRegistrationModalComponent, OpeningMatchModalComponent,
+        // Tab components (lightweight — each is OnPush standalone)
+        InfoTabComponent,
+        StandingsTabComponent,
+        MatchesTabComponent,
+        BracketTabComponent,
+        TeamsTabComponent,
     ],
+    providers: [TournamentDetailStore],
     templateUrl: './tournament-detail.component.html',
     styleUrls: ['./tournament-detail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestroy {
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
-    private tournamentService = inject(TournamentService);
-    private matchService = inject(MatchService);
-    private authService = inject(AuthService);
-    private permissionsService = inject(PermissionsService);
-    private uiFeedback = inject(UIFeedbackService);
-    private cdr = inject(ChangeDetectorRef);
-    private tournamentStore: TournamentStore = inject(TournamentStore);
-    private matchStore: MatchStore = inject(MatchStore);
-    private layoutOrchestrator = inject(LayoutOrchestratorService);
-    private navService = inject(ContextNavigationService);
-    private destroyRef = inject(DestroyRef);
+export class TournamentDetailComponent implements OnInit, OnDestroy {
+    // ── Injections ──
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly tournamentService = inject(TournamentService);
+    private readonly matchService = inject(MatchService);
+    private readonly authService = inject(AuthService);
+    private readonly permissionsService = inject(PermissionsService);
+    private readonly uiFeedback = inject(UIFeedbackService);
+    private readonly tournamentStore = inject(TournamentStore);
+    private readonly matchStore = inject(MatchStore);
+    private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
+    private readonly navService = inject(ContextNavigationService);
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly sanitizer = inject(DomSanitizer);
 
+    /** Component-scoped store — injected into all tab children */
+    readonly store = inject(TournamentDetailStore);
+
+    // ── Enums exposed to template ──
     Permission = Permission;
-    private sanitizer = inject(DomSanitizer);
-
-    // Expose Enums to template
     TournamentStatus = TournamentStatus;
     MatchStatus = MatchStatus;
     RegistrationStatus = RegistrationStatus;
-    MatchEventType = MatchEventType;
     SchedulingMode = SchedulingMode;
 
     @HostBinding('style.--progress-val')
@@ -88,399 +104,105 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         return this.sanitizer.bypassSecurityTrustStyle(this.getProgressPercent().toString());
     }
 
-    @ViewChild('rankTemplate') rankTemplate!: TemplateRef<unknown>;
-    @ViewChild('teamTemplate') teamTemplate!: TemplateRef<unknown>;
-    @ViewChild('formTemplate') formTemplate!: TemplateRef<unknown>;
+    // ── Local UI signals ──
+    isGeneratingMatches = signal(false);
+    isRegisterModalVisible = signal(false);
+    isOpeningMatchModalVisible = signal(false);
 
-    // Signals
-    tournamentId = signal<string | null>(null);
-    isLoading = signal<boolean>(true);
-    groups = signal<Group[]>([]);
-    bracket = signal<BracketDto | null>(null);
-    activeGroup = signal<number | null>(null);
-    teamGroupMap = signal<Map<string, number>>(new Map());
+    // ── Delegated computeds (just aliases into the store) ──
+    get tournament() { return this.store.tournament; }
+    get isLoading() { return this.store.isLoading; }
+    get activeTab() { return this.store.activeTab; }
+    get tabs() { return this.store.tabs; }
+    get tournamentMatches() { return this.store.tournamentMatches; }
+    get myRegistration() { return this.store.myRegistration; }
+    get isRegistered() { return this.store.isRegistered; }
+    get isCaptain() { return this.store.isCaptain; }
+    get canEditTournament() { return this.store.canEditTournament; }
+    get canStartRegistration() { return this.store.canStartRegistration; }
+    get canCloseRegistration() { return this.store.canCloseRegistration; }
+    get canGenerateMatches() { return this.store.canGenerateMatches; }
+    get canStartTournament() { return this.store.canStartTournament; }
+    get canManageDraw() { return this.store.canManageDraw; }
+    get canResetSchedule() { return this.store.canResetSchedule; }
+    get canSelectOpeningMatch() { return this.store.canSelectOpeningMatch; }
+    get isManualMode() { return this.store.isManualMode; }
+    get showStandings() { return this.store.showStandings; }
+    get showBracket() { return this.store.showBracket; }
 
-    // UI State Signals
-    activeTab = signal<string>('info');
-    activeMatch = signal<Match | null>(null);
-    isGeneratingMatches = signal<boolean>(false);
+    isUserPending = computed(() => this.authService.getCurrentUser()?.status === UserStatus.PENDING);
 
-    // Additional Properties
+    canGenerateSchedule = computed(() => false); // Replaced by automated flow
 
-    standings = signal<TournamentStanding[]>([]);
-
-    // Computed
-    tournament = computed(() => this.tournamentStore.getTournamentById(this.tournamentId() || '') ?? null);
-    tournamentMatches = computed(() => this.matchStore.getMatchesByTournament(this.tournamentId() || ''));
-
-    liveBracket = computed(() => {
-        const raw = this.bracket();
-        if (!raw) return null;
-
-        // Merge live match data from MatchStore to ensure real-time score updates in the bracket
-        const updatedRounds = raw.rounds.map(round => ({
-            ...round,
-            matches: round.matches.map(match => this.matchStore.getMatchById(match.id) ?? match)
-        }));
-
-        return { ...raw, rounds: updatedRounds };
-    });
-
-    // Derived Computeds
-    rulesList = computed(() => {
-        const rules = this.tournament()?.rules;
-        return rules ? rules.split('\n').filter(r => r.trim().length > 0) : [];
-    });
-
-    scorers = computed(() => {
-        const matches = this.tournamentMatches();
-        const scorerMap = new Map<string, { name: string, team: string, goals: number, teamId: string }>();
-
-        matches.forEach(m => {
-            // Process goals from both sources to ensure we capture all data
-            const goalsSource = [...(m.goals || [])];
-
-            // Add goals from events if they're not already in goals (backend often sends events)
-            if (m.events) {
-                m.events
-                    .filter(e => (e.type as any) === 'Goal' || e.type === MatchEventType.GOAL)
-                    .forEach(e => {
-                        if (e.playerId && !goalsSource.some(g => g.playerId === e.playerId && g.minute === e.minute)) {
-                            goalsSource.push({
-                                playerId: e.playerId,
-                                playerName: e.playerName || 'لاعب مجهول',
-                                teamId: e.teamId,
-                                minute: e.minute
-                            });
-                        }
-                    });
-            }
-
-            goalsSource.forEach(g => {
-                const key = g.playerId;
-                if (!scorerMap.has(key)) {
-                    scorerMap.set(key, {
-                        name: g.playerName,
-                        team: m.homeTeamId === g.teamId ? m.homeTeamName : m.awayTeamName,
-                        goals: 0,
-                        teamId: g.teamId
-                    });
-                }
-                scorerMap.get(key)!.goals++;
-            });
-        });
-
-        return Array.from(scorerMap.values())
-            .sort((a, b) => b.goals - a.goals)
-            .slice(0, 10); // Show top 10 instead of 5
-    });
-
-    canGenerateMatches = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
-            t?.requiresAdminIntervention &&
-            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
-            matches.length === 0 &&
-            t?.schedulingMode === SchedulingMode.Manual; // Only show for Manual mode, not Random
-    });
-
-    canEditTournament = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            (t?.status === TournamentStatus.DRAFT || t?.status === TournamentStatus.REGISTRATION_OPEN) &&
-            matches.length === 0;
-    });
-
-    canStartRegistration = computed(() => {
-        const t = this.tournament();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            t?.status === TournamentStatus.DRAFT;
-    });
-
-    canGenerateKnockout = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
-            t?.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION &&
-            matches.some(m => !m.groupId); // Some knockout matches might already exist if we clicked generate once.
-    });
-
-    canManageDraw = computed(() => {
-        const t = this.tournament();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE);
-    });
-
-    canCloseRegistration = computed(() => {
-        const t = this.tournament();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            t?.status === TournamentStatus.REGISTRATION_OPEN;
-    });
-
-    canGenerateSchedule = computed(() => {
-        return false; // Replaced by automated flow via setOpeningMatch
-    });
-
-    canStartTournament = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-
-        // Show Start Tournament if:
-        // 1. User has permission
-        // 2. Tournament is in RegistrationClosed status
-        // 3. Matches exist
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            t?.status === TournamentStatus.REGISTRATION_CLOSED &&
-            matches.length > 0;
-    });
-
-    canResetSchedule = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-
-        // Allowed if tournament hasn't started matches yet (all scheduled) or specifically Closed
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
-            matches.length > 0 &&
-            !matches.some(m => m.status === MatchStatus.FINISHED || m.status === MatchStatus.LIVE);
-    });
-
-    // Registration Computeds
-    myRegistration = computed(() => {
-        const user = this.authService.getCurrentUser();
-        const t = this.tournament();
-        if (!user?.teamId || !t?.registrations) return null;
-        return t.registrations.find(r => r.teamId === user.teamId) || null;
-    });
-
-    isRegistered = computed(() => !!this.myRegistration());
-
-    isUserPending = computed(() => {
-        return this.authService.getCurrentUser()?.status === UserStatus.PENDING;
-    });
-
-    isCaptain = computed(() => {
-        const user = this.authService.getCurrentUser();
-        return user?.teamId && user?.teamRole === TeamRole.CAPTAIN;
-    });
-
-    groupedStandings = computed(() => {
-        const all = this.standings();
-        const activeG = this.activeGroup();
-        if (activeG) {
-            return all.filter(s => s.groupId === activeG);
-        }
-        return all;
-    });
-
-    // Table Columns Config
-    tableColumns: TableColumn[] = [];
-
-    // Tabs
-    tabs = computed(() => {
-        const t = this.tournament();
-        const base = [
-            { value: 'info', label: 'عن البطولة' },
-            { value: 'standings', label: 'جدول الترتيب' },
-        ];
-
-        if (t?.format === TournamentFormat.GroupsThenKnockout ||
-            t?.format === TournamentFormat.GroupsWithHomeAwayKnockout ||
-            t?.format === TournamentFormat.KnockoutOnly) {
-            // Insert bracket before matches
-            base.push({ value: 'bracket', label: 'الأدوار الإقصائية' });
-        }
-
-        const user = this.authService.getCurrentUser();
-        if (user?.role !== UserRole.GUEST) {
-            base.push({ value: 'matches', label: 'المباريات' });
-            base.push({ value: 'teams', label: 'الفرق المشاركة' });
-        }
-
-        return base;
-    });
+    // ── Lifecycle ──
 
     ngOnInit(): void {
+        // Read initial tab from query params (persist across refresh)
+        const initialTab = this.route.snapshot.queryParamMap.get('tab') as DetailTab | null;
+        if (initialTab) {
+            this.store.activeTab.set(initialTab);
+        }
+
+        // Subscribe to route param changes
         this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
             const id = params.get('id');
             if (id) {
-                this.tournamentId.set(id);
-                this.updateLayout(); // Initial call with placeholders
-                this.loadInitialData(id);
+                this.updateLayout();
+                this.store.loadTournament(id, this.destroyRef);
             }
         });
-
-        // Initialize table columns
-        this.tableColumns = [
-            { key: 'rank', label: '#', template: this.rankTemplate, width: '60px' },
-            { key: 'teamName', label: 'الفريق', template: this.teamTemplate },
-            { key: 'played', label: 'لعب', width: '60px', sortable: true },
-            { key: 'won', label: 'فاز', width: '60px', sortable: true },
-            { key: 'drawn', label: 'تعادل', width: '60px', sortable: true },
-            { key: 'lost', label: 'خسر', width: '60px', sortable: true },
-            { key: 'goalsFor', label: 'له', width: '60px' },
-            { key: 'goalsAgainst', label: 'عليه', width: '60px' },
-            { key: 'goalDifference', label: '+/-', width: '60px' },
-            { key: 'points', label: 'نقاط', width: '80px', sortable: true },
-            { key: 'form', label: 'الشكل', template: this.formTemplate, width: '120px' }
-        ];
-    }
-
-    ngAfterViewInit(): void {
-        // Implementation or empty
     }
 
     ngOnDestroy(): void {
         this.layoutOrchestrator.reset();
     }
 
+    // ── Tab switching (with query param persistence) ──
+
+    onTabChange(tab: any): void {
+        const t = tab as DetailTab;
+        this.store.setTab(t, this.destroyRef);
+
+        // Update URL query param without triggering navigation
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { tab: t },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+
+    // ── Layout ──
+
     updateLayout(): void {
         const tournament = this.tournament();
-        const title = tournament ? tournament.name : 'تحميل...';
-
         this.layoutOrchestrator.setTitle('تفاصيل البطولة');
-        this.layoutOrchestrator.setSubtitle(title);
+        this.layoutOrchestrator.setSubtitle(tournament ? tournament.name : 'تحميل...');
         this.layoutOrchestrator.setBackAction(() => this.navigateBack());
     }
 
-    // PERF-FIX F2: forkJoin replaces waterfall API calls — all requests fire in parallel
-    loadInitialData(id: string): void {
-        this.isLoading.set(true);
-
-        // 1. Load Tournament first (needed to determine which parallel calls to make)
-        this.tournamentService.getTournamentById(id).pipe(
-            takeUntilDestroyed(this.destroyRef),
-            switchMap((data) => {
-                if (!data) {
-                    this.isLoading.set(false);
-                    return of(null);
-                }
-                this.tournamentStore.upsertTournament(data);
-                this.updateLayout();
-
-                // 2. Build parallel calls based on tournament format
-                const hasGroups = data.format === TournamentFormat.GroupsThenKnockout || 
-                                  data.format === TournamentFormat.GroupsWithHomeAwayKnockout;
-                const hasKnockout = hasGroups || data.format === TournamentFormat.KnockoutOnly;
-
-                return forkJoin({
-                    matches: this.matchService.getMatchesByTournament(id).pipe(catchError(() => of([]))),
-                    standings: this.tournamentService.getStandings(id).pipe(catchError(() => of([]))),
-                    groups: hasGroups 
-                        ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
-                        : of([]),
-                    bracket: hasKnockout 
-                        ? this.tournamentService.getBracket(id).pipe(catchError(() => of(null)))
-                        : of(null)
-                });
-            })
-        ).subscribe({
-            next: (result) => {
-                if (!result) return;
-
-                // Process matches
-                result.matches.forEach((m: Match) => {
-                    if (!this.matchStore.getMatchById(m.id)) {
-                        this.matchStore.addMatch(m);
-                    } else {
-                        this.matchStore.updateMatch(m);
-                    }
-                });
-
-                // Process standings
-                this.standings.set(result.standings as TournamentStanding[]);
-                const map = new Map<string, number>();
-                (result.standings as TournamentStanding[]).forEach(s => {
-                    if (s.groupId) map.set(s.teamId, s.groupId);
-                });
-                this.teamGroupMap.set(map);
-
-                // Process groups
-                if (result.groups && (result.groups as Group[]).length > 0) {
-                    this.groups.set(result.groups as Group[]);
-                    if (!this.activeGroup()) this.activeGroup.set((result.groups as Group[])[0].id);
-                }
-
-                // Process bracket
-                if (result.bracket) {
-                    this.bracket.set(result.bracket as BracketDto);
-                }
-
-                this.isLoading.set(false);
-            },
-            error: () => this.isLoading.set(false)
-        });
-    }
-
-    onTabChange(tab: any): void {
-        this.activeTab.set(tab);
-    }
-
-    onGroupChange(groupId: any): void {
-        this.activeGroup.set(groupId);
-    }
-
-    generateMatches(): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.isGeneratingMatches.set(true);
-        this.tournamentService.generateMatches(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (matches) => {
-                this.isGeneratingMatches.set(false);
-                this.uiFeedback.success('تم بنجاح', 'تم توليد جدول المباريات بنجاح.');
-                // Refresh data to get new status and matches
-                this.loadInitialData(t.id);
-            },
-            error: (err) => {
-                this.isGeneratingMatches.set(false);
-                this.uiFeedback.error('فشل توليد الجدول', err.error?.message || 'تعذّر توليد المباريات. يرجى المحاولة مرة أخرى.');
-            }
-        });
-    }
+    // ── Navigation ──
 
     navigateBack(): void {
         const prefix = this.navService.getRootPrefix();
-        // If guest, ensure we stay in guest context
         if (prefix === '/guest') {
             this.router.navigate(['/guest/tournaments']);
             return;
         }
-
-        if (prefix === '/admin') {
-            this.navService.navigateTo('tournaments');
-        } else if (prefix === '/creator') {
+        if (prefix === '/admin' || prefix === '/creator') {
             this.navService.navigateTo('tournaments');
         } else {
             this.router.navigate(['/player/tournaments']);
         }
     }
 
-    getBackRoute(): string {
-        const prefix = this.navService.getRootPrefix();
-        if (prefix === '/guest') return '/guest/tournaments';
-        if (prefix === '/admin') return `${prefix}/tournaments`;
-        if (prefix === '/creator') return `${prefix}/tournaments`;
-        return '/player/tournaments';
-    }
+    // ── Status helpers ──
 
-    // PERF-FIX F4: Delegate to extracted utility functions
     getStatusLabel(status: TournamentStatus | undefined): string {
         return getTournamentStatusLabel(status);
     }
 
-    getRegStatusLabel(status: string): string {
-        return _regStatusLabel(status);
-    }
-
+    getRegStatusLabel(status: string): string { return _regStatusLabel(status); }
     getRegStatusType(status: string): 'primary' | 'gold' | 'danger' | 'info' | 'warning' | 'success' | 'muted' | 'neutral' | 'live' {
         return _regStatusType(status);
     }
@@ -491,25 +213,11 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         return (t.currentTeams / t.maxTeams) * 100;
     }
 
-    isRegisterModalVisible = false;
-
-    openRegisterModal(): void {
-        this.isRegisterModalVisible = true;
-    }
-
-    closeRegisterModal(): void {
-        this.isRegisterModalVisible = false;
-    }
-
-    onRegistrationSuccess(): void {
-        this.closeRegisterModal();
-    }
+    // ── Admin Actions ──
 
     editTournament(): void {
         const t = this.tournament();
-        if (t) {
-            this.navService.navigateTo(['tournaments', 'edit', t.id]);
-        }
+        if (t) this.navService.navigateTo(['tournaments', 'edit', t.id]);
     }
 
     deleteTournament(): void {
@@ -518,21 +226,20 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         this.uiFeedback.confirm(
             'حذف البطولة',
-            `هل أنت متأكد من حذف بطولة "${t.name}"؟ هذا الإجراء سيؤدي لحذف كافة المباريات والتسجيلات المرتبطة بها ولا يمكن التراجع عنه.`,
+            `هل أنت متأكد من حذف بطولة "${t.name}"؟ هذا الإجراء لا يمكن التراجع عنه.`,
             'حذف نهائي',
             'danger'
         ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.isLoading.set(true);
+                this.store.isLoading.set(true);
                 this.tournamentService.deleteTournament(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم الحذف', 'تم حذف البطولة بنجاح');
                         this.navService.navigateTo('tournaments');
                     },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف البطولة. يرجى المحاولة مرة أخرى.');
-                        this.cdr.detectChanges();
+                    error: (err: any) => {
+                        this.store.isLoading.set(false);
+                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف البطولة.');
                     }
                 });
             }
@@ -543,54 +250,69 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         const t = this.tournament();
         if (!t) return;
 
-        this.isLoading.set(true);
+        this.store.isLoading.set(true);
 
         if (t.status === TournamentStatus.DRAFT) {
-            // PROD-FIX: Transition from Draft to RegistrationOpen
-            this.tournamentService.updateTournament(t.id, { status: TournamentStatus.REGISTRATION_OPEN }).subscribe({
-                next: (updatedTournament) => {
-                    this.tournamentStore.updateTournament(updatedTournament);
-                    this.isLoading.set(false);
+            this.tournamentService.updateTournament(t.id, { status: TournamentStatus.REGISTRATION_OPEN }).pipe(
+                takeUntilDestroyed(this.destroyRef)
+            ).subscribe({
+                next: (updated) => {
+                    this.tournamentStore.updateTournament(updated);
+                    this.store.isLoading.set(false);
                     this.uiFeedback.success('تم التحديث', 'تم فتح باب التسجيل بنجاح');
-                    this.cdr.detectChanges();
                 },
                 error: (err: any) => {
-                    this.isLoading.set(false);
-                    const msg = err.error?.message || 'تعذّر فتح باب التسجيل. يرجى المحاولة مرة أخرى.';
-                    this.uiFeedback.error('فشل فتح التسجيل', msg);
-                    this.cdr.detectChanges();
+                    this.store.isLoading.set(false);
+                    this.uiFeedback.error('فشل فتح التسجيل', err.error?.message || 'تعذّر فتح باب التسجيل.');
                 }
             });
         } else if (t.status === TournamentStatus.REGISTRATION_OPEN) {
-            this.tournamentService.closeRegistration(t.id).subscribe({
-                next: (updatedTournament) => {
-                    this.tournamentStore.updateTournament(updatedTournament);
-                    this.isLoading.set(false);
+            this.tournamentService.closeRegistration(t.id).pipe(
+                takeUntilDestroyed(this.destroyRef)
+            ).subscribe({
+                next: (updated) => {
+                    this.tournamentStore.updateTournament(updated);
+                    this.store.isLoading.set(false);
                     this.uiFeedback.success('تم التحديث', 'تم إغلاق التسجيل بنجاح');
-                    this.cdr.detectChanges();
                 },
-                error: (err) => {
-                    this.isLoading.set(false);
-                        this.uiFeedback.error('فشل إغلاق التسجيل', err.error?.message || 'تعذّر إغلاق باب التسجيل. يرجى المحاولة مرة أخرى.');
-                    this.cdr.detectChanges();
+                error: (err: any) => {
+                    this.store.isLoading.set(false);
+                    this.uiFeedback.error('فشل إغلاق التسجيل', err.error?.message || 'تعذّر إغلاق باب التسجيل.');
                 }
             });
         } else {
-            const newStatus = TournamentStatus.REGISTRATION_OPEN;
-            this.tournamentService.updateTournament(t.id, { status: newStatus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                next: (updatedTournament) => {
-                    this.tournamentStore.updateTournament(updatedTournament);
-                    this.isLoading.set(false);
-                    this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة إلى: ${this.getStatusLabel(newStatus)}`);
-                    this.cdr.detectChanges();
+            this.tournamentService.updateTournament(t.id, { status: TournamentStatus.REGISTRATION_OPEN }).pipe(
+                takeUntilDestroyed(this.destroyRef)
+            ).subscribe({
+                next: (updated) => {
+                    this.tournamentStore.updateTournament(updated);
+                    this.store.isLoading.set(false);
+                    this.uiFeedback.success('تم التحديث', `تم تغيير حالة البطولة`);
                 },
-                error: (err) => {
-                    this.isLoading.set(false);
-                        this.uiFeedback.error('فشل تغيير الحالة', err.error?.message || 'تعذّر تغيير حالة البطولة. يرجى المحاولة مرة أخرى.');
-                    this.cdr.detectChanges();
+                error: (err: any) => {
+                    this.store.isLoading.set(false);
+                    this.uiFeedback.error('فشل تغيير الحالة', err.error?.message || 'تعذّر تغيير حالة البطولة.');
                 }
             });
         }
+    }
+
+    generateMatches(): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.isGeneratingMatches.set(true);
+        this.tournamentService.generateMatches(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: () => {
+                this.isGeneratingMatches.set(false);
+                this.uiFeedback.success('تم بنجاح', 'تم توليد جدول المباريات بنجاح.');
+                this.store.reload(this.destroyRef);
+            },
+            error: (err: any) => {
+                this.isGeneratingMatches.set(false);
+                this.uiFeedback.error('فشل توليد الجدول', err.error?.message || 'تعذّر توليد المباريات.');
+            }
+        });
     }
 
     startTournament(): void {
@@ -598,83 +320,147 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (!t) return;
 
         this.uiFeedback.confirm(
-            'بدء锦标赛',
+            'بدء البطولة',
             `هل أنت متأكد من بدء "${t.name}"؟ بمجرد البدء، لن تتمكن من تعديل الجدول.`,
             'تأكيد البدء',
             'info'
         ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
             if (confirmed) {
-                this.isLoading.set(true);
-                this.tournamentService.startTournament(t.id).subscribe({
-                    next: (updatedTournament) => {
-                        this.tournamentStore.updateTournament(updatedTournament);
-                        this.isLoading.set(false);
+                this.store.isLoading.set(true);
+                this.tournamentService.startTournament(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+                    next: (updated) => {
+                        this.tournamentStore.updateTournament(updated);
+                        this.store.isLoading.set(false);
                         this.uiFeedback.success('تم بنجاح', 'تم بدء البطولة بنجاح');
-                        this.cdr.detectChanges();
-                        // Refresh matches
-                        this.loadInitialData(t.id);
+                        this.store.reload(this.destroyRef);
                     },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل بدء البطولة', err.error?.message || 'تعذّر بدء البطولة. يرجى التأكد من استيفاء جميع الشروط والمحاولة مرة أخرى.');
-                        this.cdr.detectChanges();
+                    error: (err: any) => {
+                        this.store.isLoading.set(false);
+                        this.uiFeedback.error('فشل بدء البطولة', err.error?.message || 'تعذّر بدء البطولة.');
                     }
                 });
             }
         });
     }
 
-    registerTeam(): void {
+    startManualDraw(): void {
         const t = this.tournament();
-        if (t) {
-            this.openRegisterModal();
-        }
+        if (t) this.navService.navigateTo(['tournaments', t.id, 'manual-draw']);
     }
 
-
-
-    eliminateTeam(teamId: string, teamName: string): void {
+    resetSchedule(): void {
         const t = this.tournament();
         if (!t) return;
 
         this.uiFeedback.confirm(
-            'إقصاء الفريق',
-            `هل أنت متأكد من إقصاء فريق "${teamName}" من البطولة؟ سيتم إنهاء جميع مبارياته القادمة كخسارة، لكنه سيبقى في جدول الترتيب.`,
-            'إقصاء الفريق',
+            'حذف الجدولة وتصفير القرعة',
+            'هل أنت متأكد من حذف جميع المباريات والقرعة الحالية؟',
+            'حذف الجدولة',
             'danger'
-        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
             if (confirmed) {
-                this.isLoading.set(true);
-                this.tournamentService.eliminateTeam(t.id, teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+                this.store.isLoading.set(true);
+                this.tournamentService.resetSchedule(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
                     next: () => {
-                        this.loadInitialData(t.id);
-                        this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${teamName} بنجاح`);
-                        this.isLoading.set(false);
-                        this.cdr.detectChanges();
+                        this.uiFeedback.success('تم الحذف', 'تم حذف الجدول بنجاح. يمكنك الآن إعادة الجدولة.');
+                        this.matchStore.clearTournamentMatches(t.id);
+                        this.store.reload(this.destroyRef);
                     },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل الإقصاء', err.error?.message || 'تعذّر إقصاء الفريق. يرجى المحاولة مرة أخرى.');
-                        this.cdr.detectChanges();
+                    error: (err: any) => {
+                        this.store.isLoading.set(false);
+                        this.uiFeedback.error('فشل حذف الجدول', err.error?.message || 'تعذّر حذف جدول المباريات.');
                     }
                 });
             }
         });
     }
 
-    viewMatch(matchId: string): void {
-        this.navService.navigateTo(['matches', matchId]);
+    // ── Registration / Captain Actions ──
+
+    registerTeam(): void {
+        this.isRegisterModalVisible.set(true);
     }
 
-    openChat(matchId: string): void {
-        this.navService.navigateTo(['matches', matchId, 'chat']);
+    closeRegisterModal(): void {
+        this.isRegisterModalVisible.set(false);
     }
 
-    updateScore(match: Match): void {
-        this.navService.navigateTo(['matches', match.id]);
+    onRegistrationSuccess(): void {
+        this.isRegisterModalVisible.set(false);
     }
 
+    withdrawTeam(): void {
+        const t = this.tournament();
+        const reg = this.myRegistration();
+        if (!t || !reg) return;
 
+        this.uiFeedback.confirm(
+            'انسحاب من البطولة',
+            `هل أنت متأكد من الانسحاب من بطولة ${t.name}؟`,
+            'تأكيد الانسحاب',
+            'danger'
+        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
+            if (confirmed) {
+                this.tournamentService.withdrawTeam(t.id, reg.teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+                    next: () => {
+                        this.uiFeedback.success('تم الانسحاب', 'تم سحب فريقك من البطولة بنجاح');
+                        this.store.reload(this.destroyRef);
+                    },
+                    error: (err: any) => this.uiFeedback.error('فشل الانسحاب', err.error?.message || 'تعذّر الانسحاب.')
+                });
+            }
+        });
+    }
+
+    // ── Opening Match ──
+
+    selectOpeningMatch(): void {
+        const t = this.tournament();
+        const matches = this.tournamentMatches();
+        if (!t || matches.length > 0) {
+            this.uiFeedback.warning('تنبيه', 'لا يمكن تعديل مباراة الافتتاح بعد توليد الجدول.');
+            return;
+        }
+        this.isOpeningMatchModalVisible.set(true);
+    }
+
+    closeOpeningMatchModal(): void {
+        this.isOpeningMatchModalVisible.set(false);
+    }
+
+    onOpeningMatchSelected(event: { homeTeamId: string; awayTeamId: string }): void {
+        const t = this.tournament();
+        if (!t) return;
+
+        this.store.isLoading.set(true);
+        this.tournamentService.setOpeningMatch(t.id, event.homeTeamId, event.awayTeamId).pipe(
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe({
+            next: (matches) => {
+                this.isOpeningMatchModalVisible.set(false);
+                if (matches?.length) {
+                    matches.forEach((m: Match) => {
+                        if (!this.matchStore.getMatchById(m.id)) this.matchStore.addMatch(m);
+                        else this.matchStore.updateMatch(m);
+                    });
+                    this.uiFeedback.success('تم بنجاح', `تم تحديد الافتتاح وتوليد ${matches.length} مباراة.`);
+                } else {
+                    this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح بنجاح.');
+                }
+                setTimeout(() => {
+                    this.store.reload(this.destroyRef);
+                    this.store.isLoading.set(false);
+                }, 1000);
+            },
+            error: (err: any) => {
+                this.isOpeningMatchModalVisible.set(false);
+                this.store.isLoading.set(false);
+                this.uiFeedback.error('فشل الافتتاحية', err.error?.message || 'تعذّر تحديد مباراة الافتتاح.');
+            }
+        });
+    }
+
+    // ── Emergency ──
 
     emergencyStart(): void {
         const t = this.tournament();
@@ -682,23 +468,21 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         this.uiFeedback.confirm(
             '⚠️ إجراء طارئ: بدء البطولة',
-            `هذا الإجراء مخصص فقط للحالات التي يتعطل فيها البدء التلقائي. هل أنت متأكد من رغبتك في فرض بدء بطولة "${t.name}"؟`,
+            `هل أنت متأكد من فرض بدء بطولة "${t.name}"؟`,
             'تأكيد البدء الطارئ',
             'danger'
         ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
             if (confirmed) {
-                this.isLoading.set(true);
+                this.store.isLoading.set(true);
                 this.tournamentService.emergencyStart(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: (updatedTournament) => {
-                        this.tournamentStore.upsertTournament(updatedTournament);
+                    next: (updated) => {
+                        this.tournamentStore.upsertTournament(updated);
                         this.uiFeedback.success('تم التدخل بنجاح', 'تم تغيير حالة البطولة إلى نشطة');
-                        this.isLoading.set(false);
-                        this.cdr.detectChanges();
+                        this.store.isLoading.set(false);
                     },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل البدء الطارئ', err.error?.message || 'تعذّر تنفيذ البدء الطارئ. يرجى المحاولة مرة أخرى.');
-                        this.cdr.detectChanges();
+                    error: (err: any) => {
+                        this.store.isLoading.set(false);
+                        this.uiFeedback.error('فشل البدء الطارئ', err.error?.message || 'تعذّر تنفيذ البدء الطارئ.');
                     }
                 });
             }
@@ -711,199 +495,22 @@ export class TournamentDetailComponent implements OnInit, AfterViewInit, OnDestr
 
         this.uiFeedback.confirm(
             '⚠️ إجراء طارئ: إنهاء البطولة',
-            `هذا الإجراء مخصص فقط للحالات التي تتعلق بمشاكل في النظام. هل أنت متأكد من فرض إنهاء بطولة "${t.name}"؟ سيتم نقلها للأرشيف.`,
+            `هل أنت متأكد من فرض إنهاء بطولة "${t.name}"؟`,
             'تأكيد الإنهاء الطارئ',
             'danger'
         ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
             if (confirmed) {
-                this.isLoading.set(true);
+                this.store.isLoading.set(true);
                 this.tournamentService.emergencyEnd(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: (updatedTournament) => {
-                        this.tournamentStore.upsertTournament(updatedTournament);
+                    next: (updated) => {
+                        this.tournamentStore.upsertTournament(updated);
                         this.uiFeedback.success('تم التدخل بنجاح', 'تم إنهاء البطولة بنجاح');
-                        this.isLoading.set(false);
-                        this.cdr.detectChanges();
+                        this.store.isLoading.set(false);
                     },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل الإنهاء الطارئ', err.error?.message || 'تعذّر تنفيذ الإنهاء الطارئ. يرجى المحاولة مرة أخرى.');
-                        this.cdr.detectChanges();
+                    error: (err: any) => {
+                        this.store.isLoading.set(false);
+                        this.uiFeedback.error('فشل الإنهاء الطارئ', err.error?.message || 'تعذّر تنفيذ الإنهاء الطارئ.');
                     }
-                });
-            }
-        });
-    }
-
-    isOpeningMatchModalVisible = false;
-
-    canSelectOpeningMatch = computed(() => {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-        const isOwner = this.permissionsService.isOwner(t?.adminId || '') || this.permissionsService.isOwner(t?.creatorUserId || '');
-
-        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || isOwner) &&
-            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION) &&
-            matches.length === 0 &&
-            ((t?.schedulingMode as any) === 'Random' || (t?.schedulingMode as any) === 0); // Only show for Random mode
-    });
-
-    isManualMode = computed(() => {
-        const t = this.tournament();
-        return (t?.schedulingMode as any) === 'Manual' || (t?.schedulingMode as any) === 1;
-    });
-
-    openOpeningMatchModal(): void {
-        this.isOpeningMatchModalVisible = true;
-    }
-
-    closeOpeningMatchModal(): void {
-        this.isOpeningMatchModalVisible = false;
-    }
-
-    onOpeningMatchSelected(event: { homeTeamId: string, awayTeamId: string }): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.isLoading.set(true);
-        this.tournamentService.setOpeningMatch(t.id, event.homeTeamId, event.awayTeamId).subscribe({
-            next: (matches) => {
-                this.isOpeningMatchModalVisible = false;
-
-                // Add generated matches to the store if any were returned (Random mode)
-                if (matches && matches.length > 0) {
-                    matches.forEach((match: Match) => {
-                        if (!this.matchStore.getMatchById(match.id)) {
-                            this.matchStore.addMatch(match);
-                        } else {
-                            this.matchStore.updateMatch(match);
-                        }
-                    });
-
-                    // Show success message with match count
-                    this.uiFeedback.success('تم بنجاح', `تم تحديد مباراة الافتتاح وتوليد ${matches.length} مباراة بنجاح.`);
-                } else {
-                    this.uiFeedback.success('تم بنجاح', 'تم تحديد مباراة الافتتاح بنجاح.');
-                }
-
-                // Wait a moment before reloading to ensure backend has processed everything
-                setTimeout(() => {
-                    this.loadInitialData(t.id);
-                    this.isLoading.set(false);
-                    this.cdr.detectChanges();
-                }, 1000);
-            },
-            error: (err) => {
-                this.isOpeningMatchModalVisible = false;
-                this.isLoading.set(false);
-                this.uiFeedback.error('فشل الافتتاحية', err.error?.message || 'تعذّر تحديد مباراة الافتتاح. يرجى المحاولة مرة أخرى.');
-                this.cdr.detectChanges();
-            }
-        });
-    }
-
-    // Renaming original selectOpeningMatch if it's referenced in template, or just overwriting behavior
-    selectOpeningMatch(): void {
-        const t = this.tournament();
-        const matches = this.tournamentMatches();
-
-        // Validation: Must be RegistrationClosed and NO matches
-        if (!t || matches.length > 0) {
-            this.uiFeedback.warning('تنبيه', 'لا يمكن تعديل مباراة الافتتاح بعد توليد الجدول.');
-            return;
-        }
-
-        this.openOpeningMatchModal();
-    }
-
-    startManualDraw(): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.navService.navigateTo(['tournaments', t.id, 'manual-draw']);
-    }
-
-    approveRegistration(reg: TeamRegistration): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.tournamentService.approveRegistration(t.id, reg.teamId).subscribe({
-            next: (updatedReg) => {
-                this.uiFeedback.success('تم التأكيد', `تم تأكيد تسجيل فريق ${reg.teamName} بنجاح`);
-                this.loadInitialData(t.id);
-            },
-            error: (err) => this.uiFeedback.error('فشل التأكيد', err.error?.message || 'تعذّر تأكيد تسجيل الفريق. يرجى المحاولة مرة أخرى.')
-        });
-    }
-
-    resetSchedule(): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.uiFeedback.confirm(
-            'حذف الجدولة وتصفير القرعة',
-            'هل أنت متأكد من حذف جميع المباريات والقرعة الحالية؟ سيتم إعادة البطولة لحالة ما قبل التوزيع لتتمكن من تغيير نظام الجدولة أو التوزيع مرة أخرى.',
-            'حذف الجدولة',
-            'danger'
-        ).subscribe(confirmed => {
-            if (confirmed) {
-                this.isLoading.set(true);
-                this.tournamentService.resetSchedule(t.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الحذف', 'تم حذف الجدول بنجاح. يمكنك الآن إعادة الجدولة.');
-                        // Clear match store for this tournament
-                        this.matchStore.clearTournamentMatches(t.id);
-                        this.loadInitialData(t.id);
-                    },
-                    error: (err) => {
-                        this.isLoading.set(false);
-                        this.uiFeedback.error('فشل حذف الجدول', err.error?.message || 'تعذّر حذف جدول المباريات. يرجى المحاولة مرة أخرى.');
-                    }
-                });
-            }
-        });
-    }
-
-    rejectRegistration(reg: TeamRegistration): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        const reason = window.prompt('يرجى إدخال سبب الرفض:');
-        if (reason) {
-            this.tournamentService.rejectRegistration(t.id, reg.teamId, reason).subscribe({
-                next: () => {
-                    this.uiFeedback.success('تم الرفض', `تم رفض تسجيل فريق ${reg.teamName}`);
-                    this.loadInitialData(t.id);
-                },
-                error: (err) => this.uiFeedback.error('فشل الرفض', err.error?.message || 'تعذّر رفض التسجيل. يرجى المحاولة مرة أخرى.')
-            });
-        }
-    }
-
-    promoteTeam(reg: TeamRegistration): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.tournamentService.promoteWaitingTeam(t.id, reg.teamId).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم الترقية', `تم نقل فريق ${reg.teamName} من قائمة الانتظار للمشاركة`);
-                this.loadInitialData(t.id);
-            },
-            error: (err) => this.uiFeedback.error('فشل الترقية', err.error?.message || 'تعذّر نقل الفريق من قائمة الانتظار. يرجى المحاولة مرة أخرى.')
-        });
-    }
-
-    withdrawTeam(reg: TeamRegistration): void {
-        const t = this.tournament();
-        if (!t) return;
-
-        this.uiFeedback.confirm('انسحاب من البطولة', `هل أنت متأكد من رغبتك في الانسحاب من بطولة ${t.name}؟`, 'تأكيد الانسحاب', 'danger').subscribe(confirmed => {
-            if (confirmed) {
-                this.tournamentService.withdrawTeam(t.id, reg.teamId).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الانسحاب', 'تم سحب فريقك من البطولة بنجاح');
-                        this.loadInitialData(t.id);
-                    },
-                    error: (err) => this.uiFeedback.error('فشل الانسحاب', err.error?.message || 'تعذّر الانسحاب من البطولة. يرجى المحاولة مرة أخرى.')
                 });
             }
         });

@@ -301,8 +301,8 @@
 /* Tabs */
 .tab-filter {
     position: sticky;
-    top: 6rem;
-    /* Adjust for fixed navbar height */
+    top: 0;
+    /* Sticks to top of .app-content scroll container (navbar is outside it) */
     z-index: var(--z-sticky);
     backdrop-filter: blur(var(--blur-md));
     background: var(--bg-glass);

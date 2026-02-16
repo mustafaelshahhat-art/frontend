@@ -252,6 +252,7 @@ export interface MatchMessage {
 }
 
 export interface TournamentStanding {
+    rank: number;
     teamId: string;
     teamName: string;
     teamLogoUrl?: string;

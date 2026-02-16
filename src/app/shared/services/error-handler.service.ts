@@ -75,10 +75,20 @@ export class ErrorHandlerService {
         let message: string;
 
         switch (error.status) {
-            case 0:
-                code = 'NETWORK_ERROR';
-                message = 'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+            case 0: {
+                // Distinguish CORS rejection from genuine network failure.
+                // CORS blocks produce status 0 + ProgressEvent error + a valid URL.
+                // Real offline produces status 0 + no URL or navigator.onLine === false.
+                const isCors = error.url && error.error instanceof ProgressEvent && navigator.onLine;
+                if (isCors) {
+                    code = 'CORS_ERROR';
+                    message = 'تم حظر الطلب بواسطة سياسة المتصفح (CORS). تأكد من تشغيل الخادم وإعدادات CORS.';
+                } else {
+                    code = 'NETWORK_ERROR';
+                    message = 'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+                }
                 break;
+            }
             case 401:
                 code = error.error?.code || 'UNAUTHORIZED';
                 message = error.error?.message || 'انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى للمتابعة.';
@@ -214,6 +224,7 @@ export class ErrorHandlerService {
      */
     getErrorMessage(code: string): string {
         const messages: Record<string, string> = {
+            'CORS_ERROR': 'تم حظر الطلب بواسطة سياسة CORS. تأكد من تشغيل الخادم.',
             'NETWORK_ERROR': 'لا يمكن الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.',
             'UNAUTHORIZED': 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
             'FORBIDDEN': 'ليس لديك الصلاحية اللازمة لتنفيذ هذا الإجراء.',
