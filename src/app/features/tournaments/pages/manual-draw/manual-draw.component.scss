@@ -1,7 +1,15 @@
 .manual-draw-page {
-    padding: 2rem;
-    max-width: 1400px;
+    padding: 1.5rem;
+    max-width: 1200px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    @media (max-width: 640px) {
+        padding: 1rem 0.75rem;
+        gap: 1rem;
+    }
 
     .loading-state {
         display: flex;
@@ -14,161 +22,197 @@
     }
 }
 
-.draw-container {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    gap: 2rem;
-    align-items: start;
+// ─── Stats Bar ───
+.stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
 
-    @media (max-width: 992px) {
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+
+        strong {
+            color: var(--text-primary);
+        }
+    }
+}
+
+// ─── Unassigned Teams ───
+.unassigned-section {
+    .team-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.25rem;
+    }
+}
+
+.team-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    user-select: none;
+
+    &:hover:not(:disabled) {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.05);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .team-chip-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+
+    .assign-icon {
+        color: var(--primary-color);
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    &:hover .assign-icon {
+        opacity: 1;
+    }
+}
+
+.all-assigned-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(var(--success-rgb, 34, 197, 94), 0.08);
+    border: 1px solid rgba(var(--success-rgb, 34, 197, 94), 0.2);
+    color: var(--success-color, #22c55e);
+    font-weight: 600;
+}
+
+// ─── Groups Grid ───
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+
+    @media (max-width: 640px) {
         grid-template-columns: 1fr;
     }
 }
 
-.unassigned-card {
-    position: sticky;
-    top: 100px;
-    height: calc(100vh - 150px);
-    overflow-y: auto;
-}
+.group-card {
+    .group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
 
-.team-list {
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.5rem;
-
-    &.source-list {
-        min-height: 300px;
-    }
-
-    &.target-list {
-        min-height: 150px;
-        border: 2px dashed var(--border-color);
-        border-radius: var(--radius-md);
-        transition: all 0.3s ease;
-
-        &:hover {
-            border-color: var(--primary-color);
-            background: rgba(var(--primary-rgb), 0.02);
+        h4 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
         }
-    }
-}
 
-.team-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    cursor: grab;
-    transition: all 0.2s ease;
-    user-select: none;
+        .group-count {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary-color);
 
-    &:active {
-        cursor: grabbing;
-    }
-
-    &:hover {
-        border-color: var(--primary-color);
-        box-shadow: var(--shadow-sm);
-        transform: translateY(-2px);
-    }
-
-    &.cdk-drag-preview {
-        box-shadow: var(--shadow-lg);
-        opacity: 0.9;
-        z-index: 1000;
-    }
-
-    .drag-handle {
-        margin-right: auto;
-        color: var(--text-muted);
-        opacity: 0.5;
-    }
-
-    &.assigned {
-        background: rgba(var(--primary-rgb), 0.05);
-        border-color: rgba(var(--primary-rgb), 0.2);
-
-        .remove-btn {
-            margin-right: auto;
-            cursor: pointer;
-            color: var(--danger-color);
-            opacity: 0.5;
-
-            &:hover {
-                opacity: 1;
+            &.full {
+                background: rgba(var(--success-rgb, 34, 197, 94), 0.1);
+                color: var(--success-color, #22c55e);
             }
         }
     }
-}
 
-.groups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.drop-placeholder {
-    display: flex;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    opacity: 0.6;
-}
-
-.draw-actions {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-}
-
-.animate-scale-in {
-    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    .group-teams {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-height: 100px;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+    .group-team-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(var(--primary-rgb), 0.03);
+        border: 1px solid rgba(var(--primary-rgb), 0.1);
+        border-radius: var(--radius-md);
+        font-size: 0.85rem;
+        font-weight: 500;
+        animation: fadeIn 0.2s ease-out;
 
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
+        .remove-btn {
+            margin-inline-start: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--danger-color);
+            opacity: 0.4;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+
+            &:hover:not(:disabled) {
+                opacity: 1;
+                background: rgba(var(--danger-rgb, 239, 68, 68), 0.1);
+            }
+
+            &:disabled {
+                cursor: not-allowed;
+            }
+        }
     }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
+    .group-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
     }
 }
 
-.pairings-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.pairings-list {
+// ─── Knockout ───
+.knockout-section {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -180,107 +224,231 @@
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 1rem 1.5rem;
-    gap: 1.5rem;
-    box-shadow: var(--shadow-sm);
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+    animation: slideIn 0.3s ease-out;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
 }
 
 .team-slot {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     font-weight: 600;
+    font-size: 0.9rem;
 
     &.away {
         flex-direction: row-reverse;
         text-align: left;
+
+        @media (max-width: 640px) {
+            flex-direction: row;
+            text-align: right;
+        }
     }
 }
 
 .vs-badge {
     background: var(--bg-hover);
     color: var(--primary-color);
-    padding: 0.25rem 0.75rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 800;
+    flex-shrink: 0;
 }
 
 .delete-pair {
+    background: none;
+    border: none;
     color: var(--danger-color);
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: pointer;
-    transition: opacity 0.2s;
-    &:hover { opacity: 1; }
+    padding: 0.35rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+
+    &:hover:not(:disabled) {
+        opacity: 1;
+        background: rgba(var(--danger-rgb, 239, 68, 68), 0.1);
+    }
 }
 
-.new-pairing-zone {
-    .pairing-builder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2rem;
-        padding: 2rem;
-    }
+.pairing-builder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
 
-    .drop-slot {
-        width: 250px;
-        height: 120px;
-        border: 2px dashed var(--border-color);
-        border-radius: var(--radius-lg);
-        display: flex;
+    @media (max-width: 640px) {
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
-        background: rgba(var(--primary-rgb), 0.01);
-
-        &:hover {
-            border-color: var(--primary-color);
-            background: rgba(var(--primary-rgb), 0.03);
-        }
-
-        p {
-            margin: 0;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .hint {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            opacity: 0.6;
-        }
-
-        .team-preview {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-        }
-    }
-
-    .vs-text {
-        font-weight: 800;
-        color: var(--text-muted);
-        opacity: 0.4;
+        gap: 0.75rem;
+        padding: 1rem;
     }
 }
 
-.animate-slide-in {
-    animation: slideIn 0.3s ease-out forwards;
+.slot-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 200px;
+    height: 100px;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    background: rgba(var(--primary-rgb), 0.01);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+
+    @media (max-width: 640px) {
+        width: 100%;
+        height: 80px;
+        flex-direction: row;
+    }
+
+    &:hover:not(:disabled) {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.04);
+        color: var(--primary-color);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.vs-text {
+    font-weight: 800;
+    color: var(--text-muted);
+    opacity: 0.4;
+    font-size: 1.1rem;
+}
+
+// ─── Actions ───
+.draw-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+// ─── Modal Styles ───
+.modal-team-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background: rgba(var(--primary-rgb), 0.04);
+    border-radius: var(--radius-md);
+
+    strong {
+        font-size: 1rem;
+    }
+}
+
+.modal-group-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.modal-group-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: start;
+
+    .group-option-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex: 1;
+    }
+
+    .group-option-count {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+
+        &.full {
+            color: var(--danger-color);
+        }
+    }
+
+    &.selected {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.06);
+    }
+
+    &.full {
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-style: dashed;
+    }
+
+    &:not(.full):not(.selected):hover {
+        border-color: rgba(var(--primary-rgb), 0.4);
+        background: rgba(var(--primary-rgb), 0.02);
+    }
+}
+
+.modal-team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.modal-team-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 100%;
+    text-align: start;
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    &:hover {
+        background: rgba(var(--primary-rgb), 0.05);
+        border-color: rgba(var(--primary-rgb), 0.2);
+    }
+}
+
+// ─── Animations ───
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(12px); }
+    to { opacity: 1; transform: translateX(0); }
 }

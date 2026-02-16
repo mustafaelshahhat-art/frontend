@@ -1,17 +1,23 @@
 import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
-import { Tournament, TeamRegistration, TournamentMode, GroupAssignment, ManualDrawRequest } from '../../../../core/models/tournament.model';
+import { Tournament, TeamRegistration } from '../../../../core/models/tournament.model';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+
+interface GroupSlot {
+    id: number;
+    name: string;
+    teams: TeamRegistration[];
+}
 
 @Component({
     selector: 'app-manual-draw',
@@ -22,8 +28,8 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
         ButtonComponent,
         CardComponent,
         SmartImageComponent,
-        DragDropModule,
-        IconComponent
+        IconComponent,
+        ModalComponent
     ],
     templateUrl: './manual-draw.component.html',
     styleUrls: ['./manual-draw.component.scss'],
@@ -31,7 +37,6 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 })
 export class ManualDrawComponent implements OnInit {
     private route = inject(ActivatedRoute);
-    private router = inject(Router);
     private tournamentService = inject(TournamentService);
     private uiFeedback = inject(UIFeedbackService);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
@@ -43,19 +48,36 @@ export class ManualDrawComponent implements OnInit {
     isLoading = signal(true);
     isSubmitting = signal(false);
 
-    // Groups and their assigned teams
+    // Group assignment state
     unassignedTeams = signal<TeamRegistration[]>([]);
-    groupAssignments = signal<{ id: number, name: string, teams: TeamRegistration[] }[]>([]);
+    groupAssignments = signal<GroupSlot[]>([]);
 
-    // Knockout Specific
-    knockoutPairings = signal<{ home: TeamRegistration | null, away: TeamRegistration | null }[]>([]);
-    homeToPair = signal<TeamRegistration | null>(null);
-    awayToPair = signal<TeamRegistration | null>(null);
+    // Knockout pairing state
+    knockoutPairings = signal<{ home: TeamRegistration | null; away: TeamRegistration | null }[]>([]);
+    knockoutSelectingSlot = signal<'home' | 'away' | null>(null);
+    knockoutPendingHome = signal<TeamRegistration | null>(null);
+    knockoutPendingAway = signal<TeamRegistration | null>(null);
+
+    // Modal state
+    showGroupModal = signal(false);
+    selectedTeamForAssignment = signal<TeamRegistration | null>(null);
+    assigningGroupId = signal<number | null>(null);
+
+    // Knockout team-select modal
+    showKnockoutModal = signal(false);
 
     isKnockout = computed(() => {
         const t = this.tournament();
         if (!t) return false;
-        return t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway';
+        return t.format === 'KnockoutOnly';
+    });
+
+    // Computed: teams per group capacity
+    teamsPerGroup = computed(() => {
+        const t = this.tournament();
+        const totalTeams = this.registeredTeams().length;
+        const numGroups = t?.numberOfGroups || 1;
+        return Math.ceil(totalTeams / numGroups);
     });
 
     ngOnInit(): void {
@@ -88,18 +110,13 @@ export class ManualDrawComponent implements OnInit {
         this.layoutOrchestrator.setTitle('إجراء القرعة يدوياً');
         this.layoutOrchestrator.setSubtitle(t.name);
 
-        if (t.format === 'GroupsThenKnockout' || t.format === 'GroupsWithHomeAwayKnockout' || t.format === 'RoundRobin') {
+        if (!this.isKnockout()) {
             const numGroups = t.numberOfGroups || 1;
-            const initialGroups = [];
+            const initialGroups: GroupSlot[] = [];
             for (let i = 1; i <= numGroups; i++) {
                 initialGroups.push({ id: i, name: `المجموعة ${i}`, teams: [] });
             }
             this.groupAssignments.set(initialGroups);
-        } else {
-            // Knockout setup
-            this.knockoutPairings.set([]);
-            this.homeToPair.set(null);
-            this.awayToPair.set(null);
         }
     }
 
@@ -115,59 +132,110 @@ export class ManualDrawComponent implements OnInit {
         });
     }
 
-    drop(event: CdkDragDrop<TeamRegistration[]>): void {
-        if (event.previousContainer === event.container) {
-            moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-        } else {
-            transferArrayItem(
-                event.previousContainer.data,
-                event.container.data,
-                event.previousIndex,
-                event.currentIndex
-            );
-        }
+    // ─── Group Modal Flow ───
+
+    /** Admin clicks a team → open modal to choose which group */
+    openGroupModal(team: TeamRegistration): void {
+        if (this.isSubmitting()) return;
+        this.selectedTeamForAssignment.set(team);
+        this.assigningGroupId.set(null);
+        this.showGroupModal.set(true);
     }
 
-    onTeamDropped(event: CdkDragDrop<any>, slot: 'home' | 'away'): void {
-        const team = event.item.data as TeamRegistration;
+    /** Select a group inside the modal */
+    selectGroup(groupId: number): void {
+        this.assigningGroupId.set(groupId);
+    }
+
+    /** Is a group full? */
+    isGroupFull(group: GroupSlot): boolean {
+        return group.teams.length >= this.teamsPerGroup();
+    }
+
+    /** Confirm assignment from modal */
+    confirmGroupAssignment(): void {
+        const team = this.selectedTeamForAssignment();
+        const groupId = this.assigningGroupId();
+        if (!team || groupId === null) return;
+
+        this.groupAssignments.update(groups =>
+            groups.map(g => g.id === groupId ? { ...g, teams: [...g.teams, team] } : g)
+        );
+        this.unassignedTeams.update(teams => teams.filter(t => t.teamId !== team.teamId));
+        this.showGroupModal.set(false);
+        this.selectedTeamForAssignment.set(null);
+        this.assigningGroupId.set(null);
+    }
+
+    /** Remove team from group back to unassigned */
+    removeFromGroup(groupId: number, team: TeamRegistration): void {
+        if (this.isSubmitting()) return;
+        this.groupAssignments.update(groups =>
+            groups.map(g => g.id === groupId ? { ...g, teams: g.teams.filter(t => t.teamId !== team.teamId) } : g)
+        );
+        this.unassignedTeams.update(teams => [...teams, team]);
+    }
+
+    // ─── Knockout Modal Flow ───
+
+    /** Open knockout team selector for home or away slot */
+    openKnockoutSelector(slot: 'home' | 'away'): void {
+        if (this.isSubmitting()) return;
+        this.knockoutSelectingSlot.set(slot);
+        this.showKnockoutModal.set(true);
+    }
+
+    /** Pick a team from the knockout modal */
+    selectTeamForKnockout(team: TeamRegistration): void {
+        const slot = this.knockoutSelectingSlot();
+        if (!slot) return;
 
         if (slot === 'home') {
-            if (this.homeToPair()) {
-                this.unassignedTeams.update(teams => [...teams, this.homeToPair()!]);
-            }
-            this.homeToPair.set(team);
+            this.knockoutPendingHome.set(team);
         } else {
-            if (this.awayToPair()) {
-                this.unassignedTeams.update(teams => [...teams, this.awayToPair()!]);
-            }
-            this.awayToPair.set(team);
+            this.knockoutPendingAway.set(team);
         }
-
-        // Remove from source
         this.unassignedTeams.update(teams => teams.filter(t => t.teamId !== team.teamId));
+        this.showKnockoutModal.set(false);
 
-        // If both filled, pair them
-        if (this.homeToPair() && this.awayToPair()) {
-            this.addPairing(this.homeToPair()!, this.awayToPair()!);
-            this.homeToPair.set(null);
-            this.awayToPair.set(null);
+        // Auto-create pairing when both filled
+        if (this.knockoutPendingHome() && this.knockoutPendingAway()) {
+            this.knockoutPairings.update(p => [...p, {
+                home: this.knockoutPendingHome(),
+                away: this.knockoutPendingAway()
+            }]);
+            this.knockoutPendingHome.set(null);
+            this.knockoutPendingAway.set(null);
         }
     }
 
-    addPairing(home: TeamRegistration, away: TeamRegistration): void {
-        this.knockoutPairings.update(p => [...p, { home, away }]);
-    }
-
+    /** Remove pairing, return teams to unassigned */
     removePairing(index: number): void {
+        if (this.isSubmitting()) return;
         const pairing = this.knockoutPairings()[index];
-        if (pairing.home) this.unassignedTeams.update(teams => [...teams, pairing.home!]);
-        if (pairing.away) this.unassignedTeams.update(teams => [...teams, pairing.away!]);
+        const returned: TeamRegistration[] = [];
+        if (pairing.home) returned.push(pairing.home);
+        if (pairing.away) returned.push(pairing.away);
+        this.unassignedTeams.update(teams => [...teams, ...returned]);
         this.knockoutPairings.update(p => p.filter((_, i) => i !== index));
     }
 
+    /** Cancel pending knockout pairing */
+    cancelPendingSlot(slot: 'home' | 'away'): void {
+        if (slot === 'home' && this.knockoutPendingHome()) {
+            this.unassignedTeams.update(teams => [...teams, this.knockoutPendingHome()!]);
+            this.knockoutPendingHome.set(null);
+        } else if (slot === 'away' && this.knockoutPendingAway()) {
+            this.unassignedTeams.update(teams => [...teams, this.knockoutPendingAway()!]);
+            this.knockoutPendingAway.set(null);
+        }
+    }
+
+    // ─── Submit ───
+
     submitDraw(): void {
         const t = this.tournament();
-        if (!t) return;
+        if (!t || this.isSubmitting()) return;
 
         if (this.unassignedTeams().length > 0) {
             this.uiFeedback.warning('تنبيه', 'يجب توزيع جميع الفرق أولاً.');
@@ -191,11 +259,9 @@ export class ManualDrawComponent implements OnInit {
 
         this.tournamentService.assignGroups(t.id, assignments).subscribe({
             next: () => {
-                // Now generate matches
                 this.tournamentService.generateManualGroupMatches(t.id).subscribe({
                     next: () => {
                         this.uiFeedback.success('تم بنجاح', 'تم توزيع الفرق وتوليد مباريات المجموعات بنجاح.');
-                        // Navigate back to tournament detail using context-aware navigation
                         this.layoutOrchestrator.reset();
                         this.navService.navigateTo(['tournaments', t.id]);
                     },
@@ -223,25 +289,35 @@ export class ManualDrawComponent implements OnInit {
         this.tournamentService.createManualKnockoutMatches(t.id, pairings).subscribe({
             next: () => {
                 this.uiFeedback.success('تم بنجاح', 'تم إنشاء مواجهات خروج المغلوب بنجاح.');
-                // Navigate back to tournament detail using context-aware navigation
                 this.layoutOrchestrator.reset();
                 this.navService.navigateTo(['tournaments', t.id]);
             },
             error: (err) => {
                 this.isSubmitting.set(false);
-                this.uiFeedback.error('فشل إنشاء المواجهات', err.error?.message || 'تعذّر إنشاء مواجهات خروج المغلوب. يرجى المحاولة مرة أخرى.');
+                this.uiFeedback.error('فشل إنشاء المواجهات', err.error?.message || 'تعذّر إنشاء مواجهات خروج المغلوب.');
             }
         });
     }
 
     cancel(): void {
         const t = this.tournament();
+        this.layoutOrchestrator.reset();
         if (t) {
-            this.layoutOrchestrator.reset();
             this.navService.navigateTo(['tournaments', t.id]);
         } else {
-            this.layoutOrchestrator.reset();
             this.navService.navigateTo('tournaments');
         }
+    }
+
+    trackByTeamId(_index: number, team: TeamRegistration): string {
+        return team.teamId;
+    }
+
+    trackByGroupId(_index: number, group: GroupSlot): number {
+        return group.id;
+    }
+
+    trackByIndex(index: number): number {
+        return index;
     }
 }

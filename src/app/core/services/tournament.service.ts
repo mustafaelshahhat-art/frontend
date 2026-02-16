@@ -136,20 +136,26 @@ export class TournamentService {
 
     getPendingPaymentApprovals(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/pending
-        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/pending`).pipe(
+        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/pending`, {
+            params: new HttpParams().set('pageSize', '200')
+        }).pipe(
             map(paged => paged.items)
         );
     }
 
     getAllPaymentRequests(): Observable<PendingPaymentResponse[]> {
         // Controller: GET payments/all - returns pending, approved, and rejected
-        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/all`).pipe(
+        return this.http.get<PagedResult<PendingPaymentResponse>>(`${this.apiUrl}/payments/all`, {
+            params: new HttpParams().set('pageSize', '200')
+        }).pipe(
             map(paged => paged.items)
         );
     }
 
     getRegistrations(tournamentId: string): Observable<TeamRegistration[]> {
-        return this.http.get<PagedResult<TeamRegistration>>(`${this.apiUrl}/${tournamentId}/registrations`).pipe(
+        return this.http.get<PagedResult<TeamRegistration>>(`${this.apiUrl}/${tournamentId}/registrations`, {
+            params: new HttpParams().set('pageSize', '200')
+        }).pipe(
             map(paged => paged.items)
         );
     }
