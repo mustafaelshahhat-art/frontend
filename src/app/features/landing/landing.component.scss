@@ -429,13 +429,29 @@ h4 {
 .hero-section {
   position: relative;
   height: 100vh;
-  min-height: 800px;
+  min-height: 600px;
   @include flex-center;
-  background-image: url('../../../assets/images/hero-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed; // Parallax feel
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    min-height: 500px;
+  }
+
+  // Responsive background image (replaces CSS background-image)
+  .hero-bg-picture,
+  .hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+  }
+
+  .hero-bg-picture {
+    display: block;
+  }
 
   .hero-bg-overlay {
     position: absolute;

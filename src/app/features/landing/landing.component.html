@@ -4,7 +4,10 @@
   <header class="header" [class.menu-open]="isMenuOpen">
     <div class="container header-content">
       <div class="logo-container">
-        <img src="assets/images/logo-kz.png" alt="Kora Zone 365" class="logo-img">
+        <picture>
+          <source type="image/webp" srcset="assets/images/logo-kz-sm.webp">
+          <img src="assets/images/logo-kz.png" alt="Kora Zone 365" class="logo-img">
+        </picture>
         <span class="logo-text">Kora Zone <span class="highlight">365</span></span>
       </div>
 
@@ -48,10 +51,29 @@
 
   <!-- Hero Section -->
   <section id="hero" class="hero-section">
+    <!-- Responsive Hero Background -->
+    <picture class="hero-bg-picture">
+      <source type="image/webp"
+              srcset="assets/images/hero-bg-480.webp 480w,
+                      assets/images/hero-bg-768.webp 768w,
+                      assets/images/hero-bg-1280.webp 1280w,
+                      assets/images/hero-bg-1920.webp 1920w"
+              sizes="100vw">
+      <img src="assets/images/hero-bg-1920.jpg"
+           alt=""
+           class="hero-bg-img"
+           fetchpriority="high">
+    </picture>
     <div class="hero-bg-overlay"></div>
     <div class="container hero-content">
       <div class="hero-text">
-        <img src="assets/images/logo-kz.png" alt="Kora Zone 365 Logo" class="hero-logo-large">
+        <picture>
+          <source type="image/webp"
+                  srcset="assets/images/logo-kz-sm.webp 300w,
+                          assets/images/logo-kz.webp 600w"
+                  sizes="(max-width: 768px) 300px, 450px">
+          <img src="assets/images/logo-kz.png" alt="Kora Zone 365 Logo" class="hero-logo-large">
+        </picture>
         <h2 class="hero-slogan">حلم البطولة يبدأ من هنا</h2>
         <div class="hero-actions mt-4">
           <a routerLink="/auth/login" class="btn btn-hero-login">
