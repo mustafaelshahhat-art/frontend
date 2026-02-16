@@ -16,6 +16,9 @@ import { FormControlComponent } from '../../../../shared/components/form-control
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { UserService } from '../../../../core/services/user.service';
 import { UserStore } from '../../../../core/stores/user.store';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { createClientPagination, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
+import { PagedResult } from '../../../../core/models/pagination.model';
 
 @Component({
     selector: 'app-users-list',
@@ -29,7 +32,8 @@ import { UserStore } from '../../../../core/stores/user.store';
         SmartImageComponent,
         TableComponent,
         ModalComponent,
-        FormControlComponent
+        FormControlComponent,
+        PaginationComponent
     ],
     templateUrl: './users-list.component.html',
     styleUrls: ['./users-list.component.scss'],
@@ -86,7 +90,30 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     showAddCreatorModal = signal<boolean>(false);
     isCreatingCreator = signal<boolean>(false);
 
+    filteredUsers = computed(() => {
+        let result = this.users();
+        const type = this.userType();
+        const filter = this.currentFilter();
 
+        // Filter by user type
+        if (type === 'admins') {
+            result = result.filter(u => u.role === UserRole.ADMIN);
+        } else if (type === 'players') {
+            result = result.filter(u => u.role === UserRole.PLAYER);
+        } else if (type === 'creators') {
+            result = result.filter(u => u.role === UserRole.TOURNAMENT_CREATOR);
+        }
+
+        // Filter by status
+        if (filter !== 'all') {
+            result = result.filter(u => u.status === filter);
+        }
+
+        return result;
+    });
+
+    // Pagination — slices filteredUsers client-side
+    pager: PaginationSource<User> = createClientPagination(this.filteredUsers, { pageSize: 20 });
 
     // Admin Form
     adminForm: FormGroup = this.fb.group({
@@ -139,7 +166,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadUsers(): void {
         this.userStore.setLoading(true);
-        this.userService.getUsers().subscribe({
+        this.userService.getUsers(1, 500).subscribe({
             next: (data) => {
                 this.userStore.setUsers(data.items);
             },
@@ -150,34 +177,14 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    filteredUsers = computed(() => {
-        let result = this.users();
-        const type = this.userType();
-        const filter = this.currentFilter();
-
-        // Filter by user type
-        if (type === 'admins') {
-            result = result.filter(u => u.role === UserRole.ADMIN);
-        } else if (type === 'players') {
-            result = result.filter(u => u.role === UserRole.PLAYER);
-        } else if (type === 'creators') {
-            result = result.filter(u => u.role === UserRole.TOURNAMENT_CREATOR);
-        }
-
-        // Filter by status
-        if (filter !== 'all') {
-            result = result.filter(u => u.status === filter);
-        }
-
-        return result;
-    });
-
     setFilter(filter: unknown): void {
         this.currentFilter.set(filter as string);
+        this.pager.loadPage(1);
     }
 
     setUserType(type: unknown): void {
         this.userType.set(type as 'admins' | 'players' | 'creators');
+        this.pager.loadPage(1);
     }
 
     getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {

@@ -12,6 +12,8 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
 import { MatchStore } from '../../../../core/stores/match.store';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { PagedResult } from '../../../../core/models/pagination.model';
+import { LoadMoreComponent } from '../../../../shared/components/load-more/load-more.component';
+import { createClientLoadMore, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
 
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
@@ -47,7 +49,8 @@ interface MatchFilter {
         ButtonComponent,
         InlineLoadingComponent,
         PendingStatusCardComponent,
-        HasPermissionDirective
+        HasPermissionDirective,
+        LoadMoreComponent
     ],
     templateUrl: './matches-list.component.html',
     styleUrls: ['./matches-list.component.scss'],
@@ -119,6 +122,9 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     });
 
+    // Load-more pagination — progressively reveals filtered matches
+    pager: PaginationSource<Match> = createClientLoadMore(this.filteredMatches, { pageSize: 12 });
+
     ngOnInit(): void {
         this.layoutOrchestrator.setTitle(this.pageTitle);
         this.layoutOrchestrator.setSubtitle(this.pageSubtitle);
@@ -174,8 +180,8 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
             const user = this.currentUser();
             // If user is a creator, filter by their ID
             const creatorId = (this.userRole() === UserRole.TOURNAMENT_CREATOR && user) ? user.id : undefined;
-            // PERF-FIX: Use proper page size instead of fetching 100 records
-            this.matchService.getMatches(1, 20, creatorId).subscribe({ next: handleSuccess, error: handleError });
+            // PERF-FIX: Load all matches for client-side load-more
+            this.matchService.getMatches(1, 200, creatorId).subscribe({ next: handleSuccess, error: handleError });
 
         } else {
             const teamId = this.currentUser()?.teamId;
@@ -236,6 +242,7 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     setFilter(filter: unknown): void {
         this.selectedFilter.set(filter as MatchFilterValue);
+        this.pager.refresh();
     }
 
     viewMatch(matchId: string): void {

@@ -15,6 +15,8 @@ import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
 import { TeamStore } from '../../../core/stores/team.store';
 import { PagedResult } from '../../../core/models/pagination.model';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
 
 import { StatusConfig } from '../../../shared/utils/status-labels';
 
@@ -31,7 +33,8 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
         EmptyStateComponent,
         InlineLoadingComponent,
         SmartImageComponent,
-        TableComponent
+        TableComponent,
+        PaginationComponent
     ],
     templateUrl: './teams-list.component.html',
     styleUrls: ['./teams-list.component.scss'],
@@ -69,6 +72,9 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         return allTeams;
     });
+
+    // Pagination — slices filteredTeams client-side
+    pager: PaginationSource<Team> = createClientPagination(this.filteredTeams, { pageSize: 20 });
 
     columns: TableColumn[] = [];
 
@@ -108,10 +114,9 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadTeams(): void {
         this.teamStore.setLoading(true);
-        this.teamService.getAllTeams().subscribe({
+        this.teamService.getAllTeams(1, 500).subscribe({
             next: (data: PagedResult<Team>) => {
                 this.teamStore.setTeams(data);
-                // cdr handled by signal updates
             },
             error: (err) => {
                 this.teamStore.setError(err.message);
@@ -122,6 +127,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     setFilter(filter: unknown): void {
         this.currentFilter.set(filter as TeamFilterValue);
+        this.pager.loadPage(1);
     }
 
     requestToggleStatus(team: Team): void {

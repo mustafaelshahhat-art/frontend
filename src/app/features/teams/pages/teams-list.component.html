@@ -11,22 +11,31 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && filteredTeams().length === 0) {
+    @if (!isLoading() && pager.isEmpty()) {
     <app-empty-state icon="groups" title="لا توجد فرق" description="لا توجد فرق في هذا التصنيف حالياً" />
     }
 
     <!-- Desktop Table View -->
-    @if (!isLoading() && filteredTeams().length > 0) {
+    @if (!isLoading() && !pager.isEmpty()) {
     <div class="table-wrapper hide-on-mobile">
-        <app-table [data]="filteredTeams()" [columns]="columns" [loading]="isLoading()"
+        <app-table [data]="pager.items()" [columns]="columns" [loading]="isLoading()"
             emptyMessage="لا توجد فرق في هذا التصنيف حالياً" />
+
+        <!-- Pagination -->
+        <app-pagination
+            [pageNumber]="pager.pageNumber"
+            [totalPages]="pager.totalPages"
+            [hasPreviousPage]="pager.hasPreviousPage"
+            [hasNextPage]="pager.hasNextPage"
+            [summary]="pager.summary"
+            (pageChange)="pager.loadPage($event)" />
     </div>
     }
 
     <!-- Mobile Cards View -->
-    @if (!isLoading() && filteredTeams().length > 0) {
+    @if (!isLoading() && !pager.isEmpty()) {
     <div class="mobile-teams-list show-only-mobile">
-        @for (team of filteredTeams(); track team.id) {
+        @for (team of pager.items(); track team.id) {
         <div class="card team-mobile-card" [class.is-disabled]="!team.isActive">
             <div class="card-header-flex">
                 <div class="flex items-center gap-3">

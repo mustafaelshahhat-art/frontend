@@ -1,0 +1,42 @@
+@if (pages > 1) {
+<div class="pagination" role="navigation" aria-label="صفحات">
+  <span class="pagination-info">{{ summaryText }}</span>
+
+  <div class="pagination-controls">
+    <!-- Next (right arrow in RTL = go to previous page) -->
+    <button
+      class="page-btn nav-btn"
+      [class.disabled]="!canGoNext"
+      [disabled]="!canGoNext"
+      (click)="goToNext()"
+      aria-label="الصفحة التالية">
+      <app-icon name="chevron_right" class="icon-sm"></app-icon>
+    </button>
+
+    <!-- Page numbers -->
+    @for (page of visiblePages; track $index) {
+      @if (page === '...') {
+        <span class="page-ellipsis">…</span>
+      } @else {
+        <button
+          class="page-btn"
+          [class.active]="page === currentPage"
+          [attr.aria-current]="page === currentPage ? 'page' : null"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      }
+    }
+
+    <!-- Previous (left arrow in RTL = go to next page) -->
+    <button
+      class="page-btn nav-btn"
+      [class.disabled]="!canGoPrev"
+      [disabled]="!canGoPrev"
+      (click)="goToPrev()"
+      aria-label="الصفحة السابقة">
+      <app-icon name="chevron_left" class="icon-sm"></app-icon>
+    </button>
+  </div>
+</div>
+}

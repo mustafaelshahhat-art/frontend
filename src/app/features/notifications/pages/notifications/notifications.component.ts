@@ -18,6 +18,8 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 import { FilterComponent, FilterItem } from '../../../../shared/components/filter/filter.component';
 import { PermissionsService } from '../../../../core/services/permissions.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { createClientPagination, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
 
 interface Notification {
     id: string;
@@ -44,7 +46,8 @@ type NotificationFilterValue = 'all' | 'unread' | 'read';
         BadgeComponent,
         InlineLoadingComponent,
         TimeAgoPipe,
-        FilterComponent
+        FilterComponent,
+        PaginationComponent
     ],
     templateUrl: './notifications.component.html',
     styleUrls: ['./notifications.component.scss'],
@@ -98,6 +101,9 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
         return this.notificationsView();
     }
 
+    // Pagination — slices notificationsView client-side
+    pager: PaginationSource<Notification> = createClientPagination(this.notificationsView, { pageSize: 20 });
+
     @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
 
     ngOnInit(): void {
@@ -146,6 +152,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
 
     setFilter(filter: unknown): void {
         this.selectedFilter.set(filter as NotificationFilterValue);
+        this.pager.loadPage(1);
     }
 
     getIcon(type: string): string {

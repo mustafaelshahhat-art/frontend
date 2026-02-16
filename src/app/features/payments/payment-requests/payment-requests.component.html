@@ -12,14 +12,23 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && filteredRequests().length === 0) {
+    @if (!isLoading() && pager.isEmpty()) {
     <app-empty-state icon="payments" title="لا توجد طلبات دفع" description="لا توجد طلبات دفع في هذا التصنيف حالياً" />
     }
 
     <!-- Table -->
-    @if (!isLoading() && filteredRequests().length > 0) {
+    @if (!isLoading() && !pager.isEmpty()) {
     <div class="card p-0 overflow-hidden">
-        <app-table [data]="filteredRequests()" [columns]="columns" [loading]="isLoading()" />
+        <app-table [data]="pager.items()" [columns]="columns" [loading]="isLoading()" />
+
+        <!-- Pagination -->
+        <app-pagination
+            [pageNumber]="pager.pageNumber"
+            [totalPages]="pager.totalPages"
+            [hasPreviousPage]="pager.hasPreviousPage"
+            [hasNextPage]="pager.hasNextPage"
+            [summary]="pager.summary"
+            (pageChange)="pager.loadPage($event)" />
     </div>
     }
 </div>

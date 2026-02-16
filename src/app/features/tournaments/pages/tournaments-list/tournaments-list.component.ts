@@ -24,6 +24,8 @@ import { TournamentCardComponent } from '../../components/tournament-card/tourna
 import { TeamRegistrationModalComponent } from '../../components/team-registration-modal/team-registration-modal.component';
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
+import { LoadMoreComponent } from '../../../../shared/components/load-more/load-more.component';
+import { createClientLoadMore, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
 
 // Type-safe filter definition
 type TournamentFilterValue = 'all' | 'available' | 'active' | 'completed';
@@ -45,7 +47,8 @@ interface TournamentFilter {
         InlineLoadingComponent,
         TournamentCardComponent,
         TeamRegistrationModalComponent,
-        HasPermissionDirective
+        HasPermissionDirective,
+        LoadMoreComponent
     ],
     templateUrl: './tournaments-list.component.html',
     styleUrls: ['./tournaments-list.component.scss'],
@@ -115,6 +118,9 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
         return result;
     });
+
+    // Load-more pagination — progressively reveals filtered tournaments
+    pager: PaginationSource<Tournament> = createClientLoadMore(this.filteredTournaments, { pageSize: 12 });
 
     ngOnInit(): void {
         const isAdminView = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS);
@@ -211,10 +217,12 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
     setFilter(filter: unknown): void {
         this.currentFilter.set(filter as TournamentFilterValue);
+        this.pager.refresh();
     }
 
     onSearchChange(query: string): void {
         this.searchQuery.set(query);
+        this.pager.refresh();
     }
 
     isRegistered(id: string): boolean {

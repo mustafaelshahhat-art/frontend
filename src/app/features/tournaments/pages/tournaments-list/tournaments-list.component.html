@@ -17,7 +17,7 @@
 }
 
 <!-- Empty States Based on Context -->
-@if (!isLoading() && filteredTournaments().length === 0) {
+@if (!isLoading() && pager.isEmpty()) {
 <!-- No tournaments at all -->
 @if (tournaments().length === 0) {
 <app-empty-state icon="emoji_events" title="لا توجد بطولات حالياً"
@@ -31,18 +31,25 @@
 }
 
 <!-- Tournaments Grid -->
-@if (!isLoading() && filteredTournaments().length > 0) {
+@if (!isLoading() && !pager.isEmpty()) {
 <div class="tournaments-grid">
-    @for (tournament of filteredTournaments(); track tournament.id) {
+    @for (tournament of pager.items(); track tournament.id) {
     <app-tournament-card [tournament]="tournament" [showRegisterButton]="isCaptain()"
         [showNonOwnerHint]="!isCaptain() && hasTeam()" [isTeamDisabled]="isTeamDisabled()"
         (viewDetails)="viewDetails($event)" (register)="registerTeam($event)" />
     }
 </div>
+
+<!-- Load More -->
+<app-load-more
+    [hasNextPage]="pager.hasNextPage"
+    [isLoading]="pager.isLoading"
+    [summary]="pager.summary"
+    (loadMore)="pager.loadMore()" />
 }
 
 <!-- Player Non-Owner Info Banner -->
-@if (isPlayerWithoutTeam() && !isLoading() && filteredTournaments().length > 0) {
+@if (isPlayerWithoutTeam() && !isLoading() && !pager.isEmpty()) {
 <div class="player-info-banner">
     <app-icon name="info" class=" icon-sm"></app-icon>
     <p>أنت مسجل كلاعب. يجب إنشاء فريق أولاً لتتمكن من التسجيل في البطولات.</p>

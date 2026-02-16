@@ -23,12 +23,12 @@
 
 <!-- Main Content -->
 <div class="card p-0 overflow-hidden">
-    <app-table [data]="filteredUsers()" [columns]="columns" [loading]="isLoading()"
+    <app-table [data]="pager.items()" [columns]="columns" [loading]="isLoading()"
         emptyMessage="لا يوجد مستخدمين في هذا التصنيف حالياً" />
 
     <!-- Index Template -->
     <ng-template #indexInfo let-index="index">
-        <span class="text-muted">{{ (index + 1).toString().padStart(2, '0') }}</span>
+        <span class="text-muted">{{ ((pager.pageNumber() - 1) * pager.pageSize() + index + 1).toString().padStart(2, '0') }}</span>
     </ng-template>
 
     <!-- User Info Template -->
@@ -100,15 +100,13 @@
     </ng-template>
 
     <!-- Pagination -->
-    <div class="pagination">
-        <span class="pagination-info">عرض {{ filteredUsers().length }} مستخدم</span>
-        <div class="pagination-controls">
-            <app-button variant="ghost" size="sm" icon="chevron_right" />
-            <app-button variant="primary" size="sm">1</app-button>
-            <app-button variant="ghost" size="sm">2</app-button>
-            <app-button variant="ghost" size="sm" icon="chevron_left" />
-        </div>
-    </div>
+    <app-pagination
+        [pageNumber]="pager.pageNumber"
+        [totalPages]="pager.totalPages"
+        [hasPreviousPage]="pager.hasPreviousPage"
+        [hasNextPage]="pager.hasNextPage"
+        [summary]="pager.summary"
+        (pageChange)="pager.loadPage($event)" />
 </div>
 
 <!-- Add Admin Modal -->

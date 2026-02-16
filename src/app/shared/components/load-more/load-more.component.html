@@ -1,0 +1,21 @@
+@if (canLoad || loading) {
+<div class="load-more-container">
+  @if (summaryText) {
+    <span class="load-more-summary">{{ summaryText }}</span>
+  }
+
+  <button
+    class="load-more-btn"
+    [class.is-loading]="loading"
+    [disabled]="loading"
+    (click)="onLoadMore()">
+    @if (loading) {
+      <span class="spinner"></span>
+      <span>جاري التحميل...</span>
+    } @else {
+      <app-icon name="expand_more" class="icon-sm"></app-icon>
+      <span>تحميل المزيد</span>
+    }
+  </button>
+</div>
+}

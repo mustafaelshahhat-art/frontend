@@ -13,6 +13,8 @@ import { TournamentService } from '../../../core/services/tournament.service';
 import { Tournament, TeamRegistration, RegistrationStatus } from '../../../core/models/tournament.model';
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { TournamentStore } from '../../../core/stores/tournament.store';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
 
 @Component({
     selector: 'app-payment-requests',
@@ -24,7 +26,8 @@ import { TournamentStore } from '../../../core/stores/tournament.store';
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
-        TableComponent
+        TableComponent,
+        PaginationComponent
     ],
     templateUrl: './payment-requests.component.html',
     styleUrls: ['./payment-requests.component.scss'],
@@ -82,6 +85,9 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         if (filter === 'all') return allRequests;
         return allRequests.filter(r => r.registration.status === filter);
     });
+
+    // Pagination — slices filteredRequests client-side
+    pager = createClientPagination(this.filteredRequests, { pageSize: 20 });
 
     columns: TableColumn[] = [];
 
@@ -188,6 +194,7 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
 
     setFilter(filter: unknown): void {
         this.currentFilter.set(filter as string);
+        this.pager.loadPage(1);
     }
 
     getBadgeType(status: RegistrationStatus): 'warning' | 'success' | 'danger' {

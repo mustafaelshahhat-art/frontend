@@ -23,15 +23,15 @@
     }
 
     <!-- Empty State -->
-    @if (!isLoading() && notifications.length === 0) {
+    @if (!isLoading() && pager.isEmpty()) {
     <app-empty-state icon="notifications_off" title="لا توجد تنبيهات"
         description="مركز التنبيهات الخاص بك فارغ حالياً. سنقوم بإبلاغك بأي مستجدات هنا." />
     }
 
     <!-- Notifications List -->
-    @if (!isLoading() && notifications.length > 0) {
+    @if (!isLoading() && !pager.isEmpty()) {
     <div class="notifications-list flex-col gap-md">
-        @for (notif of notifications; track notif.id) {
+        @for (notif of pager.items(); track notif.id) {
         <app-card class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif)"
             [isClickable]="true">
 
@@ -50,5 +50,14 @@
         </app-card>
         }
     </div>
+
+    <!-- Pagination -->
+    <app-pagination
+        [pageNumber]="pager.pageNumber"
+        [totalPages]="pager.totalPages"
+        [hasPreviousPage]="pager.hasPreviousPage"
+        [hasNextPage]="pager.hasNextPage"
+        [summary]="pager.summary"
+        (pageChange)="pager.loadPage($event)" />
     }
 </div>

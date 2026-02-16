@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -9,6 +9,8 @@ import { TableComponent, TableColumn } from '../../../shared/components/table/ta
 
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
 
 @Component({
     selector: 'app-activity-log',
@@ -20,7 +22,8 @@ import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
         InlineLoadingComponent,
         TableComponent,
         FilterComponent,
-        TimeAgoPipe
+        TimeAgoPipe,
+        PaginationComponent
     ],
     templateUrl: './activity-log.component.html',
     styleUrls: ['./activity-log.component.scss'],
@@ -31,8 +34,8 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly adminLayout = inject(LayoutOrchestratorService);
 
-    logs: Activity[] = [];
-    isLoading = true;
+    logs = signal<Activity[]>([]);
+    isLoading = signal(true);
     columns: TableColumn[] = [];
 
     filters = [
@@ -44,20 +47,26 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
 
         { label: 'الدفع', value: 'payment' }
     ];
-    currentFilter = 'all';
+    currentFilter = signal('all');
 
-    get filteredLogs(): Activity[] {
-        if (this.currentFilter === 'all') return this.logs;
-        const filter = this.currentFilter.toLowerCase();
-        return this.logs.filter(log => {
+    filteredLogs = computed(() => {
+        const allLogs = this.logs();
+        const filter = this.currentFilter();
+        if (filter === 'all') return allLogs;
+        const f = filter.toLowerCase();
+        return allLogs.filter(log => {
             const type = (log.type || '').toLowerCase();
             const status = (log.status || '').toLowerCase();
-            return type.includes(filter) || status.includes(filter);
+            return type.includes(f) || status.includes(f);
         });
-    }
+    });
+
+    // Pagination — slices filteredLogs client-side
+    pager: PaginationSource<Activity> = createClientPagination(this.filteredLogs, { pageSize: 20 });
 
     setFilter(value: unknown): void {
-        this.currentFilter = value as string;
+        this.currentFilter.set(value as string);
+        this.pager.loadPage(1);
     }
 
     @ViewChild('filtersTemplate') filtersTemplate!: TemplateRef<unknown>;
@@ -94,21 +103,15 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     loadLogs(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.analyticsService.getRecentActivities().subscribe({
             next: (data) => {
-                queueMicrotask(() => {
-                    this.logs = data;
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+                this.logs.set(data);
+                this.isLoading.set(false);
             },
             error: () => {
-                queueMicrotask(() => {
-                    this.logs = [];
-                    this.isLoading = false;
-                    this.cdr.detectChanges();
-                });
+                this.logs.set([]);
+                this.isLoading.set(false);
             }
         });
     }
