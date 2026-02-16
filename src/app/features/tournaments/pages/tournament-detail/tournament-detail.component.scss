@@ -298,14 +298,16 @@
     }
 }
 
-/* Tabs */
+/* Tabs — scrolls naturally with content (no sticky).
+   Sticky was constrained inside .app-content overflow context
+   causing it to stop at the navbar instead of scrolling past.
+   Removing sticky avoids repaint thrashing and position-context
+   issues without any JS scroll listeners. */
 .tab-filter {
-    position: sticky;
-    top: 0;
-    /* Sticks to top of .app-content scroll container (navbar is outside it) */
+    position: relative;
     z-index: var(--z-sticky);
-    backdrop-filter: blur(var(--blur-md));
     background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-md));
     border-radius: var(--radius-2xl);
     padding: var(--space-1);
     border: 1px solid var(--border-color-strong);

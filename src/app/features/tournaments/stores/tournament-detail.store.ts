@@ -125,7 +125,12 @@ export class TournamentDetailStore {
     readonly groupedStandings = computed(() => {
         const all = this.standings();
         const g = this.activeGroup();
-        return g ? all.filter(s => s.groupId === g) : all;
+        const groups = this.groups();
+        // When groups exist, filter by activeGroup; otherwise return all (league mode)
+        if (groups.length > 0 && g != null) {
+            return all.filter(s => s.groupId === g);
+        }
+        return all;
     });
 
     // ── Available tabs based on mode + auth ──
@@ -297,11 +302,11 @@ export class TournamentDetailStore {
                 standingsArr.forEach(s => { if (s.groupId) map.set(s.teamId, s.groupId); });
                 this.teamGroupMap.set(map);
 
-                // Groups
+                // Groups — always auto-select first group when available
                 const groupsArr = result.groups as Group[];
-                if (groupsArr.length) {
-                    this.groups.set(groupsArr);
-                    if (!this.activeGroup()) this.activeGroup.set(groupsArr[0].id);
+                this.groups.set(groupsArr);
+                if (groupsArr.length > 0) {
+                    this.activeGroup.set(groupsArr[0].id);
                 }
 
                 // Bracket
@@ -353,11 +358,24 @@ export class TournamentDetailStore {
         if (!id) return;
 
         if (tab === 'standings' && !this.loadedTabs().has('standings')) {
-            this.tournamentService.getStandings(id).pipe(
-                takeUntilDestroyed(destroyRef),
-                catchError(() => of([]))
-            ).subscribe(data => {
-                this.standings.set(data);
+            const cat = this.modeCategory();
+            const needsGroups = cat === 'GroupsThenKnockout' && this.groups().length === 0;
+
+            forkJoin({
+                standings: this.tournamentService.getStandings(id).pipe(catchError(() => of([]))),
+                groups: needsGroups
+                    ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
+                    : of(this.groups()),
+            }).pipe(
+                takeUntilDestroyed(destroyRef)
+            ).subscribe(({ standings, groups }) => {
+                this.standings.set(standings);
+                if (groups.length > 0) {
+                    this.groups.set(groups);
+                    if (this.activeGroup() == null) {
+                        this.activeGroup.set(groups[0].id);
+                    }
+                }
                 this.markTabLoaded('standings');
             });
         }
