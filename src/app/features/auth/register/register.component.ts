@@ -7,7 +7,7 @@ import { Router, RouterModule } from '@angular/router';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SystemSettingsService } from '../../../core/services/system-settings.service';
-import { LocationService } from '../../../core/services/location.service';
+import { LocationService, GovernorateDto, CityDto, AreaDto } from '../../../core/services/location.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 import { FormControlComponent } from '../../../shared/components/form-control/form-control.component';
@@ -36,9 +36,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     phone: signal(''),
     age: signal<number | null>(null),
     nationalId: signal(''),
-    governorate: signal(''),
-    city: signal(''),
-    neighborhood: signal(''),
+    governorateId: signal(''),
+    cityId: signal(''),
+    areaId: signal(''),
 
     password: signal(''),
     confirmPassword: signal(''),
@@ -48,10 +48,10 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   governorateOptions = signal<SelectOption[]>([]);
   cityOptions = signal<SelectOption[]>([]);
-  neighborhoodOptions = signal<SelectOption[]>([]);
+  areaOptions = signal<SelectOption[]>([]);
 
-  selectedGovernorate = signal('');
-  selectedCity = signal('');
+  isLoadingCities = signal(false);
+  isLoadingAreas = signal(false);
 
   ngOnInit(): void {
     this.checkMaintenance();
@@ -79,8 +79,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   private loadGovernorates(): void {
     this.locationService.getGovernorates().subscribe({
-      next: (govs) => {
-        this.governorateOptions.set(govs.map(g => ({ label: g, value: g })));
+      next: (govs: GovernorateDto[]) => {
+        this.governorateOptions.set(govs.map(g => ({ label: g.nameAr, value: g.id })));
       },
       error: () => {
         this.governorateOptions.set([]);
@@ -88,48 +88,51 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private loadCities(governorate: string): void {
-    this.locationService.getCities(governorate).subscribe({
-      next: (cities) => {
-        this.cityOptions.set(cities.map(c => ({ label: c, value: c })));
+  private loadCities(governorateId: string): void {
+    this.isLoadingCities.set(true);
+    this.locationService.getCities(governorateId).subscribe({
+      next: (cities: CityDto[]) => {
+        this.cityOptions.set(cities.map(c => ({ label: c.nameAr, value: c.id })));
+        this.isLoadingCities.set(false);
       },
       error: () => {
         this.cityOptions.set([]);
+        this.isLoadingCities.set(false);
       }
     });
   }
 
-  private loadNeighborhoods(city: string): void {
-    this.locationService.getDistricts(city).subscribe({
-      next: (districts) => {
-        this.neighborhoodOptions.set(districts.map(d => ({ label: d, value: d })));
+  private loadAreas(cityId: string): void {
+    this.isLoadingAreas.set(true);
+    this.locationService.getAreas(cityId).subscribe({
+      next: (areas: AreaDto[]) => {
+        this.areaOptions.set(areas.map(a => ({ label: a.nameAr, value: a.id })));
+        this.isLoadingAreas.set(false);
       },
       error: () => {
-        this.neighborhoodOptions.set([]);
+        this.areaOptions.set([]);
+        this.isLoadingAreas.set(false);
       }
     });
   }
 
   onGovChange(value: string): void {
-    this.form.governorate.set(value);
-    this.selectedGovernorate.set(value);
-    this.form.city.set('');
-    this.form.neighborhood.set('');
-    this.selectedCity.set('');
+    this.form.governorateId.set(value);
+    this.form.cityId.set('');
+    this.form.areaId.set('');
     this.cityOptions.set([]);
-    this.neighborhoodOptions.set([]);
+    this.areaOptions.set([]);
     if (value) {
       this.loadCities(value);
     }
   }
 
   onCityChange(value: string): void {
-    this.form.city.set(value);
-    this.selectedCity.set(value);
-    this.form.neighborhood.set('');
-    this.neighborhoodOptions.set([]);
+    this.form.cityId.set(value);
+    this.form.areaId.set('');
+    this.areaOptions.set([]);
     if (value) {
-      this.loadNeighborhoods(value);
+      this.loadAreas(value);
     }
   }
 
@@ -160,9 +163,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       phone: this.form.phone()?.trim(),
       age: this.form.age(),
       nationalId: this.form.nationalId()?.trim(),
-      governorate: this.form.governorate()?.trim(),
-      city: this.form.city()?.trim(),
-      neighborhood: this.form.neighborhood()?.trim(),
+      governorateId: this.form.governorateId() || null,
+      cityId: this.form.cityId() || null,
+      areaId: this.form.areaId() || null,
       role: 'Player',
       password: this.form.password().trim(),
       confirmPassword: this.form.confirmPassword().trim(),

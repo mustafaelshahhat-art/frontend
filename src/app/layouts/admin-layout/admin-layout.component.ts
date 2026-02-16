@@ -27,7 +27,9 @@ export class AdminLayoutComponent extends BaseLayout {
 
         { label: 'الطلبات المالية', icon: 'payments', route: '/admin/payment-requests', permission: Permission.VIEW_PAYMENTS },
         { label: 'الإشعارات', icon: 'notifications', route: '/admin/notifications', permission: Permission.VIEW_NOTIFICATIONS },
-        { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log', permission: Permission.VIEW_LOGS }
+        { label: 'سجل النشاطات', icon: 'history', route: '/admin/activity-log', permission: Permission.VIEW_LOGS },
+        { label: 'إدارة المناطق', icon: 'location_on', route: '/admin/locations', permission: Permission.MANAGE_SETTINGS },
+        { label: 'الإعدادات', icon: 'settings', route: '/admin/settings', permission: Permission.MANAGE_SETTINGS }
     ];
 
     get navItems(): NavItem[] {

@@ -105,19 +105,21 @@
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="governorateOptions()" formControlName="governorate"
+                            <app-select [options]="governorateOptions()" formControlName="governorateId"
                                 (selectionChange)="onGovernorateChange($event)" label="المحافظة"
                                 placeholder="اختر المحافظة" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="cityOptions()" formControlName="city"
-                                (selectionChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة" />
+                            <app-select [options]="cityOptions()" formControlName="cityId"
+                                (selectionChange)="onCityChange($event)" label="المدينة" placeholder="اختر المدينة"
+                                [loading]="isLoadingCities()" />
                         </div>
 
                         <div class="form-group">
-                            <app-select [options]="districtOptions()" formControlName="neighborhood"
-                                (selectionChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي" />
+                            <app-select [options]="districtOptions()" formControlName="areaId"
+                                (selectionChange)="onDistrictChange($event)" label="الحي" placeholder="اختر الحي"
+                                [loading]="isLoadingAreas()" />
                         </div>
                     </div>
 

@@ -40,9 +40,9 @@ export class AuthService {
         formData.append('phone', userData.phone || '');
         if (userData.age) formData.append('age', userData.age.toString());
         formData.append('nationalId', userData.nationalId || '');
-        formData.append('governorate', userData.governorate || '');
-        formData.append('city', userData.city || '');
-        formData.append('neighborhood', userData.neighborhood || '');
+        if (userData.governorateId) formData.append('governorateId', userData.governorateId);
+        if (userData.cityId) formData.append('cityId', userData.cityId);
+        if (userData.areaId) formData.append('areaId', userData.areaId);
         formData.append('role', this.mapRoleToBackend(userData.role).toString());
 
         if (userData.idFront) formData.append('idFront', userData.idFront);

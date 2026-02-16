@@ -1,0 +1,254 @@
+<!-- Actions Template -->
+<ng-template #actionsTemplate>
+    <app-button (trigger)="toggleAddForm()" [variant]="showAddForm() ? 'outline' : 'primary'"
+        [icon]="showAddForm() ? 'close' : 'add'">
+        {{ showAddForm() ? 'إلغاء' : 'إضافة ' + tabLabel }}
+    </app-button>
+</ng-template>
+
+<!-- Filters Template -->
+<ng-template #filtersTemplate>
+    <div class="filters-row">
+        <app-filter [items]="tabs" [activeValue]="activeTab()" (filterChange)="setTab($event)" />
+
+        <div class="filters-controls">
+            <!-- Search -->
+            <div class="search-box">
+                <app-icon name="search" class="search-icon icon-sm"></app-icon>
+                <input type="text" class="search-input" placeholder="بحث بالاسم..."
+                    [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+            </div>
+
+            <!-- Status filter -->
+            <app-select [options]="[
+                { label: 'كل الحالات', value: 'all' },
+                { label: 'مفعّل', value: 'active' },
+                { label: 'معطّل', value: 'inactive' }
+            ]" [ngModel]="statusFilter()" (ngModelChange)="onStatusChange($event)"
+                placeholder="الحالة" />
+
+            <!-- Governorate filter (for cities & areas tabs) -->
+            @if (activeTab() === 'cities' || activeTab() === 'areas') {
+            <app-select [options]="governorateFilterOptions()" [ngModel]="selectedGovernorateId()"
+                (ngModelChange)="onGovernorateFilterChange($event)" placeholder="المحافظة" />
+            }
+
+            <!-- City filter (for areas tab) -->
+            @if (activeTab() === 'areas' && selectedGovernorateId()) {
+            <app-select [options]="cityFilterOptions()" [ngModel]="selectedCityId()"
+                (ngModelChange)="onCityFilterChange($event)" placeholder="المدينة" />
+            }
+        </div>
+    </div>
+</ng-template>
+
+<!-- Main Content -->
+<div class="location-management">
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <app-icon name="location_on" class="stat-icon icon-sm"></app-icon>
+            <span class="stat-value">{{ totalGovernorates() }}</span>
+            <span class="stat-label">محافظة</span>
+        </div>
+        <div class="stat-item">
+            <app-icon name="location_city" class="stat-icon icon-sm"></app-icon>
+            <span class="stat-value">{{ totalCities() }}</span>
+            <span class="stat-label">مدينة</span>
+        </div>
+        <div class="stat-item">
+            <app-icon name="home" class="stat-icon icon-sm"></app-icon>
+            <span class="stat-value">{{ totalAreas() }}</span>
+            <span class="stat-label">حي</span>
+        </div>
+    </div>
+
+    <!-- Add Form -->
+    @if (showAddForm()) {
+    <div class="add-form card animate-fade-in">
+        <h3 class="add-form-title">
+            <app-icon name="add_circle" class="icon-sm text-primary"></app-icon>
+            إضافة {{ tabLabel }} جديدة
+        </h3>
+        <div class="add-form-fields">
+            <!-- Parent select (only for cities and areas) -->
+            @if (activeTab() !== 'governorates') {
+            <div class="form-field">
+                <label class="field-label">{{ parentLabel }}</label>
+                <app-select [options]="parentOptions" [ngModel]="newItem().parentId"
+                    (ngModelChange)="updateNewItemField('parentId', $event)"
+                    [placeholder]="'اختر ' + parentLabel" />
+            </div>
+            }
+
+            <div class="form-field">
+                <label class="field-label">الاسم بالعربية</label>
+                <input type="text" class="field-input" [ngModel]="newItem().nameAr"
+                    (ngModelChange)="updateNewItemField('nameAr', $event)"
+                    placeholder="أدخل الاسم بالعربية" />
+            </div>
+
+            <div class="form-field">
+                <label class="field-label">الاسم بالإنجليزية</label>
+                <input type="text" class="field-input" [ngModel]="newItem().nameEn"
+                    (ngModelChange)="updateNewItemField('nameEn', $event)"
+                    placeholder="Enter name in English" dir="ltr" />
+            </div>
+
+            <div class="form-field form-field-sm">
+                <label class="field-label">الترتيب</label>
+                <input type="number" class="field-input" [ngModel]="newItem().sortOrder"
+                    (ngModelChange)="updateNewItemField('sortOrder', $event)"
+                    placeholder="0" min="0" />
+            </div>
+        </div>
+
+        <div class="add-form-actions">
+            <app-button (trigger)="saveNewItem()" variant="primary" icon="check" [isLoading]="isSaving()">
+                حفظ
+            </app-button>
+            <app-button (trigger)="toggleAddForm()" variant="outline" icon="close">
+                إلغاء
+            </app-button>
+        </div>
+    </div>
+    }
+
+    <!-- Loading -->
+    @if (isLoading()) {
+    <app-inline-loading message="جاري التحميل..." />
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && getActiveList().length === 0) {
+    <app-empty-state icon="location_off" title="لا توجد بيانات"
+        [description]="'لا توجد ' + tabLabel + 'ات مسجلة بعد'" />
+    }
+
+    <!-- Data Table -->
+    @if (!isLoading() && getActiveList().length > 0) {
+    <div class="card p-0 overflow-hidden animate-fade-in">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="th-name">الاسم بالعربية</th>
+                        <th class="th-name-en">الاسم بالإنجليزية</th>
+                        @if (activeTab() === 'cities') {
+                        <th>المحافظة</th>
+                        }
+                        @if (activeTab() === 'areas') {
+                        <th>المدينة</th>
+                        }
+                        <th class="th-order">الترتيب</th>
+                        <th class="th-count">{{ activeTab() === 'governorates' ? 'المدن' : activeTab() === 'cities' ? 'الأحياء' : 'المستخدمين' }}</th>
+                        <th class="th-status">الحالة</th>
+                        <th class="th-actions">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (item of getActiveList(); track item.id) {
+                    <tr class="table-row" [class.inactive-row]="!item.isActive">
+
+                        <!-- Editing mode -->
+                        @if (editingItem()?.id === item.id) {
+                        <td>
+                            <input type="text" class="edit-input" [ngModel]="editingItem()!.nameAr"
+                                (ngModelChange)="updateEditingField('nameAr', $event)" />
+                        </td>
+                        <td>
+                            <input type="text" class="edit-input" dir="ltr" [ngModel]="editingItem()!.nameEn"
+                                (ngModelChange)="updateEditingField('nameEn', $event)" />
+                        </td>
+                        @if (activeTab() === 'cities') {
+                        <td>{{ asCityAdmin(item).governorateNameAr }}</td>
+                        }
+                        @if (activeTab() === 'areas') {
+                        <td>{{ asAreaAdmin(item).cityNameAr }}</td>
+                        }
+                        <td>
+                            <input type="number" class="edit-input edit-input-sm" min="0"
+                                [ngModel]="editingItem()!.sortOrder"
+                                (ngModelChange)="updateEditingField('sortOrder', $event)" />
+                        </td>
+                        <td>{{ getItemCount(item) }}</td>
+                        <td>
+                            <app-badge [type]="item.isActive ? 'success' : 'muted'">
+                                {{ item.isActive ? 'مفعّل' : 'معطّل' }}
+                            </app-badge>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-save" (click)="saveEdit()" [disabled]="isSaving()">
+                                    <app-icon name="check" class="icon-sm"></app-icon>
+                                </button>
+                                <button class="btn-icon btn-cancel" (click)="cancelEdit()">
+                                    <app-icon name="close" class="icon-sm"></app-icon>
+                                </button>
+                            </div>
+                        </td>
+                        } @else {
+                        <!-- View mode -->
+                        <td class="cell-name">
+                            <div class="name-cell">
+                                <app-icon [name]="activeTab() === 'governorates' ? 'location_on' : activeTab() === 'cities' ? 'location_city' : 'home'"
+                                    class="name-icon icon-sm"></app-icon>
+                                <span class="font-bold">{{ item.nameAr }}</span>
+                            </div>
+                        </td>
+                        <td class="cell-name-en" dir="ltr">{{ item.nameEn }}</td>
+                        @if (activeTab() === 'cities') {
+                        <td>
+                            <app-badge type="info">{{ asCityAdmin(item).governorateNameAr }}</app-badge>
+                        </td>
+                        }
+                        @if (activeTab() === 'areas') {
+                        <td>
+                            <app-badge type="info">{{ asAreaAdmin(item).cityNameAr }}</app-badge>
+                        </td>
+                        }
+                        <td class="cell-order">{{ item.sortOrder }}</td>
+                        <td class="cell-count">
+                            <span class="count-badge">{{ getItemCount(item) }}</span>
+                        </td>
+                        <td>
+                            <app-badge [type]="item.isActive ? 'success' : 'muted'" [dot]="true"
+                                [dotType]="item.isActive ? 'active' : 'inactive'">
+                                {{ item.isActive ? 'مفعّل' : 'معطّل' }}
+                            </app-badge>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon btn-edit" (click)="startEdit(item)" title="تعديل">
+                                    <app-icon name="edit" class="icon-sm"></app-icon>
+                                </button>
+                                <button class="btn-icon" [class.btn-deactivate]="item.isActive"
+                                    [class.btn-activate]="!item.isActive" (click)="toggleActive(item)"
+                                    [title]="item.isActive ? 'تعطيل' : 'تفعيل'">
+                                    <app-icon [name]="item.isActive ? 'visibility_off' : 'visibility'" class="icon-sm"></app-icon>
+                                </button>
+                            </div>
+                        </td>
+                        }
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+        <div class="table-pagination">
+            <button class="page-btn" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)">
+                <app-icon name="chevron_right" class="icon-sm"></app-icon>
+            </button>
+            <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button class="page-btn" [disabled]="currentPage() >= totalPages()" (click)="goToPage(currentPage() + 1)">
+                <app-icon name="chevron_left" class="icon-sm"></app-icon>
+            </button>
+        </div>
+        }
+    </div>
+    }
+</div>

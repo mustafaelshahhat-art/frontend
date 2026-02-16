@@ -30,9 +30,12 @@ export interface User {
     phone?: string;
     age?: number;
     nationalId?: string;
-    governorate?: string;
-    city?: string;
-    neighborhood?: string;
+    governorateId?: string;
+    cityId?: string;
+    areaId?: string;
+    governorateName?: string;
+    cityName?: string;
+    areaName?: string;
     idFrontUrl?: string;
     idBackUrl?: string;
     teamId?: string; // ID of the team the user belongs to
@@ -70,9 +73,9 @@ export interface RegisterRequest {
     phone?: string | null;
     age?: number | null;
     nationalId?: string | null;
-    governorate?: string | null;
-    city?: string | null;
-    neighborhood?: string | null;
+    governorateId?: string | null;
+    cityId?: string | null;
+    areaId?: string | null;
     role: string | number;
     idFront?: File | null;
     idBack?: File | null;

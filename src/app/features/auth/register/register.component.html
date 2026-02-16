@@ -62,25 +62,25 @@
                     <!-- Governorate -->
                     <div class="form-group">
                         <label class="form-label" for="governorate">المحافظة</label>
-                        <app-select id="governorate" name="governorate" [options]="governorateOptions()"
-                            [ngModel]="form.governorate()" (ngModelChange)="onGovChange($event)"
+                        <app-select id="governorate" name="governorateId" [options]="governorateOptions()"
+                            [ngModel]="form.governorateId()" (ngModelChange)="onGovChange($event)"
                             placeholder="اختر المحافظة" />
                     </div>
 
                     <!-- City -->
                     <div class="form-group">
                         <label class="form-label" for="city">المدينة</label>
-                        <app-select id="city" name="city" [options]="cityOptions()" [ngModel]="form.city()"
-                            (ngModelChange)="onCityChange($event)" [disabled]="!form.governorate()"
-                            placeholder="اختر المدينة" />
+                        <app-select id="city" name="cityId" [options]="cityOptions()" [ngModel]="form.cityId()"
+                            (ngModelChange)="onCityChange($event)" [disabled]="!form.governorateId()"
+                            [loading]="isLoadingCities()" placeholder="اختر المدينة" />
                     </div>
 
-                    <!-- Neighborhood -->
+                    <!-- Area -->
                     <div class="form-group">
-                        <label class="form-label" for="neighborhood">الحي / المنطقة</label>
-                        <app-select id="neighborhood" name="neighborhood" [options]="neighborhoodOptions()"
-                            [ngModel]="form.neighborhood()" (ngModelChange)="form.neighborhood.set($event)"
-                            [disabled]="!form.city()" placeholder="اختر الحي" />
+                        <label class="form-label" for="area">الحي / المنطقة</label>
+                        <app-select id="area" name="areaId" [options]="areaOptions()"
+                            [ngModel]="form.areaId()" (ngModelChange)="form.areaId.set($event)"
+                            [disabled]="!form.cityId()" [loading]="isLoadingAreas()" placeholder="اختر الحي" />
                     </div>
 
                     <!-- Password -->

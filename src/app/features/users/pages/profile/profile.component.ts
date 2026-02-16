@@ -14,7 +14,7 @@ import { UserService } from '../../../../core/services/user.service';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
-import { LocationService } from '../../../../core/services/location.service';
+import { LocationService, GovernorateDto, CityDto, AreaDto } from '../../../../core/services/location.service';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { PermissionsService } from '../../../../core/services/permissions.service';
@@ -81,6 +81,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     cityOptions = signal<SelectOption[]>([]);
     districtOptions = signal<SelectOption[]>([]);
     isLocationsLoading = signal(false);
+    isLoadingCities = signal(false);
+    isLoadingAreas = signal(false);
 
     ngOnInit(): void {
         // Set layout page metadata
@@ -157,18 +159,18 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     private loadLocations(): void {
         this.isLocationsLoading.set(true);
         this.locationService.getGovernorates().subscribe({
-            next: (governorates) => {
+            next: (governorates: GovernorateDto[]) => {
                 this.governorateOptions.set(governorates.map(g => ({
-                    label: g,
-                    value: g,
+                    label: g.nameAr,
+                    value: g.id,
                     icon: 'location_on'
                 })));
                 this.isLocationsLoading.set(false);
 
                 // If user has a governorate, load cities
                 const currentUser = this.user();
-                if (currentUser?.governorate) {
-                    this.loadCities(currentUser.governorate);
+                if (currentUser?.governorateId) {
+                    this.loadCities(currentUser.governorateId);
                 }
             },
             error: (error) => {
@@ -178,78 +180,78 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    private loadCities(governorate: string): void {
-        if (!governorate) return;
+    private loadCities(governorateId: string): void {
+        if (!governorateId) return;
 
-        this.isLocationsLoading.set(true);
-        this.locationService.getCities(governorate).subscribe({
-            next: (cities) => {
+        this.isLoadingCities.set(true);
+        this.locationService.getCities(governorateId).subscribe({
+            next: (cities: CityDto[]) => {
                 this.cityOptions.set(cities.map(c => ({
-                    label: c,
-                    value: c,
+                    label: c.nameAr,
+                    value: c.id,
                     icon: 'location_city'
                 })));
-                this.isLocationsLoading.set(false);
+                this.isLoadingCities.set(false);
 
-                // If user has a city, load districts
+                // If user has a city, load areas
                 const currentUser = this.user();
-                if (currentUser?.city) {
-                    this.loadDistricts(currentUser.city);
+                if (currentUser?.cityId) {
+                    this.loadAreas(currentUser.cityId);
                 }
             },
             error: (error) => {
                 console.error('Error loading cities:', error);
-                this.isLocationsLoading.set(false);
+                this.isLoadingCities.set(false);
             }
         });
     }
 
-    private loadDistricts(city: string): void {
-        if (!city) return;
+    private loadAreas(cityId: string): void {
+        if (!cityId) return;
 
-        this.isLocationsLoading.set(true);
-        this.locationService.getDistricts(city).subscribe({
-            next: (districts) => {
-                this.districtOptions.set(districts.map(d => ({
-                    label: d,
-                    value: d,
+        this.isLoadingAreas.set(true);
+        this.locationService.getAreas(cityId).subscribe({
+            next: (areas: AreaDto[]) => {
+                this.districtOptions.set(areas.map(a => ({
+                    label: a.nameAr,
+                    value: a.id,
                     icon: 'home'
                 })));
-                this.isLocationsLoading.set(false);
+                this.isLoadingAreas.set(false);
             },
             error: (error) => {
-                console.error('Error loading districts:', error);
-                this.isLocationsLoading.set(false);
+                console.error('Error loading areas:', error);
+                this.isLoadingAreas.set(false);
             }
         });
     }
 
     // Location change handlers
     onGovernorateChange(value: any): void {
-        const governorate = typeof value === 'object' && value !== null ? value.value : value;
+        const governorateId = typeof value === 'object' && value !== null ? value.value : value;
 
         this.profileForm.patchValue({
-            city: '',
-            neighborhood: ''
+            cityId: '',
+            areaId: ''
         });
         this.cityOptions.set([]);
         this.districtOptions.set([]);
 
-        if (governorate) {
-            this.loadCities(governorate);
+        if (governorateId) {
+            this.loadCities(governorateId);
         }
     }
 
     onCityChange(value: any): void {
-        const city = typeof value === 'object' && value !== null ? value.value : value;
+        const cityId = typeof value === 'object' && value !== null ? value.value : value;
 
         this.profileForm.patchValue({
-            neighborhood: ''
+            areaId: ''
         });
         this.districtOptions.set([]);
 
-        if (city) {
-            this.loadDistricts(city);
+        if (cityId) {
+            this.loadAreas(cityId);
         }
     }
 
@@ -265,9 +267,9 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             email: ['', [Validators.required, Validators.email]],
             phone: ['', [Validators.required, Validators.pattern(/^(01\d{9}|05\d{8})$/)]],
             nationalId: [{ value: '', disabled: true }],
-            governorate: [''],
-            city: [''],
-            neighborhood: [''],
+            governorateId: [''],
+            cityId: [''],
+            areaId: [''],
             bio: ['']
         });
 
@@ -291,9 +293,9 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 email: currentUser.email || '',
                 phone: currentUser.phone || '',
                 nationalId: currentUser.nationalId || '',
-                governorate: currentUser.governorate || '',
-                city: currentUser.city || '',
-                neighborhood: currentUser.neighborhood || '',
+                governorateId: currentUser.governorateId || '',
+                cityId: currentUser.cityId || '',
+                areaId: currentUser.areaId || '',
                 bio: ''
             });
 

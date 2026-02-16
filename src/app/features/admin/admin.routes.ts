@@ -47,6 +47,11 @@ export const adminRoutes: Routes = [
                 loadComponent: () => import('./settings/settings.component').then(m => m.SettingsComponent),
                 data: { breadcrumb: 'الإعدادات', icon: 'settings' }
             },
+            {
+                path: 'locations',
+                loadComponent: () => import('./location-management/location-management.component').then(m => m.LocationManagementComponent),
+                data: { breadcrumb: 'إدارة المناطق', icon: 'location_on' }
+            },
 
             // ─── Shared feature routes ───────────────────────
             ...tournamentManagementRoutes(),   // /admin/tournaments, /new, /edit/:id, /:id
