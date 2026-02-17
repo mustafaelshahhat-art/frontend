@@ -10,14 +10,13 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    // PERF: Use transform instead of margin-right to avoid layout reflow
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: margin-right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent;
 
     &.mr-sidebar {
-        transform: translateX(calc(var(--width-sidebar) * -1));
+        margin-right: var(--width-sidebar);
         @media (width <=991px) {
-            transform: none;
+            margin-right: 0;
         }
     }
 }
