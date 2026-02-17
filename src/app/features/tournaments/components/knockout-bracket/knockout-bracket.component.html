@@ -18,8 +18,6 @@
                             <!-- Team Home -->
                             <div class="team-row" [class.is-winner]="isWinner(pair, pair.homeTeamId)">
                                 <div class="team-info">
-                                    <app-smart-image [src]="pair.homeLogo" type="team" size="xs"
-                                        [initials]="(pair.homeTeamName || 'T').charAt(0)"></app-smart-image>
                                     <div class="labels">
                                         <span class="name">{{ pair.homeTeamName || 'بانتظار المتأهل' }}</span>
                                     </div>
@@ -37,8 +35,6 @@
                             <!-- Team Away -->
                             <div class="team-row" [class.is-winner]="isWinner(pair, pair.awayTeamId)">
                                 <div class="team-info">
-                                    <app-smart-image [src]="pair.awayLogo" type="team" size="xs"
-                                        [initials]="(pair.awayTeamName || 'T').charAt(0)"></app-smart-image>
                                     <div class="labels">
                                         <span class="name">{{ pair.awayTeamName || 'بانتظار المتأهل' }}</span>
                                     </div>

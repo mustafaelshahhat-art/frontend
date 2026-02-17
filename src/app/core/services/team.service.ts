@@ -63,7 +63,7 @@ export class TeamService {
         // Backend returns TeamDto.
         // Helper to mimic signature:
         // We know user becomes Captain.
-        return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.cityName || 'Unknown', founded: new Date().getFullYear().toString(), logo: '' }).pipe(
+        return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.cityName || 'Unknown', founded: new Date().getFullYear().toString() }).pipe(
             map(team => {
                 const updatedUser = { ...user, teamId: team.id };
                 return { team, updatedUser };

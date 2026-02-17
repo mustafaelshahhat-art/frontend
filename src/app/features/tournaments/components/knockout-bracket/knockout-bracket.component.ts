@@ -2,7 +2,6 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BracketDto, Match, MatchStatus, BracketRound, RegistrationStatus } from '../../../../core/models/tournament.model';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserRole } from '../../../../core/models/user.model';
@@ -14,8 +13,6 @@ interface BracketPairing {
     awayTeamId: string;
     homeTeamName: string;
     awayTeamName: string;
-    homeLogo?: string;
-    awayLogo?: string;
     homeScoreAgg: number;
     awayScoreAgg: number;
     status: MatchStatus;
@@ -33,7 +30,7 @@ interface BracketRoundView {
 @Component({
     selector: 'app-knockout-bracket',
     standalone: true,
-    imports: [IconComponent, CommonModule, SmartImageComponent],
+    imports: [IconComponent, CommonModule],
     templateUrl: './knockout-bracket.component.html',
     styleUrls: ['./knockout-bracket.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -80,8 +77,6 @@ export class KnockoutBracketComponent implements OnChanges {
                         awayTeamId: m.awayTeamId,
                         homeTeamName: m.homeTeamName,
                         awayTeamName: m.awayTeamName,
-                        homeLogo: m.homeTeamLogoUrl,
-                        awayLogo: m.awayTeamLogoUrl,
                         homeScoreAgg: m.homeScore + (returnLeg ? returnLeg.awayScore : 0),
                         awayScoreAgg: m.awayScore + (returnLeg ? returnLeg.homeScore : 0),
                         status: (m.status === MatchStatus.FINISHED && (!returnLeg || returnLeg.status === MatchStatus.FINISHED))

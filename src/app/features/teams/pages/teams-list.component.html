@@ -39,7 +39,6 @@
         <div class="card team-mobile-card" [class.is-disabled]="!team.isActive">
             <div class="card-header-flex">
                 <div class="flex items-center gap-3">
-                    <app-smart-image [src]="team.logo" type="team" size="sm" [initials]="team.name.charAt(0)" />
                     <div class="flex-col">
                         <span class="text-primary font-bold">{{ team.name }}</span>
                         <span class="text-muted text-xs">{{ team.city }}</span>
@@ -84,7 +83,6 @@
 <!-- Team Info Template -->
 <ng-template #teamInfo let-row="row">
     <div class="flex items-center gap-3">
-        <app-smart-image [src]="row.logo" type="team" size="sm" [initials]="row.name.charAt(0)" />
         <div class="flex-col">
             <span class="text-primary font-bold text-sm">{{ row.name }}</span>
             <span class="text-muted text-xs">{{ row.city }}</span>

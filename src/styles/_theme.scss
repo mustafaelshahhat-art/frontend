@@ -852,3 +852,81 @@
     gap: var(--space-2);
   }
 }
+
+// ==========================================================================
+// User Initial Badge — CSS-only avatar replacement
+// Deterministic color from user ID hash. No images. No API calls.
+// ==========================================================================
+
+$badge-colors: (
+  #6366f1,  // indigo
+  #8b5cf6,  // violet
+  #a855f7,  // purple
+  #d946ef,  // fuchsia
+  #ec4899,  // pink
+  #f43f5e,  // rose
+  #ef4444,  // red
+  #f97316,  // orange
+  #eab308,  // yellow
+  #22c55e,  // green
+  #14b8a6,  // teal
+  #06b6d4,  // cyan
+  #3b82f6,  // blue
+  #0ea5e9   // sky
+);
+
+.user-initial-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+  user-select: none;
+  background: var(--gradient-primary);
+  overflow: hidden;
+
+  .badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+
+  // Sizes
+  &--xs {
+    width: 24px;
+    height: 24px;
+    .badge-icon { width: 16px; height: 16px; }
+  }
+
+  &--sm {
+    width: 32px;
+    height: 32px;
+    .badge-icon { width: 20px; height: 20px; }
+  }
+
+  &--md {
+    width: 40px;
+    height: 40px;
+    .badge-icon { width: 24px; height: 24px; }
+  }
+
+  &--lg {
+    width: 56px;
+    height: 56px;
+    .badge-icon { width: 32px; height: 32px; }
+  }
+
+  &--xl {
+    width: 80px;
+    height: 80px;
+    .badge-icon { width: 48px; height: 48px; }
+  }
+
+  &--2xl {
+    width: 120px;
+    height: 120px;
+    .badge-icon { width: 68px; height: 68px; }
+  }
+}

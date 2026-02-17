@@ -2,15 +2,13 @@ import { IconComponent } from '../icon/icon.component';
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Match, MatchStatus } from '../../../core/models/tournament.model';
-import { SmartImageComponent } from '../smart-image/smart-image.component';
 import { resolveStatus, StatusConfig } from '../../utils/status-labels';
 
 @Component({
     selector: 'app-match-card',
     standalone: true,
     imports: [IconComponent, 
-        CommonModule,
-        SmartImageComponent
+        CommonModule
     ],
     templateUrl: './match-card.component.html',
     styleUrls: ['./match-card.component.scss'],

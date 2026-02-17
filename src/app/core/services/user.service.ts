@@ -92,30 +92,5 @@ export class UserService {
         }
         return this.http.get<AdminCountDto>(`${this.apiUrl}/admin-count`, { params });
     }
-
-
-
-    /**
-     * Uploads a user's avatar image
-     */
-    uploadAvatar(file: File): Observable<{ avatarUrl: string }> {
-        return new Observable(observer => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64Image = reader.result as string;
-                const request = {
-                    base64Image: base64Image,
-                    fileName: file.name
-                };
-                this.http.post<{ avatarUrl: string }>(`${this.apiUrl}/upload-avatar`, request)
-                    .subscribe({
-                        next: (response) => observer.next(response),
-                        error: (error) => observer.error(error),
-                        complete: () => observer.complete()
-                    });
-            };
-            reader.readAsDataURL(file);
-        });
-    }
 }
 

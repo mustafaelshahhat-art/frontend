@@ -2,7 +2,6 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BracketDto, Match, MatchStatus, BracketRound } from '../../../../core/models/tournament.model';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { Router } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { inject } from '@angular/core';
@@ -14,8 +13,6 @@ interface BracketPairing {
   awayTeamId: string;
   homeTeamName: string;
   awayTeamName: string;
-  homeLogo?: string;
-  awayLogo?: string;
   homeScoreAgg: number;
   awayScoreAgg: number;
   status: MatchStatus; // Overall status
@@ -32,7 +29,7 @@ interface BracketRoundView {
 @Component({
   selector: 'app-tournament-brackets',
   standalone: true,
-  imports: [IconComponent, CommonModule, SmartImageComponent],
+  imports: [IconComponent, CommonModule],
   template: `
     <div class="bracket-container" *ngIf="rounds.length > 0; else emptyState">
       <div class="bracket-wrapper">
@@ -47,7 +44,6 @@ interface BracketRoundView {
               <!-- Team A -->
               <div class="team-row" [class.winner]="isWinner(pair, pair.homeTeamId)">
                 <div class="team-info">
-                  <app-smart-image [src]="pair.homeLogo" type="team" size="xs" [initials]="pair.homeTeamName.charAt(0)"></app-smart-image>
                   <span class="name">{{ pair.homeTeamName }}</span>
                 </div>
                 <div class="scores" *ngIf="pair.status !== 'Scheduled'">
@@ -61,7 +57,6 @@ interface BracketRoundView {
               <!-- Team B -->
               <div class="team-row" [class.winner]="isWinner(pair, pair.awayTeamId)">
                 <div class="team-info">
-                  <app-smart-image [src]="pair.awayLogo" type="team" size="xs" [initials]="pair.awayTeamName.charAt(0)"></app-smart-image>
                   <span class="name">{{ pair.awayTeamName }}</span>
                 </div>
                 <div class="scores" *ngIf="pair.status !== 'Scheduled'">
@@ -237,8 +232,6 @@ export class TournamentBracketsComponent implements OnChanges {
           awayTeamId: m.awayTeamId,
           homeTeamName: m.homeTeamName,
           awayTeamName: m.awayTeamName,
-          homeLogo: m.homeTeamLogoUrl,
-          awayLogo: m.awayTeamLogoUrl,
           homeScoreAgg: m.homeScore + (returnLeg ? returnLeg.awayScore : 0),
           awayScoreAgg: m.awayScore + (returnLeg ? returnLeg.homeScore : 0),
           status: (m.status === MatchStatus.FINISHED && (!returnLeg || returnLeg.status === MatchStatus.FINISHED)) ? MatchStatus.FINISHED :

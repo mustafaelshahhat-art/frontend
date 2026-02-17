@@ -35,8 +35,6 @@
             @for (team of unassignedTeams(); track trackByTeamId($index, team)) {
             <button class="team-chip" (click)="isKnockout() ? null : openGroupModal(team)"
                 [disabled]="isSubmitting()">
-                <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
-                    [initials]="team.teamName.charAt(0)"></app-smart-image>
                 <span class="team-chip-name">{{ team.teamName }}</span>
                 <app-icon name="add_circle" class="icon-sm assign-icon"></app-icon>
             </button>
@@ -64,8 +62,6 @@
             <div class="group-teams">
                 @for (team of group.teams; track trackByTeamId($index, team)) {
                 <div class="group-team-item">
-                    <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
-                        [initials]="team.teamName.charAt(0)"></app-smart-image>
                     <span>{{ team.teamName }}</span>
                     <button class="remove-btn" (click)="removeFromGroup(group.id, team)"
                         [disabled]="isSubmitting()" title="إزالة الفريق">
@@ -89,12 +85,10 @@
         @for (pair of knockoutPairings(); track trackByIndex($index)) {
         <div class="pairing-row">
             <div class="team-slot home">
-                <app-smart-image [src]="pair.home?.teamLogoUrl" type="team" size="sm"></app-smart-image>
                 <span>{{ pair.home?.teamName }}</span>
             </div>
             <div class="vs-badge">VS</div>
             <div class="team-slot away">
-                <app-smart-image [src]="pair.away?.teamLogoUrl" type="team" size="sm"></app-smart-image>
                 <span>{{ pair.away?.teamName }}</span>
             </div>
             <button class="delete-pair" (click)="removePairing($index)" [disabled]="isSubmitting()">
@@ -110,7 +104,6 @@
                 <button class="slot-btn" (click)="knockoutPendingHome() ? cancelPendingSlot('home') : openKnockoutSelector('home')"
                     [disabled]="isSubmitting()">
                     @if (knockoutPendingHome()) {
-                    <app-smart-image [src]="knockoutPendingHome()?.teamLogoUrl" type="team" size="sm"></app-smart-image>
                     <span>{{ knockoutPendingHome()?.teamName }}</span>
                     <app-icon name="close" class="icon-xs"></app-icon>
                     } @else {
@@ -122,7 +115,6 @@
                 <button class="slot-btn" (click)="knockoutPendingAway() ? cancelPendingSlot('away') : openKnockoutSelector('away')"
                     [disabled]="isSubmitting()">
                     @if (knockoutPendingAway()) {
-                    <app-smart-image [src]="knockoutPendingAway()?.teamLogoUrl" type="team" size="sm"></app-smart-image>
                     <span>{{ knockoutPendingAway()?.teamName }}</span>
                     <app-icon name="close" class="icon-xs"></app-icon>
                     } @else {
@@ -153,8 +145,6 @@
     (closeRequest)="showGroupModal.set(false)">
     @if (selectedTeamForAssignment()) {
     <div class="modal-team-header">
-        <app-smart-image [src]="selectedTeamForAssignment()?.teamLogoUrl" type="team" size="sm"
-            [initials]="selectedTeamForAssignment()?.teamName?.charAt(0) || ''"></app-smart-image>
         <strong>{{ selectedTeamForAssignment()?.teamName }}</strong>
     </div>
     <div class="modal-group-list">
@@ -188,8 +178,6 @@
     <div class="modal-team-list">
         @for (team of unassignedTeams(); track team.teamId) {
         <button class="modal-team-option" (click)="selectTeamForKnockout(team)">
-            <app-smart-image [src]="team.teamLogoUrl" type="team" size="xs"
-                [initials]="team.teamName.charAt(0)"></app-smart-image>
             <span>{{ team.teamName }}</span>
         </button>
         }

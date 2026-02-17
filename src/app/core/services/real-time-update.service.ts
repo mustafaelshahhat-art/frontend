@@ -370,7 +370,6 @@ export class RealTimeUpdateService {
                 return {
                     ...registration,
                     teamName: team.name,
-                    teamLogoUrl: team.logoUrl || team.logo,
                     captainName: captain?.name || team.captainName || ''
                 };
             });

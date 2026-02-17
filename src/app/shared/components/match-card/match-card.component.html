@@ -34,10 +34,6 @@
         <div class="match-card-teams">
             <!-- Home Team -->
             <div class="match-card-team">
-                <div class="match-card-team-avatar">
-                    <app-smart-image [src]="match.homeTeamLogoUrl" type="team" size="xs"
-                        [initials]="match.homeTeamName.charAt(0) || '؟'" />
-                </div>
                 <span class="match-card-team-name">{{ match.homeTeamName || 'فريق' }}</span>
             </div>
 
@@ -55,10 +51,6 @@
 
             <!-- Away Team -->
             <div class="match-card-team">
-                <div class="match-card-team-avatar">
-                    <app-smart-image [src]="match.awayTeamLogoUrl" type="team" size="xs"
-                        [initials]="match.awayTeamName.charAt(0) || '؟'" />
-                </div>
                 <span class="match-card-team-name">{{ match.awayTeamName || 'فريق' }}</span>
             </div>
         </div>

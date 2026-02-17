@@ -34,7 +34,9 @@
     <!-- User Info Template -->
     <ng-template #userInfo let-row="row">
         <div class="flex items-center gap-3">
-            <app-smart-image [src]="row.avatar" type="avatar" size="sm" [initials]="row.name.charAt(0)" />
+            <div class="user-initial-badge user-initial-badge--sm" [attr.data-user-id]="row.id">
+              <app-icon name="person" class="badge-icon"></app-icon>
+            </div>
             <div class="flex-col">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-sm">{{ row.name }}</span>

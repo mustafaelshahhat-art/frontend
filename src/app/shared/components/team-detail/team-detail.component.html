@@ -8,11 +8,6 @@
             <div class="absolute inset-0 bg-gradient-to-r from-primary to-transparent opacity-5"></div>
 
             <div class="flex items-center gap-xl p-lg flex-wrap mobile-center relative">
-                <!-- Team Logo Square (Premium) -->
-                <div class="shadow-glow-sm border-4 border-surface-light rounded-xl overflow-hidden">
-                    <app-smart-image [src]="team.logo" type="team" size="lg" [initials]="team.name.charAt(0)" />
-                </div>
-
                 <!-- Identity Details -->
                 <div class="flex-1">
                     <div class="flex items-center gap-4 mb-3 mobile-center">
@@ -165,8 +160,9 @@
                     <div class="player-mobile-card p-3">
                         <div class="flex items-center gap-4">
                             <div class="player-avatar-pill">
-                                <app-smart-image [src]="null" type="avatar" size="sm"
-                                    [initials]="player.name.charAt(0)" />
+                                <div class="user-initial-badge user-initial-badge--sm" [attr.data-user-id]="player.id">
+                                  <app-icon name="person" class="badge-icon"></app-icon>
+                                </div>
                             </div>
                             <div class="flex-1">
                                 <div class="flex-between items-center">
@@ -235,7 +231,6 @@
 
                     <div class="p-lg flex items-center justify-between gap-xl mobile-center">
                         <div class="flex-1 flex flex-col items-center gap-3">
-                            <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
                             <span class="text-sm font-super-black text-primary">{{ team.name }}</span>
                         </div>
 
@@ -256,8 +251,6 @@
                         </div>
 
                         <div class="flex-1 flex flex-col items-center gap-3">
-                            <app-smart-image [src]="match.opponentLogo" type="team" size="md"
-                                [initials]="match.opponent.charAt(0)" />
                             <span class="text-sm font-super-black text-primary">{{ match.opponent }}</span>
                         </div>
                     </div>

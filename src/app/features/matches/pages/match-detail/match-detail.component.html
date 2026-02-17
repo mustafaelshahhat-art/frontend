@@ -42,10 +42,6 @@
 
         <div class="score-card-content">
             <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
-                <div class="team-logo-container">
-                    <app-smart-image [src]="matchData.homeTeamLogoUrl" type="team" size="md"
-                        [initials]="matchData.homeTeamName.charAt(0)" />
-                </div>
                 <h2>{{ matchData.homeTeamName }}</h2>
                 <span class="team-tag">صاحب الأرض</span>
             </div>
@@ -69,10 +65,6 @@
             </div>
 
             <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
-                <div class="team-logo-container">
-                    <app-smart-image [src]="matchData.awayTeamLogoUrl" type="team" size="md"
-                        [initials]="matchData.awayTeamName.charAt(0)" />
-                </div>
                 <h2>{{ matchData.awayTeamName }}</h2>
                 <span class="team-tag">الضيف</span>
             </div>

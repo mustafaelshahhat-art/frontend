@@ -26,7 +26,6 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { resolveStatus, StatusConfig } from '../../../../shared/utils/status-labels';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
@@ -46,7 +45,6 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
         ButtonComponent,
         BadgeComponent,
         EmptyStateComponent,
-        SmartImageComponent,
         ModalComponent,
         FormControlComponent
     ],

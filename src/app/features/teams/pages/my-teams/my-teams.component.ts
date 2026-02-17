@@ -7,7 +7,6 @@ import { Subscription } from 'rxjs';
 import { TeamData, TeamPlayer, TeamMatch, TeamFinance } from '../../../../shared/components/team-detail';
 import { TeamService } from '../../../../core/services/team.service';
 import { Team, ApiTeamMatch, ApiTeamFinance } from '../../../../core/models/team.model';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { User, UserStatus } from '../../../../core/models/user.model';
@@ -52,7 +51,6 @@ interface TeamsOverview {
         CommonModule,
         FormsModule,
         ButtonComponent,
-        SmartImageComponent,
         ModalComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -532,9 +530,7 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
                                 teamScore: m.homeTeamId === current.id ? m.homeScore : m.awayScore,
                                 opponentScore: m.homeTeamId === current.id ? m.awayScore : m.homeScore,
                                 status: m.status,
-                                type: 'مباراة بطولة',
-                                // Optional props mapping
-                                opponentLogo: undefined
+                                type: 'مباراة بطولة'
                             }))
                         };
                         this.teamData.set(updated);
@@ -574,7 +570,6 @@ export class MyTeamsComponent implements OnInit, AfterViewInit, OnDestroy {
             name: team.name,
             city: team.city || 'غير محدد',
             captainName: team.captainName || 'غير محدد',
-            logo: team.logo || 'https://cdn-icons-png.flaticon.com/512/1165/1165217.png',
             status: (team.playerCount || 0) >= 8 ? 'READY' : 'NOT_READY',
             playerCount: team.playerCount,
             maxPlayers: team.maxPlayers,

@@ -13,7 +13,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class SmartImageComponent implements OnInit, OnChanges {
     @Input() src: string | null | undefined;
-    @Input() type: 'avatar' | 'id' | 'team' | 'tournament' = 'avatar';
+    @Input() type: 'id' | 'team' | 'tournament' = 'team';
     @Input() size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'custom' = 'md';
     @Input() alt = '';
     @Input() rounded = true;
@@ -70,8 +70,6 @@ export class SmartImageComponent implements OnInit, OnChanges {
 
     get placeholderIcon(): string {
         switch (this.type) {
-            case 'avatar': return 'person';
-
             case 'team': return 'shield';
             case 'id': return 'badge';
             case 'tournament': return 'emoji_events';

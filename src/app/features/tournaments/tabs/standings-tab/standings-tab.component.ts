@@ -6,7 +6,6 @@ import { CommonModule } from '@angular/common';
 import { TournamentDetailStore } from '../../stores/tournament-detail.store';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { TournamentStatus } from '../../../../core/models/tournament.model';
@@ -14,7 +13,7 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
 @Component({
     selector: 'app-standings-tab',
     standalone: true,
-    imports: [CommonModule, FilterComponent, TableComponent, SmartImageComponent, BadgeComponent, IconComponent],
+    imports: [CommonModule, FilterComponent, TableComponent, BadgeComponent, IconComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (store.tournament(); as t) {
@@ -38,8 +37,6 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
 
                 <ng-template #teamTemplate let-row>
                     <div class="flex items-center gap-2">
-                        <app-smart-image [src]="row.teamLogoUrl" type="team" size="xs"
-                            [initials]="row.teamName.charAt(0)" />
                         <span>{{ row.teamName }}</span>
                     </div>
                 </ng-template>
@@ -69,8 +66,6 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
                                 }
                                 {{ i + 1 }}
                             </div>
-                            <app-smart-image [src]="s.teamLogoUrl" type="team" size="xs"
-                                [initials]="s.teamName.charAt(0)" />
                             <h4>{{ s.teamName }}</h4>
                         </div>
                         <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">

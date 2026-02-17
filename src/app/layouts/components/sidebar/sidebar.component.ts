@@ -4,7 +4,6 @@ import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy
 import { RouterModule } from '@angular/router';
 import { NavItem } from '../../../shared/models/nav-item.model';
 import { User, TeamRole } from '../../../core/models/user.model';
-import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 
@@ -12,8 +11,7 @@ import { PermissionsService } from '../../../core/services/permissions.service';
     selector: 'app-sidebar',
     standalone: true,
     imports: [IconComponent,
-        RouterModule,
-        SmartImageComponent
+        RouterModule
     ],
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss'],

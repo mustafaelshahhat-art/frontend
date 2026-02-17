@@ -39,8 +39,9 @@
         (keydown.enter)="isMobile && handleClose()"
         (keydown.space)="$event.preventDefault(); isMobile && handleClose()">
         <div class="sidebar-profile-avatar-wrapper">
-          <app-smart-image [src]="currentUser?.avatar" type="avatar" size="xs"
-            [initials]="currentUser?.name?.charAt(0) || 'U'" />
+          <div class="user-initial-badge user-initial-badge--xs" [attr.data-user-id]="currentUser?.id">
+            <app-icon name="person" class="badge-icon"></app-icon>
+          </div>
         </div>
         <div class="sidebar-profile-info">
           <p class="sidebar-profile-name">{{ currentUser?.name || 'المستخدم' }}</p>

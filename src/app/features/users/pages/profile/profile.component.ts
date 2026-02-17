@@ -11,14 +11,12 @@ import { FilterComponent } from '../../../../shared/components/filter/filter.com
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { UserService } from '../../../../core/services/user.service';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { LocationService, GovernorateDto, CityDto, AreaDto } from '../../../../core/services/location.service';
 import { PendingStatusCardComponent } from '../../../../shared/components/pending-status-card/pending-status-card.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { PermissionsService } from '../../../../core/services/permissions.service';
-import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 
 @Component({
     selector: 'app-profile',
@@ -30,11 +28,9 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
         CardComponent,
         ButtonComponent,
         FilterComponent,
-        SmartImageComponent,
         FormControlComponent,
         SelectComponent,
-        PendingStatusCardComponent,
-        InlineLoadingComponent
+        PendingStatusCardComponent
     ],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss'],
@@ -66,15 +62,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     // Active section for navigation
     activeSection = signal<'info' | 'password'>('info');
 
-    // Profile picture
-    profilePicture = signal<string | null>(null);
-    isUploadingPicture = signal(false);
-
     // Edit mode state
     isEditing = signal(false);
-    pendingAvatar = signal<string | null>(null);
-    avatarToDelete = signal(false);
-    originalAvatar = signal<string | null>(null);
 
     // Location dropdowns
     governorateOptions = signal<SelectOption[]>([]);
@@ -273,9 +262,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
             bio: ['']
         });
 
-        // Set the profile picture from user avatar
-        this.profilePicture.set(this.user()?.avatar || null);
-
         // Disable all form fields initially (view mode)
         this.disableFormFields();
 
@@ -298,10 +284,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
                 areaId: currentUser.areaId || '',
                 bio: ''
             });
-
-            // Set the profile picture from user avatar
-            this.profilePicture.set(currentUser.avatar || null);
-            this.originalAvatar.set(currentUser.avatar || null);
 
         }
     }
@@ -346,9 +328,6 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     enterEditMode(): void {
         this.isEditing.set(true);
         this.enableFormFields();
-        // Store current avatar state for potential rollback
-        this.pendingAvatar.set(this.profilePicture());
-        this.avatarToDelete.set(false);
 
         // Ensure form starts as pristine (no changes)
         if (this.profileForm) {
@@ -359,18 +338,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     cancelEdit(): void {
         this.isEditing.set(false);
         this.disableFormFields();
-        // Restore original avatar
-        this.profilePicture.set(this.originalAvatar());
-        this.pendingAvatar.set(null);
-        this.avatarToDelete.set(false);
         // Reset form to original values
         this.populateForm();
     }
 
     get hasChanges(): boolean {
-        const isFormDirty = this.profileForm?.dirty || false;
-        const isAvatarChanged = (this.pendingAvatar() !== this.originalAvatar() && this.pendingAvatar() !== null) || this.avatarToDelete();
-        return isFormDirty || isAvatarChanged;
+        return this.profileForm?.dirty || false;
     }
 
     private enableFormFields(): void {
@@ -413,27 +386,14 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
-            // Handle avatar changes
-            if (this.avatarToDelete()) {
-                updateData['removeAvatar'] = true;
-            } else if (this.pendingAvatar() && this.pendingAvatar() !== this.originalAvatar()) {
-                updateData['avatar'] = this.pendingAvatar();
-            }
-
-
-
             this.userService.updateUser(this.user()!.id, updateData).subscribe({
                 next: (updated) => {
 
                     this.isLoading.set(false);
                     this.user.set(updated);
                     this.authService.updateCurrentUser(updated);
-                    this.originalAvatar.set(updated.avatar || null);
-                    this.profilePicture.set(updated.avatar || null);
                     this.isEditing.set(false);
                     this.disableFormFields();
-                    this.avatarToDelete.set(false);
-                    this.pendingAvatar.set(null);
                     this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات الملف الشخصي بنجاح');
                 },
                 error: (error) => {
@@ -478,62 +438,9 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
-    onFileInputChange(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        if (input.files && input.files.length > 0) {
-            this.onFileSelected(Array.from(input.files));
-            // Reset input to allow selecting the same file again
-            input.value = '';
-        }
-    }
-
-    onFileSelected(files: File[]): void {
-        if (files && files[0]) {
-            const file = files[0];
-
-            if (!file.type.startsWith('image/')) {
-                this.uiFeedback.error('صيغة غير مدعومة', 'يرجى اختيار ملف صورة صالح (JPG، PNG، أو GIF).');
-                return;
-            }
-
-            if (file.size > 2 * 1024 * 1024) {
-                this.uiFeedback.error('حجم كبير', 'حجم الصورة يجب أن يكون أقل من 2 ميجابايت. يرجى اختيار صورة أصغر.');
-                return;
-            }
-
-            this.isUploadingPicture.set(true);
-
-            this.userService.uploadAvatar(file).subscribe({
-                next: (response) => {
-                    this.profilePicture.set(response.avatarUrl);
-                    this.pendingAvatar.set(response.avatarUrl);
-                    this.avatarToDelete.set(false);
-                    this.isUploadingPicture.set(false);
-                    this.uiFeedback.success('تم التحديث', 'تم تحميل الصورة الشخصية بنجاح');
-                },
-                error: (error) => {
-                    this.isUploadingPicture.set(false);
-                    const message = error.error?.message || 'تعذّر رفع الصورة. يرجى المحاولة مرة أخرى.';
-                    this.uiFeedback.error('فشل رفع الصورة', message);
-                }
-            });
-        }
-    }
-
-    removePicture(): void {
-        this.profilePicture.set(null);
-        this.pendingAvatar.set(null);
-        this.avatarToDelete.set(true);
-        this.uiFeedback.success('تم التحديد', 'سيتم حذف الصورة عند حفظ التغييرات');
-    }
-
-
-
     isCaptain(): boolean {
         return this.permissionsService.isTeamCaptain();
     }
-
-    userInitial = computed(() => this.user()?.name?.charAt(0) || '?');
 
     displayId = computed(() => this.user()?.displayId || this.user()?.id || '');
 

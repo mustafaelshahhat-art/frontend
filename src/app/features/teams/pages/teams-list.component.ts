@@ -9,7 +9,6 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
-import { SmartImageComponent } from '../../../shared/components/smart-image/smart-image.component';
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { TeamService } from '../../../core/services/team.service';
 import { Team } from '../../../core/models/team.model';
@@ -32,7 +31,6 @@ type TeamFilterValue = 'all' | 'active' | 'inactive';
         BadgeComponent,
         EmptyStateComponent,
         InlineLoadingComponent,
-        SmartImageComponent,
         TableComponent,
         PaginationComponent
     ],

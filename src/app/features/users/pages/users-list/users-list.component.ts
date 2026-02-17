@@ -10,7 +10,6 @@ import { FilterComponent } from '../../../../shared/components/filter/filter.com
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -29,7 +28,6 @@ import { PagedResult } from '../../../../core/models/pagination.model';
         FilterComponent,
         ButtonComponent,
         BadgeComponent,
-        SmartImageComponent,
         TableComponent,
         ModalComponent,
         FormControlComponent,

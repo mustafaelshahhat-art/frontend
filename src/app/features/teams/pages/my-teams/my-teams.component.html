@@ -36,9 +36,6 @@
         @for (team of teamsOverview()!.ownedTeams; track team.id) {
         <div class="team-card owned-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
             <div class="team-header">
-                <div class="team-logo-container">
-                    <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
-                </div>
                 <div class="team-info">
                     <h3>{{ team.name }}</h3>
                     <span class="team-role">فريق مملوك</span>
@@ -81,9 +78,6 @@
         @for (team of teamsOverview()!.memberTeams; track team.id) {
         <div class="team-card member-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
             <div class="team-header">
-                <div class="team-logo-container">
-                    <app-smart-image [src]="team.logo" type="team" size="md" [initials]="team.name.charAt(0)" />
-                </div>
                 <div class="team-info">
                     <h3>{{ team.name }}</h3>
                     <span class="team-role">عضو في الفريق</span>

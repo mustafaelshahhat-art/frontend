@@ -35,7 +35,6 @@ export interface TeamMatch {
     score?: string;
     status: string;
     type: string;
-    opponentLogo?: string;
     teamScore?: number;
     opponentScore?: number;
 }
@@ -65,7 +64,6 @@ export interface TeamData {
     name: string;
     city: string;
     captainName: string;
-    logo: string;
     status: 'READY' | 'NOT_READY' | string;
     playerCount?: number;
     maxPlayers?: number;

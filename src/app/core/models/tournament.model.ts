@@ -69,7 +69,6 @@ export interface TeamRegistration {
     approvedBy?: string;         // Admin who approved/rejected
     approvalDate?: Date;
     rejectionReason?: string;
-    teamLogoUrl?: string;
     registeredAt: Date;
 }
 
@@ -146,8 +145,6 @@ export interface Match {
     awayTeamId: string;
     homeTeamName: string;
     awayTeamName: string;
-    homeTeamLogoUrl?: string;
-    awayTeamLogoUrl?: string;
     homeScore: number;
     awayScore: number;
     status: MatchStatus;
@@ -190,7 +187,6 @@ export interface Team {
     id: string;
     name: string;
     captainName: string;
-    logoUrl?: string;
     players: Player[];
     createdAt: Date;
 }
@@ -255,7 +251,6 @@ export interface TournamentStanding {
     rank: number;
     teamId: string;
     teamName: string;
-    teamLogoUrl?: string;
     played: number;
     won: number;
     drawn: number;

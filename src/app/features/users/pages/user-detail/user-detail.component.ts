@@ -6,7 +6,6 @@ import { ContextNavigationService } from '../../../../core/navigation/context-na
 import { ReactiveFormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { User, UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
 import { UserService } from '../../../../core/services/user.service';
@@ -15,6 +14,7 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { InlineLoadingComponent } from '../../../../shared/components/inline-loading/inline-loading.component';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 
 @Component({
     selector: 'app-user-detail',
@@ -24,10 +24,10 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
         ReactiveFormsModule,
         ButtonComponent,
         BadgeComponent,
-        SmartImageComponent,
         EmptyStateComponent,
         StatCardComponent,
-        InlineLoadingComponent
+        InlineLoadingComponent,
+        SmartImageComponent
     ],
     templateUrl: './user-detail.component.html',
     styleUrls: ['./user-detail.component.scss'],

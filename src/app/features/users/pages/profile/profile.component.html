@@ -28,42 +28,13 @@
         <!-- Sidebar -->
         <div class="profile-sidebar">
             <app-card class="avatar-card">
-                <div class="avatar-wrapper" [class.editable]="isEditing()" (click)="isEditing() && fileInput.click()"
-                    (keydown.enter)="isEditing() && fileInput.click()"
-                    (keydown.space)="$event.preventDefault(); isEditing() && fileInput.click()"
-                    [tabindex]="isEditing() ? 0 : -1" [attr.role]="isEditing() ? 'button' : undefined"
-                    aria-label="تغيير الصورة الشخصية">
-                    <app-smart-image [src]="profilePicture() || user()?.avatar" type="avatar" size="custom"
-                        class="avatar-image" [initials]="userInitial()" />
-
-                    @if (isUploadingPicture()) {
-                    <div class="uploading-overlay">
-                        <app-inline-loading />
+                <div class="avatar-wrapper">
+                    <div class="user-initial-badge user-initial-badge--2xl" [attr.data-user-id]="user()?.id">
+                      <app-icon name="person" class="badge-icon"></app-icon>
                     </div>
-                    }
-
-                    @if (isEditing() && !isUploadingPicture()) {
-                    <div class="edit-overlay" (click)="fileInput.click(); $event.stopPropagation()"
-                        (keydown.enter)="fileInput.click(); $event.stopPropagation()"
-                        (keydown.space)="$event.preventDefault(); fileInput.click(); $event.stopPropagation()"
-                        tabindex="0" role="button">
-                        <app-icon name="edit" class=" icon-sm"></app-icon>
-                        <span>تغيير الصورة</span>
-                    </div>
-                    }
                 </div>
-                <input #fileInput type="file" accept="image/*" (change)="onFileInputChange($event)"
-                    class="hidden-input" />
                 <h2>{{ user()?.name }}</h2>
                 <span class="username">@{{ user()?.username }}</span>
-
-                <div class="avatar-actions">
-                    @if (profilePicture() && !isUploadingPicture() && isEditing()) {
-                    <app-button variant="ghost" size="sm" icon="delete" (trigger)="removePicture()" variant="danger">
-                        حذف الصورة
-                    </app-button>
-                    }
-                </div>
 
                 <div class="membership-card">
                     <p class="membership-label">معرف العضوية</p>

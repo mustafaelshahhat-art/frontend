@@ -2,7 +2,6 @@ import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { TournamentDetailStore } from '../../stores/tournament-detail.store';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
@@ -17,17 +16,13 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
 @Component({
     selector: 'app-teams-tab',
     standalone: true,
-    imports: [CommonModule, SmartImageComponent, BadgeComponent, ButtonComponent, IconComponent, EmptyStateComponent, HasPermissionDirective],
+    imports: [CommonModule, BadgeComponent, ButtonComponent, IconComponent, EmptyStateComponent, HasPermissionDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (store.tournament(); as t) {
         <div class="teams-grid">
             @for (reg of t.registrations; track reg.teamId) {
             <div class="team-card">
-                <div class="team-logo items-center justify-center">
-                    <app-smart-image [src]="reg.teamLogoUrl" type="team" size="sm"
-                        [initials]="reg.teamName.charAt(0)" />
-                </div>
                 <div class="team-info">
                     <h3>{{ reg.teamName }}</h3>
                     <div class="captain-info items-center">

@@ -9,7 +9,6 @@ import { ContextNavigationService } from '../../../../core/navigation/context-na
 import { Tournament, TeamRegistration } from '../../../../core/models/tournament.model';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
@@ -27,7 +26,6 @@ interface GroupSlot {
         RouterModule,
         ButtonComponent,
         CardComponent,
-        SmartImageComponent,
         IconComponent,
         ModalComponent
     ],

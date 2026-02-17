@@ -127,7 +127,6 @@ export class TeamDetailPageComponent implements OnInit {
         return this.matchStore.matches().filter((m: Match) => m.homeTeamId === id || m.awayTeamId === id).map((m: Match) => ({
             id: m.id,
             opponent: m.homeTeamId === id ? m.awayTeamName : m.homeTeamName,
-            opponentLogo: m.homeTeamId === id ? m.awayTeamLogoUrl : m.homeTeamLogoUrl,
             date: m.date ? new Date(m.date) : new Date(),
             score: `${m.homeScore}-${m.awayScore}`,
             teamScore: m.homeTeamId === id ? m.homeScore : m.awayScore,
@@ -170,7 +169,6 @@ export class TeamDetailPageComponent implements OnInit {
             name: t.name,
             city: t.city || 'غير محدد',
             captainName: t.captainName || 'غير معروف',
-            logo: t.logoUrl || t.logo || 'assets/images/team-placeholder.png',
             status: 'READY',
             isActive: t.isActive ?? false,
             createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),

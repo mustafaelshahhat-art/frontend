@@ -39,7 +39,6 @@ export interface TeamRegistration {
     status: 'PendingPaymentReview' | 'Approved' | 'Rejected';
     paymentReceiptUrl?: string;
     rejectionReason?: string;
-    teamLogoUrl?: string;
     registeredAt: Date;
 }
 
@@ -48,8 +47,6 @@ export interface Team {
     name: string;
     captainName: string;
     founded: string;
-    logo?: string;
-    logoUrl?: string; // Backend compatibility
     players: Player[];
     joinRequests: JoinRequest[];
     invitations?: TeamJoinRequest[];
@@ -72,7 +69,6 @@ export interface Team {
     matches?: {
         id: string;
         opponent: string;
-        opponentLogo?: string;
         date: string | Date;
         score?: string;
         teamScore?: number;
