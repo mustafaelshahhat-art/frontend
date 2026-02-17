@@ -1,13 +1,13 @@
 {
-  "name": "نظام إدارة البطولات",
-  "short_name": "البطولات",
-  "description": "نظام إدارة البطولات الرياضية",
+  "name": "Kora Zone 365 – Football Tournament Platform",
+  "short_name": "Kora Zone 365",
+  "description": "المنصة الأولى لإدارة وتنظيم بطولات كرة القدم الاحترافية",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
-  "theme_color": "#1976d2",
-  "background_color": "#fafafa",
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

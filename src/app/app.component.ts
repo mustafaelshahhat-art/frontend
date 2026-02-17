@@ -20,7 +20,7 @@ import { RealTimeUpdateService } from './core/services/real-time-update.service'
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  protected readonly title = signal('ramadan-tournament');
+  protected readonly title = signal('Kora Zone 365');
   // Initialize Real-Time Service globally
   private readonly realTimeUpdate = inject(RealTimeUpdateService);
 }
