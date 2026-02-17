@@ -12,12 +12,58 @@ export interface AuthState {
   providedIn: 'root'
 })
 export class AuthStore {
-  private state = signal<AuthState>({
-    currentUser: null,
-    isAuthenticated: false,
-    isLoading: false,
-    error: null
-  });
+  private static readonly USER_KEY = 'current_user';
+  private static readonly TOKEN_KEY = 'auth_token';
+
+  private state = signal<AuthState>(AuthStore.loadInitialState());
+
+  /**
+   * Hydrates auth state from localStorage on app startup so that
+   * route guards see the correct authentication state before
+   * AuthService (a lazy singleton) is instantiated.
+   */
+  private static loadInitialState(): AuthState {
+    try {
+      const userJson = localStorage.getItem(AuthStore.USER_KEY);
+      const token = localStorage.getItem(AuthStore.TOKEN_KEY);
+
+      if (userJson) {
+        const user: User = JSON.parse(userJson);
+
+        // Guest users don't have a JWT token
+        if (user.id === 'guest') {
+          return {
+            currentUser: user,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null
+          };
+        }
+
+        // Regular users: verify the token exists and is not expired
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.exp && Date.now() < payload.exp * 1000) {
+            return {
+              currentUser: user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null
+            };
+          }
+        }
+      }
+    } catch {
+      // If anything fails (corrupt data, invalid token), fall through to defaults
+    }
+
+    return {
+      currentUser: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null
+    };
+  }
 
   // Selectors
   currentUser = computed(() => this.state().currentUser);
