@@ -1,7 +1,7 @@
 <div [class]="containerClasses">
     <!-- Real Image -->
     @if (fullUrl && !hasError) {
-    <img [src]="fullUrl" [alt]="alt" (load)="onLoad()" (error)="onError()" [class.loaded]="isLoaded" class="main-img">
+    <img [src]="fullUrl" [alt]="alt" loading="lazy" (load)="onLoad()" (error)="onError()" [class.loaded]="isLoaded" class="main-img">
     <!-- Skeleton loader while loading -->
     @if (!isLoaded) {
     <div class="skeleton-loader"></div>
