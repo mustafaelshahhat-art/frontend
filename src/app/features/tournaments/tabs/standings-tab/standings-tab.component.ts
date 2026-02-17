@@ -1,6 +1,6 @@
 import {
     Component, ChangeDetectionStrategy, inject, computed,
-    ViewChild, TemplateRef, AfterViewInit
+    ViewChild, TemplateRef, AfterViewInit, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TournamentDetailStore } from '../../stores/tournament-detail.store';
@@ -103,6 +103,7 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
 })
 export class StandingsTabComponent implements AfterViewInit {
     readonly store = inject(TournamentDetailStore);
+    private readonly cdr = inject(ChangeDetectorRef);
 
     @ViewChild('rankTemplate') rankTemplate!: TemplateRef<unknown>;
     @ViewChild('teamTemplate') teamTemplate!: TemplateRef<unknown>;
@@ -130,6 +131,7 @@ export class StandingsTabComponent implements AfterViewInit {
                 { key: 'points', label: 'نقاط', width: '80px', sortable: true },
                 { key: 'form', label: 'الشكل', template: this.formTemplate, width: '120px' }
             ];
+            this.cdr.markForCheck();
         });
     }
 }
