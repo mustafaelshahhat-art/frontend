@@ -10,13 +10,16 @@
     flex-direction: column;
     background: var(--gradient-sidebar);
     box-shadow: var(--shadow-sidebar);
-    backdrop-filter: var(--blur-lg);
     border-left: 1px solid var(--border-visible);
     overflow: hidden;
-    transition: transform 0.3s var(--transition-premium);
-
+    // GPU-accelerated slide — 0.25s snappy ease-out, no layout reflow
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    // Promote to compositor layer on mobile for smooth animation
     @media (width <=991px) {
+        will-change: transform;
         transform: translateX(100%);
+        // Contain paint to prevent reflow of content behind sidebar
+        contain: layout style paint;
 
         &.open {
             transform: translateX(0);
@@ -72,11 +75,13 @@
     cursor: pointer;
     transition: var(--transition-base);
 
-    &:hover {
-        background: var(--color-primary-10);
-        color: var(--color-primary);
-        border-color: var(--color-primary-20);
-        transform: none;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--color-primary-10);
+            color: var(--color-primary);
+            border-color: var(--color-primary-20);
+            transform: none;
+        }
     }
 
     @media (width >=992px) {
@@ -136,10 +141,12 @@
     flex-shrink: 0;
     border: 1px solid transparent;
 
-    &:hover {
-        background: var(--bg-input);
-        color: var(--text-primary);
-        transform: none;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transform: none;
+        }
     }
 
     &.active {
@@ -224,10 +231,12 @@
     cursor: pointer;
     transition: var(--transition-base);
 
-    &:hover {
-        background: var(--bg-input);
-        border-color: var(--border-visible);
-        transform: translateY(-2px);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--bg-input);
+            border-color: var(--border-visible);
+            transform: translateY(-2px);
+        }
     }
 }
 
@@ -285,9 +294,11 @@
     transition: var(--transition-base);
     font-size: var(--text-sm);
 
-    &:hover {
-        background: var(--color-logout-15);
-        transform: none;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--color-logout-15);
+            transform: none;
+        }
     }
 }
 

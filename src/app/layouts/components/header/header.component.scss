@@ -6,13 +6,19 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--space-3) var(--space-lg);
-    background: rgb(19 27 46 / 85%); // slightly more transparent for glass // stronger blur
+    background: rgb(19 27 46 / 85%);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgb(255 255 255 / 8%);
     box-shadow: var(--shadow-header);
     min-height: var(--height-header);
     flex-shrink: 0;
     width: 100%;
+    // PERF: On mobile, use solid background instead of expensive backdrop-filter
+    // which re-composites on every scroll frame for sticky elements
+    @media (width <=991px) {
+        background: rgb(19 27 46 / 97%);
+        backdrop-filter: none;
+    }
 
     @media (width <=768px) {
         padding: var(--space-2) var(--space-md);
@@ -86,11 +92,13 @@
         }
     }
 
-    &:hover {
-        background: var(--color-primary-10);
-        color: var(--color-primary);
-        border-color: var(--color-primary-20);
-        transform: none;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--color-primary-10);
+            color: var(--color-primary);
+            border-color: var(--color-primary-20);
+            transform: none;
+        }
     }
 }
 
@@ -133,10 +141,12 @@
 
     }
 
-    &:hover {
-        background: var(--color-primary-10);
-        color: var(--color-primary);
-        transform: none;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            background: var(--color-primary-10);
+            color: var(--color-primary);
+            transform: none;
+        }
     }
 }
 

@@ -16,21 +16,23 @@
     flex-direction: column;
     gap: var(--space-md);
 
-    &:hover {
-        transform: translateY(-8px);
-        background: var(--border-color-light);
-        border-color: var(--color-primary-30);
-        box-shadow: var(--shadow-xl), var(--shadow-glow-sm);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            transform: translateY(-8px);
+            background: var(--border-color-light);
+            border-color: var(--color-primary-30);
+            box-shadow: var(--shadow-xl), var(--shadow-glow-sm);
 
-        .action-arrow {
-            transform: translateX(-4px);
-            opacity: 1;
-        }
+            .action-arrow {
+                transform: translateX(-4px);
+                opacity: 1;
+            }
 
-        .action-icon-wrapper {
-            background: var(--color-primary);
-            color: var(--text-inverse);
-            transform: scale(1.1);
+            .action-icon-wrapper {
+                background: var(--color-primary);
+                color: var(--text-inverse);
+                transform: scale(1.1);
+            }
         }
     }
 }

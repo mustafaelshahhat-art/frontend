@@ -153,8 +153,10 @@ button {
     opacity: 0.6;
   }
 
-  &:not(:disabled):hover {
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      transform: translateY(-1px);
+    }
   }
 
   &:not(:disabled):active {
@@ -525,9 +527,11 @@ input[type="number"] {
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+    }
   }
 }
 
@@ -535,8 +539,10 @@ input[type="number"] {
 .hover-scale {
   transition: transform 0.2s ease;
 
-  &:hover {
-    transform: scale(1.02);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.02);
+    }
   }
 }
 

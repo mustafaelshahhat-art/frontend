@@ -40,13 +40,15 @@
         padding: 0;
     }
 
-    &:hover {
-        box-shadow: var(--shadow-card-hover);
-        border-color: var(--color-primary-20);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            box-shadow: var(--shadow-card-hover);
+            border-color: var(--color-primary-20);
 
-        &::before {
-            opacity: 1;
-            background: linear-gradient(135deg, var(--color-primary-30), transparent 60%);
+            &::before {
+                opacity: 1;
+                background: linear-gradient(135deg, var(--color-primary-30), transparent 60%);
+            }
         }
     }
 

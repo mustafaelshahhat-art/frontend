@@ -124,12 +124,14 @@ h4 {
       transition: opacity 0.3s;
     }
 
-    &:hover {
-      box-shadow: 0 8px 30px rgba(37, 99, 235, 0.6);
-      transform: translateY(-3px);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        box-shadow: 0 8px 30px rgba(37, 99, 235, 0.6);
+        transform: translateY(-3px);
 
-      &::before {
-        opacity: 1;
+        &::before {
+          opacity: 1;
+        }
       }
     }
   }
@@ -138,13 +140,14 @@ h4 {
     background: transparent;
     border: 2px solid rgba(255, 255, 255, 0.2);
     color: white;
-    backdrop-filter: blur(4px);
 
-    &:hover {
-      border-color: $primary-blue;
-      background: rgba(37, 99, 235, 0.1);
-      color: white;
-      transform: translateY(-3px);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        border-color: $primary-blue;
+        background: rgba(37, 99, 235, 0.1);
+        color: white;
+        transform: translateY(-3px);
+      }
     }
   }
 
@@ -407,11 +410,13 @@ h4 {
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
 
-  &:hover {
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, lighten(#2563eb, 3%) 0%, lighten(#06b6d4, 3%) 100%);
-    color: white;
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, lighten(#2563eb, 3%) 0%, lighten(#06b6d4, 3%) 100%);
+      color: white;
+    }
   }
 
   &:active {
@@ -562,13 +567,15 @@ h4 {
       transition: 0.6s;
     }
 
-    &:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 15px 50px rgba(37, 99, 235, 0.6);
-      filter: brightness(1.1);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 50px rgba(37, 99, 235, 0.6);
+        filter: brightness(1.1);
 
-      &::before {
-        left: 100%;
+        &::before {
+          left: 100%;
+        }
       }
     }
 
@@ -601,12 +608,14 @@ h4 {
     z-index: 20;
     cursor: pointer;
 
-    &:hover {
-      background: #1f2937;
-      border-color: lighten($accent-gold, 10%);
-      box-shadow: 0 10px 40px rgba(251, 191, 36, 0.2);
-      transform: translateY(-5px) scale(1.02);
-      color: $accent-gold;
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: #1f2937;
+        border-color: lighten($accent-gold, 10%);
+        box-shadow: 0 10px 40px rgba(251, 191, 36, 0.2);
+        transform: translateY(-5px) scale(1.02);
+        color: $accent-gold;
+      }
     }
 
     .btn-icon {
@@ -824,20 +833,22 @@ h4 {
     transition: opacity 0.3s;
   }
 
-  &:hover {
-    transform: translateY(-15px) rotateX(2deg);
-    background: rgba(30, 30, 30, 0.8);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-15px) rotateX(2deg);
+      background: rgba(30, 30, 30, 0.8);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 
-    &::before {
-      opacity: 1;
-    }
+      &::before {
+        opacity: 1;
+      }
 
-    .icon-wrapper {
-      transform: scale(1.1) rotate(5deg);
-      background: $primary-blue;
-      color: white;
-      box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+      .icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+        background: $primary-blue;
+        color: white;
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+      }
     }
   }
 
@@ -984,9 +995,11 @@ h4 {
         filter: drop-shadow(0 0 15px rgba(37, 99, 235, 0.3));
         transition: transform 0.5s ease;
 
-        &:hover {
-          transform: scale(1.1);
-          filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.6));
+        @media (hover: hover) and (pointer: fine) {
+          &:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.6));
+          }
         }
       }
     }
@@ -1037,10 +1050,12 @@ h4 {
     z-index: 2;
   }
 
-  &:hover .step-number {
-    background: $primary-blue;
-    box-shadow: 0 0 25px rgba(37, 99, 235, 0.6);
-    transform: scale(1.1);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover .step-number {
+      background: $primary-blue;
+      box-shadow: 0 0 25px rgba(37, 99, 235, 0.6);
+      transform: scale(1.1);
+    }
   }
 
   .step-title {
@@ -1177,9 +1192,11 @@ h4 {
       transition: all 0.3s;
       border: 1px solid rgba(255, 255, 255, 0.1);
 
-      &:hover {
-        background: $primary-blue;
-        transform: translateY(-3px);
+      @media (hover: hover) and (pointer: fine) {
+        &:hover {
+          background: $primary-blue;
+          transform: translateY(-3px);
+        }
       }
     }
   }
@@ -1355,11 +1372,13 @@ h4 {
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(37, 99, 235, 0.4);
-    color: white;
-    transform: translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(37, 99, 235, 0.4);
+      color: white;
+      transform: translateY(-2px);
+    }
   }
 }
 
@@ -1435,21 +1454,23 @@ h4 {
       transition: 0.6s;
     }
 
-    &:hover {
-      transform: translateY(-3px);
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-color: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(37, 99, 235, 0.2);
-      animation: none; // Silent on hover
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(37, 99, 235, 0.2);
+        animation: none;
 
-      &::before {
-        left: 100%;
-      }
+        &::before {
+          left: 100%;
+        }
 
-      .btn-icon {
-        transform: scale(1.1);
+        .btn-icon {
+          transform: scale(1.1);
+        }
       }
     }
 
@@ -1552,9 +1573,11 @@ h4 {
         cursor: pointer;
         display: inline-block;
 
-        &:hover {
-          color: white;
-          transform: translateX(-5px);
+        @media (hover: hover) and (pointer: fine) {
+          &:hover {
+            color: white;
+            transform: translateX(-5px);
+          }
         }
       }
     }

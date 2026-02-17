@@ -34,22 +34,24 @@
         }
     }
 
-    &:hover {
-        transform: translateY(-8px);
-        border-color: var(--color-primary-40);
-        background: var(--bg-card-hover);
-        box-shadow: var(--shadow-xl), 0 0 25px var(--color-primary-10);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            transform: translateY(-8px);
+            border-color: var(--color-primary-40);
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow-xl), 0 0 25px var(--color-primary-10);
 
-        .tournament-banner {
+            .tournament-banner {
             
 
-            &::after {
-                opacity: 0.4;
+                &::after {
+                    opacity: 0.4;
+                }
             }
-        }
 
-        .fill-progress {
-            filter: brightness(1.2) drop-shadow(0 0 8px var(--color-primary));
+            .fill-progress {
+                filter: brightness(1.2) drop-shadow(0 0 8px var(--color-primary));
+            }
         }
     }
 }

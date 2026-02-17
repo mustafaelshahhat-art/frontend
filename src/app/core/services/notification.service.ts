@@ -152,7 +152,7 @@ export class NotificationService {
 
     private async connectHub(): Promise<void> {
         this.realTimeUpdate.ensureInitialized();
-        const connection = this.signalRService.createConnection('notifications');
+        const connection = await this.signalRService.createConnection('notifications');
 
         if (!this.listenersBound) {
             connection.on('ReceiveNotification', (notification: Notification) => {
@@ -199,21 +199,21 @@ export class NotificationService {
     // ── Group Management ──
 
     async subscribeToRole(role: string): Promise<void> {
-        const connection = this.signalRService.createConnection('notifications');
+        const connection = await this.signalRService.createConnection('notifications');
         if (connection.state === 'Connected') {
             await connection.invoke('SubscribeToRole', role);
         }
     }
 
     async subscribeToTournament(tournamentId: string): Promise<void> {
-        const connection = this.signalRService.createConnection('notifications');
+        const connection = await this.signalRService.createConnection('notifications');
         if (connection.state === 'Connected') {
             await connection.invoke('SubscribeToTournament', tournamentId);
         }
     }
 
     async subscribeToMatch(matchId: string): Promise<void> {
-        const connection = this.signalRService.createConnection('notifications');
+        const connection = await this.signalRService.createConnection('notifications');
         if (connection.state === 'Connected') {
             await connection.invoke('SubscribeToMatch', matchId);
         }

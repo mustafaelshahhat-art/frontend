@@ -28,7 +28,7 @@ export class ChatService {
         this.currentMatchId = matchId;
         this.loadHistory(matchId);
 
-        const connection = this.signalRService.createConnection('chat');
+        const connection = await this.signalRService.createConnection('chat');
 
         // Remove existing listener if any to avoid duplicates
         connection.off('ReceiveMessage');
@@ -49,7 +49,7 @@ export class ChatService {
     async leaveMatch(): Promise<void> {
         if (!this.currentMatchId) return;
 
-        const connection = this.signalRService.createConnection('chat');
+        const connection = await this.signalRService.createConnection('chat');
         if (connection.state === 'Connected') {
             await connection.invoke('LeaveMatchGroup', this.currentMatchId);
         }
@@ -59,17 +59,18 @@ export class ChatService {
 
     sendMessage(matchId: string, content: string): Observable<void> {
         return new Observable<void>(observer => {
-            const connection = this.signalRService.createConnection('chat');
-            if (connection.state !== 'Connected') {
-                observer.error('SignalR is not connected');
-                return;
-            }
-            connection.invoke('SendMessage', matchId, content)
-                .then(() => {
-                    observer.next();
-                    observer.complete();
-                })
-                .catch(err => observer.error(err));
+            this.signalRService.createConnection('chat').then(connection => {
+                if (connection.state !== 'Connected') {
+                    observer.error('SignalR is not connected');
+                    return;
+                }
+                connection.invoke('SendMessage', matchId, content)
+                    .then(() => {
+                        observer.next();
+                        observer.complete();
+                    })
+                    .catch(err => observer.error(err));
+            }).catch(err => observer.error(err));
         });
     }
 

@@ -10,7 +10,8 @@ import { TournamentStore } from '../stores/tournament.store';
 import { MatchStore } from '../stores/match.store';
 import { TeamStore } from '../stores/team.store';
 import { UserStore } from '../stores/user.store';
-import * as signalR from '@microsoft/signalr';
+// PERF: Removed static `import * as signalR` — now dynamically loaded via SignalRService
+import type { HubConnection } from '@microsoft/signalr';
 
 export interface SystemEvent {
     type: string;
@@ -34,7 +35,7 @@ export class RealTimeUpdateService {
     private readonly destroyRef = inject(DestroyRef);
 
 
-    private hubConnection: signalR.HubConnection | null = null;
+    private hubConnection: HubConnection | null = null;
     private listenersBound = false;
 
     private events$ = new Subject<SystemEvent>();
@@ -79,7 +80,7 @@ export class RealTimeUpdateService {
             return;
         }
 
-        const connection = this.signalRService.createConnection('notifications');
+        const connection = await this.signalRService.createConnection('notifications');
         if (this.hubConnection !== connection) {
             this.hubConnection = connection;
             this.listenersBound = false;

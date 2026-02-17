@@ -126,7 +126,7 @@
   inset: 0;
   z-index: var(--z-overlay);
   background: var(--bg-overlay-shadow);
-  backdrop-filter: var(--blur-sm);
+  // PERF: Removed backdrop-filter — causes GPU stalls on low-end mobile devices
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -681,15 +681,6 @@
 // ==========================================================================
 
 @media (max-width: 991px) {
-  .sidebar {
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-
-    &.open {
-      transform: translateX(0);
-    }
-  }
-
   .md-hidden {
     display: none;
   }

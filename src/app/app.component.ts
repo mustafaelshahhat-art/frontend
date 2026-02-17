@@ -1,10 +1,9 @@
-import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { GlobalAlertsComponent } from './shared/components/global-alerts/global-alerts.component';
 import { GlobalConfirmDialogComponent } from './shared/components/global-confirm-dialog/global-confirm-dialog.component';
 import { GlobalLoadingComponent } from './shared/components/global-loading/global-loading.component';
-import { RealTimeUpdateService } from './core/services/real-time-update.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +20,7 @@ import { RealTimeUpdateService } from './core/services/real-time-update.service'
 })
 export class AppComponent {
   protected readonly title = signal('Kora Zone 365');
-  // Initialize Real-Time Service globally
-  private readonly realTimeUpdate = inject(RealTimeUpdateService);
+  // PERF: RealTimeUpdateService removed from root — now lazily instantiated
+  // via NotificationService in authenticated layout chunks only.
+  // This eliminates @microsoft/signalr (~50KB) + 4 stores from the initial bundle.
 }

@@ -10,11 +10,17 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    transition: margin-right 0.3s ease;
+    // PERF: Use transform instead of margin-right to avoid layout reflow
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent;
 
     &.mr-sidebar {
-        margin-right: var(--width-sidebar);
+        // GPU-accelerated shift instead of margin-right
+        transform: translateX(calc(var(--width-sidebar) * -1));
+        @media (width <=991px) {
+            // On mobile, sidebar overlays — content doesn't shift
+            transform: none;
+        }
     }
 }
 
@@ -40,7 +46,14 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
-    z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+    // PERF: Removed backdrop-filter: blur(4px) — expensive on mobile GPUs
+    z-index: var(--z-overlay, 550);
+    // GPU-composited fade-in
+    animation: overlayFadeIn 0.2s ease-out;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
