@@ -139,3 +139,28 @@
         transform: none;
     }
 }
+
+// Mobile brand in header (centered)
+.header-brand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.header-brand-logo {
+    border-radius: var(--radius-md);
+}
+
+.header-brand-text {
+    font-size: var(--text-base);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}

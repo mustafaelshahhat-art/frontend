@@ -1,6 +1,6 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
-
+import { RouterLink } from '@angular/router';
 import { SearchComponent } from '../../../shared/components/search/search.component';
 import { NotificationsDropdownComponent } from '../notifications-dropdown/notifications-dropdown.component';
 import { Notification } from '../../../core/models/tournament.model';
@@ -8,7 +8,7 @@ import { Notification } from '../../../core/models/tournament.model';
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [IconComponent, SearchComponent, NotificationsDropdownComponent],
+    imports: [IconComponent, SearchComponent, NotificationsDropdownComponent, RouterLink],
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
