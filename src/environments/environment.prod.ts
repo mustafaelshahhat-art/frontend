@@ -1,8 +1,8 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://korazoneapi.runasp.net/api/v1',
-    imageBaseUrl: 'https://korazoneapi.runasp.net',
-    hubUrl: 'https://korazoneapi.runasp.net/hubs',
+    apiUrl: 'https://korazon365.runasp.net/api/v1',
+    imageBaseUrl: 'https://korazon365.runasp.net',
+    hubUrl: 'https://korazon365.runasp.net/hubs',
     appName: 'Kora Zone 365',
     version: '1.0.0',
     enableDebugTools: false,
