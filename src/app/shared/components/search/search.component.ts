@@ -2,9 +2,7 @@ import { IconComponent } from '../icon/icon.component';
 import { Component, Input, Output, EventEmitter, inject, HostListener, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { SearchService, SearchResult } from '../../../core/services/search.service';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { SearchResult } from '../../../core/services/search.service';
 
 @Component({
     selector: 'app-search',
@@ -15,24 +13,23 @@ import { toSignal } from '@angular/core/rxjs-interop';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchComponent {
-    private searchService = inject(SearchService);
-    private router = inject(Router);
     private elementRef = inject(ElementRef);
 
     @Input() placeholder = 'البحث...';
     @Input() value = '';
+    @Input() results: SearchResult[] = [];
+    @Input() searching = false;
 
     @Output() searchChange = new EventEmitter<string>();
+    @Output() resultSelected = new EventEmitter<SearchResult>();
+    @Output() cleared = new EventEmitter<void>();
 
-    searchResults = toSignal(this.searchService.searchResults, { initialValue: [] as SearchResult[] });
-    isSearching = toSignal(this.searchService.isSearching, { initialValue: false });
     showDropdown = false;
 
     onInput(event: Event): void {
         const input = event.target as HTMLInputElement;
         this.value = input.value;
         this.searchChange.emit(this.value);
-        this.searchService.search(this.value);
         this.showDropdown = this.value.length >= 2;
     }
 
@@ -49,16 +46,24 @@ export class SearchComponent {
         }
     }
 
-    navigateToResult(result: SearchResult): void {
-        this.router.navigate([result.route]);
+    selectResult(result: SearchResult): void {
+        this.resultSelected.emit(result);
         this.showDropdown = false;
         this.value = '';
-        this.searchService.clearSearch();
     }
 
     clearSearch(): void {
         this.value = '';
-        this.searchService.clearSearch();
+        this.cleared.emit();
         this.showDropdown = false;
+    }
+
+    getTypeLabel(type: string): string {
+        switch (type) {
+            case 'tournament': return 'بطولة';
+            case 'match': return 'مباراة';
+            case 'team': return 'فريق';
+            default: return 'مستخدم';
+        }
     }
 }

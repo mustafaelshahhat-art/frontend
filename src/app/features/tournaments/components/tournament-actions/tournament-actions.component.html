@@ -1,0 +1,94 @@
+@if (tournament(); as t) {
+<ng-container *appHasPermission="Permission.MANAGE_TOURNAMENTS">
+    @if (canEditTournament()) {
+    <app-button variant="primary" size="md" shadow="glow" icon="edit" (click)="editTournament.emit()">
+        تعديل البطولة
+    </app-button>
+    }
+
+    @if (canStartRegistration()) {
+    <app-button variant="gold" size="md" shadow="glow" icon="rocket_launch" (click)="toggleStatus.emit()">
+        بدء التسجيل (نشر البطولة)
+    </app-button>
+    }
+
+    @if (canCloseRegistration()) {
+    <app-button variant="gold" size="md" shadow="glow" icon="lock" (click)="toggleStatus.emit()">
+        إغلاق التسجيل
+    </app-button>
+    }
+
+    @if (canGenerateSchedule()) {
+    <app-button variant="primary" size="md" shadow="glow" icon="schedule" (click)="generateMatches.emit()"
+        [disabled]="isGeneratingMatches">
+        {{ isGeneratingMatches ? 'جاري التوليد...' : 'توليد الجدول' }}
+    </app-button>
+    }
+
+    @if (canGenerateMatches()) {
+    <app-button variant="outline" size="md" icon="warning" class="emergency-action" (click)="generateMatches.emit()"
+        [disabled]="isGeneratingMatches">
+        {{ isGeneratingMatches ? 'جاري التوليد...' : '⚠️ توليد يدوي للمباريات' }}
+    </app-button>
+    }
+
+    @if (canStartTournament()) {
+    <app-button variant="primary" size="md" shadow="glow" icon="play_arrow" (click)="startTournament.emit()">
+        بدء البطولة
+    </app-button>
+    }
+
+    @if (canManageGroupDraw()) {
+    <app-button variant="gold" size="md" shadow="glow" icon="edit_calendar" (click)="startManualDraw.emit()">
+        توزيع المجموعات والجدولة
+    </app-button>
+    }
+
+    @if (canManageKnockoutDraw()) {
+    <app-button variant="gold" size="md" shadow="glow" icon="sports_score" (click)="startManualDraw.emit()">
+        توزيع الأدوار الإقصائية
+    </app-button>
+    }
+
+    @if (canConfirmQualification()) {
+    <app-button variant="gold" size="md" shadow="glow" icon="how_to_reg" (click)="confirmQualification.emit()">
+        تحديد المتأهلين للنهائيات
+    </app-button>
+    }
+
+    @if (canGenerateKnockoutR1()) {
+    <app-button variant="primary" size="md" shadow="glow" icon="auto_awesome" (click)="generateMatches.emit()">
+        توليد الأدوار الإقصائية
+    </app-button>
+    }
+
+    @if (canSelectOpeningMatch()) {
+    <app-button [variant]="t.openingMatchHomeTeamId ? 'gold' : 'primary'" size="md" shadow="glow" icon="star"
+        (click)="selectOpeningMatch.emit()">
+        {{ t.openingMatchHomeTeamId ? 'تغيير مباراة الافتتاح' : 'تحديد
+        مباراة الافتتاح' }}
+    </app-button>
+    }
+
+
+
+    <app-button variant="ghost" size="md" icon="delete" class="text-danger" (click)="deleteTournament.emit()">
+        حذف البطولة
+    </app-button>
+
+    <!-- Emergency Overrides -->
+    @if (t.requiresAdminIntervention) {
+    @if ((t.status === TournamentStatus.REGISTRATION_CLOSED || t.status ===
+    TournamentStatus.DRAFT) && tournamentMatches().length > 0) {
+    <app-button variant="outline" size="md" icon="warning" class="emergency-action" (click)="emergencyStart.emit()">
+        ⚠️ بدء طوارئ (Admin Override)
+    </app-button>
+    }
+    @if (t.status === TournamentStatus.ACTIVE && tournamentMatches().length > 0) {
+    <app-button variant="outline" size="md" icon="warning" class="emergency-action" (click)="emergencyEnd.emit()">
+        ⚠️ إنهاء طوارئ (Admin Override)
+    </app-button>
+    }
+    }
+</ng-container>
+}

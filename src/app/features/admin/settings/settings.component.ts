@@ -7,7 +7,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ToggleComponent } from '../../../shared/components/toggle/toggle.component';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { SystemSettingsService, SystemSettings } from '../../../core/services/system-settings.service';
-import { finalize } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-settings',
@@ -59,36 +59,33 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.adminLayout.reset();
     }
 
-    loadSettings(): void {
+    async loadSettings(): Promise<void> {
         this.isLoading.set(true);
-        this.settingsService.getSettings()
-            .pipe(finalize(() => this.isLoading.set(false)))
-            .subscribe({
-                next: (settings) => {
-                    this.settingsForm.patchValue(settings);
-                },
-                error: (err) => {
-                    this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل إعدادات النظام. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
-                    console.error('Error loading settings:', err);
-                }
-            });
+        try {
+            const settings = await firstValueFrom(this.settingsService.getSettings());
+            this.settingsForm.patchValue(settings);
+        } catch (e: unknown) {
+            this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل إعدادات النظام. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
+            console.error('Error loading settings:', e);
+        } finally {
+            this.isLoading.set(false);
+        }
     }
 
-    saveSettings(): void {
+    async saveSettings(): Promise<void> {
         if (this.settingsForm.invalid) return;
 
         this.isSaving.set(true);
         const settings = this.settingsForm.value as SystemSettings;
 
-        this.settingsService.updateSettings(settings)
-            .pipe(finalize(() => this.isSaving.set(false)))
-            .subscribe({
-                next: () => {
-                    this.uiFeedback.success('تم الحفظ', 'تم تحديث إعدادات النظام بنجاح');
-                },
-                error: (err) => {
-                    this.uiFeedback.error('فشل الحفظ', err.error?.message || 'فشل حفظ الإعدادات');
-                }
-            });
+        try {
+            await firstValueFrom(this.settingsService.updateSettings(settings));
+            this.uiFeedback.success('تم الحفظ', 'تم تحديث إعدادات النظام بنجاح');
+        } catch (e: unknown) {
+            const httpErr = e as { error?: { message?: string } };
+            this.uiFeedback.error('فشل الحفظ', httpErr.error?.message || 'فشل حفظ الإعدادات');
+        } finally {
+            this.isSaving.set(false);
+        }
     }
 }

@@ -1,0 +1,125 @@
+.requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+}
+
+.request-card {
+    background: var(--bg-surface-elevated, #1c1d21);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        0 8px 24px rgba(0, 0, 0, 0.15);
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at top right, rgba(var(--primary-rgb), 0.08), transparent 65%);
+        pointer-events: none;
+        opacity: 0.5;
+    }
+}
+
+.invite-card {
+    border: 1.5px dashed rgba(var(--primary-rgb), 0.35);
+    background: linear-gradient(145deg,
+            rgba(var(--primary-rgb), 0.06),
+            var(--bg-surface-elevated, #1c1d21) 40%);
+    cursor: default;
+
+    &::after {
+        background: radial-gradient(ellipse at bottom left, rgba(var(--primary-rgb), 0.1), transparent 60%);
+        opacity: 1;
+    }
+
+    &:hover {
+        border-color: rgba(var(--primary-rgb), 0.5);
+        transform: translateY(-4px);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            0 0 30px -10px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .request-info p,
+    .request-info .request-role {
+        color: var(--primary);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+    }
+}
+
+.request-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+.icon-circle {
+    width: 50px;
+    height: 50px;
+    background: rgba(var(--primary-rgb), 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.primary {
+        background: rgba(var(--primary-rgb), 0.1);
+        color: var(--primary);
+    }
+}
+
+.request-info {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+
+    h3 {
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 0.35rem;
+    }
+
+    .request-role {
+        color: var(--primary);
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+}
+
+.request-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .requests-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

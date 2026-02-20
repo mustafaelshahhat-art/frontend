@@ -1,0 +1,16 @@
+<div class="matches-panel">
+    @if (tournamentMatches().length > 0) {
+    <div class="matches-summary">
+        <div class="summary-stat">
+            <app-icon name="sports_soccer" class="icon-sm"></app-icon>
+            <span class="count">{{ tournamentMatches().length }}</span>
+            <span class="label">مباراة</span>
+        </div>
+    </div>
+    } @else {
+    <app-empty-state
+        icon="sports_soccer"
+        title="لا توجد مباريات"
+        description="لم يتم توليد جدول المباريات بعد." />
+    }
+</div>

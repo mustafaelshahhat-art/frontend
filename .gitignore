@@ -48,3 +48,6 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Angular local environment overrides
+/src/environments/environment.local.ts
+

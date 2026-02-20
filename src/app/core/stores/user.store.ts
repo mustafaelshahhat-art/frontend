@@ -5,7 +5,6 @@ import { PagedResult } from '../../core/models/pagination.model';
 export interface UserState {
   users: User[];
   totalUserCount: number; // For dashboard/analytics summary
-  currentUser: User | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -17,14 +16,12 @@ export class UserStore {
   private state = signal<UserState>({
     users: [],
     totalUserCount: 0,
-    currentUser: null,
     isLoading: false,
     error: null
   });
   // Selectors
   users = computed(() => this.state().users);
   totalUserCount = computed(() => this.state().totalUserCount);
-  currentUser = computed(() => this.state().currentUser);
   isLoading = computed(() => this.state().isLoading);
   error = computed(() => this.state().error);
 
@@ -63,10 +60,6 @@ export class UserStore {
     this.state.update(state => ({ ...state, totalUserCount: count }));
   }
 
-  setCurrentUser(user: User | null): void {
-    this.state.update(state => ({ ...state, currentUser: user }));
-  }
-
   addUser(user: User): void {
     this.state.update(state => ({
       ...state,
@@ -75,18 +68,12 @@ export class UserStore {
   }
 
   updateUser(updatedUser: User): void {
-    // Update in users list
     this.state.update(state => ({
       ...state,
       users: state.users.map(user =>
         user.id === updatedUser.id ? updatedUser : user
       )
     }));
-
-    // Also update current user if it's the same
-    if (this.currentUser()?.id === updatedUser.id) {
-      this.setCurrentUser(updatedUser);
-    }
   }
 
   upsertUser(user: User): void {
@@ -104,11 +91,6 @@ export class UserStore {
       ...state,
       users: state.users.filter(user => user.id !== userId)
     }));
-
-    // Clear current user if it's the removed user
-    if (this.currentUser()?.id === userId) {
-      this.setCurrentUser(null);
-    }
   }
 
   clearTeamMembership(teamId: string): void {

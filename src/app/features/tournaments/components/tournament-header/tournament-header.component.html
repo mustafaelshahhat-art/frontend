@@ -1,0 +1,75 @@
+@if (tournament(); as t) {
+<div class="tournament-header-content">
+    <div class="tournament-main-info">
+        <div class="top-meta">
+            <app-badge
+                [type]="t.status === TournamentStatus.COMPLETED ? 'gold' :
+                       (t.status === TournamentStatus.REGISTRATION_OPEN ? 'success' :
+                       (t.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION ? 'warning' : 'neutral'))"
+                class="status-badge">
+                <span class="dot"></span>
+                {{ getStatusLabel(t.status) }}
+            </app-badge>
+            <span class="created-at">أنشئت في {{ t.createdAt | date:'shortDate' }}</span>
+        </div>
+
+        <!-- Winner Announcement -->
+        @if (t.status === TournamentStatus.COMPLETED && t.winnerTeamName) {
+        <div class="winner-announcement animate-bounce-subtle">
+            <app-icon name="emoji_events" class="trophy icon-sm"></app-icon>
+            <div class="winner-info">
+                <span>البطل المتوج</span>
+                <h3>{{ t.winnerTeamName }}</h3>
+            </div>
+        </div>
+        }
+
+        <h2>{{ t.name }}</h2>
+
+        <div class="tournament-meta">
+            <div class="meta-item">
+                <app-icon name="calendar_today" class="icon-sm"></app-icon>
+                <div class="meta-text-wrapper">
+                    <span class="label">البداية</span>
+                    <span class="value">{{ t.startDate | date:'yyyy/MM/dd' }}</span>
+                </div>
+            </div>
+            <div class="meta-item">
+                <app-icon name="location_on" class="icon-sm"></app-icon>
+                <div class="meta-text-wrapper">
+                    <span class="label">الموقع</span>
+                    <span class="value">{{ t.location || 'غير محدد' }}</span>
+                </div>
+            </div>
+            <div class="meta-item">
+                <app-icon name="payments" class="icon-sm"></app-icon>
+                <div class="meta-text-wrapper">
+                    <span class="label">الاشتراك</span>
+                    <span class="value">{{ t.entryFee }} ج.م</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions slot projected from parent -->
+        <ng-content select="[header-actions]"></ng-content>
+
+        <div class="tournament-quick-stats">
+            <div class="stat-circle">
+                <div class="stat-content">
+                    <span class="stat-value">{{ t.currentTeams }}/{{ t.maxTeams }}</span>
+                    <span class="stat-label">فريق</span>
+                </div>
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" class="bg" />
+                    <circle cx="50" cy="50" r="45" class="fg" />
+                </svg>
+            </div>
+            <div class="stat-pill">
+                <app-icon name="sports_soccer" class="icon-sm"></app-icon>
+                <span class="value">{{ tournamentMatches().length }}</span>
+                <span class="label">مباراة</span>
+            </div>
+        </div>
+    </div>
+</div>
+}

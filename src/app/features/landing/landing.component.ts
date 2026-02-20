@@ -1,12 +1,12 @@
 import { Component, ChangeDetectionStrategy, ViewEncapsulation, inject, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-landing',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [RouterModule],
     templateUrl: './landing.component.html',
     styleUrl: './landing.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -150,16 +150,14 @@ export class LandingComponent implements OnInit {
         }
     }
 
-    continueAsGuest(): void {
-        this.authService.loginAsGuest().subscribe({
-            next: () => {
-                this.router.navigate(['/guest/tournaments']);
-            },
-            error: (err) => {
-                console.error('Guest login failed', err);
-                // Even if logging fails, we can still navigate as guest in frontend
-                this.router.navigate(['/guest/tournaments']);
-            }
-        });
+    async continueAsGuest(): Promise<void> {
+        try {
+            await firstValueFrom(this.authService.loginAsGuest());
+            this.router.navigate(['/guest/tournaments']);
+        } catch (e: unknown) {
+            console.error('Guest login failed', e);
+            // Even if logging fails, we can still navigate as guest in frontend
+            this.router.navigate(['/guest/tournaments']);
+        }
     }
 }

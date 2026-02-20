@@ -1,8 +1,12 @@
+// ──────────────────────────────────────────────────────────
+// User domain models — aligned with backend UserDto / AuthDtos
+// ──────────────────────────────────────────────────────────
+
 export enum UserRole {
     ADMIN = 'Admin',
     PLAYER = 'Player',
     TOURNAMENT_CREATOR = 'TournamentCreator',
-    GUEST = 'Guest'
+    GUEST = 'Guest'            // Frontend-only role for unauthenticated users
 }
 
 export enum TeamRole {
@@ -13,16 +17,13 @@ export enum TeamRole {
 export enum UserStatus {
     ACTIVE = 'Active',
     PENDING = 'Pending',
-    SUSPENDED = 'Suspended',
-    BANNED = 'Banned',
-    DISABLED = 'Disabled'
+    SUSPENDED = 'Suspended'
 }
 
 export interface User {
     id: string;
-    displayId: string; // Visible ID for the user
+    displayId: string;
     name: string;
-    username?: string;
     email: string;
     role: UserRole;
     status: UserStatus;
@@ -32,15 +33,15 @@ export interface User {
     governorateId?: string;
     cityId?: string;
     areaId?: string;
-    governorateName?: string;
-    cityName?: string;
-    areaName?: string;
+    governorateNameAr?: string;  // Backend: GovernorateNameAr
+    cityNameAr?: string;         // Backend: CityNameAr
+    areaNameAr?: string;         // Backend: AreaNameAr
     idFrontUrl?: string;
     idBackUrl?: string;
-    teamId?: string; // ID of the team the user belongs to
+    teamId?: string;
     teamName?: string;
     teamRole?: TeamRole;
-    joinedTeamIds?: string[]; // IDs of all teams the user belongs to
+    joinedTeamIds?: string[];
     isEmailVerified: boolean;
     createdAt: Date;
     activities?: Activity[];
@@ -52,7 +53,6 @@ export interface Activity {
     message: string;
     createdAt: Date;
 }
-
 
 export interface AuthResponse {
     token: string;
@@ -78,7 +78,7 @@ export interface RegisterRequest {
     role: string | number;
     idFront?: File | null;
     idBack?: File | null;
-    fullName?: string | null; // Legacy field support
+    fullName?: string | null;
 }
 
 /**

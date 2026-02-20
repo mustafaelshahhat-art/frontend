@@ -1,9 +1,9 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { Component, inject, DestroyRef, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { SystemSettingsService } from '../../../core/services/system-settings.service';
 import { UserRole, User } from '../../../core/models/user.model';
@@ -31,7 +31,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private authService = inject(AuthService);
     private systemSettings = inject(SystemSettingsService);
     private router = inject(Router);
-    private destroyRef = inject(DestroyRef);
 
     loginForm: FormGroup;
     isLoading = signal(false);
@@ -57,20 +56,18 @@ export class LoginComponent implements OnInit, AfterViewInit {
         });
     }
 
-    private checkMaintenance(): void {
-        this.systemSettings.getMaintenanceStatus().subscribe({
-            next: (status) => {
-                this.isMaintenanceMode.set(status.maintenanceMode);
-            },
-            error: () => {
-                // Silently ignore — login page should always be usable.
-                // If backend is down, user will see an error on actual login attempt.
-                this.isMaintenanceMode.set(false);
-            }
-        });
+    private async checkMaintenance(): Promise<void> {
+        try {
+            const status = await firstValueFrom(this.systemSettings.getMaintenanceStatus());
+            this.isMaintenanceMode.set(status.maintenanceMode);
+        } catch {
+            // Silently ignore — login page should always be usable.
+            // If backend is down, user will see an error on actual login attempt.
+            this.isMaintenanceMode.set(false);
+        }
     }
 
-    onSubmit(): void {
+    async onSubmit(): Promise<void> {
         if (this.loginForm.invalid) {
             Object.keys(this.loginForm.controls).forEach(key => {
                 this.loginForm.get(key)?.markAsTouched();
@@ -86,30 +83,27 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
         if (!email || !password) return;
 
-        this.authService.login({ email, password })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (response) => {
-                    this.isLoading.set(false);
-                    this.handleNavigation(response.user);
-                },
-                error: (error) => {
-                    this.isLoading.set(false);
+        try {
+            const response = await firstValueFrom(this.authService.login({ email, password }));
+            this.isLoading.set(false);
+            this.handleNavigation(response.user);
+        } catch (error: unknown) {
+            const httpErr = error as { error?: { code?: string; message?: string } };
+            this.isLoading.set(false);
 
-                    // Check error.error.code because HttpClient returns HttpErrorResponse
-                    // where the actual backend JSON body is in the 'error' property.
-                    if (error.error?.code === 'EMAIL_NOT_VERIFIED') {
-                        const email = this.loginForm.value.email?.trim();
-                        this.router.navigate(['/auth/verify-email'], {
-                            queryParams: { email: email },
-                            state: { message: 'يرجى تأكيد بريدك الإلكتروني للمتابعة' }
-                        });
-                        return;
-                    }
+            // Check error.error.code because HttpClient returns HttpErrorResponse
+            // where the actual backend JSON body is in the 'error' property.
+            if (httpErr.error?.code === 'EMAIL_NOT_VERIFIED') {
+                const email = this.loginForm.value.email?.trim();
+                this.router.navigate(['/auth/verify-email'], {
+                    queryParams: { email: email },
+                    state: { message: 'يرجى تأكيد بريدك الإلكتروني للمتابعة' }
+                });
+                return;
+            }
 
-                    this.errorMessage.set(error.error?.message || 'حدث خطأ أثناء تسجيل الدخول');
-                }
-            });
+            this.errorMessage.set(httpErr.error?.message || 'حدث خطأ أثناء تسجيل الدخول');
+        }
     }
 
     private handleNavigation(user: User): void {

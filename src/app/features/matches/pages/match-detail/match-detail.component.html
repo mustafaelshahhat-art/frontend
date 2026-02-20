@@ -101,7 +101,8 @@
         <!-- Controls Column -->
         <div class="controls-section">
 
-            <!-- Admin Controls (Premium Redesign) -->
+            <!-- Admin Controls: hidden when match is finished or cancelled -->
+            @if (matchData.status !== MatchStatus.FINISHED && matchData.status !== MatchStatus.CANCELLED) {
             <div *appHasPermission="AppPermission.MANAGE_MATCHES" class="admin-tools-premium">
                 <div class="admin-header">
                     <div class="admin-title">
@@ -146,16 +147,17 @@
                     <!-- Status Controls -->
                     <div class="status-grid-flex">
                         <app-button variant="outline" size="sm" icon="schedule" (click)="openPostponeModal()"
-                            [disabled]="matchData.status === MatchStatus.CANCELLED" class="flex-1">تأجيل</app-button>
+                            class="flex-1">تأجيل</app-button>
                         <app-button variant="outline" size="sm" icon="replay" (click)="openRescheduleModal()"
                             class="flex-1">إعادة</app-button>
                         <app-button variant="danger" size="sm" icon="cancel" (click)="openCancelModal()"
-                            [disabled]="matchData.status === MatchStatus.CANCELLED" class="flex-1">
-                            {{ matchData.status === MatchStatus.CANCELLED ? 'ملغاة' : 'إلغاء' }}
+                            class="flex-1">
+                            إلغاء
                         </app-button>
                     </div>
                 </div>
             </div>
+            } <!-- end @if not finished/cancelled -->
 
 
 
@@ -186,32 +188,32 @@
 
 
 <!-- Postpone/Reset Schedule Modal -->
-<app-modal [visible]="showScheduleModal()"
-    [title]="scheduleType === 'postpone' ? 'تأجيل المباراة' : (scheduleType === 'reset' ? 'إعادة جدولة المباراة' : 'تحديد موعد اللقاء')"
-    [icon]="scheduleType === 'postpone' ? 'schedule' : (scheduleType === 'reset' ? 'restart_alt' : 'calendar_month')"
+<app-modal [visible]="facade.showScheduleModal()"
+    [title]="facade.scheduleType === 'postpone' ? 'تأجيل المباراة' : (facade.scheduleType === 'reset' ? 'إعادة جدولة المباراة' : 'تحديد موعد اللقاء')"
+    [icon]="facade.scheduleType === 'postpone' ? 'schedule' : (facade.scheduleType === 'reset' ? 'restart_alt' : 'calendar_month')"
     (closeRequest)="closeScheduleModal()">
 
     <div class="form-grid">
         <div class="form-field">
             <span class="form-label">تاريخ اللقاء الجديد</span>
-            <app-form-control type="date" [(ngModel)]="scheduleForm.date" iconLeft="calendar_today" />
+            <app-form-control type="date" [(ngModel)]="facade.scheduleForm.date" iconLeft="calendar_today" />
         </div>
         <div class="form-field">
             <span class="form-label">وقت اللقاء</span>
-            <app-form-control type="time" [(ngModel)]="scheduleForm.time" iconLeft="schedule" />
+            <app-form-control type="time" [(ngModel)]="facade.scheduleForm.time" iconLeft="schedule" />
         </div>
     </div>
 
     <div modal-footer class="flex justify-end gap-3 w-full">
         <app-button (click)="closeScheduleModal()" variant="ghost">إلغاء</app-button>
-        <app-button (click)="submitScheduleChange()" [variant]="scheduleType === 'postpone' ? 'primary' : 'outline'">
+        <app-button (click)="submitScheduleChange()" [variant]="facade.scheduleType === 'postpone' ? 'primary' : 'outline'">
             تأكيد الموعد
         </app-button>
     </div>
 </app-modal>
 
 <!-- Cancel Match Modal -->
-<app-modal [visible]="showCancelModal()" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
+<app-modal [visible]="facade.showCancelModal()" title="إلغاء المباراة نهائياً" icon="block" theme="danger"
     (closeRequest)="closeCancelModal()">
     <div class="prose mb-4">
         <p class="text-secondary">سيتم إرسال إشعار فوري لجميع اللاعبين بسبب الإلغاء.</p>
@@ -219,7 +221,7 @@
 
     <div class="form-field full-width">
         <span class="form-label">سبب الإلغاء</span>
-        <app-form-control type="textarea" [(ngModel)]="cancelReason" [rows]="4"
+        <app-form-control type="textarea" [(ngModel)]="facade.cancelReason" [rows]="4"
             placeholder="اكتب سبب الإلغاء هنا ليظهر للجميع..." />
     </div>
 

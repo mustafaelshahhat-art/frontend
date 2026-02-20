@@ -22,7 +22,9 @@ export class StatusLabelPipe implements PipeTransform {
         [TournamentStatus.ACTIVE]: 'جارية',
         [TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION]: 'في انتظار اختيار مباراة الافتتاح',
         [TournamentStatus.COMPLETED]: 'مكتملة',
-        [TournamentStatus.CANCELLED]: 'ملغية'
+        [TournamentStatus.CANCELLED]: 'ملغية',
+        [TournamentStatus.MANUAL_QUALIFICATION_PENDING]: 'في انتظار تحديد المتأهلين',
+        [TournamentStatus.QUALIFICATION_CONFIRMED]: 'تم تأكيد التأهل'
     };
 
     private readonly matchLabels: Record<MatchStatus, string> = {

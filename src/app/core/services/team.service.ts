@@ -63,7 +63,7 @@ export class TeamService {
         // Backend returns TeamDto.
         // Helper to mimic signature:
         // We know user becomes Captain.
-        return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.cityName || 'Unknown', founded: new Date().getFullYear().toString() }).pipe(
+        return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.cityNameAr || 'Unknown', founded: new Date().getFullYear().toString() }).pipe(
             map(team => {
                 const updatedUser = { ...user, teamId: team.id };
                 return { team, updatedUser };
@@ -86,8 +86,7 @@ export class TeamService {
                 // We fake 'player' return if needed or fetch it.
                 // The component might expect 'player' object if approved.
                 // I'll return basics.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
-                return { request, player: approve ? { id: request.playerId, name: request.playerName } as any : undefined };
+                return { request, player: approve ? { id: request.playerId, name: request.playerName } as unknown as Player : undefined };
             })
         );
     }
@@ -140,8 +139,8 @@ export class TeamService {
         return this.http.post<unknown>(`${this.apiUrl}/${teamId}/activate`, {});
     }
 
-    getTeamsOverview(): Observable<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: any[] }> {
-        return this.http.get<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: any[] }>(`${environment.apiUrl}/me/teams-overview`);
+    getTeamsOverview(): Observable<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: unknown[] }> {
+        return this.http.get<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: unknown[] }>(`${environment.apiUrl}/me/teams-overview`);
     }
 }
 

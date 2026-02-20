@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationExtras } from '@angular/router';
 
 @Injectable({
     providedIn: 'root'
@@ -30,7 +30,7 @@ export class ContextNavigationService {
      * @param path The path to navigate to (without the root prefix).
      * @param extras Optional navigation extras.
      */
-    navigateTo(path: string | string[], extras?: any): void {
+    navigateTo(path: string | string[], extras?: NavigationExtras): void {
         const prefix = this.getRootPrefix();
 
         if (Array.isArray(path)) {

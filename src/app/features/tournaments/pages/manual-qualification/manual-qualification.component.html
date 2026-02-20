@@ -1,0 +1,77 @@
+<div class="manual-qualification-page">
+    @if (isLoading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <p>جاري تحميل البيانات...</p>
+    </div>
+    } @else {
+    <div class="qualification-container">
+        <!-- Summary Header -->
+        <app-card class="summary-card">
+            <div class="summary-content">
+                <div class="info">
+                    <h3>تأكيد المتأهلين</h3>
+                    <p>يرجى اختيار الفرق المتأهلة للأدوار الإقصائية من كل مجموعة.</p>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="label">إجمالي الفرق المختارة</span>
+                        <span class="value" [class.complete]="totalSelected() > 0">
+                            {{ totalSelected() }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </app-card>
+
+        <!-- Groups Grid -->
+        <div class="groups-grid">
+            @for (group of groupSelections(); track group.groupId; let gIdx = $index) {
+            <app-card class="group-card">
+                <div header class="group-header">
+                    <h4>{{ group.groupName }}</h4>
+                    <app-badge [type]="group.selectedTeamIds.size > 0 ? 'success' : 'warning'">
+                        @if (group.selectedTeamIds.size > 0) {
+                        <app-icon name="check_circle" size="xs" />
+                        }
+                        مختار: {{ group.selectedTeamIds.size }}
+                    </app-badge>
+                </div>
+
+                <div class="standings-list">
+                    @for (team of group.standings; track team.teamId) {
+                    <div class="team-row" [class.selected]="isSelected(gIdx, team.teamId)"
+                        (click)="toggleSelection(gIdx, team.teamId)">
+                        <div class="rank">{{ team.rank }}</div>
+                        <div class="team-info">
+                            <span class="name">{{ team.teamName }}</span>
+                            <span class="subtitle">
+                                <app-icon name="sports_soccer" size="xs" />
+                                {{ team.played }} مباريات | {{ team.won }} فوز | {{ team.points }} نقطة
+                            </span>
+                        </div>
+                        <div class="action" [class.is-qualified]="isSelected(gIdx, team.teamId)">
+                            @if (isSelected(gIdx, team.teamId)) {
+                            <app-badge variant="gold" size="sm">متأهل</app-badge>
+                            } @else {
+                            <app-icon name="add_circle_outline" size="md" />
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </app-card>
+            }
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="footer-actions">
+            <app-button variant="outline" size="lg" (click)="cancel()">إلغاء</app-button>
+            <app-button variant="primary" size="lg" shadow="glow" [isLoading]="isSubmitting()"
+                [disabled]="totalSelected() === 0 || isSubmitting()" (click)="submit()">
+                تأكيد المتأهلين وتوليد المواجهات
+            </app-button>
+        </div>
+    </div>
+    }
+</div>

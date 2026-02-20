@@ -1,10 +1,9 @@
 import { Injectable, inject, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterRequest, UserRole } from '../models/user.model';
-import { Team } from '../models/team.model';
 import { environment } from '../../../environments/environment';
 import { AuthStore } from '../stores/auth.store';
 import { SignalRService } from './signalr.service';
@@ -20,8 +19,6 @@ export class AuthService {
     private readonly TOKEN_KEY = 'auth_token';
     private readonly REFRESH_TOKEN_KEY = 'refresh_token';
     private readonly USER_KEY = 'current_user';
-    private userSubject = new BehaviorSubject<User | null>(this.getCurrentUser());
-    public user$ = this.userSubject.asObservable();
 
     private readonly apiUrl = `${environment.apiUrl}/auth`;
 
@@ -74,7 +71,7 @@ export class AuthService {
         );
     }
 
-    loginAsGuest(): Observable<any> {
+    loginAsGuest(): Observable<unknown> {
         return this.http.post(`${this.apiUrl}/login-guest`, {}, {
             headers: { 'X-Skip-Error-Handler': 'true' }
         }).pipe(
@@ -94,7 +91,6 @@ export class AuthService {
                     createdAt: new Date()
                 };
                 localStorage.setItem(this.USER_KEY, JSON.stringify(guestUser));
-                this.userSubject.next(guestUser);
                 this.authStore.setCurrentUser(guestUser);
             })
         );
@@ -113,7 +109,6 @@ export class AuthService {
         localStorage.removeItem(this.TOKEN_KEY);
         localStorage.removeItem(this.REFRESH_TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
-        this.userSubject.next(null);
         this.authStore.clearAuth();
 
         // Ensure SignalR connections are terminated to clear identity
@@ -161,7 +156,7 @@ export class AuthService {
      * Determines if the current user can register a team in a tournament.
      * ONLY the team owner (PLAYER Captain) can register the team.
      */
-    canRegisterTournament(team: any): boolean {
+    canRegisterTournament(team: { id: string } | null | undefined): boolean {
         const user = this.getCurrentUser();
         if (!user || !team) return false;
         return user.teamRole === 'Captain' && team.id === user.teamId;
@@ -192,13 +187,11 @@ export class AuthService {
             localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
         }
         localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-        this.userSubject.next(response.user);
         this.authStore.setCurrentUser(response.user);
     }
 
     updateCurrentUser(updatedUser: User): void {
         localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser));
-        this.userSubject.next(updatedUser);
         this.authStore.updateUser(updatedUser);
     }
 

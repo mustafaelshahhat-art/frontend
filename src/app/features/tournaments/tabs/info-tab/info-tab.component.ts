@@ -184,7 +184,7 @@ export class InfoTabComponent {
             const goalsSource = [...(m.goals || [])];
             if (m.events) {
                 m.events
-                    .filter(e => (e.type as any) === 'Goal' || e.type === MatchEventType.GOAL)
+                    .filter(e => (e.type as unknown) === 'Goal' || e.type === MatchEventType.GOAL)
                     .forEach(e => {
                         if (e.playerId && !goalsSource.some(g => g.playerId === e.playerId && g.minute === e.minute)) {
                             goalsSource.push({

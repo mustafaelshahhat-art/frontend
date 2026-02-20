@@ -15,6 +15,7 @@ import { TableComponent, TableColumn } from '../../../shared/components/table/ta
 import { TournamentStore } from '../../../core/stores/tournament.store';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-payment-requests',
@@ -131,28 +132,26 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     // ✅ FIXED: Use getAllPaymentRequests to get FULL registration data including Rejected ones
-    private loadInitialData(): void {
+    private async loadInitialData(): Promise<void> {
         this.tournamentStore.setLoading(true);
-        this.tournamentService.getAllPaymentRequests().subscribe({
-            next: (data) => {
-                // Mapping flat responses back to Tournament objects for the store
-                const tournamentMap = new Map<string, Tournament>();
-                data.forEach(req => {
-                    const existing = tournamentMap.get(req.tournament.id);
-                    if (existing) {
-                        existing.registrations = [...(existing.registrations || []), req.registration];
-                    } else {
-                        const tournament = { ...req.tournament, registrations: [req.registration] };
-                        tournamentMap.set(tournament.id, tournament);
-                    }
-                });
-                this.tournamentStore.setTournaments(Array.from(tournamentMap.values()));
-            },
-            error: (err) => {
-                console.error('Error loading payment requests:', err);
-                this.tournamentStore.setLoading(false);
-            }
-        });
+        try {
+            const data = await firstValueFrom(this.tournamentService.getAllPaymentRequests());
+            // Mapping flat responses back to Tournament objects for the store
+            const tournamentMap = new Map<string, Tournament>();
+            data.forEach(req => {
+                const existing = tournamentMap.get(req.tournament.id);
+                if (existing) {
+                    existing.registrations = [...(existing.registrations || []), req.registration];
+                } else {
+                    const tournament = { ...req.tournament, registrations: [req.registration] };
+                    tournamentMap.set(tournament.id, tournament);
+                }
+            });
+            this.tournamentStore.setTournaments(Array.from(tournamentMap.values()));
+        } catch (e: unknown) {
+            console.error('Error loading payment requests:', e);
+            this.tournamentStore.setLoading(false);
+        }
     }
 
 
@@ -162,24 +161,25 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
         return tournament.adminId === user.id || tournament.creatorUserId === user.id;
     }
 
-    approve(request: { tournament: Tournament, registration: TeamRegistration }): void {
-        this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
-            }
-        });
+    async approve(request: { tournament: Tournament, registration: TeamRegistration }): Promise<void> {
+        try {
+            await firstValueFrom(this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId));
+            this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
+        } catch {
+            // error handled silently
+        }
     }
 
-    reject(request: { tournament: Tournament, registration: TeamRegistration }): void {
-        this.uiFeedback.confirm('رفض الطلب', 'يرجى تأكيد رفض طلب الدفع', 'رفض', 'danger').subscribe(confirmed => {
-            if (confirmed) {
-                this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'Rejected by admin').subscribe({
-                    next: () => {
-                        this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
-                    }
-                });
-            }
-        });
+    async reject(request: { tournament: Tournament, registration: TeamRegistration }): Promise<void> {
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm('رفض الطلب', 'يرجى تأكيد رفض طلب الدفع', 'رفض', 'danger'));
+        if (!confirmed) return;
+
+        try {
+            await firstValueFrom(this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'Rejected by admin'));
+            this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
+        } catch {
+            // error handled silently
+        }
     }
 
     viewReceipt(request: { tournament: Tournament, registration: TeamRegistration }): void {

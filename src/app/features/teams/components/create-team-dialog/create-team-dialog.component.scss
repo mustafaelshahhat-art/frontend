@@ -1,0 +1,36 @@
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    app-icon {
+        position: absolute;
+        right: 16px;
+        color: var(--primary);
+        opacity: 0.5;
+    }
+}
+
+.team-input {
+    width: 100%;
+    padding: 16px 48px 16px 16px;
+    background: var(--bg-input, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--border-visible);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+
+    &:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+    }
+}
+
+.w-full { width: 100%; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-4 { gap: 1rem; }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 0.875rem; }
+.mb-2 { margin-bottom: 0.5rem; }

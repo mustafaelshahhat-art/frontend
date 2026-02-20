@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MatchMessage } from '../models/tournament.model';
 import { SignalRService } from './signalr.service';
@@ -74,15 +74,15 @@ export class ChatService {
         });
     }
 
-    private loadHistory(matchId: string): void {
-        this.http.get<MatchMessage[]>(`${this.apiUrl}/${matchId}/chat`).subscribe({
-            next: (messages) => {
-                this.messagesSubject.next(messages);
-            },
-            error: (err) => {
-                console.error('History load error:', err);
-                this.messagesSubject.next([]);
-            }
-        });
+    private async loadHistory(matchId: string): Promise<void> {
+        try {
+            // Backend returns PagedResult<{items: [], ...}>, need to unwrap
+            const response = await firstValueFrom(this.http.get<any>(`${this.apiUrl}/${matchId}/chat`));
+            const messages = Array.isArray(response) ? response : (response?.items || []);
+            this.messagesSubject.next(messages);
+        } catch (e: unknown) {
+            console.error('History load error:', e);
+            this.messagesSubject.next([]);
+        }
     }
 }

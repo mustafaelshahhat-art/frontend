@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { TournamentDetailStore } from '../../stores/tournament-detail.store';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -147,63 +147,65 @@ export class TeamsTabComponent {
         return getRegStatusType(status);
     }
 
-    approveRegistration(reg: TeamRegistration): void {
+    async approveRegistration(reg: TeamRegistration): Promise<void> {
         const t = this.store.tournament();
         if (!t) return;
-        this.tournamentService.approveRegistration(t.id, reg.teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم التأكيد', `تم تأكيد تسجيل فريق ${reg.teamName} بنجاح`);
-                this.store.reload(this.destroyRef);
-            },
-            error: (err: any) => this.uiFeedback.error('فشل التأكيد', err.error?.message || 'تعذّر تأكيد تسجيل الفريق.')
-        });
+        try {
+            await firstValueFrom(this.tournamentService.approveRegistration(t.id, reg.teamId));
+            this.uiFeedback.success('تم التأكيد', `تم تأكيد تسجيل فريق ${reg.teamName} بنجاح`);
+            this.store.reload(this.destroyRef);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.uiFeedback.error('فشل التأكيد', httpErr.error?.message || 'تعذّر تأكيد تسجيل الفريق.');
+        }
     }
 
-    rejectRegistration(reg: TeamRegistration): void {
+    async rejectRegistration(reg: TeamRegistration): Promise<void> {
         const t = this.store.tournament();
         if (!t) return;
         const reason = window.prompt('يرجى إدخال سبب الرفض:');
         if (reason) {
-            this.tournamentService.rejectRegistration(t.id, reg.teamId, reason).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                next: () => {
-                    this.uiFeedback.success('تم الرفض', `تم رفض تسجيل فريق ${reg.teamName}`);
-                    this.store.reload(this.destroyRef);
-                },
-                error: (err: any) => this.uiFeedback.error('فشل الرفض', err.error?.message || 'تعذّر رفض التسجيل.')
-            });
+            try {
+                await firstValueFrom(this.tournamentService.rejectRegistration(t.id, reg.teamId, reason));
+                this.uiFeedback.success('تم الرفض', `تم رفض تسجيل فريق ${reg.teamName}`);
+                this.store.reload(this.destroyRef);
+            } catch (err: unknown) {
+                const httpErr = err as { error?: { message?: string } };
+                this.uiFeedback.error('فشل الرفض', httpErr.error?.message || 'تعذّر رفض التسجيل.');
+            }
         }
     }
 
-    promoteTeam(reg: TeamRegistration): void {
+    async promoteTeam(reg: TeamRegistration): Promise<void> {
         const t = this.store.tournament();
         if (!t) return;
-        this.tournamentService.promoteWaitingTeam(t.id, reg.teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم الترقية', `تم نقل فريق ${reg.teamName} من قائمة الانتظار`);
-                this.store.reload(this.destroyRef);
-            },
-            error: (err: any) => this.uiFeedback.error('فشل الترقية', err.error?.message || 'تعذّر نقل الفريق.')
-        });
+        try {
+            await firstValueFrom(this.tournamentService.promoteWaitingTeam(t.id, reg.teamId));
+            this.uiFeedback.success('تم الترقية', `تم نقل فريق ${reg.teamName} من قائمة الانتظار`);
+            this.store.reload(this.destroyRef);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.uiFeedback.error('فشل الترقية', httpErr.error?.message || 'تعذّر نقل الفريق.');
+        }
     }
 
-    eliminateTeam(reg: TeamRegistration): void {
+    async eliminateTeam(reg: TeamRegistration): Promise<void> {
         const t = this.store.tournament();
         if (!t) return;
-        this.uiFeedback.confirm(
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm(
             'إقصاء الفريق',
             `هل أنت متأكد من إقصاء فريق "${reg.teamName}" من البطولة؟`,
             'إقصاء الفريق',
             'danger'
-        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(confirmed => {
-            if (confirmed) {
-                this.tournamentService.eliminateTeam(t.id, reg.teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${reg.teamName} بنجاح`);
-                        this.store.reload(this.destroyRef);
-                    },
-                    error: (err: any) => this.uiFeedback.error('فشل الإقصاء', err.error?.message || 'تعذّر إقصاء الفريق.')
-                });
-            }
-        });
+        ));
+        if (!confirmed) return;
+        try {
+            await firstValueFrom(this.tournamentService.eliminateTeam(t.id, reg.teamId));
+            this.uiFeedback.success('تم الإقصاء', `تم إقصاء فريق ${reg.teamName} بنجاح`);
+            this.store.reload(this.destroyRef);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.uiFeedback.error('فشل الإقصاء', httpErr.error?.message || 'تعذّر إقصاء الفريق.');
+        }
     }
 }

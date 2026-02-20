@@ -6,6 +6,7 @@ import { NavItem } from '../../../shared/models/nav-item.model';
 import { User, TeamRole } from '../../../core/models/user.model';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-sidebar',
@@ -36,17 +37,16 @@ export class SidebarComponent {
         this.closeSidebar.emit();
     }
 
-    handleLogout() {
-        this.uiFeedback.confirm(
+    async handleLogout() {
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm(
             'تأكيد تسجيل الخروج',
             'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
             'تسجيل الخروج',
             'danger'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.logout.emit();
-            }
-        });
+        ));
+        if (confirmed) {
+            this.logout.emit();
+        }
     }
 
     get roleLabel(): string {

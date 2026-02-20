@@ -1,185 +1,243 @@
-<div class="manual-draw-page">
+<div class="manual-draw-page" [class.is-knockout]="isKnockout()">
     @if (isLoading()) {
     <div class="loading-state">
         <div class="spinner"></div>
-        <p>جاري تحميل البيانات...</p>
+        <p>جاري تحضير ساحة القرعة...</p>
     </div>
     } @else {
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-item">
-            <app-icon name="groups" class="icon-sm"></app-icon>
-            <span>إجمالي الفرق: <strong>{{ registeredTeams().length }}</strong></span>
+    <!-- Header Section -->
+    <header class="page-header">
+        <div class="header-content">
+            <app-icon name="auto_awesome" class="header-icon" />
+            <div class="title-stack">
+                <h1>إجراء القرعة يدوياً</h1>
+                <p class="subtitle">{{ tournament()?.name }}</p>
+            </div>
         </div>
-        <div class="stat-item">
-            <app-icon name="pending" class="icon-sm"></app-icon>
-            <span>غير موزعة: <strong>{{ unassignedTeams().length }}</strong></span>
-        </div>
-        @if (!isKnockout()) {
-        <div class="stat-item">
-            <app-icon name="view_module" class="icon-sm"></app-icon>
-            <span>المجموعات: <strong>{{ groupAssignments().length }}</strong></span>
-        </div>
-        <div class="stat-item">
-            <app-icon name="straighten" class="icon-sm"></app-icon>
-            <span>الحد الأقصى لكل مجموعة: <strong>{{ teamsPerGroup() }}</strong></span>
-        </div>
-        }
-    </div>
 
-    <!-- Unassigned Teams -->
-    @if (unassignedTeams().length > 0) {
-    <app-card title="الفرق غير الموزعة" class="unassigned-section">
-        <div class="team-grid">
-            @for (team of unassignedTeams(); track trackByTeamId($index, team)) {
-            <button class="team-chip" (click)="isKnockout() ? null : openGroupModal(team)"
-                [disabled]="isSubmitting()">
-                <span class="team-chip-name">{{ team.teamName }}</span>
-                <app-icon name="add_circle" class="icon-sm assign-icon"></app-icon>
-            </button>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="label">إجمالي الفرق المتأهلة</span>
+                <span class="value">{{ registeredTeams().length }}</span>
+                <app-icon name="groups" size="sm" class="bg-icon" />
+            </div>
+            <div class="stat-card warning" [class.complete]="unassignedTeams().length === 0">
+                <span class="label">فرق بانتظار التوزيع</span>
+                <span class="value">{{ unassignedTeams().length }}</span>
+                <app-icon name="pending" size="sm" class="bg-icon" />
+            </div>
+            @if (isKnockout()) {
+            <div class="stat-card success">
+                <span class="label">المواجهات المكتملة</span>
+                <span class="value">{{ knockoutPairings().length }}</span>
+                <app-icon name="sports_soccer" size="sm" class="bg-icon" />
+            </div>
             }
         </div>
-    </app-card>
-    } @else {
-    <div class="all-assigned-banner">
-        <app-icon name="check_circle" class="icon-lg"></app-icon>
-        <p>تم توزيع جميع الفرق!</p>
-    </div>
-    }
+    </header>
 
-    @if (!isKnockout()) {
-    <!-- ─── Groups Grid ─── -->
-    <div class="groups-grid">
-        @for (group of groupAssignments(); track trackByGroupId($index, group)) {
-        <app-card class="group-card">
-            <div class="group-header" card-header>
-                <h4>{{ group.name }}</h4>
-                <span class="group-count" [class.full]="isGroupFull(group)">
-                    {{ group.teams.length }} / {{ teamsPerGroup() }}
-                </span>
+    <div class="main-container">
+        <!-- Unassigned Teams Section -->
+        <section class="unassigned-section" [class.empty]="unassignedTeams().length === 0">
+            <div class="section-title">
+                <app-icon name="format_list_bulleted" size="sm" />
+                <h3>{{ unassignedTeams().length > 0 ? 'الفرق المتاحة للاختيار' : 'تم توزيع جميع الفرق' }}</h3>
             </div>
-            <div class="group-teams">
-                @for (team of group.teams; track trackByTeamId($index, team)) {
-                <div class="group-team-item">
-                    <span>{{ team.teamName }}</span>
-                    <button class="remove-btn" (click)="removeFromGroup(group.id, team)"
-                        [disabled]="isSubmitting()" title="إزالة الفريق">
-                        <app-icon name="close" class="icon-sm"></app-icon>
+
+            <div class="teams-scroll-container">
+                @if (unassignedTeams().length > 0) {
+                <div class="teams-flex">
+                    @for (team of unassignedTeams(); track trackByTeamId($index, team)) {
+                    <button class="team-luxury-chip" (click)="isKnockout() ? null : openGroupModal(team)"
+                        [disabled]="isSubmitting()">
+                        <div class="team-tag">
+                            <span class="team-name">{{ team.teamName }}</span>
+                            <app-icon name="add_circle" class="action-icon" />
+                        </div>
                     </button>
+                    }
                 </div>
-                } @empty {
-                <div class="group-empty">
-                    <app-icon name="inbox" class="icon-md text-muted"></app-icon>
-                    <p>انقر على فريق لإضافته هنا</p>
+                } @else {
+                <div class="completion-banner">
+                    <app-icon name="verified" class="check-icon" />
+                    <span>تم توزيع جميع الفرق المتأهلة بنجاح!</span>
                 </div>
                 }
             </div>
-        </app-card>
-        }
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="drawing-canvas">
+            @if (!isKnockout()) {
+            <!-- Groups Layout -->
+            <div class="groups-luxury-grid">
+                @for (group of groupAssignments(); track trackByGroupId($index, group)) {
+                <div class="luxury-group-card">
+                    <div class="group-header">
+                        <span class="group-name">{{ group.name }}</span>
+                        <div class="count-badge" [class.full]="isGroupFull(group)">
+                            {{ group.teams.length }} / {{ teamsPerGroup() }}
+                        </div>
+                    </div>
+
+                    <div class="group-content">
+                        @for (team of group.teams; track trackByTeamId($index, team)) {
+                        <div class="picked-team-item fade-in" [attr.data-initial]="team.teamName.charAt(0)">
+                            <span class="name">{{ team.teamName }}</span>
+                            <button class="remove-btn" (click)="removeFromGroup(group.id, team)"
+                                [disabled]="isSubmitting()">
+                                <app-icon name="close" size="xs" />
+                            </button>
+                        </div>
+                        } @empty {
+                        <div class="empty-placeholder">
+                            <app-icon name="add" size="md" />
+                            <p>أضف فريقاً</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+            } @else {
+            <!-- Knockout Pairing Layout -->
+            <div class="pairings-luxury-layout">
+                <div class="pairings-grid">
+                    @for (pair of knockoutPairings(); track trackByIndex($index)) {
+                    <div class="luxury-pairing-card slide-in">
+                        <div class="pairing-content">
+                            <div class="team-side home">
+                                <span class="name">{{ pair.home?.teamName }}</span>
+                            </div>
+                            <div class="vs-container">
+                                <div class="vs-glow"></div>
+                                <span class="vs-text">VS</span>
+                            </div>
+                            <div class="team-side away">
+                                <span class="name">{{ pair.away?.teamName }}</span>
+                            </div>
+                        </div>
+                        <button class="delete-pairing-btn" (click)="removePairing($index)" [disabled]="isSubmitting()">
+                            <app-icon name="delete" size="xs" />
+                        </button>
+                    </div>
+                    }
+
+                    <!-- New Pairing Creator -->
+                    @if (unassignedTeams().length > 0 || knockoutPendingHome() || knockoutPendingAway()) {
+                    <div class="pairing-creator-card"
+                        [class.is-pairing]="knockoutPendingHome() || knockoutPendingAway()">
+                        <div class="creator-header">
+                            <app-icon name="local_fire_department" />
+                            <span>إنشاء مواجهة جديدة</span>
+                        </div>
+
+                        <div class="builder-slots">
+                            <button class="luxury-slot" [class.occupied]="knockoutPendingHome()"
+                                (click)="knockoutPendingHome() ? cancelPendingSlot('home') : openKnockoutSelector('home')"
+                                [disabled]="isSubmitting()">
+                                @if (knockoutPendingHome()) {
+                                <span class="name">{{ knockoutPendingHome()?.teamName }}</span>
+                                <app-icon name="close" class="close-icon" />
+                                } @else {
+                                <app-icon name="person_add" />
+                                <span class="hint">الفريق الأول</span>
+                                }
+                            </button>
+
+                            <div class="vs-divider">
+                                <span class="vs">VS</span>
+                            </div>
+
+                            <button class="luxury-slot" [class.occupied]="knockoutPendingAway()"
+                                (click)="knockoutPendingAway() ? cancelPendingSlot('away') : openKnockoutSelector('away')"
+                                [disabled]="isSubmitting()">
+                                @if (knockoutPendingAway()) {
+                                <span class="name">{{ knockoutPendingAway()?.teamName }}</span>
+                                <app-icon name="close" class="close-icon" />
+                                } @else {
+                                <app-icon name="person_add" />
+                                <span class="hint">الفريق الثاني</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </main>
     </div>
-    } @else {
-    <!-- ─── Knockout Pairings ─── -->
-    <div class="knockout-section">
-        <!-- Existing pairings -->
-        @for (pair of knockoutPairings(); track trackByIndex($index)) {
-        <div class="pairing-row">
-            <div class="team-slot home">
-                <span>{{ pair.home?.teamName }}</span>
-            </div>
-            <div class="vs-badge">VS</div>
-            <div class="team-slot away">
-                <span>{{ pair.away?.teamName }}</span>
-            </div>
-            <button class="delete-pair" (click)="removePairing($index)" [disabled]="isSubmitting()">
-                <app-icon name="delete" class="icon-sm"></app-icon>
-            </button>
+
+    <!-- Sticky Footer Actions -->
+    <footer class="draw-footer">
+        <div class="footer-inner">
+            <app-button variant="outline" size="lg" (click)="cancel()">إلغاء</app-button>
+            <app-button variant="primary" size="lg" shadow="glow"
+                [disabled]="unassignedTeams().length > 0 || isSubmitting()" (click)="submitDraw()">
+                <div class="btn-content">
+                    @if (isSubmitting()) {
+                    <div class="spinner"></div>
+                    <span>جاري الاعتماد...</span>
+                    } @else {
+                    <app-icon name="check_circle" />
+                    <span>اعتماد القرعة وتوليد المباريات</span>
+                    }
+                </div>
+            </app-button>
         </div>
-        }
-
-        <!-- Pairing builder -->
-        @if (unassignedTeams().length > 0 || knockoutPendingHome() || knockoutPendingAway()) {
-        <app-card title="إنشاء مواجهة جديدة">
-            <div class="pairing-builder">
-                <button class="slot-btn" (click)="knockoutPendingHome() ? cancelPendingSlot('home') : openKnockoutSelector('home')"
-                    [disabled]="isSubmitting()">
-                    @if (knockoutPendingHome()) {
-                    <span>{{ knockoutPendingHome()?.teamName }}</span>
-                    <app-icon name="close" class="icon-xs"></app-icon>
-                    } @else {
-                    <app-icon name="add" class="icon-md"></app-icon>
-                    <span>اختر الفريق الأول</span>
-                    }
-                </button>
-                <div class="vs-text">ضد</div>
-                <button class="slot-btn" (click)="knockoutPendingAway() ? cancelPendingSlot('away') : openKnockoutSelector('away')"
-                    [disabled]="isSubmitting()">
-                    @if (knockoutPendingAway()) {
-                    <span>{{ knockoutPendingAway()?.teamName }}</span>
-                    <app-icon name="close" class="icon-xs"></app-icon>
-                    } @else {
-                    <app-icon name="add" class="icon-md"></app-icon>
-                    <span>اختر الفريق الثاني</span>
-                    }
-                </button>
-            </div>
-        </app-card>
-        }
-    </div>
-    }
-
-    <!-- Actions -->
-    <div class="draw-actions">
-        <app-button variant="outline" (trigger)="cancel()">إلغاء</app-button>
-        <app-button variant="primary" [disabled]="unassignedTeams().length > 0 || isSubmitting()"
-            (trigger)="submitDraw()">
-            {{ isSubmitting() ? 'جاري الحفظ...' : 'اعتماد القرعة وتوليد المباريات' }}
-        </app-button>
-    </div>
+    </footer>
 
     }
 </div>
 
-<!-- ─── Group Assignment Modal ─── -->
-<app-modal [visible]="showGroupModal()" title="اختيار المجموعة" icon="view_module" size="sm"
+<!-- Selection Modals with Premium Styling managed by component -->
+<app-modal [visible]="showGroupModal()" title="اختيار المجموعة" icon="layers" size="sm"
     (closeRequest)="showGroupModal.set(false)">
-    @if (selectedTeamForAssignment()) {
-    <div class="modal-team-header">
-        <strong>{{ selectedTeamForAssignment()?.teamName }}</strong>
-    </div>
-    <div class="modal-group-list">
-        @for (group of groupAssignments(); track group.id) {
-        <button class="modal-group-option" [class.selected]="assigningGroupId() === group.id"
-            [class.full]="isGroupFull(group)" [disabled]="isGroupFull(group)"
-            (click)="selectGroup(group.id)">
-            <span class="group-option-name">{{ group.name }}</span>
-            <span class="group-option-count" [class.full]="isGroupFull(group)">
-                {{ group.teams.length }} / {{ teamsPerGroup() }}
-            </span>
-            @if (isGroupFull(group)) {
-            <app-icon name="block" class="icon-xs text-danger"></app-icon>
-            } @else if (assigningGroupId() === group.id) {
-            <app-icon name="check_circle" class="icon-sm text-success"></app-icon>
+    <div class="luxury-modal-content">
+        @if (selectedTeamForAssignment()) {
+        <div class="assignment-target">
+            <span class="label">توزيع الفريق:</span>
+            <span class="team-name">{{ selectedTeamForAssignment()?.teamName }}</span>
+        </div>
+        <div class="group-select-list">
+            @for (group of groupAssignments(); track group.id) {
+            <button class="group-option-btn" [class.selected]="assigningGroupId() === group.id"
+                [class.full]="isGroupFull(group)" [disabled]="isGroupFull(group)" (click)="selectGroup(group.id)">
+                <div class="info">
+                    <span class="name">{{ group.name }}</span>
+                    <span class="count">{{ group.teams.length }} / {{ teamsPerGroup() }}</span>
+                </div>
+                <app-icon
+                    [name]="isGroupFull(group) ? 'block' : (assigningGroupId() === group.id ? 'check_circle' : 'add')"
+                    [class.text-success]="assigningGroupId() === group.id" />
+            </button>
             }
-        </button>
+        </div>
         }
     </div>
-    }
     <div modal-footer>
-        <app-button variant="outline" size="sm" (trigger)="showGroupModal.set(false)">إلغاء</app-button>
+        <app-button variant="outline" size="sm" (click)="showGroupModal.set(false)">إلغاء</app-button>
         <app-button variant="primary" size="sm" [disabled]="assigningGroupId() === null"
-            (trigger)="confirmGroupAssignment()">تأكيد التعيين</app-button>
+            (click)="confirmGroupAssignment()">تأكيد التعيين</app-button>
     </div>
 </app-modal>
 
-<!-- ─── Knockout Team Selector Modal ─── -->
-<app-modal [visible]="showKnockoutModal()" title="اختيار فريق" icon="sports_soccer" size="sm"
+<app-modal [visible]="showKnockoutModal()" title="اختيار فريق للمواجهة" icon="sports_soccer" size="sm"
     [hasFooter]="false" (closeRequest)="showKnockoutModal.set(false)">
-    <div class="modal-team-list">
+    <div class="luxury-team-list">
         @for (team of unassignedTeams(); track team.teamId) {
-        <button class="modal-team-option" (click)="selectTeamForKnockout(team)">
-            <span>{{ team.teamName }}</span>
+        <button class="luxury-team-option" (click)="selectTeamForKnockout(team)">
+            <div class="team-avatar">{{ team.teamName.charAt(0) }}</div>
+            <span class="name">{{ team.teamName }}</span>
+            <app-icon name="chevron_left" class="rtl-icon" />
         </button>
+        } @empty {
+        <div class="empty-selection-state">
+            <app-icon name="info" />
+            <p>لا توجد فرق متاحة للاختيار حالياً</p>
+        </div>
         }
     </div>
 </app-modal>

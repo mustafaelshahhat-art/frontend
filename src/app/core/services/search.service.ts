@@ -13,8 +13,11 @@ export interface SearchResult {
 }
 
 export interface SearchResponse {
-    results: SearchResult[];
+    items: SearchResult[];
     totalCount: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
 }
 
 @Injectable({
@@ -34,15 +37,15 @@ export class SearchService {
         distinctUntilChanged(),
         switchMap(query => {
             if (!query || query.trim().length < 2) {
-                return of({ results: [], totalCount: 0 } as SearchResponse);
+                return of({ items: [], totalCount: 0, pageNumber: 1, pageSize: 10, totalPages: 0 } as SearchResponse);
             }
             this.isSearchingSubject$.next(true);
             return this.performSearch(query).pipe(
-                catchError(() => of({ results: [], totalCount: 0 } as SearchResponse)),
+                catchError(() => of({ items: [], totalCount: 0, pageNumber: 1, pageSize: 10, totalPages: 0 } as SearchResponse)),
                 finalize(() => this.isSearchingSubject$.next(false))
             );
         }),
-        map(response => response.results),
+        map(response => response.items),
         shareReplay(1)
     );
 

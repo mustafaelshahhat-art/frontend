@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { timer, interval, take } from 'rxjs';
+import { firstValueFrom, timer, interval, take } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
@@ -160,7 +160,7 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    onSubmit(): void {
+    async onSubmit(): Promise<void> {
         if (this.verifyForm.invalid) {
             this.verifyForm.markAllAsTouched();
             return;
@@ -177,45 +177,35 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        this.authService.verifyEmail(this.email.trim(), otp)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.isLoading.set(false);
-                    this.successMessage.set('تم تأكيد بريدك الإلكتروني بنجاح! حسابك الآن قيد المراجعة من الإدارة. سيتم إعلامك عند تفعيل حسابك.');
-
-                    timer(4000)
-                        .pipe(takeUntilDestroyed(this.destroyRef))
-                        .subscribe(() => {
-                            this.router.navigate(['/auth/login']);
-                        });
-                },
-                error: (error) => {
-                    this.isLoading.set(false);
-                    this.errorMessage.set(error.error?.message || 'كود التفعيل غير صحيح أو منتهي الصلاحية');
-                }
-            });
+        try {
+            await firstValueFrom(this.authService.verifyEmail(this.email.trim(), otp));
+            this.isLoading.set(false);
+            this.successMessage.set('تم تأكيد بريدك الإلكتروني بنجاح! حسابك الآن قيد المراجعة من الإدارة. سيتم إعلامك عند تفعيل حسابك.');
+            await firstValueFrom(timer(4000));
+            this.router.navigate(['/auth/login']);
+        } catch (error: unknown) {
+            const httpErr = error as { error?: { message?: string } };
+            this.isLoading.set(false);
+            this.errorMessage.set(httpErr.error?.message || 'كود التفعيل غير صحيح أو منتهي الصلاحية');
+        }
     }
 
-    resendOtp(): void {
+    async resendOtp(): Promise<void> {
         if (!this.canResend()) return;
 
         this.isResending.set(true);
         this.errorMessage.set(null);
         this.successMessage.set(null);
 
-        this.authService.resendOtp(this.email.trim(), 'EMAIL_VERIFY')
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.isResending.set(false);
-                    this.successMessage.set('تم إعادة إرسال كود التفعيل بنجاح.');
-                    this.startResendTimer();
-                },
-                error: (error) => {
-                    this.isResending.set(false);
-                    this.errorMessage.set(error.error?.message || 'فشل إعادة إرسال الكود. حاول مرة أخرى لاحقاً.');
-                }
-            });
+        try {
+            await firstValueFrom(this.authService.resendOtp(this.email.trim(), 'EMAIL_VERIFY'));
+            this.isResending.set(false);
+            this.successMessage.set('تم إعادة إرسال كود التفعيل بنجاح.');
+            this.startResendTimer();
+        } catch (error: unknown) {
+            const httpErr = error as { error?: { message?: string } };
+            this.isResending.set(false);
+            this.errorMessage.set(httpErr.error?.message || 'فشل إعادة إرسال الكود. حاول مرة أخرى لاحقاً.');
+        }
     }
 }

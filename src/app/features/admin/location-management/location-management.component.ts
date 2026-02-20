@@ -6,12 +6,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LayoutOrchestratorService } from '../../../core/services/layout-orchestrator.service';
-import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import {
-    LocationService,
-    GovernorateAdminDto, CityAdminDto, AreaAdminDto,
-    CreateGovernorateRequest, CreateCityRequest, CreateAreaRequest,
-    UpdateLocationRequest
+    GovernorateAdminDto, CityAdminDto, AreaAdminDto
 } from '../../../core/services/location.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -20,16 +16,11 @@ import { InlineLoadingComponent } from '../../../shared/components/inline-loadin
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
 import { FormControlComponent } from '../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
-import { finalize } from 'rxjs';
-
-type LocationTab = 'governorates' | 'cities' | 'areas';
-
-interface EditingItem {
-    id: string;
-    nameAr: string;
-    nameEn: string;
-    sortOrder: number;
-}
+import { LocationManagementFacade } from './location-management-facade.service';
+import {
+    LocationTab, EditingItem,
+    getTabLabel, getItemCount, asCityAdmin, asAreaAdmin, getActiveList as getActiveListFn
+} from './location-management.utils';
 
 @Component({
     selector: 'app-location-management',
@@ -42,11 +33,11 @@ interface EditingItem {
     ],
     templateUrl: './location-management.component.html',
     styleUrls: ['./location-management.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [LocationManagementFacade]
 })
 export class LocationManagementComponent implements OnInit, AfterViewInit, OnDestroy {
-    private readonly locationService = inject(LocationService);
-    private readonly uiFeedback = inject(UIFeedbackService);
+    readonly facade = inject(LocationManagementFacade);
     private readonly layout = inject(LayoutOrchestratorService);
 
     @ViewChild('actionsTemplate') actionsTemplate!: TemplateRef<unknown>;
@@ -60,13 +51,19 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
         { label: 'الأحياء', value: 'areas', icon: 'home' }
     ];
 
-    // ── Data ──
-    governorates = signal<GovernorateAdminDto[]>([]);
-    cities = signal<CityAdminDto[]>([]);
-    areas = signal<AreaAdminDto[]>([]);
+    // ── Proxy facade signals for template ──
+    readonly isLoading = this.facade.isLoading;
+    readonly isSaving = this.facade.isSaving;
+    readonly governorateFilterOptions = this.facade.governorateFilterOptions;
+    readonly cityFilterOptions = this.facade.cityFilterOptions;
+    readonly totalGovernorates = this.facade.totalGovernorates;
+    readonly totalCities = this.facade.totalCities;
+    readonly totalAreas = this.facade.totalAreas;
 
-    isLoading = signal(false);
-    isSaving = signal(false);
+    // ── UI state ──
+    showAddForm = signal(false);
+    newItem = signal({ nameAr: '', nameEn: '', sortOrder: 0, parentId: '' });
+    editingItem = signal<EditingItem | null>(null);
 
     // ── Filters ──
     searchQuery = signal('');
@@ -74,33 +71,16 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
     selectedGovernorateId = signal('');
     selectedCityId = signal('');
 
-    // ── Governorate/City options for filters ──
-    governorateFilterOptions = signal<SelectOption[]>([]);
-    cityFilterOptions = signal<SelectOption[]>([]);
-
-    // ── Add form ──
-    showAddForm = signal(false);
-    newItem = signal({ nameAr: '', nameEn: '', sortOrder: 0, parentId: '' });
-
-    // ── Edit state ──
-    editingItem = signal<EditingItem | null>(null);
-
     // ── Pagination ──
     currentPage = signal(1);
-    totalCount = signal(0);
     readonly pageSize = 20;
-    totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
-
-    // ── Stats ──
-    totalGovernorates = signal(0);
-    totalCities = signal(0);
-    totalAreas = signal(0);
+    totalPages = computed(() => Math.ceil(this.facade.totalCount() / this.pageSize) || 1);
 
     ngOnInit(): void {
         this.layout.setTitle('إدارة المناطق');
         this.layout.setSubtitle('إضافة وتعديل المحافظات والمدن والأحياء');
-        this.loadData();
-        this.loadGovernorateOptions();
+        this.reloadData();
+        this.facade.loadGovernorateOptions();
     }
 
     ngAfterViewInit(): void {
@@ -114,141 +94,54 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
         this.layout.reset();
     }
 
-    // ─────────────────────────────────────────
-    //  Tab switching
-    // ─────────────────────────────────────────
-
     setTab(tab: unknown): void {
         this.activeTab.set(tab as LocationTab);
         this.currentPage.set(1);
         this.showAddForm.set(false);
         this.editingItem.set(null);
         this.searchQuery.set('');
-
-        if (tab === 'cities') {
-            this.loadGovernorateOptions();
-        } else if (tab === 'areas' && this.selectedGovernorateId()) {
-            this.loadCityOptions(this.selectedGovernorateId());
-        }
-
-        this.loadData();
+        if (tab === 'cities') this.facade.loadGovernorateOptions();
+        else if (tab === 'areas' && this.selectedGovernorateId())
+            this.facade.loadCityOptions(this.selectedGovernorateId());
+        this.reloadData();
     }
 
-    // ─────────────────────────────────────────
-    //  Data loading
-    // ─────────────────────────────────────────
-
-    loadData(): void {
-        const tab = this.activeTab();
-        const page = this.currentPage();
+    private reloadData(): void {
         const search = this.searchQuery() || undefined;
         const isActive = this.statusFilter() === 'all' ? undefined : this.statusFilter() === 'active';
-
-        this.isLoading.set(true);
-
-        if (tab === 'governorates') {
-            this.locationService.getGovernoratesPaged(page, this.pageSize, search, isActive)
-                .pipe(finalize(() => this.isLoading.set(false)))
-                .subscribe({
-                    next: (res) => {
-                        this.governorates.set(res.items);
-                        this.totalCount.set(res.totalCount);
-                        this.totalGovernorates.set(res.totalCount);
-                    },
-                    error: () => this.uiFeedback.error('خطأ', 'فشل تحميل المحافظات')
-                });
-        } else if (tab === 'cities') {
-            const govId = this.selectedGovernorateId() || undefined;
-            this.locationService.getCitiesPaged(page, this.pageSize, govId, search, isActive)
-                .pipe(finalize(() => this.isLoading.set(false)))
-                .subscribe({
-                    next: (res) => {
-                        this.cities.set(res.items);
-                        this.totalCount.set(res.totalCount);
-                        this.totalCities.set(res.totalCount);
-                    },
-                    error: () => this.uiFeedback.error('خطأ', 'فشل تحميل المدن')
-                });
-        } else {
-            const cityId = this.selectedCityId() || undefined;
-            this.locationService.getAreasPaged(page, this.pageSize, cityId, search, isActive)
-                .pipe(finalize(() => this.isLoading.set(false)))
-                .subscribe({
-                    next: (res) => {
-                        this.areas.set(res.items);
-                        this.totalCount.set(res.totalCount);
-                        this.totalAreas.set(res.totalCount);
-                    },
-                    error: () => this.uiFeedback.error('خطأ', 'فشل تحميل الأحياء')
-                });
-        }
+        this.facade.loadData(this.activeTab(), this.currentPage(), this.pageSize,
+            search, isActive, this.selectedGovernorateId() || undefined,
+            this.selectedCityId() || undefined);
     }
-
-    loadGovernorateOptions(): void {
-        this.locationService.getGovernorates().subscribe({
-            next: (govs) => {
-                this.governorateFilterOptions.set(
-                    [{ label: 'كل المحافظات', value: '' },
-                    ...govs.map(g => ({ label: g.nameAr, value: g.id }))]
-                );
-            }
-        });
-    }
-
-    loadCityOptions(governorateId: string): void {
-        if (!governorateId) {
-            this.cityFilterOptions.set([]);
-            return;
-        }
-        this.locationService.getCities(governorateId).subscribe({
-            next: (cities) => {
-                this.cityFilterOptions.set(
-                    [{ label: 'كل المدن', value: '' },
-                    ...cities.map(c => ({ label: c.nameAr, value: c.id }))]
-                );
-            }
-        });
-    }
-
-    // ─────────────────────────────────────────
-    //  Filter handlers
-    // ─────────────────────────────────────────
 
     onSearchChange(query: string): void {
         this.searchQuery.set(query);
         this.currentPage.set(1);
-        this.loadData();
+        this.reloadData();
     }
 
     onStatusChange(status: unknown): void {
         this.statusFilter.set(status as 'all' | 'active' | 'inactive');
         this.currentPage.set(1);
-        this.loadData();
+        this.reloadData();
     }
 
     onGovernorateFilterChange(govId: unknown): void {
-        const id = typeof govId === 'object' && govId !== null ? (govId as any).value : govId;
+        const id = typeof govId === 'object' && govId !== null ? (govId as { value: string }).value : govId;
         this.selectedGovernorateId.set(id as string || '');
         this.selectedCityId.set('');
-        this.cityFilterOptions.set([]);
+        this.facade.cityFilterOptions.set([]);
         this.currentPage.set(1);
-
-        if (this.activeTab() === 'areas' && id) {
-            this.loadCityOptions(id as string);
-        }
-        this.loadData();
+        if (this.activeTab() === 'areas' && id) this.facade.loadCityOptions(id as string);
+        this.reloadData();
     }
 
     onCityFilterChange(cityId: unknown): void {
-        const id = typeof cityId === 'object' && cityId !== null ? (cityId as any).value : cityId;
+        const id = typeof cityId === 'object' && cityId !== null ? (cityId as { value: string }).value : cityId;
         this.selectedCityId.set(id as string || '');
         this.currentPage.set(1);
-        this.loadData();
+        this.reloadData();
     }
-
-    // ─────────────────────────────────────────
-    //  Add
-    // ─────────────────────────────────────────
 
     toggleAddForm(): void {
         this.showAddForm.update(v => !v);
@@ -259,76 +152,18 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
     }
 
     saveNewItem(): void {
-        const item = this.newItem();
-        if (!item.nameAr.trim()) {
-            this.uiFeedback.error('خطأ', 'الاسم بالعربية مطلوب');
-            return;
-        }
-
-        this.isSaving.set(true);
-        const tab = this.activeTab();
-
-        if (tab === 'governorates') {
-            const req: CreateGovernorateRequest = { nameAr: item.nameAr, nameEn: item.nameEn, sortOrder: item.sortOrder };
-            this.locationService.createGovernorate(req)
-                .pipe(finalize(() => this.isSaving.set(false)))
-                .subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تمت الإضافة', 'تمت إضافة المحافظة بنجاح');
-                        this.showAddForm.set(false);
-                        this.loadData();
-                        this.loadGovernorateOptions();
-                    },
-                    error: (err) => this.uiFeedback.error('فشل', err.error?.message || 'فشل إضافة المحافظة')
-                });
-        } else if (tab === 'cities') {
-            if (!item.parentId) {
-                this.uiFeedback.error('خطأ', 'يرجى اختيار المحافظة');
-                this.isSaving.set(false);
-                return;
-            }
-            const req: CreateCityRequest = { nameAr: item.nameAr, nameEn: item.nameEn, governorateId: item.parentId, sortOrder: item.sortOrder };
-            this.locationService.createCity(req)
-                .pipe(finalize(() => this.isSaving.set(false)))
-                .subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تمت الإضافة', 'تمت إضافة المدينة بنجاح');
-                        this.showAddForm.set(false);
-                        this.loadData();
-                    },
-                    error: (err) => this.uiFeedback.error('فشل', err.error?.message || 'فشل إضافة المدينة')
-                });
-        } else {
-            if (!item.parentId) {
-                this.uiFeedback.error('خطأ', 'يرجى اختيار المدينة');
-                this.isSaving.set(false);
-                return;
-            }
-            const req: CreateAreaRequest = { nameAr: item.nameAr, nameEn: item.nameEn, cityId: item.parentId, sortOrder: item.sortOrder };
-            this.locationService.createArea(req)
-                .pipe(finalize(() => this.isSaving.set(false)))
-                .subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تمت الإضافة', 'تمت إضافة الحي بنجاح');
-                        this.showAddForm.set(false);
-                        this.loadData();
-                    },
-                    error: (err) => this.uiFeedback.error('فشل', err.error?.message || 'فشل إضافة الحي')
-                });
-        }
+        this.facade.saveNewItem(this.activeTab(), this.newItem(), () => {
+            this.showAddForm.set(false);
+            this.reloadData();
+            if (this.activeTab() === 'governorates') this.facade.loadGovernorateOptions();
+        });
     }
-
-    // ─────────────────────────────────────────
-    //  Edit
-    // ─────────────────────────────────────────
 
     startEdit(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): void {
         this.showAddForm.set(false);
         this.editingItem.set({
-            id: item.id,
-            nameAr: item.nameAr,
-            nameEn: item.nameEn,
-            sortOrder: item.sortOrder
+            id: item.id, nameAr: item.nameAr,
+            nameEn: item.nameEn, sortOrder: item.sortOrder
         });
     }
 
@@ -339,99 +174,26 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
     saveEdit(): void {
         const item = this.editingItem();
         if (!item) return;
-
-        this.isSaving.set(true);
-        const req: UpdateLocationRequest = { nameAr: item.nameAr, nameEn: item.nameEn, sortOrder: item.sortOrder };
-        const tab = this.activeTab();
-
-        const done = () => {
-            this.isSaving.set(false);
-            this.uiFeedback.success('تم التحديث', 'تم تحديث البيانات بنجاح');
+        this.facade.saveEdit(this.activeTab(), item, () => {
             this.editingItem.set(null);
-            this.loadData();
-            if (tab === 'governorates') this.loadGovernorateOptions();
-        };
-        const fail = (err: any) => {
-            this.isSaving.set(false);
-            this.uiFeedback.error('فشل', err.error?.message || 'فشل التحديث');
-        };
-
-        if (tab === 'governorates') {
-            this.locationService.updateGovernorate(item.id, req).subscribe({ next: done, error: fail });
-        } else if (tab === 'cities') {
-            this.locationService.updateCity(item.id, req).subscribe({ next: done, error: fail });
-        } else {
-            this.locationService.updateArea(item.id, req).subscribe({ next: done, error: fail });
-        }
-    }
-
-    // ─────────────────────────────────────────
-    //  Activate / Deactivate
-    // ─────────────────────────────────────────
-
-    toggleActive(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): void {
-        const tab = this.activeTab();
-        const action = item.isActive ? 'تعطيل' : 'تفعيل';
-
-        this.uiFeedback.confirm(
-            `تأكيد ${action}`,
-            `هل تريد ${action} "${item.nameAr}"؟`,
-            action,
-            item.isActive ? 'danger' : 'info'
-        ).subscribe((confirmed: boolean) => {
-            if (!confirmed) return;
-
-            if (tab === 'governorates') {
-                const obs$ = item.isActive
-                    ? this.locationService.deactivateGovernorate(item.id)
-                    : this.locationService.activateGovernorate(item.id);
-                obs$.subscribe({
-                    next: () => { this.uiFeedback.success('تم', `تم ${action} المحافظة`); this.loadData(); },
-                    error: (err: any) => this.uiFeedback.error('فشل', err.error?.message || `فشل ${action}`)
-                });
-            } else if (tab === 'cities') {
-                const city = item as CityAdminDto;
-                const obs$ = item.isActive
-                    ? this.locationService.deactivateCity(item.id, city.governorateId)
-                    : this.locationService.activateCity(item.id, city.governorateId);
-                obs$.subscribe({
-                    next: () => { this.uiFeedback.success('تم', `تم ${action} المدينة`); this.loadData(); },
-                    error: (err: any) => this.uiFeedback.error('فشل', err.error?.message || `فشل ${action}`)
-                });
-            } else {
-                const area = item as AreaAdminDto;
-                const obs$ = item.isActive
-                    ? this.locationService.deactivateArea(item.id, area.cityId)
-                    : this.locationService.activateArea(item.id, area.cityId);
-                obs$.subscribe({
-                    next: () => { this.uiFeedback.success('تم', `تم ${action} الحي`); this.loadData(); },
-                    error: (err: any) => this.uiFeedback.error('فشل', err.error?.message || `فشل ${action}`)
-                });
-            }
+            this.reloadData();
+            if (this.activeTab() === 'governorates') this.facade.loadGovernorateOptions();
         });
     }
 
-    // ─────────────────────────────────────────
-    //  Pagination
-    // ─────────────────────────────────────────
+    toggleActive(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): void {
+        this.facade.toggleActive(this.activeTab(), item, () => this.reloadData());
+    }
 
     goToPage(page: number): void {
         if (page < 1 || page > this.totalPages()) return;
         this.currentPage.set(page);
-        this.loadData();
+        this.reloadData();
     }
 
-    // ─────────────────────────────────────────
-    //  Parent select options for add form
-    // ─────────────────────────────────────────
-
     get parentOptions(): SelectOption[] {
-        if (this.activeTab() === 'cities') {
-            return this.governorateFilterOptions().filter(o => o.value !== '');
-        }
-        if (this.activeTab() === 'areas') {
-            return this.cityFilterOptions().filter(o => o.value !== '');
-        }
+        if (this.activeTab() === 'cities') return this.governorateFilterOptions().filter(o => o.value !== '');
+        if (this.activeTab() === 'areas') return this.cityFilterOptions().filter(o => o.value !== '');
         return [];
     }
 
@@ -440,44 +202,23 @@ export class LocationManagementComponent implements OnInit, AfterViewInit, OnDes
     }
 
     get tabLabel(): string {
-        const t = this.activeTab();
-        return t === 'governorates' ? 'محافظة' : t === 'cities' ? 'مدينة' : 'حي';
+        return getTabLabel(this.activeTab());
     }
-
-    // ─────────────────────────────────────────
-    //  Template helpers
-    // ─────────────────────────────────────────
 
     getActiveList(): (GovernorateAdminDto | CityAdminDto | AreaAdminDto)[] {
-        const tab = this.activeTab();
-        if (tab === 'governorates') return this.governorates();
-        if (tab === 'cities') return this.cities();
-        return this.areas();
+        return getActiveListFn(this.activeTab(), this.facade.governorates(), this.facade.cities(), this.facade.areas());
     }
 
-    getItemCount(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): number {
-        if ('cityCount' in item) return item.cityCount;
-        if ('areaCount' in item) return item.areaCount;
-        if ('userCount' in item) return item.userCount;
-        return 0;
-    }
+    getItemCount = getItemCount;
+    asCityAdmin = asCityAdmin;
+    asAreaAdmin = asAreaAdmin;
 
-    asCityAdmin(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): CityAdminDto {
-        return item as CityAdminDto;
-    }
-
-    asAreaAdmin(item: GovernorateAdminDto | CityAdminDto | AreaAdminDto): AreaAdminDto {
-        return item as AreaAdminDto;
-    }
-
-    // ── Signal update helpers (Angular templates don't support arrow functions) ──
-
-    updateNewItemField(field: string, value: any): void {
+    updateNewItemField(field: string, value: string | number): void {
         const current = this.newItem();
         this.newItem.set({ ...current, [field]: field === 'sortOrder' ? +value : value });
     }
 
-    updateEditingField(field: string, value: any): void {
+    updateEditingField(field: string, value: string | number): void {
         const current = this.editingItem();
         if (!current) return;
         this.editingItem.set({ ...current, [field]: field === 'sortOrder' ? +value : value });

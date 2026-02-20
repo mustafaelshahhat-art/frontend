@@ -1,0 +1,47 @@
+@if (tournament(); as t) {
+<div *appHasPermission="Permission.REGISTER_TOURNAMENT">
+    @if (t.status === TournamentStatus.REGISTRATION_OPEN) {
+    <div class="captain-actions-container">
+        @if (!isRegistered() && isCaptain()) {
+        <app-button variant="primary" size="md" shadow="glow" icon="rocket_launch"
+            (click)="registerTeam.emit()" [disabled]="isUserPending()"
+            [title]="isUserPending() ? 'يجب تفعيل حسابك لتتمكن من التسجيل' : ''">
+            {{ (myRegistration()?.status ===
+            RegistrationStatus.REJECTED ? 'سجل مرة أخرى' : 'سجل فريقك الآن') }}
+        </app-button>
+        }
+
+        @if (isRegistered()) {
+        <div class="registration-status-wrapper">
+            <div class="registration-status-info">
+                <app-icon name="check_circle" class="text-success icon-sm"></app-icon>
+                <span>فريقك مسجل ({{ getRegStatusLabel(myRegistration()?.status || '') }})</span>
+
+                @if (t.status === TournamentStatus.REGISTRATION_OPEN || t.status ===
+                TournamentStatus.REGISTRATION_CLOSED) {
+                <app-button variant="ghost" size="sm" class="text-danger"
+                    (click)="withdrawTeam.emit()">
+                    انسحاب
+                </app-button>
+                }
+            </div>
+
+            @if (myRegistration()?.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
+            <div class="review-banner animate-pulse-subtle">
+                <app-icon name="info" class="icon-sm"></app-icon>
+                <p>طلبك قيد المراجعة من قبل الإدارة. أنت مسجل مؤقتاً في البطولة.</p>
+            </div>
+            }
+        </div>
+        }
+
+        @if (isUserPending()) {
+        <p class="pending-hint">
+            <app-icon name="info" class="icon-sm"></app-icon>
+            يجب تفعيل حسابك لتتمكن من التسجيل
+        </p>
+        }
+    </div>
+    }
+</div>
+}

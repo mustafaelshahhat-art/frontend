@@ -8,6 +8,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { Match, MatchEventType } from '../../../../core/models/tournament.model';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-match-event-modal',
@@ -85,12 +86,11 @@ export class MatchEventModalComponent implements OnChanges {
         this.eventForm.playerId = playerId;
     }
 
-    loadTeamPlayers(teamId: string): void {
+    async loadTeamPlayers(teamId: string): Promise<void> {
         this.isPlayersLoading = true;
         this.playerOptions = [];
-        this.teamService.getTeamById(teamId).subscribe(team => {
-            // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
-            // which can happen if the service returns synchronously
+        try {
+            const team = await firstValueFrom(this.teamService.getTeamById(teamId));
             queueMicrotask(() => {
                 if (team && team.players) {
                     this.playerOptions = team.players.map((p: { name: string, id: string }) => ({
@@ -104,34 +104,35 @@ export class MatchEventModalComponent implements OnChanges {
                 this.isPlayersLoading = false;
                 this.cdr.markForCheck();
             });
-        });
+        } catch (e: unknown) {
+            this.isPlayersLoading = false;
+            this.cdr.markForCheck();
+        }
     }
 
-    submit(): void {
+    async submit(): Promise<void> {
         if (!this.match || !this.eventForm.playerId) {
             this.uiFeedback.error('لاعب مطلوب', 'يرجى اختيار اللاعب المعني بالحدث.');
             return;
         }
 
         this.isSubmitting = true;
-        this.matchService.addMatchEvent(this.match.id, {
-            type: this.eventForm.type,
-            playerId: this.eventForm.playerId,
-            teamId: this.eventForm.teamId,
-            description: this.eventForm.description,
-            minute: 0 // Default for legacy/simple tracking if needed, or omit if API allows null
-        }).subscribe({
-            next: (updatedMatch) => {
-                this.uiFeedback.success('تم الإضافة', 'تم إضافة الحدث');
-                this.isSubmitting = false;
-                this.eventAdded.emit(updatedMatch || undefined);
-                this.close();
-            },
-            error: () => {
-                this.uiFeedback.error('فشل الإضافة', 'تعذّر إضافة الحدث. يرجى المحاولة مرة أخرى.');
-                this.isSubmitting = false;
-            }
-        });
+        try {
+            const updatedMatch = await firstValueFrom(this.matchService.addMatchEvent(this.match.id, {
+                type: this.eventForm.type,
+                playerId: this.eventForm.playerId,
+                teamId: this.eventForm.teamId,
+                description: this.eventForm.description,
+                minute: 0 // Default for legacy/simple tracking if needed, or omit if API allows null
+            }));
+            this.uiFeedback.success('تم الإضافة', 'تم إضافة الحدث');
+            this.isSubmitting = false;
+            this.eventAdded.emit(updatedMatch || undefined);
+            this.close();
+        } catch (e: unknown) {
+            this.uiFeedback.error('فشل الإضافة', 'تعذّر إضافة الحدث. يرجى المحاولة مرة أخرى.');
+            this.isSubmitting = false;
+        }
     }
 
     cancel(): void {

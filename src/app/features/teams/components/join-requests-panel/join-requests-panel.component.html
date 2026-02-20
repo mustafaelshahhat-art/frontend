@@ -1,0 +1,47 @@
+@if (variant === 'invitations' && pendingInvitations.length > 0) {
+<div class="requests-grid">
+    @for (invite of pendingInvitations; track invite.id) {
+    <div class="request-card invite-card">
+        <div class="request-header">
+            <div class="request-logo-container">
+                <div class="icon-circle primary">
+                    <app-icon name="mail" class="icon-sm"></app-icon>
+                </div>
+            </div>
+            <div class="request-info">
+                <h3>{{ invite.teamName }}</h3>
+                <p class="request-role">دعوة انضمام مرسلة لك</p>
+            </div>
+        </div>
+        <div class="request-actions">
+            <app-button (click)="onAccept(invite.id)" variant="primary" size="sm" icon="check">قبول</app-button>
+            <app-button (click)="onReject(invite.id)" variant="outline" size="sm" icon="close">رفض</app-button>
+        </div>
+    </div>
+    }
+</div>
+}
+
+@if (variant === 'requests' && teamJoinRequests.length > 0) {
+<div class="requests-grid">
+    @for (request of teamJoinRequests; track request.id) {
+    <div class="request-card">
+        <div class="request-header">
+            <div class="request-logo-container">
+                <div class="icon-circle primary">
+                    <app-icon name="person" class="icon-sm"></app-icon>
+                </div>
+            </div>
+            <div class="request-info">
+                <h3>{{ request.playerName }}</h3>
+                <p class="request-role">طلب انضمام</p>
+            </div>
+        </div>
+        <div class="request-actions">
+            <app-button (click)="onRespond(request, true)" variant="primary" size="sm" icon="check">قبول</app-button>
+            <app-button (click)="onRespond(request, false)" variant="outline" size="sm" icon="close">رفض</app-button>
+        </div>
+    </div>
+    }
+</div>
+}

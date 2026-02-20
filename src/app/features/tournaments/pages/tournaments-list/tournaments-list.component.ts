@@ -13,6 +13,7 @@ import { TeamStore } from '../../../../core/stores/team.store';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { PermissionsService } from '../../../../core/services/permissions.service';
+import { firstValueFrom } from 'rxjs';
 
 
 // Shared Components
@@ -33,6 +34,7 @@ type TournamentFilterValue = 'all' | 'available' | 'active' | 'completed';
 interface TournamentFilter {
     label: string;
     value: TournamentFilterValue;
+    [key: string]: unknown;
 }
 
 @Component({
@@ -122,7 +124,7 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     // Load-more pagination — progressively reveals filtered tournaments
     pager: PaginationSource<Tournament> = createClientLoadMore(this.filteredTournaments, { pageSize: 12 });
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         const isAdminView = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS);
         const title = isAdminView ? 'إدارة البطولات' : 'البطولات المتاحة';
         const subtitle = isAdminView ? 'مركز التحكم في البطولات والمسابقات' : 'تنافس مع الأفضل واصنع مجد فريقك';
@@ -130,9 +132,8 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         this.layoutOrchestrator.setSubtitle(subtitle);
 
         // Refresh profile to ensure latest teamId is fetched from backend
-        this.authService.refreshUserProfile().subscribe(() => {
-            this.loadInitialData();
-        });
+        await firstValueFrom(this.authService.refreshUserProfile());
+        this.loadInitialData();
     }
 
     ngAfterViewInit(): void {
@@ -181,33 +182,29 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
     });
 
     // ✅ FIXED: Load data ONCE on init, populate TournamentStore
-    private loadInitialData(): void {
+    private async loadInitialData(): Promise<void> {
         this.tournamentStore.setLoading(true);
 
         // Load team details if user belongs to one
         const user = this.authService.getCurrentUser();
         if (user?.teamId) {
-            this.teamService.getTeamById(user.teamId).subscribe({
-                next: (team) => {
-                    if (team) {
-                        this.teamStore.upsertTeam(team);
-                    }
-                },
-                error: () => {
-                    // Keep empty store state on failure.
+            try {
+                const team = await firstValueFrom(this.teamService.getTeamById(user.teamId));
+                if (team) {
+                    this.teamStore.upsertTeam(team);
                 }
-            });
+            } catch {
+                // Keep empty store state on failure.
+            }
         }
 
         // Load tournaments into STORE (not local state)
-        this.tournamentService.getTournaments().subscribe({
-            next: (data) => {
-                this.tournamentStore.setTournaments(data);
-            },
-            error: () => {
-                this.tournamentStore.setLoading(false);
-            }
-        });
+        try {
+            const data = await firstValueFrom(this.tournamentService.getTournaments());
+            this.tournamentStore.setTournaments(data);
+        } catch {
+            this.tournamentStore.setLoading(false);
+        }
     }
 
     // List Optimization

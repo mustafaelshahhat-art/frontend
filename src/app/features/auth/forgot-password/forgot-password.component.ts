@@ -1,9 +1,9 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
-import { Component, inject, DestroyRef, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { FormControlComponent } from '../../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -20,7 +20,6 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
 export class ForgotPasswordComponent implements AfterViewInit {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
-    private destroyRef = inject(DestroyRef);
     private router = inject(Router);
 
     forgotForm: FormGroup = this.fb.group({
@@ -41,7 +40,7 @@ export class ForgotPasswordComponent implements AfterViewInit {
         return this.forgotForm.get('email');
     }
 
-    onSubmit() {
+    async onSubmit(): Promise<void> {
         if (this.forgotForm.invalid) {
             this.forgotForm.markAllAsTouched();
             return;
@@ -52,24 +51,21 @@ export class ForgotPasswordComponent implements AfterViewInit {
 
         const email = this.forgotForm.value.email;
 
-        this.authService.forgotPassword(email)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.isLoading.set(false);
-                    const encodedEmail = btoa(email);
-                    this.router.navigate(['/auth/reset-password'], {
-                        queryParams: {
-                            email: encodedEmail,
-                            sent: 'true'
-                        }
-                    });
-                },
-                error: (err: { error: { message: string } }) => {
-                    this.isLoading.set(false);
-                    // Use the backend message if available, otherwise a generic one
-                    this.errorMessage.set(err.error?.message || 'فشل الطلب. يرجى المحاولة لاحقاً.');
+        try {
+            await firstValueFrom(this.authService.forgotPassword(email));
+            this.isLoading.set(false);
+            const encodedEmail = btoa(email);
+            this.router.navigate(['/auth/reset-password'], {
+                queryParams: {
+                    email: encodedEmail,
+                    sent: 'true'
                 }
             });
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.isLoading.set(false);
+            // Use the backend message if available, otherwise a generic one
+            this.errorMessage.set(httpErr.error?.message || 'فشل الطلب. يرجى المحاولة لاحقاً.');
+        }
     }
 }

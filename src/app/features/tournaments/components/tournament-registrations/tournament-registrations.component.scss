@@ -1,0 +1,48 @@
+:host {
+    display: contents;
+}
+
+.captain-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.registration-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.registration-status-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+
+    .text-success { color: var(--color-success); }
+    .text-danger { color: var(--color-danger); }
+}
+
+.review-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-warning-5);
+    border: 1px solid var(--color-warning-20);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+
+    p { margin: 0; }
+}
+
+.pending-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}

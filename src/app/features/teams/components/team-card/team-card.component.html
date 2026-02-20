@@ -1,0 +1,37 @@
+<div
+    class="team-card"
+    [class.owned-card]="variant === 'owned'"
+    [class.member-card]="variant === 'member'"
+    (click)="onCardClick()"
+    tabindex="0"
+    role="button">
+    <div class="team-header">
+        <div class="team-info">
+            <h3>{{ team.name }}</h3>
+            <span class="team-role">{{ roleLabel }}</span>
+            <span class="badge" [class.ready]="isReady">
+                {{ statusLabel }}
+            </span>
+        </div>
+    </div>
+    <div class="team-stats">
+        <div class="stat">
+            <div class="stat-icon">
+                <app-icon name="groups" class="icon-sm"></app-icon>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">{{ team.playerCount || 0 }}</span>
+                <span class="stat-label">لاعب</span>
+            </div>
+        </div>
+        <div class="stat">
+            <div class="stat-icon">
+                <app-icon name="location_on" class="icon-sm"></app-icon>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
+                <span class="stat-label">المدينة</span>
+            </div>
+        </div>
+    </div>
+</div>

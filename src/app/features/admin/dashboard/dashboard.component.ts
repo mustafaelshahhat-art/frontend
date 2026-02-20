@@ -21,6 +21,7 @@ import { AuthStore } from '../../../core/stores/auth.store';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import { Permission } from '../../../core/permissions/permissions.model';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -100,68 +101,62 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.loadLiveMatches();
     }
 
-    private loadDashboardStats(): void {
-        this.analyticsService.getDashboardStats().subscribe({
-            next: (data: DashboardStats) => {
-                this.userStore.setTotalUserCount(data.totalUsers);
-                this.loginsTodaySignal.set(data.loginsToday);
-                this.totalTeamsSignal.set(data.totalTeams);
-                this.cdr.detectChanges();
-            },
-            error: () => {
-                this.userStore.setTotalUserCount(0);
-                this.cdr.detectChanges();
-            }
-        });
+    private async loadDashboardStats(): Promise<void> {
+        try {
+            const data = await firstValueFrom(this.analyticsService.getDashboardStats());
+            this.userStore.setTotalUserCount(data.totalUsers);
+            this.loginsTodaySignal.set(data.loginsToday);
+            this.totalTeamsSignal.set(data.totalTeams);
+            this.cdr.detectChanges();
+        } catch {
+            this.userStore.setTotalUserCount(0);
+            this.cdr.detectChanges();
+        }
     }
 
-    private loadActivities(): void {
-        this.analyticsService.getRecentActivities({ page: 1, pageSize: 10 }).subscribe({
-            next: (result) => {
-                const data = result.items || [];
-                // Transform analytics activities to store format
-                const storeActivities: StoreActivity[] = data.map((activity: Activity) => ({
-                    id: this.generateUUID(),
-                    userId: '',
-                    userName: activity.userName || 'System',
-                    action: activity.action || activity.type,
-                    entityType: activity.entityType || 'System',
-                    entityId: activity.entityId || '',
-                    description: activity.message,
-                    timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(Date.now())
-                }));
-                this.activityStore.setActivities(storeActivities);
-                queueMicrotask(() => {
-                    this.recentActivities = data;
-                    this.cdr.detectChanges();
-                });
-            },
-            error: () => {
-                queueMicrotask(() => {
-                    this.recentActivities = [];
-                    this.cdr.detectChanges();
-                });
-            }
-        });
+    private async loadActivities(): Promise<void> {
+        try {
+            const result = await firstValueFrom(this.analyticsService.getRecentActivities({ page: 1, pageSize: 10 }));
+            const data = result.items || [];
+            // Transform analytics activities to store format
+            const storeActivities: StoreActivity[] = data.map((activity: Activity) => ({
+                id: this.generateUUID(),
+                userId: '',
+                userName: activity.userName || 'System',
+                action: activity.action || activity.type,
+                entityType: activity.entityType || 'System',
+                entityId: activity.entityId || '',
+                description: activity.message,
+                timestamp: activity.timestamp ? new Date(activity.timestamp) : new Date(Date.now())
+            }));
+            this.activityStore.setActivities(storeActivities);
+            queueMicrotask(() => {
+                this.recentActivities = data;
+                this.cdr.detectChanges();
+            });
+        } catch {
+            queueMicrotask(() => {
+                this.recentActivities = [];
+                this.cdr.detectChanges();
+            });
+        }
     }
 
-    private loadLiveMatches(): void {
-        this.matchService.getLiveMatches().subscribe({
-            next: (data) => {
-                // Update match store with live matches
-                this.matchStore.setMatches(data);
-                queueMicrotask(() => {
-                    this.updateLiveMatchesFromStore();
-                    this.cdr.detectChanges();
-                });
-            },
-            error: () => {
-                queueMicrotask(() => {
-                    this.liveMatches = [];
-                    this.cdr.detectChanges();
-                });
-            }
-        });
+    private async loadLiveMatches(): Promise<void> {
+        try {
+            const data = await firstValueFrom(this.matchService.getLiveMatches());
+            // Update match store with live matches
+            this.matchStore.setMatches(data);
+            queueMicrotask(() => {
+                this.updateLiveMatchesFromStore();
+                this.cdr.detectChanges();
+            });
+        } catch {
+            queueMicrotask(() => {
+                this.liveMatches = [];
+                this.cdr.detectChanges();
+            });
+        }
     }
 
     private updateLiveMatchesFromStore(): void {

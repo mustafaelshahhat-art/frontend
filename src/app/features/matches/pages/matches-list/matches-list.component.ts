@@ -12,6 +12,7 @@ import { UIFeedbackService } from '../../../../shared/services/ui-feedback.servi
 import { MatchStore } from '../../../../core/stores/match.store';
 import { AuthStore } from '../../../../core/stores/auth.store';
 import { PagedResult } from '../../../../core/models/pagination.model';
+import { firstValueFrom } from 'rxjs';
 import { LoadMoreComponent } from '../../../../shared/components/load-more/load-more.component';
 import { createClientLoadMore, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
 
@@ -35,6 +36,7 @@ interface MatchFilter {
     label: string;
     value: MatchFilterValue;
     icon?: string;
+    [key: string]: unknown;
 }
 
 @Component({
@@ -143,53 +145,49 @@ export class MatchesListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.layoutOrchestrator.reset();
     }
 
-    refreshStatus(): void {
+    async refreshStatus(): Promise<void> {
         this.matchStore.setLoading(true);
-        this.authService.refreshUserProfile().subscribe({
-            next: (user) => {
-                this.matchStore.setLoading(false);
-                if (user?.status?.toLowerCase() === 'active') {
-                    this.uiFeedback.success('تم التفعيل', 'تم تفعيل حسابك بنجاح!');
-                    this.loadMatches();
-                } else {
-                    this.uiFeedback.info('لا يزال قيد المراجعة', 'حسابك لا يزال قيد المراجعة من قبل الإدارة.');
-                }
-                this.cdr.detectChanges();
-            },
-            error: () => {
-                this.matchStore.setLoading(false);
-                this.uiFeedback.error('فشل التحديث', 'تعذّر التحقق من حالة الحساب. يرجى المحاولة مرة أخرى.');
-                this.cdr.detectChanges();
+        try {
+            const user = await firstValueFrom(this.authService.refreshUserProfile());
+            this.matchStore.setLoading(false);
+            if (user?.status?.toLowerCase() === 'active') {
+                this.uiFeedback.success('تم التفعيل', 'تم تفعيل حسابك بنجاح!');
+                this.loadMatches();
+            } else {
+                this.uiFeedback.info('لا يزال قيد المراجعة', 'حسابك لا يزال قيد المراجعة من قبل الإدارة.');
             }
-        });
+            this.cdr.detectChanges();
+        } catch (e: unknown) {
+            this.matchStore.setLoading(false);
+            this.uiFeedback.error('فشل التحديث', 'تعذّر التحقق من حالة الحساب. يرجى المحاولة مرة أخرى.');
+            this.cdr.detectChanges();
+        }
     }
 
-    loadMatches(): void {
+    async loadMatches(): Promise<void> {
         this.matchStore.setLoading(true);
 
-        const handleSuccess = (data: PagedResult<Match> | Match[]) => {
+        try {
+            let data: PagedResult<Match> | Match[];
+            if (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS)) {
+                const user = this.currentUser();
+                // If user is a creator, filter by their ID
+                const creatorId = (this.userRole() === UserRole.TOURNAMENT_CREATOR && user) ? user.id : undefined;
+                // PERF-FIX: Load all matches for client-side load-more
+                data = await firstValueFrom(this.matchService.getMatches(1, 200, creatorId));
+            } else {
+                const teamId = this.currentUser()?.teamId;
+                if (teamId) {
+                    data = await firstValueFrom(this.matchService.getMatchesByTeam(teamId));
+                } else {
+                    this.matchStore.setLoading(false);
+                    return;
+                }
+            }
             this.matchStore.setMatches(data);
-        };
-
-        const handleError = () => {
+        } catch (e: unknown) {
             this.matchStore.setLoading(false);
             this.matchStore.setError('Failed to load matches');
-        };
-
-        if (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS)) {
-            const user = this.currentUser();
-            // If user is a creator, filter by their ID
-            const creatorId = (this.userRole() === UserRole.TOURNAMENT_CREATOR && user) ? user.id : undefined;
-            // PERF-FIX: Load all matches for client-side load-more
-            this.matchService.getMatches(1, 200, creatorId).subscribe({ next: handleSuccess, error: handleError });
-
-        } else {
-            const teamId = this.currentUser()?.teamId;
-            if (teamId) {
-                this.matchService.getMatchesByTeam(teamId).subscribe({ next: handleSuccess, error: handleError });
-            } else {
-                this.matchStore.setLoading(false);
-            }
         }
     }
 

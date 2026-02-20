@@ -4,27 +4,11 @@
 @if (teamsOverview()!.pendingInvitations.length > 0) {
 <div class="section">
     <h2 class="section-title">الدعوات المعلقة</h2>
-    <div class="teams-grid">
-        @for (invite of teamsOverview()!.pendingInvitations; track invite.id) {
-        <div class="team-card invite-card">
-            <div class="team-header">
-                <div class="team-logo-container">
-                    <div class="icon-circle primary" style="width: 50px; height: 50px; margin: 0;">
-                        <app-icon name="mail" class="icon-sm"></app-icon>
-                    </div>
-                </div>
-                <div class="team-info">
-                    <h3>{{ invite.teamName }}</h3>
-                    <p class="team-role">دعوة انضمام مرسلة لك</p>
-                </div>
-            </div>
-            <div class="team-actions">
-                <app-button (click)="acceptInvite(invite.id)" variant="primary" size="sm" icon="check">قبول</app-button>
-                <app-button (click)="rejectInvite(invite.id)" variant="outline" size="sm" icon="close">رفض</app-button>
-            </div>
-        </div>
-        }
-    </div>
+    <app-join-requests-panel
+        variant="invitations"
+        [pendingInvitations]="teamsOverview()!.pendingInvitations"
+        (acceptRequest)="acceptInvite($event)"
+        (rejectRequest)="rejectInvite($event)" />
 </div>
 }
 
@@ -34,37 +18,10 @@
     <h2 class="section-title">الفرق التي أملكها</h2>
     <div class="teams-grid">
         @for (team of teamsOverview()!.ownedTeams; track team.id) {
-        <div class="team-card owned-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
-            <div class="team-header">
-                <div class="team-info">
-                    <h3>{{ team.name }}</h3>
-                    <span class="team-role">فريق مملوك</span>
-                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">
-                        {{ (team.playerCount || 0) >= 8 ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
-                    </span>
-                </div>
-            </div>
-            <div class="team-stats">
-                <div class="stat">
-                    <div class="stat-icon">
-                        <app-icon name="groups" class="icon-sm"></app-icon>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-value">{{ team.playerCount || 0 }}</span>
-                        <span class="stat-label">لاعب</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon">
-                        <app-icon name="location_on" class="icon-sm"></app-icon>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
-                        <span class="stat-label">المدينة</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <app-team-card
+            [team]="team"
+            variant="owned"
+            (cardClick)="navigateToTeamDetail($event)" />
         }
     </div>
 </div>
@@ -76,37 +33,10 @@
     <h2 class="section-title">الفرق التي أنا منضم إليها</h2>
     <div class="teams-grid">
         @for (team of teamsOverview()!.memberTeams; track team.id) {
-        <div class="team-card member-card" (click)="navigateToTeamDetail(team.id)" tabindex="0" role="button">
-            <div class="team-header">
-                <div class="team-info">
-                    <h3>{{ team.name }}</h3>
-                    <span class="team-role">عضو في الفريق</span>
-                    <span class="badge" [class.ready]="(team.playerCount || 0) >= 8">
-                        {{ (team.playerCount || 0) >= 8 ? 'فريق مكتمل' : 'فريق غير مكتمل' }}
-                    </span>
-                </div>
-            </div>
-            <div class="team-stats">
-                <div class="stat">
-                    <div class="stat-icon">
-                        <app-icon name="groups" class="icon-sm"></app-icon>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-value">{{ team.playerCount || 0 }}</span>
-                        <span class="stat-label">لاعب</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon">
-                        <app-icon name="location_on" class="icon-sm"></app-icon>
-                    </div>
-                    <div class="stat-details">
-                        <span class="stat-value">{{ team.city || 'غير محدد' }}</span>
-                        <span class="stat-label">المدينة</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <app-team-card
+            [team]="team"
+            variant="member"
+            (cardClick)="navigateToTeamDetail($event)" />
         }
     </div>
 </div>
@@ -174,28 +104,9 @@
 </div>
 }
 
-<!-- CREATE TEAM MODAL -->
-<app-modal [visible]="showCreateTeamModal" title="إنشاء فريق جديد" icon="groups" size="md"
-    (closeRequest)="closeCreateTeamModal()">
-
-    <div class="flex-col gap-4">
-        <p class="text-muted text-sm mb-2">
-            يرجى إدخال اسم الفريق الذي ترغب في إنشائه
-        </p>
-
-        <div class="input-group">
-            <app-icon name="shield" class=" icon-sm"></app-icon>
-            <input type="text" [(ngModel)]="newTeamName" placeholder="أدخل اسم الفريق الجديد" class="team-input w-full"
-                (keyup.enter)="createNewTeam()">
-        </div>
-    </div>
-
-    <div modal-footer>
-        <app-button variant="ghost" (click)="closeCreateTeamModal()">
-            إلغاء
-        </app-button>
-        <app-button (click)="createNewTeam()" [isLoading]="creatingTeam" variant="primary" icon="add">
-            إنشاء فريق
-        </app-button>
-    </div>
-</app-modal>
+<!-- CREATE TEAM DIALOG -->
+<app-create-team-dialog
+    [visible]="showCreateTeamModal"
+    [isCreating]="creatingTeam"
+    (closeDialog)="closeCreateTeamModal()"
+    (createTeam)="onCreateTeamFromDialog($event)" />

@@ -1,7 +1,8 @@
 import { IconComponent } from '../icon/icon.component';
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-alert',
@@ -12,6 +13,8 @@ import { timer } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AlertComponent implements OnInit {
+    private readonly destroyRef = inject(DestroyRef);
+
     @Input() type: 'success' | 'danger' | 'warning' | 'info' = 'info';
     @Input() title?: string;
     @Input() icon?: string;
@@ -23,7 +26,7 @@ export class AlertComponent implements OnInit {
 
     ngOnInit() {
         if (this.autoDismiss > 0) {
-            timer(this.autoDismiss).subscribe(() => {
+            timer(this.autoDismiss).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
                 this.dismiss();
             });
         }

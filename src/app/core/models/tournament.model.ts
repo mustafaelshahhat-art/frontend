@@ -1,3 +1,15 @@
+// ──────────────────────────────────────────────────────────
+// Tournament domain models — aligned with backend TournamentDto
+// Match/Notification types moved to their own model files.
+// ──────────────────────────────────────────────────────────
+import { Match } from './match.model';
+
+// Re-export Match types for backward compat (consumers should migrate)
+export type { Match, MatchEvent, Card, Goal, MatchMessage } from './match.model';
+export { MatchStatus, MatchEventType } from './match.model';
+export type { Notification } from './notification.model';
+export type { NotificationType, NotificationCategory, NotificationPriority } from './notification.model';
+
 export enum TournamentStatus {
     DRAFT = 'Draft',
     REGISTRATION_OPEN = 'RegistrationOpen',
@@ -5,7 +17,9 @@ export enum TournamentStatus {
     ACTIVE = 'Active',
     WAITING_FOR_OPENING_MATCH_SELECTION = 'WaitingForOpeningMatchSelection',
     COMPLETED = 'Completed',
-    CANCELLED = 'Cancelled'
+    CANCELLED = 'Cancelled',
+    MANUAL_QUALIFICATION_PENDING = 'ManualQualificationPending',
+    QUALIFICATION_CONFIRMED = 'QualificationConfirmed'
 }
 
 export enum TournamentFormat {
@@ -14,7 +28,6 @@ export enum TournamentFormat {
     KnockoutOnly = 'KnockoutOnly',
     GroupsWithHomeAwayKnockout = 'GroupsWithHomeAwayKnockout'
 }
-
 
 export enum SchedulingMode {
     Random = 0,
@@ -58,18 +71,22 @@ export enum RegistrationStatus {
 }
 
 export interface TeamRegistration {
+    id?: string;               // Backend: TeamRegistrationDto.Id
+    tournamentId?: string;     // Backend: TeamRegistrationDto.TournamentId
     teamId: string;
     teamName: string;
     captainName: string;
     status: RegistrationStatus;
-    paymentReceiptUrl?: string;  // URL to payment receipt image
+    paymentReceiptUrl?: string;
     senderNumber?: string;
-    paymentMethod?: string; // "E_WALLET" | "INSTAPAY"
-    paymentDate?: Date;
-    approvedBy?: string;         // Admin who approved/rejected
-    approvalDate?: Date;
+    paymentMethod?: string;
     rejectionReason?: string;
     registeredAt: Date;
+    isQualifiedForKnockout?: boolean;
+    // Frontend-only fields
+    paymentDate?: Date;
+    approvedBy?: string;
+    approvalDate?: Date;
 }
 
 export interface Tournament {
@@ -77,174 +94,48 @@ export interface Tournament {
     name: string;
     nameAr?: string;
     nameEn?: string;
-    description: string;
-    season?: string;
-    region?: string;
-    status: TournamentStatus;
-    location: string;
-    entryFee: number;
-    maxTeams: number;
+    creatorUserId?: string;
     imageUrl?: string;
-    minTeams?: number;
-    currentTeams: number;
-    registrations: TeamRegistration[]; // Team registrations with payment status
-    registrationFee?: number;
-    registrationDeadline: Date;
-    prizes: string;
-    prizePool?: number;
+    status: TournamentStatus;
+    mode?: TournamentMode;
     startDate: Date;
     endDate: Date;
+    registrationDeadline: Date;
+    entryFee: number;
+    maxTeams: number;
+    minTeams?: number;
+    currentTeams: number;
+    location: string;
+    description: string;
     rules: string;
-    adminId?: string; // Sync with backend AdminId
-    creatorUserId?: string;
-
-    // New Fields
+    prizes: string;
     format?: string;
     matchType?: string;
     numberOfGroups?: number;
-    qualifiedTeamsPerGroup?: number;
     walletNumber?: string;
     instaPayNumber?: string;
     isHomeAwayEnabled?: boolean;
     paymentMethodsJson?: string;
-    paymentMethods?: PaymentMethodConfig[]; // Parsed helper
-    mode?: TournamentMode;
-    openingMatchId?: string;
-    openingMatchHomeTeamId?: string; // Legacy alias
-    openingMatchAwayTeamId?: string; // Legacy alias
-    openingTeamAId?: string;
-    openingTeamBId?: string;
-    allowLateRegistration?: boolean;
-    lateRegistrationMode?: LateRegistrationMode;
-    schedulingMode?: SchedulingMode;
-
+    registrations: TeamRegistration[];
     winnerTeamId?: string;
     winnerTeamName?: string;
     requiresAdminIntervention?: boolean;
+    allowLateRegistration?: boolean;
+    lateRegistrationMode?: LateRegistrationMode;
+    schedulingMode?: SchedulingMode;
+    openingMatchHomeTeamId?: string;
+    openingMatchAwayTeamId?: string;
+    openingMatchId?: string;
+    adminId?: string;
     createdAt: Date;
     updatedAt: Date;
-}
-
-
-export enum MatchStatus {
-    SCHEDULED = 'Scheduled',
-    LIVE = 'Live',
-    HALFTIME = 'Halftime',
-    FINISHED = 'Finished',
-    CANCELLED = 'Cancelled',
-    POSTPONED = 'Postponed',
-    RESCHEDULED = 'Rescheduled'
-}
-
-export interface Match {
-    id: string;
-    tournamentId: string;
-    tournamentName?: string;
-    tournamentCreatorId?: string;
-    homeTeamId: string;
-    awayTeamId: string;
-    homeTeamName: string;
-    awayTeamName: string;
-    homeScore: number;
-    awayScore: number;
-    status: MatchStatus;
-
-    yellowCards: Card[];
-    redCards: Card[];
-    goals: Goal[];
-    events?: MatchEvent[];
-
-    date?: Date;           // Date of the match
-
-    updatedAt?: Date;
-    scheduledDate?: string;
-    scheduledTime?: string;
-    groupId?: number;
-    roundNumber?: number;
-    stageName?: string;
-}
-
-
-
-
-export interface Card {
-    playerId: string;
-    playerName: string;
-    teamId: string;
-    type: 'yellow' | 'red';
-    minute?: number;
-}
-
-export interface Goal {
-    playerId: string;
-    playerName: string;
-    teamId: string;
-    assistPlayerId?: string;
-    minute?: number;
-}
-
-export interface Team {
-    id: string;
-    name: string;
-    captainName: string;
-    players: Player[];
-    createdAt: Date;
-}
-
-export interface Player {
-    id: string;
-    name: string;
-    nationalId: string;
-    userId?: string;
-}
-
-export enum MatchEventType {
-    GOAL = 'Goal',
-    YELLOW_CARD = 'YellowCard',
-    RED_CARD = 'RedCard',
-    PENALTY = 'Penalty'
-}
-
-export interface MatchEvent {
-    id: string;
-    matchId: string;
-    type: MatchEventType;
-    playerId?: string;
-    playerName?: string;
-    teamId: string;
-    minute?: number;
-    description?: string;
-    createdAt: Date;
-}
-
-
-
-export type NotificationType = 'info' | 'success' | 'warning' | 'error';
-export type NotificationCategory = 'system' | 'account' | 'payments' | 'tournament' | 'match' | 'team' | 'administrative' | 'security';
-export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';
-
-export interface Notification {
-    id: string;
-    title: string;
-    message: string;
-    type: NotificationType;
-    category: NotificationCategory;
-    priority: NotificationPriority;
-    isRead: boolean;
-    createdAt: Date;
-    entityId?: string;
-    entityType?: string;
-    actionUrl?: string;
-}
-
-export interface MatchMessage {
-    id: string;
-    matchId: string;
-    senderId: string;
-    senderName: string;
-    role: string;
-    content: string;
-    timestamp: Date;
+    // Frontend-only helpers
+    paymentMethods?: PaymentMethodConfig[];
+    qualifiedTeamsPerGroup?: number;
+    registrationFee?: number;
+    prizePool?: number;
+    season?: string;
+    region?: string;
 }
 
 export interface TournamentStanding {
@@ -259,13 +150,16 @@ export interface TournamentStanding {
     goalsAgainst: number;
     goalDifference: number;
     points: number;
-    form: string[];
+    yellowCards?: number;    // Backend: TournamentStandingDto.YellowCards
+    redCards?: number;       // Backend: TournamentStandingDto.RedCards
     groupId?: number;
+    form: string[];
 }
 
 export interface Group {
     id: number;
     name: string;
+    [key: string]: unknown;
 }
 
 export interface BracketDto {
@@ -279,8 +173,8 @@ export interface BracketRound {
 }
 
 export interface GenerateMatchesResponse {
-    message: string;
     matches: Match[];
+    count: number;
 }
 
 export interface PendingPaymentResponse {

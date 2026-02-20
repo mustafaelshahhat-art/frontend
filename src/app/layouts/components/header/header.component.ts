@@ -1,9 +1,11 @@
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SearchComponent } from '../../../shared/components/search/search.component';
 import { NotificationsDropdownComponent } from '../notifications-dropdown/notifications-dropdown.component';
 import { Notification } from '../../../core/models/tournament.model';
+import { SearchService, SearchResult } from '../../../core/services/search.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-header',
@@ -15,6 +17,8 @@ import { Notification } from '../../../core/models/tournament.model';
 })
 export class HeaderComponent {
     private elementRef = inject(ElementRef);
+    private searchService = inject(SearchService);
+    private router = inject(Router);
 
     @Input() isMobile = false;
     @Input() windowSize = window.innerWidth;
@@ -27,7 +31,22 @@ export class HeaderComponent {
     @Output() viewNotification = new EventEmitter<Notification>();
     @Output() viewAllNotifications = new EventEmitter<void>();
 
+    searchResults = toSignal(this.searchService.searchResults, { initialValue: [] as SearchResult[] });
+    isSearching = toSignal(this.searchService.isSearching, { initialValue: false });
     showNotifications = false;
+
+    onSearchChange(query: string): void {
+        this.searchService.search(query);
+    }
+
+    onSearchResultSelected(result: SearchResult): void {
+        this.router.navigate([result.route]);
+        this.searchService.clearSearch();
+    }
+
+    onSearchCleared(): void {
+        this.searchService.clearSearch();
+    }
 
     @HostListener('document:click', ['$event'])
     onClick(event: MouseEvent) {

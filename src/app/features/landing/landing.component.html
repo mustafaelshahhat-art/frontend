@@ -277,8 +277,9 @@
       </div>
 
       <div class="faq-container">
-        <ng-container *ngFor="let faq of faqs; let i = index">
-          <div class="faq-item" *ngIf="i < 5 || showAllFaqs" [class.active]="activeFaq === i" (click)="toggleFaq(i)">
+        @for (faq of faqs; track $index; let i = $index) {
+          @if (i < 5 || showAllFaqs) {
+          <div class="faq-item" [class.active]="activeFaq === i" (click)="toggleFaq(i)">
             <div class="faq-question">
               <span>{{ i + 1 }}. {{ faq.question }}</span>
               <i class="fas fa-chevron-down"></i>
@@ -287,14 +288,17 @@
               <p>{{ faq.answer }}</p>
             </div>
           </div>
-        </ng-container>
+          }
+        }
       </div>
 
-      <div class="text-center" style="margin-top: 40px;" *ngIf="faqs.length > 5">
+      @if (faqs.length > 5) {
+      <div class="text-center" style="margin-top: 40px;">
         <button class="btn-show-more" (click)="toggleShowAllFaqs(); $event.stopPropagation()">
           {{ showAllFaqs ? 'عرض أقل' : 'عرض المزيد من الأسئلة' }}
         </button>
       </div>
+      }
     </div>
   </section>
 

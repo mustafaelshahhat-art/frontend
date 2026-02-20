@@ -12,7 +12,7 @@
     @if (showDropdown) {
     <div class="search-dropdown">
         <!-- Loading State -->
-        @if (isSearching()) {
+        @if (searching) {
         <div class="search-loading">
             <span class="loading-spinner"></span>
             <span>جاري البحث...</span>
@@ -20,17 +20,17 @@
         }
 
         <!-- Results -->
-        @if (!isSearching()) {
+        @if (!searching) {
         <ng-container>
-            @if (searchResults().length === 0) {
+            @if (results.length === 0) {
             <div class="search-empty">
                 <app-icon name="search_off" class=" icon-sm"></app-icon>
                 <span>لا توجد نتائج</span>
             </div>
             }
 
-            @for (result of searchResults(); track result.id) {
-            <div (click)="navigateToResult(result)" (keyup.enter)="navigateToResult(result)" tabindex="0"
+            @for (result of results; track result.id) {
+            <div (click)="selectResult(result)" (keyup.enter)="selectResult(result)" tabindex="0"
                 class="search-result-item">
                 <app-icon [name]=" result.icon " class="result-icon icon-sm"></app-icon>
                 <div class="result-content">
@@ -39,8 +39,7 @@
                     <span class="result-subtitle">{{ result.subtitle }}</span>
                     }
                 </div>
-                <span class="result-type-badge">{{ result.type === 'tournament' ? 'بطولة' : result.type === 'match' ?
-                    'مباراة' : result.type === 'team' ? 'فريق' : 'مستخدم' }}</span>
+                <span class="result-type-badge">{{ getTypeLabel(result.type) }}</span>
             </div>
             }
         </ng-container>

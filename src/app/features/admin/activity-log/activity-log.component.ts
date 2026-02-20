@@ -6,6 +6,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { InlineLoadingComponent } from '../../../shared/components/inline-loading/inline-loading.component';
 import { AnalyticsService, Activity, ActivityFilterParams } from '../../../core/services/analytics.service';
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
+import { firstValueFrom } from 'rxjs';
 
 import { FilterComponent } from '../../../shared/components/filter/filter.component';
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
@@ -126,7 +127,7 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         this.adminLayout.reset();
     }
 
-    loadLogs(): void {
+    async loadLogs(): Promise<void> {
         this.isLoading.set(true);
         const params: ActivityFilterParams = {
             page: this.currentPage(),
@@ -137,18 +138,16 @@ export class ActivityLogComponent implements OnInit, AfterViewInit, OnDestroy {
         const severity = this.currentSeverityFilter();
         if (severity !== 'all') params.minSeverity = parseInt(severity, 10);
 
-        this.analyticsService.getRecentActivities(params).subscribe({
-            next: (result) => {
-                this.activities.set(result.items);
-                this.totalCount.set(result.totalCount);
-                this.isLoading.set(false);
-            },
-            error: () => {
-                this.activities.set([]);
-                this.totalCount.set(0);
-                this.isLoading.set(false);
-            }
-        });
+        try {
+            const result = await firstValueFrom(this.analyticsService.getRecentActivities(params));
+            this.activities.set(result.items);
+            this.totalCount.set(result.totalCount);
+        } catch {
+            this.activities.set([]);
+            this.totalCount.set(0);
+        } finally {
+            this.isLoading.set(false);
+        }
     }
 
     getBadgeType(type: string): 'success' | 'warning' | 'danger' | 'neutral' {

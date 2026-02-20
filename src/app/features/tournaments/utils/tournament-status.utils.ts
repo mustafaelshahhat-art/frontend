@@ -13,7 +13,9 @@ const TOURNAMENT_STATUS_LABELS: Record<TournamentStatus, string> = {
     [TournamentStatus.ACTIVE]: 'جارية الآن',
     [TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION]: 'بانتظار اختيار الافتتاح',
     [TournamentStatus.COMPLETED]: 'منتهية',
-    [TournamentStatus.CANCELLED]: 'ملغاة'
+    [TournamentStatus.CANCELLED]: 'ملغاة',
+    [TournamentStatus.MANUAL_QUALIFICATION_PENDING]: 'بانتظار تحديد المتأهلين',
+    [TournamentStatus.QUALIFICATION_CONFIRMED]: 'تم تأكيد التأهل'
 };
 
 const REG_STATUS_LABELS: Record<string, string> = {

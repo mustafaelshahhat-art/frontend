@@ -9,7 +9,7 @@ export interface FilterItem {
     label?: string;
     value?: unknown;
     icon?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 /**
@@ -30,22 +30,22 @@ export interface FilterItem {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FilterComponent {
-    @Input() items: any[] = [];
+    @Input() items: FilterItem[] = [];
     @Input() activeValue: unknown;
     @Input() valueKey = 'value';
     @Input() labelKey = 'label';
     @Input() ariaLabel = 'عوامل التصفية';
     @Output() filterChange = new EventEmitter<unknown>();
 
-    getValue(item: any): unknown {
+    getValue(item: FilterItem): unknown {
         return item[this.valueKey] ?? item.value;
     }
 
-    getLabel(item: any): string {
-        return item[this.labelKey] ?? item.label;
+    getLabel(item: FilterItem): string {
+        return (item[this.labelKey] ?? item.label) as string;
     }
 
-    isActive(item: any): boolean {
+    isActive(item: FilterItem): boolean {
         return this.activeValue === this.getValue(item);
     }
 
@@ -53,7 +53,7 @@ export class FilterComponent {
         this.filterChange.emit(value);
     }
 
-    trackByValue(_index: number, item: any): unknown {
+    trackByValue(_index: number, item: FilterItem): unknown {
         return item[this.valueKey] ?? item.value ?? _index;
     }
 }

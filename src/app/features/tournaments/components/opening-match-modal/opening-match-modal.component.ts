@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Tournament, RegistrationStatus } from '../../../../core/models/tournament.model';
@@ -13,7 +13,8 @@ import { SelectComponent, SelectOption } from '../../../../shared/components/sel
     standalone: true,
     imports: [CommonModule, FormsModule, IconComponent, ButtonComponent, BadgeComponent, ModalComponent, SelectComponent],
     templateUrl: './opening-match-modal.component.html',
-    styleUrls: ['./opening-match-modal.component.scss']
+    styleUrls: ['./opening-match-modal.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OpeningMatchModalComponent implements OnChanges {
     @Input() tournament!: Tournament;
@@ -26,7 +27,7 @@ export class OpeningMatchModalComponent implements OnChanges {
     teamBId: string | null = null;
     errorMessage: string | null = null;
 
-    availableTeams: any[] = [];
+    availableTeams: SelectOption[] = [];
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['tournament'] && this.tournament) {
@@ -38,8 +39,8 @@ export class OpeningMatchModalComponent implements OnChanges {
 
         // Reset logic when modal opens
         if (changes['isVisible'] && this.isVisible && this.tournament) {
-            this.teamAId = this.tournament.openingTeamAId || this.tournament.openingMatchHomeTeamId || null;
-            this.teamBId = this.tournament.openingTeamBId || this.tournament.openingMatchAwayTeamId || null;
+            this.teamAId = this.tournament.openingMatchHomeTeamId || null;
+            this.teamBId = this.tournament.openingMatchAwayTeamId || null;
             this.errorMessage = null;
         }
     }

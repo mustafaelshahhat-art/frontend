@@ -18,7 +18,9 @@
 
     <!-- Search Bar (Responsive) -->
     @if (windowSize >= 640) {
-    <app-search placeholder="البحث..." />
+    <app-search placeholder="البحث..." [results]="searchResults()" [searching]="isSearching()"
+      (searchChange)="onSearchChange($event)" (resultSelected)="onSearchResultSelected($event)"
+      (cleared)="onSearchCleared()" />
     }
   </div>
 

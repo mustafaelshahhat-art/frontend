@@ -15,6 +15,7 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { SmartImageComponent } from '../../../../shared/components/smart-image/smart-image.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-user-detail',
@@ -51,10 +52,10 @@ export class UserDetailComponent implements OnInit, OnDestroy {
 
     isLastAdmin = computed(() => {
         const u = this.user;
-        if (!u || u.role !== UserRole.ADMIN || u.status === UserStatus.SUSPENDED || u.status === UserStatus.DISABLED) return false;
+        if (!u || u.role !== UserRole.ADMIN || u.status === UserStatus.SUSPENDED) return false;
 
         const activeAdmins = this.userStore.users().filter(user =>
-            user.role === UserRole.ADMIN && user.status !== UserStatus.SUSPENDED && user.status !== UserStatus.DISABLED
+            user.role === UserRole.ADMIN && user.status !== UserStatus.SUSPENDED
         );
 
         return activeAdmins.length === 1 && activeAdmins[0].id === u.id;
@@ -99,21 +100,18 @@ export class UserDetailComponent implements OnInit, OnDestroy {
         this.adminLayout.reset();
     }
 
-    loadUser(id: string): void {
+    async loadUser(id: string): Promise<void> {
         this.isLoading = true;
-        this.userService.getUserById(id).subscribe({
-            next: (data) => {
-                this.userStore.upsertUser(data);
-                this.updateLayout();
-                this.isLoading = false;
-                this.cdr.detectChanges();
-            },
-            error: () => {
-                this.isLoading = false;
-                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات المستخدم. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
-                this.cdr.detectChanges();
-            }
-        });
+        try {
+            const data = await firstValueFrom(this.userService.getUserById(id));
+            this.userStore.upsertUser(data);
+            this.updateLayout();
+        } catch {
+            this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات المستخدم. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
+        } finally {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+        }
     }
 
     navigateBack(): void {
@@ -165,7 +163,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
         }
     }
 
-    toggleUserStatus(): void {
+    async toggleUserStatus(): Promise<void> {
         if (!this.user || (this.user.status === UserStatus.ACTIVE && this.isLastAdmin())) {
             if (this.isLastAdmin()) {
                 this.uiFeedback.error('غير مسموح', 'لا يمكن إيقاف آخر مشرف نشط في النظام');
@@ -176,27 +174,24 @@ export class UserDetailComponent implements OnInit, OnDestroy {
         const isActive = this.user.status === UserStatus.ACTIVE;
         const action = isActive ? 'إيقاف' : 'تفعيل';
 
-        this.uiFeedback.confirm(
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm(
             `${action} المستخدم`,
             `هل أنت متأكد من ${action} حساب "${this.user.name}"؟`,
             action,
             isActive ? 'danger' : 'info'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                const request = isActive
-                    ? this.userService.suspendUser(this.user!.id)
-                    : this.userService.activateUser(this.user!.id);
+        ));
+        if (!confirmed) return;
 
-                request.subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم التحديث', `تم ${action} حساب المستخدم بنجاح`);
-                        this.cdr.detectChanges();
-                    },
-                    error: () => {
-                        this.uiFeedback.error('فشل التحديث', `تعذّر ${action} حساب المستخدم. يرجى المحاولة مرة أخرى.`);
-                    }
-                });
-            }
-        });
+        try {
+            await firstValueFrom(
+                isActive
+                    ? this.userService.suspendUser(this.user!.id)
+                    : this.userService.activateUser(this.user!.id)
+            );
+            this.uiFeedback.success('تم التحديث', `تم ${action} حساب المستخدم بنجاح`);
+            this.cdr.detectChanges();
+        } catch {
+            this.uiFeedback.error('فشل التحديث', `تعذّر ${action} حساب المستخدم. يرجى المحاولة مرة أخرى.`);
+        }
     }
 }

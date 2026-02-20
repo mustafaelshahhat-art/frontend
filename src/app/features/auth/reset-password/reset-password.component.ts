@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { timer, interval, take } from 'rxjs';
+import { firstValueFrom, timer, interval, take } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { FormControlComponent } from '../../../shared/components/form-control/form-control.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -93,26 +93,23 @@ export class ResetPasswordComponent implements OnInit, AfterViewInit {
             });
     }
 
-    resendOtp(): void {
+    async resendOtp(): Promise<void> {
         if (!this.email || !this.canResend()) return;
 
         this.isResending.set(true);
         this.errorMessage.set(null);
         this.successMessage.set(null);
 
-        this.authService.resendOtp(this.email, 'PASSWORD_RESET')
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.isResending.set(false);
-                    this.successMessage.set('تم إعادة إرسال كود التحقق بنجاح.');
-                    this.startResendTimer();
-                },
-                error: (error) => {
-                    this.isResending.set(false);
-                    this.errorMessage.set(error.error?.message || 'فشل إعادة إرسال الكود. حاول مرة أخرى لاحقاً.');
-                }
-            });
+        try {
+            await firstValueFrom(this.authService.resendOtp(this.email, 'PASSWORD_RESET'));
+            this.isResending.set(false);
+            this.successMessage.set('تم إعادة إرسال كود التحقق بنجاح.');
+            this.startResendTimer();
+        } catch (error: unknown) {
+            const httpErr = error as { error?: { message?: string } };
+            this.isResending.set(false);
+            this.errorMessage.set(httpErr.error?.message || 'فشل إعادة إرسال الكود. حاول مرة أخرى لاحقاً.');
+        }
     }
 
     get otp() { return this.resetForm.get('otp'); }
@@ -124,7 +121,7 @@ export class ResetPasswordComponent implements OnInit, AfterViewInit {
             ? null : { mismatch: true };
     }
 
-    onSubmit() {
+    async onSubmit(): Promise<void> {
         if (this.resetForm.invalid) {
             this.resetForm.markAllAsTouched();
             return;
@@ -138,23 +135,16 @@ export class ResetPasswordComponent implements OnInit, AfterViewInit {
 
         const { otp, password } = this.resetForm.value;
 
-        this.authService.resetPassword(this.email, otp, password)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.isLoading.set(false);
-                    this.successMessage.set('تم تغيير كلمة المرور بنجاح. جاري تحويلك لتسجيل الدخول...');
-
-                    timer(2000)
-                        .pipe(takeUntilDestroyed(this.destroyRef))
-                        .subscribe(() => {
-                            this.router.navigate(['/auth/login']);
-                        });
-                },
-                error: (err) => {
-                    this.isLoading.set(false);
-                    this.errorMessage.set(err.error?.message || 'فشل تغيير كلمة المرور. تأكد من صحة الكود.');
-                }
-            });
+        try {
+            await firstValueFrom(this.authService.resetPassword(this.email, otp, password));
+            this.isLoading.set(false);
+            this.successMessage.set('تم تغيير كلمة المرور بنجاح. جاري تحويلك لتسجيل الدخول...');
+            await firstValueFrom(timer(2000));
+            this.router.navigate(['/auth/login']);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.isLoading.set(false);
+            this.errorMessage.set(httpErr.error?.message || 'فشل تغيير كلمة المرور. تأكد من صحة الكود.');
+        }
     }
 }

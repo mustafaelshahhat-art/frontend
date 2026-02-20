@@ -11,6 +11,7 @@ import { LocationService, GovernorateDto, CityDto, AreaDto } from '../../../core
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { SelectComponent, SelectOption } from '../../../shared/components/select/select.component';
 import { FormControlComponent } from '../../../shared/components/form-control/form-control.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -64,56 +65,51 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private checkMaintenance(): void {
-    this.systemSettings.getMaintenanceStatus().subscribe({
-      next: (status) => {
-        if (status.maintenanceMode) {
-          this.uiFeedback.error('غير متاح', 'التسجيل مغلق حالياً بسبب أعمال الصيانة');
-          this.router.navigate(['/auth/login']);
-        }
+  private async checkMaintenance(): Promise<void> {
+    try {
+      const status = await firstValueFrom(this.systemSettings.getMaintenanceStatus());
+      if (status.maintenanceMode) {
+        this.uiFeedback.error('غير متاح', 'التسجيل مغلق حالياً بسبب أعمال الصيانة');
+        this.router.navigate(['/auth/login']);
       }
-    });
+    } catch {
+      // Silently ignore maintenance check failure
+    }
   }
 
 
 
-  private loadGovernorates(): void {
-    this.locationService.getGovernorates().subscribe({
-      next: (govs: GovernorateDto[]) => {
-        this.governorateOptions.set(govs.map(g => ({ label: g.nameAr, value: g.id })));
-      },
-      error: () => {
-        this.governorateOptions.set([]);
-      }
-    });
+  private async loadGovernorates(): Promise<void> {
+    try {
+      const govs = await firstValueFrom(this.locationService.getGovernorates());
+      this.governorateOptions.set(govs.map((g: GovernorateDto) => ({ label: g.nameAr, value: g.id })));
+    } catch {
+      this.governorateOptions.set([]);
+    }
   }
 
-  private loadCities(governorateId: string): void {
+  private async loadCities(governorateId: string): Promise<void> {
     this.isLoadingCities.set(true);
-    this.locationService.getCities(governorateId).subscribe({
-      next: (cities: CityDto[]) => {
-        this.cityOptions.set(cities.map(c => ({ label: c.nameAr, value: c.id })));
-        this.isLoadingCities.set(false);
-      },
-      error: () => {
-        this.cityOptions.set([]);
-        this.isLoadingCities.set(false);
-      }
-    });
+    try {
+      const cities = await firstValueFrom(this.locationService.getCities(governorateId));
+      this.cityOptions.set(cities.map((c: CityDto) => ({ label: c.nameAr, value: c.id })));
+    } catch {
+      this.cityOptions.set([]);
+    } finally {
+      this.isLoadingCities.set(false);
+    }
   }
 
-  private loadAreas(cityId: string): void {
+  private async loadAreas(cityId: string): Promise<void> {
     this.isLoadingAreas.set(true);
-    this.locationService.getAreas(cityId).subscribe({
-      next: (areas: AreaDto[]) => {
-        this.areaOptions.set(areas.map(a => ({ label: a.nameAr, value: a.id })));
-        this.isLoadingAreas.set(false);
-      },
-      error: () => {
-        this.areaOptions.set([]);
-        this.isLoadingAreas.set(false);
-      }
-    });
+    try {
+      const areas = await firstValueFrom(this.locationService.getAreas(cityId));
+      this.areaOptions.set(areas.map((a: AreaDto) => ({ label: a.nameAr, value: a.id })));
+    } catch {
+      this.areaOptions.set([]);
+    } finally {
+      this.isLoadingAreas.set(false);
+    }
   }
 
   onGovChange(value: string): void {
@@ -144,7 +140,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.password() !== this.form.confirmPassword()) {
       this.uiFeedback.error('كلمة المرور غير متطابقة', 'كلمة المرور وتأكيدها غير متطابقين. يرجى إعادة الإدخال.');
       return;
@@ -175,21 +171,20 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
     // Note: authService.register expects original object structure
     // We map signals to values here.
-    this.authService.register(formData).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        // Use plain text email to avoid encoding issues
-        this.router.navigate(['/auth/verify-email'], {
-          queryParams: {
-            email: formData.email,
-            registered: 'true'
-          }
-        });
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.uiFeedback.error('فشل التسجيل', err.error?.message || 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
-      }
-    });
+    try {
+      await firstValueFrom(this.authService.register(formData));
+      // Use plain text email to avoid encoding issues
+      this.router.navigate(['/auth/verify-email'], {
+        queryParams: {
+          email: formData.email,
+          registered: 'true'
+        }
+      });
+    } catch (err: unknown) {
+      const httpErr = err as { error?: { message?: string } };
+      this.uiFeedback.error('فشل التسجيل', httpErr.error?.message || 'حدث خطأ أثناء التسجيل. تحقق من اتصالك بالسيرفر');
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 }

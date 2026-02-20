@@ -1,0 +1,147 @@
+.players-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.invite-section {
+    background: var(--bg-surface-elevated, #1c1d21);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 1.25rem;
+
+    h4 {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+    }
+}
+
+.invite-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+
+    app-icon {
+        position: absolute;
+        right: 12px;
+        color: var(--primary);
+        opacity: 0.5;
+    }
+}
+
+.invite-input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    background: var(--bg-input, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--border-visible);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+
+    &:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface-elevated, #1c1d21);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: rgba(var(--primary-rgb), 0.04);
+    }
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.player-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(var(--primary-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.player-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.player-name {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.player-position {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.player-stats-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mini-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+
+    &.yellow { color: #ffc107; }
+    &.red { color: #f44336; }
+}
+
+.player-actions {
+    flex-shrink: 0;
+}
+
+.empty-players {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    color: var(--text-muted);
+    text-align: center;
+}

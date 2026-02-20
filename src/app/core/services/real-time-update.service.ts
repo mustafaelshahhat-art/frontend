@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, no-restricted-syntax */
+/* eslint-disable no-restricted-syntax */
 import { Injectable, inject, NgZone, OnDestroy, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, Observable } from 'rxjs';
@@ -10,12 +10,15 @@ import { TournamentStore } from '../stores/tournament.store';
 import { MatchStore } from '../stores/match.store';
 import { TeamStore } from '../stores/team.store';
 import { UserStore } from '../stores/user.store';
-// PERF: Removed static `import * as signalR` — now dynamically loaded via SignalRService
 import type { HubConnection } from '@microsoft/signalr';
+import type { Tournament, TeamRegistration as TournamentRegistration } from '../models/tournament.model';
+import type { Match } from '../models/match.model';
+import type { Team, Player } from '../models/team.model';
+import type { User, UserStatus } from '../models/user.model';
 
 export interface SystemEvent {
     type: string;
-    metadata: any;
+    metadata: Record<string, unknown>;
     timestamp: Date;
 }
 
@@ -50,11 +53,11 @@ export class RealTimeUpdateService {
         this.initializeSignalR();
     }
 
-    dispatch(event: any): void {
+    dispatch(event: Partial<SystemEvent>): void {
         const systemEvent: SystemEvent = {
-            type: event?.type || event?.Type || '',
-            metadata: event?.metadata || event?.Metadata || {},
-            timestamp: new Date(event?.timestamp || event?.Timestamp || Date.now())
+            type: event?.type || '',
+            metadata: (event?.metadata || {}) as Record<string, unknown>,
+            timestamp: new Date(event?.timestamp || Date.now())
         };
 
         if (this.handleCriticalActions(systemEvent)) {
@@ -109,7 +112,7 @@ export class RealTimeUpdateService {
             return;
         }
 
-        this.hubConnection.on('TournamentCreated', (dto: any) => {
+        this.hubConnection.on('TournamentCreated', (dto: Tournament) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.tournamentStore.upsertTournament(dto);
@@ -117,7 +120,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('TournamentUpdated', (dto: any) => {
+        this.hubConnection.on('TournamentUpdated', (dto: Tournament) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.tournamentStore.upsertTournament(dto);
@@ -125,7 +128,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('TournamentDeleted', (payload: any) => {
+        this.hubConnection.on('TournamentDeleted', (payload: { tournamentId?: string; id?: string }) => {
             this.ngZone.run(() => {
                 const tournamentId = this.extractId(payload, 'tournamentId');
                 if (tournamentId) {
@@ -135,7 +138,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('RegistrationApproved', (tournamentDto: any) => {
+        this.hubConnection.on('RegistrationApproved', (tournamentDto: Tournament) => {
             this.ngZone.run(() => {
                 if (this.extractId(tournamentDto, 'id')) {
                     this.tournamentStore.upsertTournament(tournamentDto);
@@ -143,7 +146,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('RegistrationRejected', (tournamentDto: any) => {
+        this.hubConnection.on('RegistrationRejected', (tournamentDto: Tournament) => {
             this.ngZone.run(() => {
                 if (this.extractId(tournamentDto, 'id')) {
                     this.tournamentStore.upsertTournament(tournamentDto);
@@ -151,7 +154,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('RegistrationUpdated', (registrationDto: any) => {
+        this.hubConnection.on('RegistrationUpdated', (registrationDto: TournamentRegistration) => {
             this.ngZone.run(() => {
                 const tournamentId = this.readValue<string>(registrationDto, 'tournamentId');
                 if (tournamentId && registrationDto) {
@@ -160,7 +163,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('MatchCreated', (dto: any) => {
+        this.hubConnection.on('MatchCreated', (dto: Match) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.matchStore.upsertMatch(dto);
@@ -168,7 +171,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('MatchUpdated', (dto: any) => {
+        this.hubConnection.on('MatchUpdated', (dto: Match) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.matchStore.upsertMatch(dto);
@@ -176,7 +179,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('MatchesGenerated', (dtos: any[]) => {
+        this.hubConnection.on('MatchesGenerated', (dtos: Match[]) => {
             this.ngZone.run(() => {
                 (dtos || []).forEach(match => {
                     if (this.extractId(match, 'id')) {
@@ -186,7 +189,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('MatchDeleted', (payload: any) => {
+        this.hubConnection.on('MatchDeleted', (payload: { matchId?: string; id?: string }) => {
             this.ngZone.run(() => {
                 const matchId = this.extractId(payload, 'matchId');
                 if (matchId) {
@@ -195,7 +198,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('TeamCreated', (dto: any) => {
+        this.hubConnection.on('TeamCreated', (dto: Team) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.teamStore.upsertTeam(dto);
@@ -203,7 +206,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('TeamUpdated', (dto: any) => {
+        this.hubConnection.on('TeamUpdated', (dto: Team) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.teamStore.upsertTeam(dto);
@@ -212,7 +215,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('TeamDeleted', (payload: any) => {
+        this.hubConnection.on('TeamDeleted', (payload: { teamId?: string; id?: string }) => {
             this.ngZone.run(() => {
                 const teamId = this.extractId(payload, 'teamId');
                 if (teamId) {
@@ -229,7 +232,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('RemovedFromTeam', (data: any) => {
+        this.hubConnection.on('RemovedFromTeam', (data: { teamId?: string; playerId?: string }) => {
             this.ngZone.run(() => {
                 const teamId = this.readValue<string>(data, 'teamId');
                 const playerId = this.readValue<string>(data, 'playerId');
@@ -254,7 +257,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('UserCreated', (dto: any) => {
+        this.hubConnection.on('UserCreated', (dto: User) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.userStore.upsertUser(dto);
@@ -262,7 +265,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('UserUpdated', (dto: any) => {
+        this.hubConnection.on('UserUpdated', (dto: User) => {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.userStore.upsertUser(dto);
@@ -276,7 +279,7 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('UserDeleted', (payload: any) => {
+        this.hubConnection.on('UserDeleted', (payload: { userId?: string; id?: string }) => {
             this.ngZone.run(() => {
                 const userId = this.extractId(payload, 'userId');
                 if (userId) {
@@ -290,14 +293,14 @@ export class RealTimeUpdateService {
             });
         });
 
-        this.hubConnection.on('AccountStatusChanged', (data: any) => {
+        this.hubConnection.on('AccountStatusChanged', (data: { userId?: string; status?: string }) => {
             this.ngZone.run(() => {
                 const userId = this.readValue<string>(data, 'userId');
                 const status = this.readValue<string>(data, 'status');
                 if (userId && status) {
                     const user = this.userStore.getUserById(userId);
                     if (user) {
-                        this.userStore.upsertUser({ ...user, status: status as any });
+                        this.userStore.upsertUser({ ...user, status: status as UserStatus });
                     }
 
                     const currentUser = this.authService.getCurrentUser();
@@ -310,7 +313,7 @@ export class RealTimeUpdateService {
 
 
 
-        this.hubConnection.on('SystemEvent', (event: any) => {
+        this.hubConnection.on('SystemEvent', (event: SystemEvent) => {
             this.ngZone.run(() => {
                 this.dispatch(event);
             });
@@ -352,7 +355,7 @@ export class RealTimeUpdateService {
         return false;
     }
 
-    private cascadeTeamUpdateToTournaments(team: any): void {
+    private cascadeTeamUpdateToTournaments(team: Team): void {
         const tournaments = this.tournamentStore.tournaments();
 
         tournaments.forEach(tournament => {
@@ -366,7 +369,7 @@ export class RealTimeUpdateService {
                     return registration;
                 }
 
-                const captain = (team.players || []).find((p: any) => p.teamRole === 'Captain');
+                const captain = (team.players || []).find((p: Player) => p.teamRole === 'Captain');
 
                 return {
                     ...registration,
@@ -388,7 +391,7 @@ export class RealTimeUpdateService {
             return;
         }
 
-        const players = (team.players || []).filter((player: any) => {
+        const players = (team.players || []).filter((player: Player) => {
             const id = String(player?.id || '');
             const userId = String(player?.userId || '');
             return id !== playerId && userId !== playerId;
@@ -398,10 +401,10 @@ export class RealTimeUpdateService {
             ...team,
             players,
             playerCount: players.length
-        } as any);
+        });
     }
 
-    private extractId(payload: any, preferredKey: string): string | null {
+    private extractId(payload: unknown, preferredKey: string): string | null {
         if (!payload) {
             return null;
         }
@@ -411,12 +414,13 @@ export class RealTimeUpdateService {
         }
 
         if (typeof payload === 'object') {
-            const preferred = this.readValue<string>(payload, preferredKey);
+            const obj = payload as Record<string, unknown>;
+            const preferred = this.readValue<string>(obj, preferredKey);
             if (preferred) {
                 return preferred;
             }
 
-            const generic = this.readValue<string>(payload, 'id');
+            const generic = this.readValue<string>(obj, 'id');
             if (generic) {
                 return generic;
             }
@@ -425,14 +429,15 @@ export class RealTimeUpdateService {
         return null;
     }
 
-    private readValue<T = any>(source: any, key: string): T | null {
+    private readValue<T = unknown>(source: unknown, key: string): T | null {
         if (!source || typeof source !== 'object') {
             return null;
         }
 
+        const obj = source as Record<string, unknown>;
         const camel = key;
         const pascal = key.charAt(0).toUpperCase() + key.slice(1);
 
-        return (source[camel] ?? source[pascal] ?? null) as T | null;
+        return (obj[camel] ?? obj[pascal] ?? null) as T | null;
     }
 }

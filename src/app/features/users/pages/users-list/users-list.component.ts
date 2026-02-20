@@ -5,19 +5,18 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { User, UserRole, UserStatus, TeamRole } from '../../../../core/models/user.model';
+import { User, UserRole, UserStatus } from '../../../../core/models/user.model';
 import { FilterComponent } from '../../../../shared/components/filter/filter.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
-import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
-import { UserService } from '../../../../core/services/user.service';
 import { UserStore } from '../../../../core/stores/user.store';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { createClientPagination, PaginationSource } from '../../../../shared/data-access/paginated-data-source';
-import { PagedResult } from '../../../../core/models/pagination.model';
+import { UsersListFacade } from './users-list-facade.service';
+import { getBadgeType, getStatusLabel } from './users-list.utils';
 
 @Component({
     selector: 'app-users-list',
@@ -39,8 +38,7 @@ import { PagedResult } from '../../../../core/models/pagination.model';
 })
 export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly router = inject(Router);
-    private readonly uiFeedback = inject(UIFeedbackService);
-    private readonly userService = inject(UserService);
+    private readonly facade = inject(UsersListFacade);
     private readonly userStore = inject(UserStore);
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly fb = inject(FormBuilder);
@@ -163,16 +161,7 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     loadUsers(): void {
-        this.userStore.setLoading(true);
-        this.userService.getUsers(1, 500).subscribe({
-            next: (data) => {
-                this.userStore.setUsers(data.items);
-            },
-            error: (err) => {
-                this.userStore.setError(err.message);
-                this.userStore.setLoading(false);
-            }
-        });
+        this.facade.loadUsers();
     }
 
     setFilter(filter: unknown): void {
@@ -185,35 +174,8 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pager.loadPage(1);
     }
 
-    getBadgeType(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
-        switch (status) {
-            case UserStatus.ACTIVE: return 'success';
-            case UserStatus.PENDING: return 'warning';
-            case UserStatus.SUSPENDED: return 'danger';
-            default: return 'neutral';
-        }
-    }
-
-    getStatusLabel(status: string): string {
-        switch (status) {
-            case UserStatus.ACTIVE: return 'نشط';
-            case UserStatus.PENDING: return 'معلق';
-            case UserStatus.SUSPENDED: return 'موقوف';
-            default: return 'غير معروف';
-        }
-    }
-
-    getRoleLabel(user: User): string {
-        if (user.role === UserRole.PLAYER && user.teamRole === TeamRole.CAPTAIN) {
-            return 'قائد فريق';
-        }
-
-        switch (user.role) {
-            case UserRole.ADMIN: return 'مسؤول';
-            case UserRole.TOURNAMENT_CREATOR: return 'منشئ بطولة';
-            default: return 'لاعب';
-        }
-    }
+    getBadgeType = getBadgeType;
+    getStatusLabel = getStatusLabel;
 
     viewUser(userId: string): void {
         this.navService.navigateTo(['users', userId]);
@@ -229,82 +191,15 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     suspendUser(user: User): void {
-        // Safety check for last admin
-        if (this.isLastAdmin(user)) {
-            this.uiFeedback.error('غير مسموح', 'لا يمكن إيقاف آخر مشرف في النظام');
-            return;
-        }
-
-        this.uiFeedback.confirm(
-            'إيقاف المستخدم',
-            `هل تريد إيقاف المستخدم "${user.name}"؟`,
-            'إيقاف',
-            'danger'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.userService.suspendUser(user.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الإيقاف', 'تم إيقاف المستخدم بنجاح');
-                    },
-                    error: (err) => {
-                        this.uiFeedback.error('فشل الإيقاف', err.error?.message || 'تعذّر إيقاف المستخدم. يرجى المحاولة مرة أخرى.');
-                    }
-                });
-            }
-        });
+        this.facade.suspendUser(user, this.isLastAdmin(user));
     }
 
     approveUser(user: User): void {
-        const isSuspended = user.status === UserStatus.SUSPENDED;
-        const title = isSuspended ? 'تفعيل الحساب' : 'تفعيل المستخدم';
-        const message = isSuspended
-            ? `هل تريد إعادة تفعيل حساب المستخدم "${user.name}"؟`
-            : `هل تريد تفعيل حساب المستخدم "${user.name}" والموافقة على انضمامه؟`;
-        const actionLabel = isSuspended ? 'تفعيل الآن' : 'موافقة وتفعيل';
-
-        this.uiFeedback.confirm(
-            title,
-            message,
-            actionLabel,
-            'info'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.userService.activateUser(user.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم التفعيل', 'تم تفعيل حساب المستخدم بنجاح');
-                    },
-                    error: (err) => {
-                        this.uiFeedback.error('فشل التفعيل', err.error?.message || 'تعذّر تفعيل حساب المستخدم. يرجى المحاولة مرة أخرى.');
-                    }
-                });
-            }
-        });
+        this.facade.approveUser(user);
     }
 
     deleteUser(user: User): void {
-        // Safety check for last admin
-        if (this.isLastAdmin(user)) {
-            this.uiFeedback.error('غير مسموح', 'لا يمكن حذف آخر مشرف في النظام');
-            return;
-        }
-
-        this.uiFeedback.confirm(
-            'حذف المستخدم',
-            `هل تريد حذف المستخدم "${user.name}" نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`,
-            'حذف نهائي',
-            'danger'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.userService.deleteUser(user.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الحذف', 'تم حذف المستخدم بنجاح');
-                    },
-                    error: (err) => {
-                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف المستخدم. يرجى المحاولة مرة أخرى.');
-                    }
-                });
-            }
-        });
+        this.facade.deleteUser(user, this.isLastAdmin(user));
     }
 
     // ==========================================
@@ -322,30 +217,12 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     submitAdminForm(): void {
-        if (this.adminForm.invalid) {
-            this.adminForm.markAllAsTouched();
-            return;
-        }
-
-        this.isCreatingAdmin.set(true);
-        const formValue = this.adminForm.value;
-
-        this.userService.createAdmin({
-            name: formValue.name,
-            email: formValue.email,
-            password: formValue.password,
-            status: formValue.status
-        }).subscribe({
-            next: (newAdmin) => {
-                this.isCreatingAdmin.set(false);
-                this.closeAddAdminModal();
-                this.uiFeedback.success('تم الإنشاء', `تم إنشاء المشرف "${newAdmin.name}" بنجاح`);
-            },
-            error: (err) => {
-                this.isCreatingAdmin.set(false);
-                this.uiFeedback.error('فشل الإنشاء', err.error?.message || 'تعذّر إنشاء حساب المشرف. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
-            }
-        });
+        if (this.adminForm.invalid) { this.adminForm.markAllAsTouched(); return; }
+        this.facade.submitAdminForm(
+            this.adminForm.value,
+            (v) => this.isCreatingAdmin.set(v),
+            () => this.closeAddAdminModal()
+        );
     }
 
     // ==========================================
@@ -363,31 +240,12 @@ export class UsersListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     submitCreatorForm(): void {
-        if (this.adminForm.invalid) {
-            this.adminForm.markAllAsTouched();
-            return;
-        }
-
-        this.isCreatingCreator.set(true);
-        const formValue = this.adminForm.value;
-
-        this.userService.createTournamentCreator({
-            name: formValue.name,
-            email: formValue.email,
-            password: formValue.password,
-            status: formValue.status
-        }).subscribe({
-            next: (user) => {
-                this.isCreatingCreator.set(false);
-                this.closeAddCreatorModal();
-                this.uiFeedback.success('تم الإنشاء', `تم إنشاء منشئ البطولة "${user.name}" بنجاح`);
-            },
-            error: (err) => {
-                this.isCreatingCreator.set(false);
-                this.uiFeedback.error('فشل الإنشاء', err.error?.message || 'تعذّر إنشاء الحساب. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
-            }
-        });
+        if (this.adminForm.invalid) { this.adminForm.markAllAsTouched(); return; }
+        this.facade.submitCreatorForm(
+            this.adminForm.value,
+            (v) => this.isCreatingCreator.set(v),
+            () => this.closeAddCreatorModal()
+        );
     }
 }
-
 

@@ -1,0 +1,62 @@
+<div class="players-container">
+    <!-- Invite Player (Captain only) -->
+    @if (isCaptain) {
+    <div class="invite-section">
+        <h4>دعوة لاعب</h4>
+        <div class="invite-form">
+            <div class="input-group">
+                <app-icon name="person_add" class="icon-sm"></app-icon>
+                <input type="text" [(ngModel)]="invitePlayerId"
+                    placeholder="أدخل رقم اللاعب التعريفي"
+                    class="invite-input"
+                    (keyup.enter)="onInvite()">
+            </div>
+            <app-button variant="primary" size="sm" icon="send"
+                [isLoading]="isAddingPlayer" (click)="onInvite()">
+                إرسال دعوة
+            </app-button>
+        </div>
+    </div>
+    }
+
+    <!-- Players List -->
+    <div class="players-list">
+        @for (player of players; track player.id) {
+        <div class="player-item">
+            <div class="player-info">
+                <div class="player-avatar">
+                    <app-icon name="person" class="icon-sm"></app-icon>
+                </div>
+                <div class="player-details">
+                    <span class="player-name">{{ player.name }}</span>
+                    <span class="player-position">{{ player.position || 'لاعب' }}</span>
+                </div>
+            </div>
+            <div class="player-stats-row">
+                <span class="mini-stat" title="أهداف">
+                    <app-icon name="sports_soccer" class="icon-sm"></app-icon>
+                    {{ player.goals || 0 }}
+                </span>
+                <span class="mini-stat yellow" title="بطاقات صفراء">
+                    {{ player.yellowCards || 0 }}
+                </span>
+                <span class="mini-stat red" title="بطاقات حمراء">
+                    {{ player.redCards || 0 }}
+                </span>
+            </div>
+            @if (isCaptain) {
+            <div class="player-actions">
+                <app-button variant="ghost" size="sm" icon="delete"
+                    (click)="onPlayerAction(player, 'remove')">
+                </app-button>
+            </div>
+            }
+        </div>
+        } @empty {
+        <div class="empty-players">
+            <app-icon name="groups" class="icon-sm"></app-icon>
+            <p>لا يوجد لاعبون في الفريق</p>
+        </div>
+        }
+    </div>
+</div>

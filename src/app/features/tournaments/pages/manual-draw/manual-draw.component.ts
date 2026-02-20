@@ -1,12 +1,12 @@
-import { Component, OnInit, inject, signal, computed, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
-import { Tournament, TeamRegistration } from '../../../../core/models/tournament.model';
+import { Tournament, TeamRegistration, TournamentStatus, RegistrationStatus } from '../../../../core/models/tournament.model';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
@@ -39,7 +39,6 @@ export class ManualDrawComponent implements OnInit {
     private uiFeedback = inject(UIFeedbackService);
     private layoutOrchestrator = inject(LayoutOrchestratorService);
     private navService = inject(ContextNavigationService);
-    private destroyRef = inject(DestroyRef);
 
     tournament = signal<Tournament | null>(null);
     registeredTeams = signal<TeamRegistration[]>([]);
@@ -67,7 +66,12 @@ export class ManualDrawComponent implements OnInit {
     isKnockout = computed(() => {
         const t = this.tournament();
         if (!t) return false;
-        return t.format === 'KnockoutOnly';
+        return t.format === 'KnockoutOnly' || t.format === 'KnockoutHomeAway' || t.status === TournamentStatus.QUALIFICATION_CONFIRMED;
+    });
+
+    isKnockoutStage = computed(() => {
+        const t = this.tournament();
+        return t?.status === TournamentStatus.QUALIFICATION_CONFIRMED;
     });
 
     // Computed: teams per group capacity
@@ -85,23 +89,22 @@ export class ManualDrawComponent implements OnInit {
         }
     }
 
-    loadTournament(id: string): void {
+    async loadTournament(id: string): Promise<void> {
         this.isLoading.set(true);
-        this.tournamentService.getTournamentById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (t) => {
-                if (!t) {
-                    this.uiFeedback.error('غير موجودة', 'البطولة غير موجودة أو ربما تم حذفها.');
-                    return;
-                }
-                this.tournament.set(t);
-                this.setupLayout(t);
-                this.loadRegistrations(id);
-            },
-            error: (err) => {
-                this.isLoading.set(false);
-                this.uiFeedback.error('خطأ في تحميل البطولة', err.error?.message || 'فشل في تحميل بيانات البطولة');
+        try {
+            const t = await firstValueFrom(this.tournamentService.getTournamentById(id));
+            if (!t) {
+                this.uiFeedback.error('غير موجودة', 'البطولة غير موجودة أو ربما تم حذفها.');
+                return;
             }
-        });
+            this.tournament.set(t);
+            this.setupLayout(t);
+            await this.loadRegistrations(id);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.isLoading.set(false);
+            this.uiFeedback.error('خطأ في تحميل البطولة', httpErr.error?.message || 'فشل في تحميل بيانات البطولة');
+        }
     }
 
     setupLayout(t: Tournament): void {
@@ -118,16 +121,22 @@ export class ManualDrawComponent implements OnInit {
         }
     }
 
-    loadRegistrations(id: string): void {
-        this.tournamentService.getRegistrations(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (regs) => {
-                const approved = regs.filter(r => r.status === 'Approved');
-                this.registeredTeams.set(approved);
-                this.unassignedTeams.set([...approved]);
-                this.isLoading.set(false);
-            },
-            error: () => this.isLoading.set(false)
-        });
+    async loadRegistrations(id: string): Promise<void> {
+        try {
+            const regs = await firstValueFrom(this.tournamentService.getRegistrations(id));
+            let approved = regs.filter(r => r.status === RegistrationStatus.APPROVED);
+
+            // If in QualificationConfirmed state, only show teams that actually qualified
+            if (this.tournament()?.status === TournamentStatus.QUALIFICATION_CONFIRMED) {
+                approved = approved.filter(r => r.isQualifiedForKnockout === true);
+            }
+
+            this.registeredTeams.set(approved);
+            this.unassignedTeams.set([...approved]);
+            this.isLoading.set(false);
+        } catch {
+            this.isLoading.set(false);
+        }
     }
 
     // ─── Group Modal Flow ───
@@ -249,52 +258,49 @@ export class ManualDrawComponent implements OnInit {
         }
     }
 
-    private submitGroupDraw(t: Tournament): void {
+    private async submitGroupDraw(t: Tournament): Promise<void> {
         const assignments = this.groupAssignments().map(g => ({
             groupId: g.id,
             teamIds: g.teams.map(team => team.teamId)
         }));
 
-        this.tournamentService.assignGroups(t.id, assignments).subscribe({
-            next: () => {
-                this.tournamentService.generateManualGroupMatches(t.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم بنجاح', 'تم توزيع الفرق وتوليد مباريات المجموعات بنجاح.');
-                        this.layoutOrchestrator.reset();
-                        this.navService.navigateTo(['tournaments', t.id]);
-                    },
-                    error: (err) => {
-                        this.isSubmitting.set(false);
-                        this.uiFeedback.error('خطأ في توليد المباريات', err.error?.message || 'فشل توليد المواجهات');
-                    }
-                });
-            },
-            error: (err) => {
-                this.isSubmitting.set(false);
-                this.uiFeedback.error('خطأ في التوزيع', err.error?.message || 'فشل في حفظ المجموعات');
-            }
-        });
+        try {
+            await firstValueFrom(this.tournamentService.assignGroups(t.id, assignments));
+            await firstValueFrom(this.tournamentService.generateManualGroupMatches(t.id));
+            this.uiFeedback.success('تم بنجاح', 'تم توزيع الفرق وتوليد مباريات المجموعات بنجاح.');
+            this.layoutOrchestrator.reset();
+            this.navService.navigateTo(['tournaments', t.id]);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.isSubmitting.set(false);
+            this.uiFeedback.error('خطأ', httpErr.error?.message || 'فشل في حفظ المجموعات أو توليد المواجهات');
+        }
     }
 
-    private submitKnockoutDraw(t: Tournament): void {
+    private async submitKnockoutDraw(t: Tournament): Promise<void> {
         const pairings = this.knockoutPairings().map(p => ({
-            homeTeamId: p.home?.teamId,
-            awayTeamId: p.away?.teamId,
+            homeTeamId: p.home?.teamId ?? '',
+            awayTeamId: p.away?.teamId ?? '',
             roundNumber: 1,
             stageName: 'Round 1'
         }));
 
-        this.tournamentService.createManualKnockoutMatches(t.id, pairings).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم بنجاح', 'تم إنشاء مواجهات خروج المغلوب بنجاح.');
-                this.layoutOrchestrator.reset();
-                this.navService.navigateTo(['tournaments', t.id]);
-            },
-            error: (err) => {
-                this.isSubmitting.set(false);
-                this.uiFeedback.error('فشل إنشاء المواجهات', err.error?.message || 'تعذّر إنشاء مواجهات خروج المغلوب.');
+        try {
+            // QualificationConfirmed = came from group stage → use manual-next-round/1
+            // KnockoutOnly/KnockoutHomeAway = pure knockout tournament → use manual-knockout-pairings
+            if (this.isKnockoutStage()) {
+                await firstValueFrom(this.tournamentService.manualNextRound(t.id, 1, pairings));
+            } else {
+                await firstValueFrom(this.tournamentService.createManualKnockoutMatches(t.id, pairings));
             }
-        });
+            this.uiFeedback.success('تم بنجاح', 'تم إنشاء مواجهات خروج المغلوب بنجاح.');
+            this.layoutOrchestrator.reset();
+            this.navService.navigateTo(['tournaments', t.id]);
+        } catch (err: unknown) {
+            const httpErr = err as { error?: { message?: string } };
+            this.isSubmitting.set(false);
+            this.uiFeedback.error('فشل إنشاء المواجهات', httpErr.error?.message || 'تعذّر إنشاء مواجهات خروج المغلوب.');
+        }
     }
 
     cancel(): void {

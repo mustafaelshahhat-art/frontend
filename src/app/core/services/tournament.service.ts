@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError, shareReplay, tap } from 'rxjs/operators';
-import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto, Match } from '../models/tournament.model';
+import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto, Match, ManualDrawRequest, GroupAssignment, KnockoutPairing } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
@@ -166,12 +166,12 @@ export class TournamentService {
         );
     }
 
-    setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<Match[]> {
-        return this.http.post<Match[]>(`${this.apiUrl}/${tournamentId}/opening-match`, { homeTeamId, awayTeamId });
+    setOpeningMatch(tournamentId: string, homeTeamId: string, awayTeamId: string): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/opening-match`, { homeTeamId, awayTeamId });
     }
 
-    manualDraw(tournamentId: string, request: any): Observable<any> {
-        return this.http.post(`${this.apiUrl}/${tournamentId}/manual-draw`, request);
+    manualDraw(tournamentId: string, request: ManualDrawRequest): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/manual-draw`, request);
     }
 
     getStandings(tournamentId: string, groupId?: number): Observable<TournamentStanding[]> {
@@ -183,6 +183,16 @@ export class TournamentService {
                 map(paged => paged.items)
             );
         });
+    }
+
+    confirmManualQualification(tournamentId: string, request: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/${tournamentId}/confirm-manual-qualification`, request).pipe(
+            tap(() => {
+                this.invalidateCache(`detail:${tournamentId}`);
+                this.invalidateCache(`bracket:${tournamentId}`);
+                this.invalidateCache(`standings:${tournamentId}`);
+            })
+        );
     }
 
     getGroups(tournamentId: string): Observable<Group[]> {
@@ -201,21 +211,28 @@ export class TournamentService {
         );
     }
 
-    assignGroups(tournamentId: string, assignments: any[]): Observable<void> {
+    assignGroups(tournamentId: string, assignments: GroupAssignment[]): Observable<void> {
         return this.http.post<void>(`${this.apiUrl}/${tournamentId}/assign-groups`, assignments).pipe(
             tap(() => { this.invalidateCache(`groups:${tournamentId}`); this.invalidateCache(`standings:${tournamentId}`); })
         );
     }
 
-    generateManualGroupMatches(tournamentId: string): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/generate-manual-group-matches`, {}).pipe(
+    generateManualGroupMatches(tournamentId: string): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/generate-manual-group-matches`, {}).pipe(
             tap(() => this.invalidateCache(`standings:${tournamentId}`))
         );
     }
 
-    createManualKnockoutMatches(tournamentId: string, pairings: any[]): Observable<any[]> {
-        return this.http.post<any[]>(`${this.apiUrl}/${tournamentId}/manual-knockout-pairings`, pairings).pipe(
+    createManualKnockoutMatches(tournamentId: string, pairings: KnockoutPairing[]): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/manual-knockout-pairings`, pairings).pipe(
             tap(() => this.invalidateCache(`bracket:${tournamentId}`))
+        );
+    }
+
+    /** Used for GroupsAndKnockout tournaments after QualificationConfirmed — submits round 1 knockout pairings */
+    manualNextRound(tournamentId: string, roundNumber: number, pairings: KnockoutPairing[]): Observable<GenerateMatchesResponse> {
+        return this.http.post<GenerateMatchesResponse>(`${this.apiUrl}/${tournamentId}/manual-next-round/${roundNumber}`, pairings).pipe(
+            tap(() => { this.invalidateCache(`bracket:${tournamentId}`); this.invalidateCache(`detail:${tournamentId}`); })
         );
     }
 

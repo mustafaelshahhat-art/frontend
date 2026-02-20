@@ -1,3 +1,6 @@
+// ──────────────────────────────────────────────────────────
+// Team domain models — aligned with backend TeamDto / PlayerDto / JoinRequestDto
+// ──────────────────────────────────────────────────────────
 import { TeamJoinRequest } from './team-request.model';
 
 export interface PlayerStats {
@@ -12,8 +15,7 @@ export interface Player extends PlayerStats {
     displayId: string;
     name: string;
     teamId?: string;
-    phone: string;
-    userId: string;
+    userId?: string;
     number?: number;
     position?: string;
     status?: string;
@@ -23,10 +25,12 @@ export interface Player extends PlayerStats {
 export interface JoinRequest {
     id: string;
     playerId: string;
-    playerDisplayId: string;
+    playerDisplayId?: string;    // Frontend display helper
     playerName: string;
+    teamId?: string;             // Backend: JoinRequestDto.TeamId
+    teamName?: string;           // Backend: JoinRequestDto.TeamName
     requestDate: Date;
-    status: 'pending' | 'approved' | 'rejected';
+    status: string;
     initiatedByPlayer?: boolean;
 }
 
@@ -47,25 +51,18 @@ export interface Team {
     name: string;
     captainName: string;
     founded: string;
-    players: Player[];
-    joinRequests: JoinRequest[];
-    invitations?: TeamJoinRequest[];
     city?: string;
+    isActive?: boolean;
     playerCount?: number;
     maxPlayers?: number;
-    isActive?: boolean;
-    status?: string;
+    stats?: TeamStats;
+    players: Player[];
+    joinRequests?: JoinRequest[];
+    invitations?: TeamJoinRequest[];
     createdAt?: Date | string;
-    isReady?: boolean; // Backend compatibility
-    stats?: {
-        matches: number;
-        wins: number;
-        draws: number;
-        losses: number;
-        goalsFor: number;
-        goalsAgainst: number;
-        rank: number;
-    };
+    // Frontend-only fields
+    status?: string;
+    isReady?: boolean;
     matches?: {
         id: string;
         opponent: string;
@@ -76,6 +73,16 @@ export interface Team {
         status: string;
         type: string;
     }[];
+}
+
+export interface TeamStats {
+    matches: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    rank: number;
 }
 
 export interface ApiTeamMatch {
@@ -96,7 +103,6 @@ export interface ApiTeamFinance {
     registeredAt: string | Date;
     status: string;
 }
-
 
 // Maximum players in a team (including captain)
 export const MAX_TEAM_PLAYERS = 10;

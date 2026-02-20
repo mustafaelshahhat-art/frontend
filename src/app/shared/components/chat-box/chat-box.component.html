@@ -1,0 +1,81 @@
+<div class="chat-container">
+    <!-- Main Chat Panel -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="icon-wrapper bg-primary-subtle">
+                    <app-icon name="forum" class="text-primary icon-sm"></app-icon>
+                </div>
+                <div>
+                    <h2 class="chat-title">{{ title }}</h2>
+                    <div class="chat-subtitle">
+                        {{ match?.homeTeamName }} <span class="chat-subtitle-vs">VS</span> {{ match?.awayTeamName }}
+                        @if (match && match.date) {
+                        <span class="chat-subtitle-date">
+                            - {{ match.date | date:'hh:mm a' }} ({{ match.date | date:'yyyy/MM/dd' }})
+                        </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-header-actions">
+                <div class="online-status">
+                    <span class="live-dot"></span>
+                    <span class="online-status-text">متصل</span>
+                </div>
+                @if (canSchedule) {
+                <app-icon-button (trigger)="schedule.emit()" icon="calendar_month" variant="ghost"
+                    title="تحديد موعد اللقاء" />
+                }
+                <app-icon-button (trigger)="navigateBack()" icon="arrow_forward" variant="ghost" />
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="chat-messages" #scrollContainer>
+            @if (messages.length === 0) {
+            <div class="chat-empty">
+                <div class="chat-empty-icon">
+                    <app-icon name="chat_bubble_outline" class=" icon-sm"></app-icon>
+                </div>
+                <h3 class="chat-empty-title">لا توجد رسائل بعد</h3>
+                <p class="chat-empty-subtitle">ابدأ المحادثة مع الحكم والفرق الأخرى</p>
+            </div>
+            }
+
+            @for (msg of messages; track trackByMessage($index, msg)) {
+            <div class="chat-message" [class.chat-message-me]="isMe(msg)" [class.chat-message-other]="!isMe(msg)">
+
+                <div class="chat-message-sender" [class.chat-message-sender-reversed]="isMe(msg)">
+                    <span class="chat-message-name">{{ msg.senderName }}</span>
+                    <span class="chat-message-role" [class.captain-role]="msg.senderRole === 'captain'"
+                        [class.admin-role]="msg.senderRole === 'admin'"
+                        [class.organizer-role]="msg.senderRole === 'organizer' || msg.senderRole === 'tournamentcreator'">
+                        {{ msg.senderRole === 'captain' ? 'قائد' :
+                        msg.senderRole === 'admin' ? 'مشرف' :
+                        (msg.senderRole === 'organizer' || msg.senderRole === 'tournamentcreator') ? 'منظم' : 'لاعب' }}
+                    </span>
+                </div>
+
+                <div class="chat-bubble" [class.chat-bubble-me]="isMe(msg)" [class.chat-bubble-other]="!isMe(msg)">
+                    {{ msg.text }}
+                </div>
+                <div class="chat-message-time">{{ msg.timestamp | date:'shortTime' }}</div>
+            </div>
+            }
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <app-form-control type="text" [(ngModel)]="newMessage"
+                    [placeholder]="readOnly ? 'هذه المباراة انتهت، المحادثة للقراءة فقط' : 'اكتب رسالتك هنا...'"
+                    [disabled]="isLoading || readOnly" (keydown.enter)="sendMessage()" class="chat-input-control" />
+
+                <app-icon-button (trigger)="sendMessage()" icon="send" variant="primary"
+                    [disabled]="!newMessage.trim() || isLoading || readOnly" [isLoading]="isLoading" />
+            </div>
+        </div>
+    </div>
+</div>

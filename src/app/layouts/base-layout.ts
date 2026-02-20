@@ -1,6 +1,7 @@
 import { inject, OnInit, HostListener, effect, Directive } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { AuthStore } from '../core/stores/auth.store';
 import { NotificationService } from '../core/services/notification.service';
@@ -88,7 +89,7 @@ export abstract class BaseLayout implements OnInit {
     }
 
     viewNotification(notification: Notification): void {
-        this.notificationService.markAsRead(notification.id).subscribe();
+        firstValueFrom(this.notificationService.markAsRead(notification.id)).catch(() => {});
         this.showNotifications = false;
         if (notification.actionUrl) {
             this.router.navigateByUrl(notification.actionUrl);

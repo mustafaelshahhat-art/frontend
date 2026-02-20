@@ -56,20 +56,15 @@ export class AnalyticsService {
     private readonly apiUrl = `${environment.apiUrl}/Analytics`;
 
     getDashboardStats(): Observable<DashboardStats> {
-        return this.http.get<unknown>(`${this.apiUrl}/overview`).pipe(
-            map(data => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
-                const d = data as any;
-                return {
-                    totalUsers: d.totalUsers,
-                    totalTeams: d.totalTeams,
-                    activeTournaments: d.activeTournaments,
-                    matchesToday: d.matchesToday,
-
-                    totalGoals: d.totalGoals,
-                    loginsToday: d.loginsToday
-                };
-            })
+        return this.http.get<DashboardStats>(`${this.apiUrl}/overview`).pipe(
+            map(data => ({
+                totalUsers: data.totalUsers,
+                totalTeams: data.totalTeams,
+                activeTournaments: data.activeTournaments,
+                matchesToday: data.matchesToday,
+                totalGoals: data.totalGoals,
+                loginsToday: data.loginsToday
+            }))
         );
     }
 

@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Match, MatchStatus, Card, Goal, MatchEvent } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
+import { Match, MatchStatus, Card, Goal, MatchEvent } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -46,8 +46,11 @@ export class MatchService {
         return this.http.get<Match>(`${this.apiUrl}/${id}`);
     }
 
-    getMatchesByTournament(tournamentId: string): Observable<Match[]> {
-        return this.http.get<Match[]>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`);
+    getMatchesByTournament(tournamentId: string, pageSize = 200): Observable<Match[]> {
+        const params = new HttpParams().set('pageSize', pageSize.toString()).set('page', '1');
+        return this.http
+            .get<PagedResult<Match>>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`, { params })
+            .pipe(map(result => result?.items ?? []));
     }
 
     // PERF-FIX: Server-side filtering — eliminates fetching 100 records and filtering in browser

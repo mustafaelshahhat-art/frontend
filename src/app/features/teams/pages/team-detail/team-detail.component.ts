@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
 import { switchMap, tap, finalize } from 'rxjs/operators';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
@@ -12,13 +12,13 @@ import { MatchService } from '../../../../core/services/match.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TeamStore } from '../../../../core/stores/team.store';
 import { MatchStore } from '../../../../core/stores/match.store';
-import { Match } from '../../../../core/models/tournament.model';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PermissionsService } from '../../../../core/services/permissions.service';
-import { UserRole } from '../../../../core/models/user.model';
 import { TeamRequestService } from '../../../../core/services/team-request.service';
 import { TeamJoinRequest } from '../../../../core/models/team-request.model';
+import { TeamDetailFacade } from './team-detail-facade.service';
+import { computeTeamMatches, computeTeamStats } from './team-detail.utils';
 
 @Component({
     selector: 'app-team-detail-page',
@@ -27,6 +27,7 @@ import { TeamJoinRequest } from '../../../../core/models/team-request.model';
         CommonModule,
         TeamDetailComponent
     ],
+    providers: [TeamDetailFacade],
     template: `
         <!-- Show content if we have team data, even if still loading/refreshing -->
         @if (teamData()) {
@@ -74,7 +75,6 @@ import { TeamJoinRequest } from '../../../../core/models/team-request.model';
 })
 export class TeamDetailPageComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
-    public readonly router = inject(Router);
     private readonly teamService = inject(TeamService);
     private readonly matchService = inject(MatchService);
     private readonly uiFeedback = inject(UIFeedbackService);
@@ -87,6 +87,7 @@ export class TeamDetailPageComponent implements OnInit {
     protected readonly cd = inject(ChangeDetectorRef);
     private readonly navService = inject(ContextNavigationService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly facade = inject(TeamDetailFacade);
 
     teamId = signal<string | null>(null);
     isLoading = signal<boolean>(true);
@@ -98,7 +99,7 @@ export class TeamDetailPageComponent implements OnInit {
         const user = this.authService.getCurrentUser();
         return !!(team && user && team.players.some(p =>
             (p.userId === user.id || p.id === user.id) &&
-            ((p.teamRole as any) === 'Captain' || (p.teamRole as any) === 'captain')
+            (p.teamRole === 'Captain' || p.teamRole?.toLowerCase() === 'captain')
         ));
     });
 
@@ -106,13 +107,7 @@ export class TeamDetailPageComponent implements OnInit {
         return this.isCaptain();
     });
 
-    canManageAdmin = computed(() => {
-        return this.permissionsService.has(Permission.MANAGE_TEAMS);
-    });
-
-    canManageGlobal = computed(() => {
-        return this.permissionsService.has(Permission.MANAGE_TEAMS);
-    });
+    canManageAdmin = computed(() => this.permissionsService.has(Permission.MANAGE_TEAMS));
 
     backRoute = computed(() => {
         const prefix = this.navService.getRootPrefix();
@@ -123,34 +118,11 @@ export class TeamDetailPageComponent implements OnInit {
     // Computed Matches for this team (Real-Time Source of Truth)
     teamMatches = computed(() => {
         const id = this.teamId();
-        if (!id) return [];
-        return this.matchStore.matches().filter((m: Match) => m.homeTeamId === id || m.awayTeamId === id).map((m: Match) => ({
-            id: m.id,
-            opponent: m.homeTeamId === id ? m.awayTeamName : m.homeTeamName,
-            date: m.date ? new Date(m.date) : new Date(),
-            score: `${m.homeScore}-${m.awayScore}`,
-            teamScore: m.homeTeamId === id ? m.homeScore : m.awayScore,
-            opponentScore: m.homeTeamId === id ? m.awayScore : m.homeScore,
-            status: m.status,
-            type: 'مباراة دوري'
-        }));
+        return id ? computeTeamMatches(id, this.matchStore.matches()) : [];
     });
 
     // Computed Stats from Matches
-    teamStats = computed(() => {
-        const matches = this.teamMatches();
-        const stats = { matches: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, rank: 0 };
-
-        matches.filter((m: { status: string }) => m.status === 'Finished').forEach((m: { teamScore: number, opponentScore: number }) => {
-            stats.matches++;
-            stats.goalsFor += m.teamScore || 0;
-            stats.goalsAgainst += m.opponentScore || 0;
-            if (m.teamScore! > m.opponentScore!) stats.wins++;
-            else if (m.teamScore! < m.opponentScore!) stats.losses++;
-            else stats.draws++;
-        });
-        return stats;
-    });
+    teamStats = computed(() => computeTeamStats(this.teamMatches()));
 
     // Local data for UI state that isn't in main Team model
     invitations = signal<TeamJoinRequest[]>([]);
@@ -252,182 +224,54 @@ export class TeamDetailPageComponent implements OnInit {
     handleDeleteTeam(): void {
         const t = this.teamData();
         if (!t) return;
-
-        this.uiFeedback.confirm(
-            'حذف الفريق',
-            'هل أنت متأكد من حذف هذا الفريق؟ سيتم أرشفة الفريق وإلغاء عضوية جميع اللاعبين.',
-            'حذف نهائي',
-            'danger'
-        ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.teamService.deleteTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                    next: () => {
-                        this.teamStore.removeTeam(t.id);
-                        this.authService.refreshUserProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-                        this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
-                        this.goToTeamsList();
-                    },
-                    error: (err) => {
-                        this.uiFeedback.error('فشل الحذف', err.error?.message || 'تعذّر حذف الفريق. يرجى المحاولة مرة أخرى.');
-                    }
-                });
-            }
-        });
+        this.facade.deleteTeam(t.id, () => this.goToTeamsList());
     }
 
     handleEditName(newName: string): void {
         const current = this.teamData();
         if (!current || !newName.trim()) return;
-
-        this.teamService.updateTeam({ id: current.id, name: newName } as Partial<Team>).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: (updated) => {
-                this.teamStore.upsertTeam(updated);
-                this.uiFeedback.success('تم التحديث', 'تم تغيير اسم الفريق بنجاح');
-            },
-            error: () => this.uiFeedback.error('فشل التحديث', 'تعذّر تغيير اسم الفريق. يرجى المحاولة مرة أخرى.')
-        });
+        this.facade.editName(current.id, newName);
     }
 
     handleAddPlayer(displayId: string): void {
         const team = this.teamData();
         if (!team) return;
-
-        this.isInviteLoading.set(true);
-        this.teamService.invitePlayerByDisplayId(team.id, displayId).pipe(
-            takeUntilDestroyed(this.destroyRef),
-            finalize(() => this.isInviteLoading.set(false))
-        ).subscribe({
-            next: (response: { playerName: string }) => {
-                this.uiFeedback.success('تم إرسال الدعوة', `تم إرسال دعوة للانضمام للبطل "${response.playerName}" بنجاح.`);
-            },
-            error: (err: { error?: { message?: string }, message?: string }) => {
-                this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'لم يتم العثور على لاعب بهذا الرقم أو أنه مسجل في فريق آخر');
-            }
-        });
+        this.facade.addPlayer(team.id, displayId, this.isInviteLoading);
     }
 
     handleAddGuestPlayer(event: { name: string, number?: number, position?: string }): void {
         const team = this.teamData();
         if (!team) return;
-
-        this.isInviteLoading.set(true);
-        this.teamService.addGuestPlayer(team.id, event.name, event.number, event.position).pipe(
-            takeUntilDestroyed(this.destroyRef),
-            finalize(() => this.isInviteLoading.set(false))
-        ).subscribe({
-            next: () => {
-                this.uiFeedback.success('تمت الإضافة', `تم إضافة اللاعب "${event.name}" للفريق بنجاح.`);
-                this.loadInitialData(team.id);
-            },
-            error: (err: { error?: { message?: string }, message?: string }) => {
-                this.uiFeedback.error('فشل الإضافة', err.error?.message || err.message || 'فشل في إضافة اللاعب');
-            }
-        });
+        this.facade.addGuestPlayer(team.id, event, this.isInviteLoading, () => this.loadInitialData(team.id));
     }
 
     handleTabChange(tab: string): void {
         const current = this.teamData();
         if (!current) return;
-
-        switch (tab) {
-            case 'players':
-                this.teamService.getTeamPlayers(current.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(players => {
-                    const team = this.teamStore.getTeamById(current.id);
-                    if (team) {
-                        this.teamStore.updateTeam({ ...team, players });
-                    }
-                });
-                break;
-            case 'matches':
-                this.matchService.getMatchesByTeam(current.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(matches => {
-                    matches.forEach(m => {
-                        if (this.matchStore.getMatchById(m.id)) {
-                            this.matchStore.updateMatch(m);
-                        } else {
-                            this.matchStore.addMatch(m);
-                        }
-                    });
-                });
-                break;
-        }
+        this.facade.refreshTabData(current.id, tab);
     }
 
     handleRespondRequest(event: { request: TeamJoinRequest, approve: boolean }): void {
-        const { request, approve } = event;
         const current = this.teamData();
         if (!current) return;
-
-        this.teamRequestService.respondToRequest(current.id, request.id, approve).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => {
-                this.uiFeedback.success(approve ? 'تم القبول' : 'تم الرفض', 'تم تحديث حالة الطلب بنجاح');
-                // Refresh full team data to update player count and list
-                this.loadInitialData(current.id);
-            },
-            error: (err) => {
-                this.uiFeedback.error('فشل المعالجة', err.error?.message || 'حدث خطأ أثناء معالجة الطلب');
-            }
-        });
+        this.facade.respondToRequest(current.id, event.request.id, event.approve, () => this.loadInitialData(current.id));
     }
 
     handleDisableTeam(): void {
         const t = this.teamData();
         if (!t) return;
-
-        this.teamService.disableTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم التعطيل', 'تم تعطيل الفريق وانسحابه من أي بطولة حالية');
-                this.loadInitialData(t.id);
-            },
-            error: () => {
-                this.uiFeedback.error('فشل التعطيل', 'تعذّر تعطيل الفريق. يرجى المحاولة مرة أخرى.');
-            }
-        });
+        this.facade.disableTeam(t.id, () => this.loadInitialData(t.id));
     }
 
     handleActivateTeam(): void {
         const t = this.teamData();
         if (!t) return;
-
-        this.teamService.activateTeam(t.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-            next: () => {
-                this.uiFeedback.success('تم التفعيل', 'تم إعادة تفعيل الفريق بنجاح');
-                this.loadInitialData(t.id);
-            },
-            error: () => {
-                this.uiFeedback.error('فشل التفعيل', 'تعذّر تفعيل الفريق. يرجى المحاولة مرة أخرى.');
-            }
-        });
+        this.facade.activateTeam(t.id, () => this.loadInitialData(t.id));
     }
 
     handlePlayerAction(event: { player: TeamPlayer, action: string }): void {
-        const { player, action } = event;
-        const config = {
-            activate: { title: 'تفعيل اللاعب', message: `هل أنت متأكد من تفعيل اللاعب "${player.name}"؟`, btn: 'تفعيل الآن', type: 'info' as const },
-            deactivate: { title: 'تعطيل اللاعب', message: `هل أنت متأكد من تعطيل اللاعب "${player.name}"؟`, btn: 'تعطيل اللاعب', type: 'danger' as const },
-            ban: { title: 'حظر اللاعب', message: `هل أنت متأكد من حظر اللاعب "${player.name}"؟`, btn: 'حظر نهائي', type: 'danger' as const },
-            remove: { title: 'إزالة اللاعب', message: `هل أنت متأكد من إزالة اللاعب "${player.name}" من الفريق؟`, btn: 'إزالة الآن', type: 'danger' as const }
-        };
-
-        const { title, message, btn, type } = config[action as keyof typeof config];
-        this.uiFeedback.confirm(title, message, btn, type).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                const t = this.teamData();
-                if (!t) return;
-
-                if (action === 'remove') {
-                    this.teamService.removePlayer(t.id, player.id.toString()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                        next: () => {
-                            this.uiFeedback.success('تم الحذف', 'تم إزالة اللاعب من الفريق');
-                            this.loadInitialData(t.id);
-                        },
-                        error: () => {
-                            this.uiFeedback.error('فشل الإزالة', 'تعذّر إزالة اللاعب من الفريق. يرجى المحاولة مرة أخرى.');
-                        }
-                    });
-                } else {
-                    this.uiFeedback.info('قريباً', 'هذه الميزة غير مفعلة حالياً');
-                }
-            }
-        });
+        const t = this.teamData();
+        if (!t) return;
+        this.facade.playerAction(t.id, event, () => this.loadInitialData(t.id));
     }
 }

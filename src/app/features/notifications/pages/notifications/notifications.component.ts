@@ -13,6 +13,7 @@ import { InlineLoadingComponent } from '../../../../shared/components/inline-loa
 import { PermissionsService } from '../../../../core/services/permissions.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-notifications',
@@ -93,12 +94,12 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
     // -- Actions --
 
     markAllAsRead(): void {
-        this.notificationService.markAllAsRead().subscribe();
+        firstValueFrom(this.notificationService.markAllAsRead()).catch(() => {});
     }
 
     markAsRead(notification: Notification): void {
         if (!notification.isRead) {
-            this.notificationService.markAsRead(notification.id).subscribe();
+            firstValueFrom(this.notificationService.markAsRead(notification.id)).catch(() => {});
         }
         if (notification.actionUrl) {
             this.router.navigateByUrl(notification.actionUrl);
@@ -107,7 +108,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, OnDestroy 
 
     deleteNotification(event: MouseEvent, notification: Notification): void {
         event.stopPropagation();
-        this.notificationService.deleteNotification(notification.id).subscribe();
+        firstValueFrom(this.notificationService.deleteNotification(notification.id)).catch(() => {});
     }
 
     // -- Pagination --

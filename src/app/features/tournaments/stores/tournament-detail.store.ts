@@ -1,8 +1,6 @@
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of, Subject } from 'rxjs';
-import { catchError, switchMap, tap, distinctUntilChanged, filter } from 'rxjs/operators';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { TournamentService } from '../../../core/services/tournament.service';
 import { MatchService } from '../../../core/services/match.service';
@@ -12,54 +10,13 @@ import { AuthService } from '../../../core/services/auth.service';
 import { PermissionsService } from '../../../core/services/permissions.service';
 import {
     Tournament, Match, TournamentStanding, Group, BracketDto,
-    TournamentFormat, TournamentMode, TournamentStatus, BracketRound,
-    RegistrationStatus, SchedulingMode, TeamRegistration
+    TournamentStatus, TournamentFormat, SchedulingMode
 } from '../../../core/models/tournament.model';
 import { UserRole, TeamRole } from '../../../core/models/user.model';
 import { Permission } from '../../../core/permissions/permissions.model';
+import { DetailTab, ModeCategory, classifyMode } from './tournament-detail.utils';
 
-/** Which top-level tab the user is on */
-export type DetailTab = 'info' | 'standings' | 'bracket' | 'matches' | 'teams';
-
-/**
- * Categorise a TournamentMode (int enum 1-6) into one of three rendering
- * strategies used for conditional tab visibility and data loading.
- *
- *   League            → standings only
- *   Knockout          → bracket only
- *   GroupsThenKnockout → both
- */
-export type ModeCategory = 'League' | 'Knockout' | 'GroupsThenKnockout';
-
-function classifyMode(mode?: TournamentMode, format?: string): ModeCategory {
-    // Prefer the numeric mode enum coming from the DTO
-    if (mode != null) {
-        switch (mode) {
-            case TournamentMode.LeagueSingle:
-            case TournamentMode.LeagueHomeAway:
-                return 'League';
-            case TournamentMode.KnockoutSingle:
-            case TournamentMode.KnockoutHomeAway:
-                return 'Knockout';
-            case TournamentMode.GroupsKnockoutSingle:
-            case TournamentMode.GroupsKnockoutHomeAway:
-                return 'GroupsThenKnockout';
-        }
-    }
-
-    // Fallback: use the string `format` field
-    switch (format) {
-        case TournamentFormat.RoundRobin:
-            return 'League';
-        case TournamentFormat.KnockoutOnly:
-            return 'Knockout';
-        case TournamentFormat.GroupsThenKnockout:
-        case TournamentFormat.GroupsWithHomeAwayKnockout:
-            return 'GroupsThenKnockout';
-        default:
-            return 'League';
-    }
-}
+export type { DetailTab, ModeCategory } from './tournament-detail.utils';
 
 /**
  * Per-detail-page signal store.  Provided at the **component** level
@@ -80,6 +37,11 @@ export class TournamentDetailStore {
     readonly tournamentId = signal<string | null>(null);
     readonly isLoading = signal(true);
     readonly activeTab = signal<DetailTab>('info');
+
+    // ── UI signals (delegated from component) ──
+    readonly isGeneratingMatches = signal(false);
+    readonly isRegisterModalVisible = signal(false);
+    readonly isOpeningMatchModalVisible = signal(false);
 
     // ── Data signals ──
     readonly standings = signal<TournamentStanding[]>([]);
@@ -215,16 +177,65 @@ export class TournamentDetailStore {
     readonly canManageDraw = computed(() => {
         const t = this.tournament();
         return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t)) &&
+            (t?.status === TournamentStatus.REGISTRATION_CLOSED ||
+                t?.status === TournamentStatus.ACTIVE ||
+                t?.status === TournamentStatus.QUALIFICATION_CONFIRMED);
+    });
+
+    readonly hasGroupMatches = computed(() =>
+        this.tournamentMatches().some(m => m.groupId != null)
+    );
+
+    // ── Formats that contain a group stage ──
+    private readonly isGroupsFormat = computed(() => {
+        const f = this.tournament()?.format as string;
+        return f === TournamentFormat.GroupsThenKnockout || f === 'GroupsWithHomeAwayKnockout';
+    });
+
+    // ── Manual mode + groups format + groups not drawn yet ──
+    readonly canManageGroupDraw = computed(() => {
+        const t = this.tournament();
+        const hasPerms = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t);
+        return hasPerms &&
+            this.isManualMode() &&
+            this.isGroupsFormat() &&
+            !this.hasGroupMatches() &&
+            (t?.status === TournamentStatus.REGISTRATION_CLOSED ||
+                t?.status === TournamentStatus.ACTIVE);
+    });
+
+    // ── Manual mode + knockout round not drawn yet ──
+    readonly canManageKnockoutDraw = computed(() => {
+        const t = this.tournament();
+        const hasPerms = this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t);
+        const isKnockoutFormat = !this.isGroupsFormat();
+        const afterQualification = t?.status === TournamentStatus.QUALIFICATION_CONFIRMED;
+        const awaitingFirstKnockout = isKnockoutFormat &&
             (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE);
+        return hasPerms &&
+            this.isManualMode() &&
+            !this.hasKnockoutMatches() &&
+            (afterQualification || awaitingFirstKnockout);
+    });
+
+    readonly hasKnockoutMatches = computed(() => {
+        const knockoutStageNames = new Set(['Knockout', 'Final', 'Opening Match', 'Semi-final', 'Round 1']);
+        return this.tournamentMatches().some(m =>
+            knockoutStageNames.has(m.stageName ?? '') ||
+            // Fallback: any match without a groupId is a knockout match
+            (m.groupId == null && m.stageName !== 'League')
+        );
     });
 
     readonly canResetSchedule = computed(() => {
         const t = this.tournament();
         const matches = this.tournamentMatches();
         const hasFinishedOrLive = matches.some(m => m.status === 'Finished' || m.status === 'Live');
+        const validStatus = t?.status === TournamentStatus.REGISTRATION_CLOSED ||
+            t?.status === TournamentStatus.ACTIVE ||
+            t?.status === TournamentStatus.QUALIFICATION_CONFIRMED;
         return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t)) &&
-            (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.ACTIVE) &&
-            matches.length > 0 && !hasFinishedOrLive;
+            validStatus && matches.length > 0 && !hasFinishedOrLive;
     });
 
     readonly canSelectOpeningMatch = computed(() => {
@@ -233,12 +244,25 @@ export class TournamentDetailStore {
         return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.permissionsService.isOwner(t?.adminId || '')) &&
             (t?.status === TournamentStatus.REGISTRATION_CLOSED || t?.status === TournamentStatus.WAITING_FOR_OPENING_MATCH_SELECTION) &&
             matches.length === 0 &&
-            ((t?.schedulingMode as any) === 'Random' || (t?.schedulingMode as any) === 0);
+            (t?.schedulingMode === SchedulingMode.Random || (t?.schedulingMode as unknown) === 'Random');
     });
 
     readonly isManualMode = computed(() => {
         const t = this.tournament();
-        return (t?.schedulingMode as any) === 'Manual' || (t?.schedulingMode as any) === 1;
+        return (t?.schedulingMode === SchedulingMode.Manual || (t?.schedulingMode as unknown) === 'Manual');
+    });
+
+    readonly canConfirmQualification = computed(() => {
+        const t = this.tournament();
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t)) &&
+            t?.status === TournamentStatus.MANUAL_QUALIFICATION_PENDING;
+    });
+
+    readonly canGenerateKnockoutR1 = computed(() => {
+        const t = this.tournament();
+        return (this.permissionsService.has(Permission.MANAGE_TOURNAMENTS) || this.isOwner(t)) &&
+            t?.status === TournamentStatus.QUALIFICATION_CONFIRMED &&
+            !this.isManualMode();
     });
 
     // ─── Actions ────────────────────────────────────
@@ -250,80 +274,75 @@ export class TournamentDetailStore {
     }
 
     /** Called once when the route resolves the tournament id. */
-    loadTournament(id: string, destroyRef: DestroyRef): void {
+    async loadTournament(id: string, destroyRef: DestroyRef): Promise<void> {
         this.tournamentId.set(id);
         this.isLoading.set(true);
 
-        this.tournamentService.getTournamentById(id).pipe(
-            takeUntilDestroyed(destroyRef),
-            switchMap(data => {
-                if (!data) {
-                    this.isLoading.set(false);
-                    return of(null);
-                }
-                this.tournamentStore.upsertTournament(data);
-
-                // Determine which parallel calls to fire based on mode
-                const cat = classifyMode(data.mode, data.format);
-                const needsStandings = cat !== 'Knockout';
-                const needsBracket = cat !== 'League';
-                const hasGroups = cat === 'GroupsThenKnockout';
-
-                return forkJoin({
-                    matches: this.matchService.getMatchesByTournament(id).pipe(catchError(() => of([]))),
-                    standings: needsStandings
-                        ? this.tournamentService.getStandings(id).pipe(catchError(() => of([])))
-                        : of([]),
-                    groups: hasGroups
-                        ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
-                        : of([]),
-                    bracket: needsBracket
-                        ? this.tournamentService.getBracket(id).pipe(catchError(() => of(null)))
-                        : of(null),
-                });
-            })
-        ).subscribe({
-            next: result => {
-                if (!result) return;
-
-                // Matches → MatchStore
-                (result.matches as Match[]).forEach(m => {
-                    if (!this.matchStore.getMatchById(m.id)) {
-                        this.matchStore.addMatch(m);
-                    } else {
-                        this.matchStore.updateMatch(m);
-                    }
-                });
-
-                // Standings
-                const standingsArr = result.standings as TournamentStanding[];
-                this.standings.set(standingsArr);
-                const map = new Map<string, number>();
-                standingsArr.forEach(s => { if (s.groupId) map.set(s.teamId, s.groupId); });
-                this.teamGroupMap.set(map);
-
-                // Groups — always auto-select first group when available
-                const groupsArr = result.groups as Group[];
-                this.groups.set(groupsArr);
-                if (groupsArr.length > 0) {
-                    this.activeGroup.set(groupsArr[0].id);
-                }
-
-                // Bracket
-                if (result.bracket) {
-                    this.bracket.set(result.bracket as BracketDto);
-                }
-
-                // Mark loaded tabs
-                const loaded = new Set<DetailTab>(['info', 'matches', 'teams']);
-                if ((result.standings as TournamentStanding[]).length || this.showStandings()) loaded.add('standings');
-                if (result.bracket || this.showBracket()) loaded.add('bracket');
-                this.loadedTabs.set(loaded);
-
+        try {
+            const data = await firstValueFrom(this.tournamentService.getTournamentById(id));
+            if (!data) {
                 this.isLoading.set(false);
-            },
-            error: () => this.isLoading.set(false)
-        });
+                return;
+            }
+            this.tournamentStore.upsertTournament(data);
+
+            // Determine which parallel calls to fire based on mode
+            const cat = classifyMode(data.mode, data.format);
+            const needsStandings = cat !== 'Knockout';
+            const needsBracket = cat !== 'League';
+            const hasGroups = cat === 'GroupsThenKnockout';
+
+            const result = await firstValueFrom(forkJoin({
+                matches: this.matchService.getMatchesByTournament(id).pipe(catchError(() => of([]))),
+                standings: needsStandings
+                    ? this.tournamentService.getStandings(id).pipe(catchError(() => of([])))
+                    : of([]),
+                groups: hasGroups
+                    ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
+                    : of([]),
+                bracket: needsBracket
+                    ? this.tournamentService.getBracket(id).pipe(catchError(() => of(null)))
+                    : of(null),
+            }));
+
+            // Matches → MatchStore
+            (result.matches as Match[]).forEach(m => {
+                if (!this.matchStore.getMatchById(m.id)) {
+                    this.matchStore.addMatch(m);
+                } else {
+                    this.matchStore.updateMatch(m);
+                }
+            });
+
+            // Standings
+            const standingsArr = result.standings as TournamentStanding[];
+            this.standings.set(standingsArr);
+            const map = new Map<string, number>();
+            standingsArr.forEach(s => { if (s.groupId) map.set(s.teamId, s.groupId); });
+            this.teamGroupMap.set(map);
+
+            // Groups — always auto-select first group when available
+            const groupsArr = result.groups as Group[];
+            this.groups.set(groupsArr);
+            if (groupsArr.length > 0) {
+                this.activeGroup.set(groupsArr[0].id);
+            }
+
+            // Bracket
+            if (result.bracket) {
+                this.bracket.set(result.bracket as BracketDto);
+            }
+
+            // Mark loaded tabs
+            const loaded = new Set<DetailTab>(['info', 'matches', 'teams']);
+            if ((result.standings as TournamentStanding[]).length || this.showStandings()) loaded.add('standings');
+            if (result.bracket || this.showBracket()) loaded.add('bracket');
+            this.loadedTabs.set(loaded);
+
+            this.isLoading.set(false);
+        } catch {
+            this.isLoading.set(false);
+        }
     }
 
     /** Full reload (after admin mutation). */
@@ -352,7 +371,7 @@ export class TournamentDetailStore {
      * `standings` and `bracket` are also loaded initially but this guard
      * future-proofs for cases where the initial call skipped them.
      */
-    private ensureTabDataLoaded(tab: DetailTab, destroyRef: DestroyRef): void {
+    private async ensureTabDataLoaded(tab: DetailTab, destroyRef: DestroyRef): Promise<void> {
         if (this.loadedTabs().has(tab)) return;
         const id = this.tournamentId();
         if (!id) return;
@@ -361,14 +380,13 @@ export class TournamentDetailStore {
             const cat = this.modeCategory();
             const needsGroups = cat === 'GroupsThenKnockout' && this.groups().length === 0;
 
-            forkJoin({
-                standings: this.tournamentService.getStandings(id).pipe(catchError(() => of([]))),
-                groups: needsGroups
-                    ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
-                    : of(this.groups()),
-            }).pipe(
-                takeUntilDestroyed(destroyRef)
-            ).subscribe(({ standings, groups }) => {
+            try {
+                const { standings, groups } = await firstValueFrom(forkJoin({
+                    standings: this.tournamentService.getStandings(id).pipe(catchError(() => of([]))),
+                    groups: needsGroups
+                        ? this.tournamentService.getGroups(id).pipe(catchError(() => of([])))
+                        : of(this.groups()),
+                }));
                 this.standings.set(standings);
                 if (groups.length > 0) {
                     this.groups.set(groups);
@@ -377,17 +395,21 @@ export class TournamentDetailStore {
                     }
                 }
                 this.markTabLoaded('standings');
-            });
+            } catch {
+                // silently ignore
+            }
         }
 
         if (tab === 'bracket' && !this.loadedTabs().has('bracket')) {
-            this.tournamentService.getBracket(id).pipe(
-                takeUntilDestroyed(destroyRef),
-                catchError(() => of(null))
-            ).subscribe(data => {
+            try {
+                const data = await firstValueFrom(
+                    this.tournamentService.getBracket(id).pipe(catchError(() => of(null)))
+                );
                 if (data) this.bracket.set(data);
                 this.markTabLoaded('bracket');
-            });
+            } catch {
+                // silently ignore
+            }
         }
     }
 

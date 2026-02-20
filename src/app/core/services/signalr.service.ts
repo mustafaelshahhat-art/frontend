@@ -38,7 +38,7 @@ export class SignalRService {
     isConnected(hubPath: string): boolean {
         const connection = this.hubs.get(hubPath);
         // Fallback sync check — state string comparison when module not yet loaded
-        return connection?.state === 'Connected' as any;
+        return (connection?.state as unknown) === 'Connected';
     }
 
     async createConnection(hubPath: string): Promise<signalRTypes.HubConnection> {

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, signal, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ContextNavigationService } from '../../../../core/navigation/context-navigation.service';
@@ -6,6 +7,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { Tournament, TournamentStatus, TournamentFormat, TournamentLegType, TournamentMode, LateRegistrationMode, PaymentMethodConfig, SchedulingMode } from '../../../../core/models/tournament.model';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { firstValueFrom } from 'rxjs';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
@@ -39,6 +41,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     private readonly layoutOrchestrator = inject(LayoutOrchestratorService);
     private readonly navService = inject(ContextNavigationService);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly destroyRef = inject(DestroyRef);
 
     isEditMode = signal(false);
     tournamentId = signal<string | null>(null);
@@ -93,7 +96,7 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
     }
 
     private setupValidators() {
-        this.tournamentForm.get('mode')?.valueChanges.subscribe(mode => {
+        this.tournamentForm.get('mode')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(mode => {
             const groupsControl = this.tournamentForm.get('numberOfGroups');
             const schedulingControl = this.tournamentForm.get('schedulingMode');
 
@@ -123,53 +126,51 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         this.layoutOrchestrator.reset();
     }
 
-    loadTournament(id: string): void {
-        this.tournamentService.getTournamentById(id).subscribe({
-            next: (tournament) => {
-                if (tournament) {
-                    let walletLabel = 'محفظة إلكترونية';
-                    let instaLabel = 'InstaPay';
+    async loadTournament(id: string): Promise<void> {
+        try {
+            const tournament = await firstValueFrom(this.tournamentService.getTournamentById(id));
+            if (tournament) {
+                let walletLabel = 'محفظة إلكترونية';
+                let instaLabel = 'InstaPay';
 
-                    if (tournament.paymentMethodsJson) {
-                        try {
-                            const methods: PaymentMethodConfig[] = JSON.parse(tournament.paymentMethodsJson);
-                            const wallet = methods.find(m => m.type === 'E_WALLET');
-                            const insta = methods.find(m => m.type === 'INSTAPAY');
-                            if (wallet) walletLabel = wallet.label;
-                            if (insta) instaLabel = insta.label;
-                        } catch (e) { console.error('Error parsing payment json', e); }
-                    }
-
-                    this.tournamentForm.patchValue({
-                        name: tournament.name,
-                        description: tournament.description,
-                        startDate: this.formatDate(tournament.startDate),
-                        endDate: this.formatDate(tournament.endDate),
-                        registrationDeadline: this.formatDate(tournament.registrationDeadline),
-                        maxTeams: tournament.maxTeams,
-                        location: tournament.location,
-                        entryFee: tournament.entryFee,
-                        rules: tournament.rules,
-                        prizes: tournament.prizes,
-                        mode: tournament.mode || this.getEffectiveMode(tournament),
-                        numberOfGroups: tournament.numberOfGroups || 0,
-                        qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
-                        walletNumber: tournament.walletNumber || '',
-                        walletLabel: walletLabel,
-                        instaPayNumber: tournament.instaPayNumber || '',
-                        instaPayLabel: instaLabel,
-                        schedulingMode: tournament.schedulingMode ?? SchedulingMode.Random
-                    });
-
-                    this.tournamentForm.get('mode')?.updateValueAndValidity();
-                    this.cdr.detectChanges();
+                if (tournament.paymentMethodsJson) {
+                    try {
+                        const methods: PaymentMethodConfig[] = JSON.parse(tournament.paymentMethodsJson);
+                        const wallet = methods.find(m => m.type === 'E_WALLET');
+                        const insta = methods.find(m => m.type === 'INSTAPAY');
+                        if (wallet) walletLabel = wallet.label;
+                        if (insta) instaLabel = insta.label;
+                    } catch (e) { console.error('Error parsing payment json', e); }
                 }
-            },
-            error: (err) => {
-                this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات البطولة. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
-                this.navService.navigateTo('tournaments');
+
+                this.tournamentForm.patchValue({
+                    name: tournament.name,
+                    description: tournament.description,
+                    startDate: this.formatDate(tournament.startDate),
+                    endDate: this.formatDate(tournament.endDate),
+                    registrationDeadline: this.formatDate(tournament.registrationDeadline),
+                    maxTeams: tournament.maxTeams,
+                    location: tournament.location,
+                    entryFee: tournament.entryFee,
+                    rules: tournament.rules,
+                    prizes: tournament.prizes,
+                    mode: tournament.mode || this.getEffectiveMode(tournament),
+                    numberOfGroups: tournament.numberOfGroups || 0,
+                    qualifiedTeamsPerGroup: tournament.qualifiedTeamsPerGroup || 0,
+                    walletNumber: tournament.walletNumber || '',
+                    walletLabel: walletLabel,
+                    instaPayNumber: tournament.instaPayNumber || '',
+                    instaPayLabel: instaLabel,
+                    schedulingMode: tournament.schedulingMode ?? SchedulingMode.Random
+                });
+
+                this.tournamentForm.get('mode')?.updateValueAndValidity();
+                this.cdr.detectChanges();
             }
-        });
+        } catch (err: unknown) {
+            this.uiFeedback.error('فشل التحميل', 'تعذّر تحميل بيانات البطولة. يرجى تحديث الصفحة والمحاولة مرة أخرى.');
+            this.navService.navigateTo('tournaments');
+        }
     }
 
     private getEffectiveMode(t: Tournament): TournamentMode {
@@ -181,13 +182,13 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         return (t.matchType === TournamentLegType.HomeAndAway || t.isHomeAwayEnabled) ? TournamentMode.LeagueHomeAway : TournamentMode.LeagueSingle;
     }
 
-    private formatDate(date: any): string {
+    private formatDate(date: string | Date | null | undefined): string {
         if (!date) return '';
         const d = new Date(date);
         return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
     }
 
-    onSubmit(): void {
+    async onSubmit(): Promise<void> {
         if (this.tournamentForm.invalid) {
             this.tournamentForm.markAllAsTouched();
             return;
@@ -273,15 +274,13 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
         };
 
         if (this.isEditMode()) {
-            this.tournamentService.updateTournament(this.tournamentId()!, tournamentData).subscribe({
-                next: () => {
-                    this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات البطولة بنجاح');
-                    this.navService.navigateTo(['tournaments', this.tournamentId()!]);
-                },
-                error: () => {
-                    this.isSubmitting.set(false);
-                }
-            });
+            try {
+                await firstValueFrom(this.tournamentService.updateTournament(this.tournamentId()!, tournamentData));
+                this.uiFeedback.success('تم التحديث', 'تم تحديث بيانات البطولة بنجاح');
+                this.navService.navigateTo(['tournaments', this.tournamentId()!]);
+            } catch {
+                this.isSubmitting.set(false);
+            }
         } else {
             const newTournament = {
                 ...tournamentData,
@@ -291,15 +290,13 @@ export class TournamentManageComponent implements OnInit, OnDestroy {
                 adminId: ''
             } as Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>;
 
-            this.tournamentService.createTournament(newTournament).subscribe({
-                next: () => {
-                    this.uiFeedback.success('تم الإنشاء', 'تم إنشاء البطولة بنجاح');
-                    this.navService.navigateTo('tournaments');
-                },
-                error: () => {
-                    this.isSubmitting.set(false);
-                }
-            });
+            try {
+                await firstValueFrom(this.tournamentService.createTournament(newTournament));
+                this.uiFeedback.success('تم الإنشاء', 'تم إنشاء البطولة بنجاح');
+                this.navService.navigateTo('tournaments');
+            } catch {
+                this.isSubmitting.set(false);
+            }
         }
     }
 

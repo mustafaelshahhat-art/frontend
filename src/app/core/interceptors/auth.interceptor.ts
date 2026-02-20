@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
@@ -52,7 +52,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 let isRefreshing = false;
 const refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-function addToken(request: HttpRequest<any>, token: string | null): HttpRequest<any> {
+function addToken(request: HttpRequest<unknown>, token: string | null): HttpRequest<unknown> {
     if (!token) return request;
     return request.clone({
         setHeaders: {
@@ -61,7 +61,7 @@ function addToken(request: HttpRequest<any>, token: string | null): HttpRequest<
     });
 }
 
-function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authService: AuthService, router: Router): Observable<any> {
+function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, authService: AuthService, router: Router): Observable<HttpEvent<unknown>> {
     if (!isRefreshing) {
         isRefreshing = true;
         refreshTokenSubject.next(null);

@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
+import { firstValueFrom } from 'rxjs';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { Tournament } from '../../../../core/models/tournament.model';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
 import { FileUploadComponent } from '../../../../shared/components/file-upload/file-upload.component';
+import { Team } from '../../../../core/models/team.model';
 import { TeamService } from '../../../../core/services/team.service';
 
 @Component({
@@ -46,7 +48,7 @@ export class TeamRegistrationModalComponent {
         receipt: null as File | null
     };
 
-    availableTeams: any[] = []; // List of teams where user is captain
+    availableTeams: Team[] = []; // List of teams where user is captain
 
     private teamService = inject(TeamService); // Need TeamService to fetch teams
 
@@ -57,10 +59,11 @@ export class TeamRegistrationModalComponent {
     }
 
     // Load teams where user is captain
-    private loadUserTeams() {
+    private async loadUserTeams(): Promise<void> {
         const user = this.authService.getCurrentUser();
         if (user && user.id !== 'guest') {
-            this.teamService.getTeamsOverview().subscribe((overview: any) => {
+            try {
+                const overview = await firstValueFrom(this.teamService.getTeamsOverview());
                 // Only allow teams where user is OWNER (Captain)
                 this.availableTeams = overview.ownedTeams || [];
 
@@ -68,7 +71,9 @@ export class TeamRegistrationModalComponent {
                 if (this.availableTeams.length === 1) {
                     this.registerForm.selectedTeamId = this.availableTeams[0].id;
                 }
-            });
+            } catch {
+                // silently ignore
+            }
         }
     }
 
@@ -127,7 +132,7 @@ export class TeamRegistrationModalComponent {
         }
     }
 
-    submit(): void {
+    async submit(): Promise<void> {
         if (!this.registerForm.selectedTeamId) {
             this.uiFeedback.error('فريق مطلوب', 'يرجى اختيار الفريق الذي تريد تسجيله في البطولة.');
             return;
@@ -150,34 +155,36 @@ export class TeamRegistrationModalComponent {
         this.isSubmitting = true;
 
         // Step 1: Register Team (PendingPayment) - Pass TeamId explicitly
-        this.tournamentService.requestTournamentRegistration(this.tournament.id, this.registerForm.selectedTeamId).subscribe({
-            next: () => this.uploadPayment(this.registerForm.selectedTeamId),
-            error: (err: { status: number, error?: { message?: string } }) => {
-                if (err.status === 409) {
-                    // Already registered, try to just upload the payment
-                    this.uploadPayment(this.registerForm.selectedTeamId);
-                } else {
-                    this.isSubmitting = false;
-                    this.uiFeedback.error('فشل التسجيل', err.error?.message || 'تعذّر تقديم طلب التسجيل. يرجى المحاولة مرة أخرى.');
-                }
+        try {
+            await firstValueFrom(this.tournamentService.requestTournamentRegistration(this.tournament.id, this.registerForm.selectedTeamId));
+            await this.uploadPayment(this.registerForm.selectedTeamId);
+        } catch (err: unknown) {
+            const httpErr = err as { status?: number; error?: { message?: string } };
+            if (httpErr.status === 409) {
+                // Already registered, try to just upload the payment
+                await this.uploadPayment(this.registerForm.selectedTeamId);
+            } else {
+                this.isSubmitting = false;
+                this.uiFeedback.error('فشل التسجيل', httpErr.error?.message || 'تعذّر تقديم طلب التسجيل. يرجى المحاولة مرة أخرى.');
             }
-        });
+        }
     }
 
-    private uploadPayment(teamId: string): void {
+    private async uploadPayment(teamId: string): Promise<void> {
         if (!this.tournament || !this.registerForm.receipt) return;
 
-        this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt, this.registerForm.fromNumber).subscribe({
-            next: () => {
-                this.isSubmitting = false;
-                this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل وإيصال الدفع بنجاح');
-                this.successEvent.emit();
-                this.close();
-            },
-            error: (err: { error?: { message?: string } }) => {
-                this.isSubmitting = false;
-                this.uiFeedback.error('خطأ في رفع الإيصال', err.error?.message || 'تم حجز مكانك ولكن فشل رفع الإيصال، يرجى المحاولة مرة أخرى');
-            }
-        });
+        try {
+            await firstValueFrom(
+                this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt, this.registerForm.fromNumber)
+            );
+            this.isSubmitting = false;
+            this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل وإيصال الدفع بنجاح');
+            this.successEvent.emit();
+            this.close();
+        } catch (err: unknown) {
+            this.isSubmitting = false;
+            const httpErr = err as { error?: { message?: string } };
+            this.uiFeedback.error('خطأ في رفع الإيصال', httpErr.error?.message || 'تم حجز مكانك ولكن فشل رفع الإيصال، يرجى المحاولة مرة أخرى');
+        }
     }
 }

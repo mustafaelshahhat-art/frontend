@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatchService } from '../../../../core/services/match.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { Match } from '../../../../core/models/tournament.model';
+import { firstValueFrom } from 'rxjs';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
@@ -26,36 +27,20 @@ export class EndMatchConfirmComponent {
 
     isSubmitting = false;
 
-    confirm(): void {
+    async confirm(): Promise<void> {
         if (!this.matchId || this.isSubmitting) return;
 
         this.isSubmitting = true;
-        this.matchService.endMatch(this.matchId).subscribe({
-            next: (endedMatch) => {
-                // Auto submit report
-                this.matchService.submitMatchReport(
-                    this.matchId,
-                    'تم إنهاء المباراة تلقائياً.'
-                ).subscribe({
-                    next: (matchWithReport) => {
-                        this.uiFeedback.success('تم بنجاح', 'تم إنهاء المباراة وتقديم التقرير بنجاح');
-                        this.isSubmitting = false;
-                        this.matchEnded.emit(matchWithReport || endedMatch || undefined);
-                        this.close();
-                    },
-                    error: () => {
-                        this.uiFeedback.warning('تنبيه', 'تم إنهاء المباراة ولكن فشل تقديم التقرير التلقائي');
-                        this.isSubmitting = false;
-                        this.matchEnded.emit(endedMatch || undefined);
-                        this.close();
-                    }
-                });
-            },
-            error: () => {
-                this.uiFeedback.error('فشل إنهاء المباراة', 'تعذّر إنهاء المباراة. يرجى المحاولة مرة أخرى.');
-                this.isSubmitting = false;
-            }
-        });
+        try {
+            const endedMatch = await firstValueFrom(this.matchService.endMatch(this.matchId));
+            this.uiFeedback.success('تم بنجاح', 'تم إنهاء المباراة بنجاح');
+            this.matchEnded.emit(endedMatch || undefined);
+            this.close();
+        } catch {
+            this.uiFeedback.error('فشل إنهاء المباراة', 'تعذّر إنهاء المباراة. يرجى المحاولة مرة أخرى.');
+        } finally {
+            this.isSubmitting = false;
+        }
     }
 
     cancel(): void {

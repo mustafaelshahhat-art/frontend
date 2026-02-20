@@ -18,6 +18,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { createClientPagination, PaginationSource } from '../../../shared/data-access/paginated-data-source';
 
 import { StatusConfig } from '../../../shared/utils/status-labels';
+import { firstValueFrom } from 'rxjs';
 
 type TeamFilterValue = 'all' | 'active' | 'inactive';
 
@@ -110,17 +111,16 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.layoutOrchestrator.reset();
     }
 
-    loadTeams(): void {
+    async loadTeams(): Promise<void> {
         this.teamStore.setLoading(true);
-        this.teamService.getAllTeams(1, 500).subscribe({
-            next: (data: PagedResult<Team>) => {
-                this.teamStore.setTeams(data);
-            },
-            error: (err) => {
-                this.teamStore.setError(err.message);
-                this.teamStore.setLoading(false);
-            }
-        });
+        try {
+            const data = await firstValueFrom(this.teamService.getAllTeams(1, 500));
+            this.teamStore.setTeams(data);
+        } catch (e: unknown) {
+            const httpErr = e as { message?: string };
+            this.teamStore.setError(httpErr.message ?? null);
+            this.teamStore.setLoading(false);
+        }
     }
 
     setFilter(filter: unknown): void {
@@ -128,7 +128,7 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.pager.loadPage(1);
     }
 
-    requestToggleStatus(team: Team): void {
+    async requestToggleStatus(team: Team): Promise<void> {
         const newStatus = !team.isActive;
         const title = !newStatus ? 'تعطيل الفريق' : 'تفعيل الفريق';
         const message = !newStatus
@@ -136,44 +136,41 @@ export class TeamsListComponent implements OnInit, AfterViewInit, OnDestroy {
             : `هل أنت متأكد من رغبتك في تفعيل فريق "${team.name}"؟ سيتمكن الفريق من المشاركة في البطولة فوراً.`;
         const confirmText = !newStatus ? 'تعطيل الفريق' : 'تفعيل الآن';
 
-        this.uiFeedback.confirm(title, message, confirmText, !newStatus ? 'danger' : 'info').subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                const action$ = !newStatus
-                    ? this.teamService.disableTeam(team.id)
-                    : this.teamService.activateTeam(team.id);
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm(title, message, confirmText, !newStatus ? 'danger' : 'info'));
+        if (!confirmed) return;
 
-                action$.subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم التحديث', `تم ${newStatus ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
-                        // Refresh to sync state
-                        this.loadTeams();
-                    },
-                    error: () => this.uiFeedback.error('فشل التحديث', 'تعذّر تحديث حالة الفريق. يرجى المحاولة مرة أخرى.')
-                });
-            }
-        });
+        try {
+            await firstValueFrom(
+                !newStatus
+                    ? this.teamService.disableTeam(team.id)
+                    : this.teamService.activateTeam(team.id)
+            );
+            this.uiFeedback.success('تم التحديث', `تم ${newStatus ? 'تفعيل' : 'تعطيل'} الفريق بنجاح`);
+            // Refresh to sync state
+            this.loadTeams();
+        } catch {
+            this.uiFeedback.error('فشل التحديث', 'تعذّر تحديث حالة الفريق. يرجى المحاولة مرة أخرى.');
+        }
     }
 
-    requestDelete(team: Team): void {
-        this.uiFeedback.confirm(
+    async requestDelete(team: Team): Promise<void> {
+        const confirmed = await firstValueFrom(this.uiFeedback.confirm(
             'حذف الفريق نهائياً',
             `هل أنت متأكد من حذف فريق "${team.name}"؟ هذا الإجراء سيقوم بمسح كافة بيانات الفريق ولا يمكن التراجع عنه.`,
             'حذف نهائي',
             'danger'
-        ).subscribe((confirmed: boolean) => {
-            if (confirmed) {
-                this.teamService.deleteTeam(team.id).subscribe({
-                    next: () => {
-                        this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
-                        // Store update happens via RealTime 'TeamDeleted' event automatically
-                    },
-                    error: (err) => {
-                        const msg = err.error?.detail || err.error?.message || 'تعذّر حذف الفريق. يرجى المحاولة مرة أخرى.';
-                        this.uiFeedback.error('فشل الحذف', msg);
-                    }
-                });
-            }
-        });
+        ));
+        if (!confirmed) return;
+
+        try {
+            await firstValueFrom(this.teamService.deleteTeam(team.id));
+            this.uiFeedback.success('تم الحذف', 'تم حذف الفريق بنجاح');
+            // Store update happens via RealTime 'TeamDeleted' event automatically
+        } catch (e: unknown) {
+            const httpErr = e as { error?: { detail?: string; message?: string } };
+            const msg = httpErr.error?.detail || httpErr.error?.message || 'تعذّر حذف الفريق. يرجى المحاولة مرة أخرى.';
+            this.uiFeedback.error('فشل الحذف', msg);
+        }
     }
 
     viewTeam(team: Team): void {

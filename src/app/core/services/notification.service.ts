@@ -1,6 +1,6 @@
 import { Injectable, inject, effect } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, throwError, firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -78,28 +78,28 @@ export class NotificationService {
 
     // ── Data Loading ──
 
-    loadNotifications(page = 1): void {
+    async loadNotifications(page = 1): Promise<void> {
         this.store.setLoading(true);
 
         const params = new HttpParams()
             .set('page', page)
             .set('pageSize', this.store.pageSize());
 
-        this.http.get<PagedResult<Notification>>(this.apiUrl, { params }).subscribe({
-            next: (paged) => {
-                this.store.setPage(paged.items, paged.totalCount, paged.pageNumber, paged.pageSize);
-            },
-            error: () => {
-                this.store.setError('فشل تحميل الإشعارات');
-            }
-        });
+        try {
+            const paged = await firstValueFrom(this.http.get<PagedResult<Notification>>(this.apiUrl, { params }));
+            this.store.setPage(paged.items, paged.totalCount, paged.pageNumber, paged.pageSize);
+        } catch {
+            this.store.setError('فشل تحميل الإشعارات');
+        }
     }
 
-    loadUnreadCount(): void {
-        this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`).subscribe({
-            next: (res) => this.store.setUnreadCount(res.count),
-            error: () => { /* silent — badge just stays stale */ }
-        });
+    async loadUnreadCount(): Promise<void> {
+        try {
+            const res = await firstValueFrom(this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`));
+            this.store.setUnreadCount(res.count);
+        } catch {
+            /* silent — badge just stays stale */
+        }
     }
 
     loadPage(page: number): void {
@@ -186,9 +186,8 @@ export class NotificationService {
             await this.subscribeToRole(role);
             this.currentSubscribedRole = role;
         } catch (err: unknown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-restricted-syntax
-            const error = err as any;
-            if (error.message?.includes('Unauthorized')) {
+            const message = err instanceof Error ? err.message : '';
+            if (message.includes('Unauthorized')) {
                 console.warn(`Transient role subscription failure for ${role}.`);
             } else {
                 console.error(`Failed to subscribe to role ${role}:`, err);

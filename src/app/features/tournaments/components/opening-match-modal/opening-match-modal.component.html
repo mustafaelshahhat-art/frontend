@@ -2,7 +2,7 @@
     (closeRequest)="close.emit()">
 
     <div class="modal-body-custom">
-        @if (tournament.openingTeamAId && tournament.openingTeamBId) {
+        @if (tournament.openingMatchHomeTeamId && tournament.openingMatchAwayTeamId) {
         <div class="text-center mb-4">
             <app-badge type="success" size="sm">تم اختيار مباراة الافتتاح سابقاً</app-badge>
         </div>
