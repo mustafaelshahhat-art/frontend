@@ -59,15 +59,27 @@ describe('convertToTeamData', () => {
     expect(result.captainName).toBe('غير محدد');
   });
 
-  it('should set status to READY when playerCount >= 8', () => {
+  it('should set status to READY when playerCount >= 6', () => {
     const result = convertToTeamData(baseTeam);
     expect(result.status).toBe('READY');
   });
 
-  it('should set status to NOT_READY when playerCount < 8', () => {
+  it('should set status to READY when playerCount is exactly 6', () => {
+    const exactly6 = { ...baseTeam, playerCount: 6 };
+    const result = convertToTeamData(exactly6);
+    expect(result.status).toBe('READY');
+  });
+
+  it('should set status to NOT_READY when playerCount < 6', () => {
     const small = { ...baseTeam, playerCount: 5 };
     const result = convertToTeamData(small);
     expect(result.status).toBe('NOT_READY');
+  });
+
+  it('should prefer isComplete from backend over local computation', () => {
+    const withBackendFlag = { ...baseTeam, playerCount: 3, isComplete: true };
+    const result = convertToTeamData(withBackendFlag as any);
+    expect(result.status).toBe('READY');
   });
 
   it('should handle undefined playerCount as NOT_READY', () => {

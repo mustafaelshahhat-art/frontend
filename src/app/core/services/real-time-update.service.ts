@@ -16,6 +16,7 @@ import type { HubConnection } from '@microsoft/signalr';
 import type { Tournament, TeamRegistration as TournamentRegistration } from '../models/tournament.model';
 import type { Match } from '../models/match.model';
 import type { Team, Player } from '../models/team.model';
+import { MIN_PLAYERS_FOR_COMPLETE } from '../models/team.model';
 import type { User, UserStatus } from '../models/user.model';
 
 export interface SystemEvent {
@@ -454,7 +455,8 @@ export class RealTimeUpdateService {
         this.teamStore.upsertTeam({
             ...team,
             players,
-            playerCount: players.length
+            playerCount: players.length,
+            isComplete: players.length >= MIN_PLAYERS_FOR_COMPLETE
         });
     }
 

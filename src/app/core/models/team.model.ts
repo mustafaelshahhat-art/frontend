@@ -55,6 +55,7 @@ export interface Team {
     isActive?: boolean;
     playerCount?: number;
     maxPlayers?: number;
+    isComplete?: boolean;
     stats?: TeamStats;
     players: Player[];
     joinRequests?: JoinRequest[];
@@ -106,3 +107,6 @@ export interface ApiTeamFinance {
 
 // Maximum players in a team (including captain)
 export const MAX_TEAM_PLAYERS = 10;
+
+// Minimum players required for a team to be considered complete
+export const MIN_PLAYERS_FOR_COMPLETE = 6;

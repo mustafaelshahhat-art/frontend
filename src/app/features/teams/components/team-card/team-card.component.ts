@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { Team } from '../../../../core/models/team.model';
+import { Team, MIN_PLAYERS_FOR_COMPLETE } from '../../../../core/models/team.model';
 
 @Component({
     selector: 'app-team-card',
@@ -22,7 +22,7 @@ export class TeamCardComponent {
     }
 
     get isReady(): boolean {
-        return (this.team.playerCount || 0) >= 8;
+        return this.team.isComplete ?? (this.team.playerCount || 0) >= MIN_PLAYERS_FOR_COMPLETE;
     }
 
     get statusLabel(): string {

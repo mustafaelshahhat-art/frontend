@@ -1,4 +1,4 @@
-import { Team } from '../../../../core/models/team.model';
+import { Team, MIN_PLAYERS_FOR_COMPLETE } from '../../../../core/models/team.model';
 import { TeamData, TeamMatch, TeamFinance } from '../../../../shared/components/team-detail';
 import { TeamJoinRequest } from '../../../../core/models/team-request.model';
 
@@ -29,7 +29,7 @@ export function convertToTeamData(team: ExtendedTeam): TeamData {
         name: team.name,
         city: team.city || 'غير محدد',
         captainName: team.captainName || 'غير محدد',
-        status: (team.playerCount || 0) >= 8 ? 'READY' : 'NOT_READY',
+        status: (team.isComplete ?? (team.playerCount || 0) >= MIN_PLAYERS_FOR_COMPLETE) ? 'READY' : 'NOT_READY',
         playerCount: team.playerCount,
         maxPlayers: team.maxPlayers,
         isActive: team.isActive ?? true,
