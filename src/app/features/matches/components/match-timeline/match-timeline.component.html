@@ -1,40 +1,33 @@
-<div class="events-timeline">
-    <div class="timeline-line"></div>
-
+<div class="events-list" role="list">
     @for (event of events; track event.id) {
-    <div class="event-row" [class.event-home]="event.teamId === homeTeamId"
+    <div class="event-card" role="listitem"
+        [class.event-home]="event.teamId === homeTeamId"
         [class.event-away]="event.teamId !== homeTeamId">
 
-        <div class="timeline-dot"></div>
+        <div class="card-side-indicator"
+            [class.home]="event.teamId === homeTeamId"
+            [class.away]="event.teamId !== homeTeamId"></div>
 
-        <div class="event-card">
-            <div class="event-icon-box" [attr.data-type]="event.type">
-                <app-icon [name]=" getEventIcon(event.type) " class=" icon-sm"></app-icon>
-            </div>
-
-            <div class="event-info">
-                <div class="event-top-row">
-                    <span class="event-type-label">{{ getEventLabel(event.type) }}</span>
-
-                </div>
-
-                <h4 class="player-name">{{ event.playerName || 'لاعب غير معروف' }}</h4>
-
-                <div class="team-meta">
-                    <span class="team-badge" [class.home]="event.teamId === homeTeamId"
-                        [class.away]="event.teamId !== homeTeamId">
-                        <app-icon name="shield" class=" icon-sm"></app-icon>
-                        {{ event.teamId === homeTeamId ? homeTeamName : awayTeamName }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="card-side-indicator" [class.home]="event.teamId === homeTeamId"
-                [class.away]="event.teamId !== homeTeamId"></div>
-
-            <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES" (trigger)="onDelete(event.id)" icon="delete"
-                variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn" />
+        <div class="event-icon-box" [attr.data-type]="event.type">
+            <app-icon [name]="getEventIcon(event.type)" class="icon-xs"></app-icon>
         </div>
+
+        <div class="event-info">
+            <span class="player-name">{{ event.playerName || 'لاعب غير معروف' }}</span>
+            <div class="event-meta">
+                <span class="event-type-label">{{ getEventLabel(event.type) }}</span>
+                <span class="meta-dot">·</span>
+                <span class="team-name-inline"
+                    [class.home]="event.teamId === homeTeamId"
+                    [class.away]="event.teamId !== homeTeamId">
+                    {{ event.teamId === homeTeamId ? homeTeamName : awayTeamName }}
+                </span>
+            </div>
+        </div>
+
+        <app-icon-button *appHasPermission="Permission.MANAGE_MATCHES"
+            (trigger)="onDelete(event.id)" icon="delete"
+            variant="danger" size="sm" tooltip="حذف الحدث" class="delete-btn" />
     </div>
     }
 </div>

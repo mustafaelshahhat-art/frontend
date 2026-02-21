@@ -1,288 +1,189 @@
-/* Match Timeline Styles */
+/* ============================================================
+   MATCH EVENTS LIST — Compact Card Layout
+   ============================================================ */
 
-.events-timeline {
+// ─── List Container ─────────────────────────────────
+.events-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-    position: relative;
-    padding: var(--space-4) 0;
-
-    @media (width <=768px) {
-        gap: var(--space-4);
-    }
+    gap: var(--space-3);
 }
 
-.timeline-line {
-    position: absolute;
-    inset-inline-end: 50%;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, transparent, var(--border-visible) 10%, var(--border-visible) 90%, transparent);
-    transform: translateX(1px);
-    z-index: var(--z-base);
-
-    @media (width <=768px) {
-        inset-inline-end: var(--space-6);
-    }
-}
-
-.event-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    width: 100%;
-    z-index: var(--z-above); // Ensure events sit on top of the line
-
-    @media (width <=768px) {
-        justify-content: flex-start;
-        padding-right: var(--space-12); // Make space for the line on the right
-    }
-}
-
-// Home Event (Left on Desktop)
-.event-row.event-home {
-    .event-card {
-        margin-left: auto; // Push to right side of its container (which is actually left visual if rtl or depending on flex)
-        // Actually, let's simplify logic:
-        // Center line logic usually needs 50% width containers.
-    }
-
-    flex-direction: row; // Standard
-
-    @media (width >=769px) {
-        justify-content: flex-end;
-        padding-left: 50%;
-
-        .event-card {
-            margin-right: var(--space-6);
-            border-right: 4px solid var(--color-primary); // Home Color Indicator
-        }
-
-        .timeline-dot {
-            position: absolute;
-            right: calc(50% - 5px);
-        }
-    }
-}
-
-// Away Event (Right on Desktop)
-.event-row.event-away {
-    flex-direction: row-reverse;
-
-    @media (width >=769px) {
-        justify-content: flex-end;
-        padding-right: 50%; // Start from center
-
-        .event-card {
-            margin-left: var(--space-6);
-            border-left: 4px solid var(--color-info); // Away Color Indicator
-            flex-direction: row-reverse; // Flip content inside card
-        }
-
-        .timeline-dot {
-            position: absolute;
-            right: calc(50% - 5px);
-        }
-    }
-}
-
-.timeline-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--radius-full);
-    background: var(--text-primary);
-    border: 2px solid var(--bg-surface-secondary);
-    position: absolute;
-    right: var(--space-6); // Mobile position
-    margin-right: calc(var(--space-1) * -1); // Center on line
-
-    @media (width >=769px) {
-        // Handled in specific event rows
-    }
-}
-
+// ─── Event Card ─────────────────────────────────────
 .event-card {
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-visible);
-    background: var(--bg-surface);
     display: flex;
     align-items: center;
-    gap: var(--space-5);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
-    min-width: 280px;
-    max-width: 100%;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4);
+    min-height: 64px;
+    margin-inline: var(--space-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
     position: relative;
     overflow: hidden;
+    transition:
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        transform var(--transition-base);
 
     &:hover {
-        transform: translateY(-3px) scale(1.01);
-        border-color: var(--color-primary-40);
-        box-shadow: var(--shadow-lg);
+        border-color: var(--border-color-strong);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-1px);
 
         .card-side-indicator {
-            width: 8px;
+            width: 4px;
+        }
+
+        .delete-btn {
+            opacity: 1;
+            pointer-events: auto;
         }
     }
 
-    @media (width <=768px) {
-        padding: var(--space-3) var(--space-4);
-        gap: var(--space-4);
-        width: 100%;
-        min-width: 0;
+    @media (max-width: 640px) {
+        gap: var(--space-2-5);
+        padding: var(--space-3-5) var(--space-3);
+        min-height: 58px;
+        margin-inline: var(--space-2);
     }
 }
 
+// ─── Side Color Indicator ───────────────────────────
 .card-side-indicator {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 4px;
-    transition: width 0.3s ease;
+    right: 0;
+    width: 3px;
+    transition: width var(--transition-base);
 
     &.home {
-        left: 0;
-        background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-active));
+        background: var(--color-primary);
     }
 
     &.away {
-        right: 0; // Depends on row-reverse in event-away
-        background: linear-gradient(to bottom, var(--color-info), var(--color-info-active));
+        background: var(--color-info);
     }
 }
 
-// Adjusting row-reverse logic from parent
-.event-row.event-away .card-side-indicator.away {
-    left: 0;
-    right: auto;
-}
-
+// ─── Event Icon Box ─────────────────────────────────
 .event-icon-box {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-lg);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     background: var(--bg-surface-light);
     color: var(--text-secondary);
-    box-shadow: var(--shadow-inset-sm);
-    flex-shrink: 0;
+    transition: transform var(--transition-base);
 
-    
+    .event-card:hover & {
+        transform: scale(1.06);
+    }
 
     &[data-type="Goal"] {
-        background: rgb(16 185 129 / 15%);
-        color: var(--color-success);
+        background: var(--color-primary-10);
+        color: var(--color-primary);
     }
 
     &[data-type="YellowCard"] {
-        background: rgb(245 158 11 / 15%);
+        background: var(--color-warning-10);
         color: var(--color-warning);
     }
 
     &[data-type="RedCard"] {
-        background: rgb(239 68 68 / 15%);
+        background: var(--color-danger-10);
         color: var(--color-danger);
     }
 
     &[data-type="Penalty"] {
-        background: rgb(59 130 246 / 15%);
+        background: var(--color-info-10);
         color: var(--color-info);
+    }
+
+    &[data-type="OwnGoal"] {
+        background: var(--color-danger-10);
+        color: var(--color-danger);
+    }
+
+    @media (max-width: 640px) {
+        width: 28px;
+        height: 28px;
     }
 }
 
+// ─── Event Info ─────────────────────────────────────
 .event-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--space-0-5);
+    gap: 2px;
+    min-width: 0;
 }
 
-.event-top-row {
+.player-name {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    line-height: var(--leading-snug);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// ─── Event Meta Row ─────────────────────────────────
+.event-meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-0-5);
+    gap: var(--space-1-5);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text-muted);
 }
 
 .event-type-label {
-    font-size: var(--text-2xs);
-    font-weight: var(--font-black);
+    font-weight: var(--font-medium);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     color: var(--text-muted);
 }
 
-.player-name {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1.2;
+.meta-dot {
+    color: var(--text-muted);
+    opacity: 0.5;
+    font-size: var(--text-xs);
+    line-height: 1;
 }
 
-.team-meta {
-    margin-top: var(--space-1);
-}
-
-.team-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    font-size: var(--text-2xs);
-    font-weight: var(--font-semibold);
-    color: var(--text-secondary);
-    padding: var(--space-0-5) var(--space-2);
-    background: var(--bg-surface-light);
-    border-radius: var(--radius-md);
-
-    
+.team-name-inline {
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &.home {
         color: var(--color-primary);
-        background: var(--color-primary-10);
     }
 
     &.away {
         color: var(--color-info);
-        background: var(--color-info-10);
     }
 }
 
-.event-time {
-    font-size: var(--text-2xs);
-    font-weight: var(--font-black);
-    color: var(--text-secondary);
-    padding: var(--space-0-5) var(--space-1-5);
-    background: var(--bg-surface-light);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-visible);
-}
-
+// ─── Delete Button ──────────────────────────────────
 .delete-btn {
     opacity: 0;
-    transition: opacity 0.2s ease;
-}
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+    flex-shrink: 0;
 
-.event-card:hover .delete-btn {
-    opacity: 1;
-}
-
-/* Responsive Overrides */
-@media (width <=768px) {
-    .event-card {
-        padding: var(--space-3);
-        gap: var(--space-3);
-    }
-
-    .event-icon-box {
-        width: 40px;
-        height: 40px;
-
-        
+    @media (max-width: 640px) {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
