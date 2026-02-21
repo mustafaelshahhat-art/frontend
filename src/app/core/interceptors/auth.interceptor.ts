@@ -37,13 +37,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             if (error.status === 401) {
                 return handle401Error(req, next, authService, router);
             }
-
-            if (error.status === 403) {
-                authService.logout();
-                router.navigate(['/auth/login'], {
-                    queryParams: { message: 'session_expired' }
-                });
-            }
             return throwError(() => error);
         })
     );
@@ -62,21 +55,31 @@ function addToken(request: HttpRequest<unknown>, token: string | null): HttpRequ
 }
 
 function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, authService: AuthService, router: Router): Observable<HttpEvent<unknown>> {
+    // Stale-token detection: if the token that was sent with the failed request
+    // is different from the current token in storage, a newer login already
+    // replaced it.  Just retry with the current token instead of refreshing.
+    const currentToken = authService.getToken();
+    const failedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+    if (currentToken && failedToken && currentToken !== failedToken) {
+        return next(addToken(request, currentToken));
+    }
+
     if (!isRefreshing) {
         isRefreshing = true;
         refreshTokenSubject.next(null);
 
         return authService.refreshToken().pipe(
             switchMap((response) => {
-                isRefreshing = false;
                 refreshTokenSubject.next(response.token);
                 return next(addToken(request, response.token));
             }),
             catchError((err) => {
-                isRefreshing = false;
                 authService.logout();
                 router.navigate(['/auth/login'], { queryParams: { message: 'session_expired' } });
                 return throwError(() => err);
+            }),
+            finalize(() => {
+                isRefreshing = false;
             })
         );
     } else {
