@@ -17,11 +17,11 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (store.tournament(); as t) {
-        <div class="standings-wrapper">
+        <div class="standings-wrapper" role="region" aria-label="جدول الترتيب">
             @if (store.groups().length > 0) {
             <app-filter [items]="store.groups()" [activeValue]="store.activeGroup()"
                 valueKey="id" labelKey="name"
-                (filterChange)="onGroupChange($event)" class="group-filter mb-4" />
+                (filterChange)="onGroupChange($event)" class="group-filter" />
             }
 
             <!-- Desktop Table -->
@@ -36,8 +36,8 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
                 </ng-template>
 
                 <ng-template #teamTemplate let-row>
-                    <div class="flex items-center gap-2">
-                        <span>{{ row.teamName }}</span>
+                    <div class="team-name-cell">
+                        <span class="team-name-text" [title]="row.teamName">{{ row.teamName }}</span>
                     </div>
                 </ng-template>
 
@@ -45,13 +45,14 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
                     <div class="form-dots-container">
                         @for (r of row.form; track $index) {
                         <span class="form-dot"
-                            [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')">{{ r }}</span>
+                            [class]="r === 'W' ? 'is-win' : (r === 'D' ? 'is-draw' : 'is-loss')"
+                            [attr.aria-label]="r === 'W' ? 'فوز' : (r === 'D' ? 'تعادل' : 'خسارة')">{{ r }}</span>
                         }
                     </div>
                 </ng-template>
 
                 <app-table [columns]="tableColumns" [data]="store.groupedStandings()"
-                    [loading]="store.isLoading()" />
+                    [loading]="store.isLoading()" emptyMessage="لا توجد بيانات ترتيب بعد" />
             </div>
 
             <!-- Mobile Cards -->
@@ -59,14 +60,14 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
                 @for (s of store.groupedStandings(); track s.teamId; let i = $index) {
                 <div class="mobile-data-card" [class.is-winner]="t.winnerTeamId === s.teamId">
                     <div class="card-mobile-header">
-                        <div class="title-group items-center">
-                            <div class="rank-badge items-center justify-center">
+                        <div class="title-group">
+                            <div class="rank-badge">
                                 @if (t.winnerTeamId === s.teamId) {
                                 <app-icon name="military_tech" class="icon-sm"></app-icon>
                                 }
                                 {{ i + 1 }}
                             </div>
-                            <h4>{{ s.teamName }}</h4>
+                            <h4 [title]="s.teamName">{{ s.teamName }}</h4>
                         </div>
                         <app-badge [type]="t.winnerTeamId === s.teamId ? 'gold' : 'success'">
                             {{ s.points }} نقطة
@@ -93,6 +94,11 @@ import { TournamentStatus } from '../../../../core/models/tournament.model';
                             }
                         </div>
                     </div>
+                </div>
+                } @empty {
+                <div class="mobile-empty-state">
+                    <app-icon name="leaderboard" class="icon-sm"></app-icon>
+                    <p>لا توجد بيانات ترتيب بعد</p>
                 </div>
                 }
             </div>

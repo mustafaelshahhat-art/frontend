@@ -9,6 +9,7 @@
     border: 1px solid var(--border-color);
     overflow: hidden;
     position: relative;
+    isolation: isolate;
 
     &::before {
         content: '';
@@ -19,6 +20,7 @@
         height: 150px;
         background: radial-gradient(ellipse at 50% 0%, var(--color-primary-10) 0%, transparent 70%);
         pointer-events: none;
+        z-index: 0;
     }
 }
 
@@ -55,9 +57,9 @@
 // ─── Tree Layout ─────────────────────────────────────
 .bracket-tree {
     display: flex;
-    gap: var(--space-16);
+    gap: var(--space-18);
     min-width: max-content;
-    padding: var(--space-10) var(--space-4);
+    padding: var(--space-10) var(--space-6);
     direction: rtl;
     /* Support Arabic layout flow */
 }
@@ -72,7 +74,7 @@
     .round-header {
         text-align: center;
         margin-bottom: var(--space-10);
-        padding: var(--space-4);
+        padding: var(--space-4) var(--space-5);
         background: var(--bg-surface-light);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-2xl);
@@ -118,14 +120,15 @@
     justify-content: space-around;
     flex-grow: 1;
     position: relative;
-    padding: var(--space-4) 0;
+    padding: var(--space-5) 0;
+    gap: var(--space-2);
 }
 
 .pairing-node {
     position: relative;
     display: flex;
     align-items: center;
-    padding: var(--space-8) 0;
+    padding: var(--space-6) 0;
     flex-grow: 1;
 }
 
@@ -189,9 +192,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-2) 0;
+    padding: var(--space-2-5) var(--space-1);
     gap: var(--space-4);
     transition: opacity var(--transition-fast);
+    min-height: 36px;
 
     &.is-winner {
         .name {
@@ -205,7 +209,7 @@
     }
 
     &:not(.is-winner) {
-        opacity: 0.7;
+        opacity: 0.65;
     }
 }
 
@@ -214,11 +218,15 @@
     align-items: center;
     gap: var(--space-3);
     overflow: hidden;
+    flex: 1;
+    min-width: 0;
 
     .labels {
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        flex: 1;
+        min-width: 0;
     }
 
     .name {
@@ -228,7 +236,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 140px;
+        max-width: 160px;
         line-height: var(--leading-snug);
     }
 }
@@ -238,19 +246,23 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    flex-shrink: 0;
 
     .score {
         font-family: var(--font-mono);
         font-size: var(--text-lg);
         font-weight: var(--font-bold);
         color: var(--text-primary);
-        min-width: 24px;
+        min-width: 28px;
         text-align: center;
         line-height: var(--leading-none);
+        font-variant-numeric: tabular-nums;
     }
 
     .winner-indicator {
         color: var(--color-gold);
+        display: flex;
+        align-items: center;
 
         span {
             font-size: var(--text-base);
@@ -261,7 +273,7 @@
 .card-divider {
     height: 1px;
     background: var(--border-color);
-    margin: var(--space-1) 0;
+    margin: var(--space-1-5) var(--space-1);
 }
 
 // ─── Live Status Badge ──────────────────────────────
@@ -349,11 +361,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--space-20);
+    padding: var(--space-20) var(--space-8);
     text-align: center;
     background: var(--bg-dark);
     border-radius: var(--radius-3xl);
     border: 1px dashed var(--border-color-strong);
+    min-height: 280px;
 
     .icon-wrapper {
         width: 80px;
@@ -374,8 +387,9 @@
 
     h3 {
         font-size: var(--text-xl);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
-        margin-bottom: var(--space-2);
+        margin: 0 0 var(--space-2);
         line-height: var(--leading-snug);
     }
 
@@ -383,6 +397,8 @@
         color: var(--text-muted);
         max-width: 400px;
         line-height: var(--leading-relaxed);
+        margin: 0;
+        font-size: var(--text-sm);
     }
 }
 
@@ -407,14 +423,34 @@
 // ─── Mobile ─────────────────────────────────────────
 @media (max-width: 768px) {
     .bracket-container {
-        padding: var(--space-4);
+        padding: var(--space-4) var(--space-3);
+        border-radius: var(--radius-2xl);
     }
 
     .bracket-tree {
-        gap: var(--space-8);
+        gap: var(--space-10);
+        padding: var(--space-6) var(--space-2);
     }
 
     .bracket-round {
-        min-width: 240px;
+        min-width: 230px;
+
+        .round-header {
+            margin-bottom: var(--space-6);
+            padding: var(--space-3) var(--space-4);
+        }
+    }
+
+    .match-card {
+        padding: var(--space-3);
+    }
+
+    .team-info .name {
+        max-width: 110px;
+    }
+
+    .empty-bracket-state {
+        padding: var(--space-12) var(--space-4);
+        min-height: 200px;
     }
 }

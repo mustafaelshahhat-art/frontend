@@ -20,25 +20,25 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (store.tournament(); as t) {
-        <div class="teams-grid">
+        <div class="teams-grid" role="list" aria-label="الفرق المشاركة">
             @for (reg of t.registrations; track reg.teamId) {
-            <div class="team-card">
+            <div class="team-card" role="listitem">
                 <div class="team-info">
-                    <h3>{{ reg.teamName }}</h3>
-                    <div class="captain-info items-center">
+                    <h3 [title]="reg.teamName">{{ reg.teamName }}</h3>
+                    <div class="captain-info">
                         <app-icon name="person" class="icon-sm"></app-icon>
                         <span>{{ reg.captainName }}</span>
                     </div>
                 </div>
                 <div class="team-footer">
-                    <div class="flex-col gap-1 items-start">
+                    <div class="footer-meta">
                         <span class="date">مسجل: {{ reg.registeredAt | date:'yyyy/MM/dd' }}</span>
                         <app-badge [type]="getRegStatusType(reg.status)" size="sm">
                             {{ getRegStatusLabel(reg.status) }}
                         </app-badge>
                     </div>
 
-                    <div *appHasPermission="Permission.MANAGE_TOURNAMENTS" class="admin-team-actions flex gap-1">
+                    <div *appHasPermission="Permission.MANAGE_TOURNAMENTS" class="admin-team-actions">
                         @if (reg.status === RegistrationStatus.WAITING_LIST && t.currentTeams < t.maxTeams) {
                         <app-button variant="primary" size="sm" icon="upgrade"
                             (click)="promoteTeam(reg)">ترقية</app-button>
@@ -55,8 +55,10 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
                 </div>
             </div>
             } @empty {
-            <app-empty-state icon="groups" title="لا يوجد فرق"
-                description="لم يتم تسجيل أي فرق في هذه البطولة حالياً." />
+            <div class="empty-state-wrapper">
+                <app-empty-state icon="groups" title="لا يوجد فرق"
+                    description="لم يتم تسجيل أي فرق في هذه البطولة حالياً." />
+            </div>
             }
         </div>
         }
@@ -66,43 +68,54 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
 
         .teams-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: var(--space-4);
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-5);
+            align-items: stretch;
 
-            @media (max-width: 768px) { grid-template-columns: 1fr; }
+            @media (max-width: 768px) {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
         }
 
         .team-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-xl);
-            padding: var(--space-4);
+            padding: var(--space-5);
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             gap: var(--space-3);
-            transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+            min-height: 140px;
+            transition:
+                box-shadow var(--transition-base),
+                border-color var(--transition-base),
+                transform var(--transition-base);
 
             &:hover {
                 box-shadow: var(--shadow-md);
                 border-color: var(--border-color-strong);
+                transform: translateY(-2px);
             }
-        }
-
-        .team-logo {
-            display: flex;
         }
 
         .team-info {
             h3 {
-                margin: 0 0 var(--space-1);
+                margin: 0 0 var(--space-1-5);
                 font-size: var(--text-base);
                 font-weight: var(--font-semibold);
                 line-height: var(--leading-snug);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
             }
 
             .captain-info {
                 display: flex;
-                gap: var(--space-1);
+                align-items: center;
+                gap: var(--space-1-5);
                 font-size: var(--text-sm);
                 color: var(--text-secondary);
                 line-height: var(--leading-normal);
@@ -113,18 +126,32 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
-            gap: var(--space-2);
+            gap: var(--space-3);
+            margin-top: auto;
+        }
+
+        .footer-meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1-5);
+            align-items: flex-start;
 
             .date {
                 font-size: var(--text-xs);
-                color: var(--text-tertiary);
+                color: var(--text-muted);
                 line-height: var(--leading-normal);
             }
         }
 
         .admin-team-actions {
             display: flex;
-            gap: var(--space-1);
+            gap: var(--space-1-5);
+            flex-shrink: 0;
+        }
+
+        .empty-state-wrapper {
+            grid-column: 1 / -1;
+            padding: var(--space-8) 0;
         }
     `]
 })
