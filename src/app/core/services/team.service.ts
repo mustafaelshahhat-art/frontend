@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, shareReplay, tap } from 'rxjs/operators';
 import { Team, Player, JoinRequest, ApiTeamMatch, ApiTeamFinance } from '../models/team.model';
 import { User } from '../models/user.model';
 import { PagedResult } from '../models/pagination.model';
@@ -13,6 +13,31 @@ import { environment } from '../../../environments/environment';
 export class TeamService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/teams`;
+
+    // ── PERF-FIX: TTL-based HTTP response cache (same pattern as TournamentService) ──
+    private readonly cache = new Map<string, { obs$: Observable<unknown>; expiry: number }>();
+    private static readonly DEFAULT_TTL_MS = 30_000; // 30 seconds
+
+    private cachedGet<T>(key: string, factory: () => Observable<T>, ttlMs = TeamService.DEFAULT_TTL_MS): Observable<T> {
+        const entry = this.cache.get(key);
+        if (entry && entry.expiry > Date.now()) {
+            return entry.obs$ as Observable<T>;
+        }
+        const obs$ = factory().pipe(shareReplay({ bufferSize: 1, refCount: true }));
+        this.cache.set(key, { obs$, expiry: Date.now() + ttlMs });
+        return obs$;
+    }
+
+    /** Invalidate cache entries whose key starts with `prefix`, or all entries if omitted. */
+    invalidateCache(prefix?: string): void {
+        if (!prefix) {
+            this.cache.clear();
+            return;
+        }
+        for (const key of this.cache.keys()) {
+            if (key.startsWith(prefix)) this.cache.delete(key);
+        }
+    }
 
     getTeamByCaptainId(captainId: string): Observable<Team | undefined> {
         const params = new HttpParams().set('captainId', captainId);
@@ -31,7 +56,9 @@ export class TeamService {
     }
 
     getTeamById(teamId: string): Observable<Team | undefined> {
-        return this.http.get<Team>(`${this.apiUrl}/${teamId}`);
+        return this.cachedGet(`team:${teamId}`, () =>
+            this.http.get<Team>(`${this.apiUrl}/${teamId}`)
+        );
     }
 
     /**
@@ -53,10 +80,13 @@ export class TeamService {
     }
 
     getAllTeams(pageNumber = 1, pageSize = 20): Observable<PagedResult<Team>> {
-        const params = new HttpParams()
-            .set('pageNumber', pageNumber.toString())
-            .set('pageSize', pageSize.toString());
-        return this.http.get<PagedResult<Team>>(this.apiUrl, { params });
+        const key = `list:${pageNumber}:${pageSize}`;
+        return this.cachedGet(key, () => {
+            const params = new HttpParams()
+                .set('pageNumber', pageNumber.toString())
+                .set('pageSize', pageSize.toString());
+            return this.http.get<PagedResult<Team>>(this.apiUrl, { params });
+        });
     }
 
     createTeam(user: User, teamName: string): Observable<{ team: Team, updatedUser: User }> {
@@ -64,6 +94,7 @@ export class TeamService {
         // Helper to mimic signature:
         // We know user becomes Captain.
         return this.http.post<Team>(`${this.apiUrl}`, { name: teamName, city: user.cityNameAr || 'Unknown', founded: new Date().getFullYear().toString() }).pipe(
+            tap(() => this.invalidateCache()),
             map(team => {
                 const updatedUser = { ...user, teamId: team.id };
                 return { team, updatedUser };
@@ -72,7 +103,9 @@ export class TeamService {
     }
 
     deleteTeam(teamId: string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${teamId}`);
+        return this.http.delete<void>(`${this.apiUrl}/${teamId}`).pipe(
+            tap(() => this.invalidateCache())
+        );
     }
 
     requestToJoinTeam(teamId: string): Observable<JoinRequest> {
@@ -102,15 +135,21 @@ export class TeamService {
     }
 
     removePlayer(teamId: string, playerId: string): Observable<{ teamRemoved: boolean, playerId: string, teamId: string }> {
-        return this.http.delete<{ teamRemoved: boolean, playerId: string, teamId: string }>(`${this.apiUrl}/${teamId}/players/${playerId}`);
+        return this.http.delete<{ teamRemoved: boolean, playerId: string, teamId: string }>(`${this.apiUrl}/${teamId}/players/${playerId}`).pipe(
+            tap(() => this.invalidateCache(`team:${teamId}`))
+        );
     }
 
     addGuestPlayer(teamId: string, name: string, number?: number, position?: string): Observable<Player> {
-        return this.http.post<Player>(`${this.apiUrl}/${teamId}/add-guest-player`, { name, number, position });
+        return this.http.post<Player>(`${this.apiUrl}/${teamId}/add-guest-player`, { name, number, position }).pipe(
+            tap(() => this.invalidateCache(`team:${teamId}`))
+        );
     }
 
     updateTeam(updatedTeam: Partial<Team>): Observable<Team> {
-        return this.http.patch<Team>(`${this.apiUrl}/${updatedTeam.id}`, updatedTeam);
+        return this.http.patch<Team>(`${this.apiUrl}/${updatedTeam.id}`, updatedTeam).pipe(
+            tap(() => this.invalidateCache())
+        );
     }
 
     getTeamPlayers(teamId: string): Observable<Player[]> {
@@ -140,7 +179,9 @@ export class TeamService {
     }
 
     getTeamsOverview(): Observable<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: unknown[] }> {
-        return this.http.get<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: unknown[] }>(`${environment.apiUrl}/me/teams-overview`);
+        return this.cachedGet('overview', () =>
+            this.http.get<{ ownedTeams: Team[]; memberTeams: Team[]; pendingInvitations: unknown[] }>(`${environment.apiUrl}/me/teams-overview`)
+        );
     }
 }
 

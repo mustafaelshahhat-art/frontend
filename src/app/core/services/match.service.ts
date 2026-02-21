@@ -50,21 +50,26 @@ export class MatchService {
     }
 
     getMatches(pageNumber = 1, pageSize = 20, creatorId?: string, status?: string, teamId?: string): Observable<PagedResult<Match>> {
-        let params = new HttpParams()
-            .set('pageNumber', pageNumber.toString())
-            .set('pageSize', pageSize.toString());
+        // PERF-FIX: Wrap in cachedGet — previously hit network on every call.
+        // The MatchesListComponent re-fetches on every page visit.
+        const key = `list:${pageNumber}:${pageSize}:${creatorId ?? ''}:${status ?? ''}:${teamId ?? ''}`;
+        return this.cachedGet(key, () => {
+            let params = new HttpParams()
+                .set('pageNumber', pageNumber.toString())
+                .set('pageSize', pageSize.toString());
 
-        if (creatorId) {
-            params = params.set('creatorId', creatorId);
-        }
-        if (status) {
-            params = params.set('status', status);
-        }
-        if (teamId) {
-            params = params.set('teamId', teamId);
-        }
+            if (creatorId) {
+                params = params.set('creatorId', creatorId);
+            }
+            if (status) {
+                params = params.set('status', status);
+            }
+            if (teamId) {
+                params = params.set('teamId', teamId);
+            }
 
-        return this.http.get<PagedResult<Match>>(this.apiUrl, { params });
+            return this.http.get<PagedResult<Match>>(this.apiUrl, { params });
+        });
     }
 
 

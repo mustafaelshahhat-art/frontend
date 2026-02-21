@@ -50,31 +50,33 @@ export class NotificationService {
     }
 
     constructor() {
-        // Sync role subscription when user changes + connection is ready
+        // PERF-FIX: Merged two effects into one — previously both tracked currentUser(),
+        // causing duplicate loadNotifications() + loadUnreadCount() + connectHub() calls
+        // on every user signal change (login, profile refresh, etc.).
         effect(() => {
             const user = this.authStore.currentUser();
             const connected = this.isConnected();
 
-            if (user && connected) {
-                this.syncRoleSubscription(user.role);
-            } else if (!user) {
-                this.currentSubscribedRole = null;
-                this.disconnect();
-            }
-        });
-
-        // Connect hub + load data when user authenticates
-        effect(() => {
-            const user = this.authStore.currentUser();
             if (user) {
-                this.loadNotifications();
-                this.loadUnreadCount();
+                // Only load data once per user session, not on every signal emission
+                if (!this.dataLoaded) {
+                    this.loadNotifications();
+                    this.loadUnreadCount();
+                    this.dataLoaded = true;
+                }
                 this.connectHub();
+                if (connected) {
+                    this.syncRoleSubscription(user.role);
+                }
             } else {
+                this.currentSubscribedRole = null;
+                this.dataLoaded = false;
                 this.disconnect();
             }
         });
     }
+
+    private dataLoaded = false;
 
     // ── Data Loading ──
 
