@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { PagedResult } from '../models/pagination.model';
 import { Match, MatchStatus, Card, Goal, MatchEvent } from '../models/tournament.model';
 import { environment } from '../../../environments/environment';
@@ -13,6 +13,33 @@ export class MatchService {
     private readonly http = inject(HttpClient);
     private readonly apiUrl = `${environment.apiUrl}/matches`;
     private readonly matchUpdatedSubject = new BehaviorSubject<Match | null>(null);
+
+    // ── PERF: TTL-based cache (same pattern as TournamentService) ──
+    // Before: every tournament detail page visit re-fetched up to 200 matches from API.
+    // After: cached for 15s, preventing redundant network calls on rapid navigation.
+    private readonly cache = new Map<string, { obs$: Observable<unknown>; expiry: number }>();
+    private static readonly DEFAULT_TTL_MS = 15_000; // 15 seconds (shorter than tournament's 30s since matches change more frequently)
+
+    private cachedGet<T>(key: string, factory: () => Observable<T>, ttlMs = MatchService.DEFAULT_TTL_MS): Observable<T> {
+        const entry = this.cache.get(key);
+        if (entry && entry.expiry > Date.now()) {
+            return entry.obs$ as Observable<T>;
+        }
+        const obs$ = factory().pipe(shareReplay({ bufferSize: 1, refCount: true }));
+        this.cache.set(key, { obs$, expiry: Date.now() + ttlMs });
+        return obs$;
+    }
+
+    /** Invalidate cache entries whose key starts with `prefix`, or all entries if omitted. */
+    invalidateCache(prefix?: string): void {
+        if (!prefix) {
+            this.cache.clear();
+            return;
+        }
+        for (const key of this.cache.keys()) {
+            if (key.startsWith(prefix)) this.cache.delete(key);
+        }
+    }
 
     get matchUpdated$(): Observable<Match | null> {
         return this.matchUpdatedSubject.asObservable();
@@ -47,10 +74,12 @@ export class MatchService {
     }
 
     getMatchesByTournament(tournamentId: string, pageSize = 200): Observable<Match[]> {
-        const params = new HttpParams().set('pageSize', pageSize.toString()).set('page', '1');
-        return this.http
-            .get<PagedResult<Match>>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`, { params })
-            .pipe(map(result => result?.items ?? []));
+        return this.cachedGet(`tournament:${tournamentId}`, () => {
+            const params = new HttpParams().set('pageSize', pageSize.toString()).set('page', '1');
+            return this.http
+                .get<PagedResult<Match>>(`${environment.apiUrl}/tournaments/${tournamentId}/matches`, { params })
+                .pipe(map(result => result?.items ?? []));
+        });
     }
 
     // PERF-FIX: Server-side filtering — eliminates fetching 100 records and filtering in browser

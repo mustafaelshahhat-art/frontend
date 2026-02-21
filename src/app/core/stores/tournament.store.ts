@@ -41,6 +41,12 @@ export class TournamentStore {
     this.state.update(state => ({ ...state, isLoading: loading }));
   }
 
+  /** Clears all tournaments and sets loading — used before a fresh data fetch
+   *  to prevent stale data from flashing in the UI. */
+  resetAndLoad(): void {
+    this.state.update(state => ({ ...state, tournaments: [], isLoading: true, error: null }));
+  }
+
   setError(error: string | null): void {
     this.state.update(state => ({ ...state, error }));
   }

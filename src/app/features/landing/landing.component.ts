@@ -1,7 +1,6 @@
 import { Component, ChangeDetectionStrategy, ViewEncapsulation, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-landing',
@@ -151,13 +150,11 @@ export class LandingComponent implements OnInit {
     }
 
     async continueAsGuest(): Promise<void> {
-        try {
-            await firstValueFrom(this.authService.loginAsGuest());
-            this.router.navigate(['/guest/tournaments']);
-        } catch (e: unknown) {
-            console.error('Guest login failed', e);
-            // Even if logging fails, we can still navigate as guest in frontend
-            this.router.navigate(['/guest/tournaments']);
-        }
+        // Set up guest user locally first (no API call needed for guest identity)
+        this.authService.loginAsGuestLocal();
+        // Navigate immediately — don't wait for the backend activity log
+        this.router.navigate(['/guest/tournaments']);
+        // Fire-and-forget: log guest visit in the background
+        this.authService.logGuestVisit().subscribe();
     }
 }

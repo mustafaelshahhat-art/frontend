@@ -6,6 +6,8 @@ import { filter } from 'rxjs/operators';
 import { UIFeedbackService } from '../../shared/services/ui-feedback.service';
 import { AuthService } from './auth.service';
 import { SignalRService } from './signalr.service';
+import { TournamentService } from './tournament.service';
+import { MatchService } from './match.service';
 import { TournamentStore } from '../stores/tournament.store';
 import { MatchStore } from '../stores/match.store';
 import { TeamStore } from '../stores/team.store';
@@ -35,6 +37,8 @@ export class RealTimeUpdateService {
     private readonly matchStore = inject(MatchStore);
     private readonly teamStore = inject(TeamStore);
     private readonly userStore = inject(UserStore);
+    private readonly tournamentService = inject(TournamentService);
+    private readonly matchService = inject(MatchService);
     private readonly destroyRef = inject(DestroyRef);
 
 
@@ -116,14 +120,25 @@ export class RealTimeUpdateService {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.tournamentStore.upsertTournament(dto);
+                    this.tournamentService.invalidateCache('list');
                 }
             });
         });
 
         this.hubConnection.on('TournamentUpdated', (dto: Tournament) => {
             this.ngZone.run(() => {
-                if (this.extractId(dto, 'id')) {
-                    this.tournamentStore.upsertTournament(dto);
+                const id = this.extractId(dto, 'id');
+                if (id) {
+                    // Merge: preserve existing fields (registrations, rules, etc.)
+                    // that are stripped from the slim SignalR payload
+                    const existing = this.tournamentStore.getTournamentById(id);
+                    if (existing) {
+                        this.tournamentStore.updateTournament({ ...existing, ...dto });
+                    } else {
+                        this.tournamentStore.upsertTournament(dto);
+                    }
+                    this.tournamentService.invalidateCache(`detail:${id}`);
+                    this.tournamentService.invalidateCache('list');
                 }
             });
         });
@@ -134,22 +149,41 @@ export class RealTimeUpdateService {
                 if (tournamentId) {
                     this.tournamentStore.removeTournament(tournamentId);
                     this.matchStore.removeMatchesByTournament(tournamentId);
+                    this.tournamentService.invalidateCache();
+                    this.matchService.invalidateCache(`tournament:${tournamentId}`);
                 }
             });
         });
 
         this.hubConnection.on('RegistrationApproved', (tournamentDto: Tournament) => {
             this.ngZone.run(() => {
-                if (this.extractId(tournamentDto, 'id')) {
-                    this.tournamentStore.upsertTournament(tournamentDto);
+                const id = this.extractId(tournamentDto, 'id');
+                if (id) {
+                    // Merge: preserve registrations list from existing store entry
+                    const existing = this.tournamentStore.getTournamentById(id);
+                    if (existing) {
+                        this.tournamentStore.updateTournament({ ...existing, ...tournamentDto });
+                    } else {
+                        this.tournamentStore.upsertTournament(tournamentDto);
+                    }
+                    this.tournamentService.invalidateCache(`detail:${id}`);
+                    this.tournamentService.invalidateCache('list');
                 }
             });
         });
 
         this.hubConnection.on('RegistrationRejected', (tournamentDto: Tournament) => {
             this.ngZone.run(() => {
-                if (this.extractId(tournamentDto, 'id')) {
-                    this.tournamentStore.upsertTournament(tournamentDto);
+                const id = this.extractId(tournamentDto, 'id');
+                if (id) {
+                    const existing = this.tournamentStore.getTournamentById(id);
+                    if (existing) {
+                        this.tournamentStore.updateTournament({ ...existing, ...tournamentDto });
+                    } else {
+                        this.tournamentStore.upsertTournament(tournamentDto);
+                    }
+                    this.tournamentService.invalidateCache(`detail:${id}`);
+                    this.tournamentService.invalidateCache('list');
                 }
             });
         });
@@ -159,6 +193,8 @@ export class RealTimeUpdateService {
                 const tournamentId = this.readValue<string>(registrationDto, 'tournamentId');
                 if (tournamentId && registrationDto) {
                     this.tournamentStore.updateRegistration(tournamentId, registrationDto);
+                    this.tournamentService.invalidateCache(`detail:${tournamentId}`);
+                    this.tournamentService.invalidateCache('list');
                 }
             });
         });
@@ -167,25 +203,39 @@ export class RealTimeUpdateService {
             this.ngZone.run(() => {
                 if (this.extractId(dto, 'id')) {
                     this.matchStore.upsertMatch(dto);
+                    const tid = this.readValue<string>(dto, 'tournamentId');
+                    if (tid) this.matchService.invalidateCache(`tournament:${tid}`);
                 }
             });
         });
 
         this.hubConnection.on('MatchUpdated', (dto: Match) => {
             this.ngZone.run(() => {
-                if (this.extractId(dto, 'id')) {
-                    this.matchStore.upsertMatch(dto);
+                const id = this.extractId(dto, 'id');
+                if (id) {
+                    // Merge: preserve events list stripped from slim payload
+                    const existing = this.matchStore.getMatchById(id);
+                    if (existing) {
+                        this.matchStore.updateMatch({ ...existing, ...dto });
+                    } else {
+                        this.matchStore.upsertMatch(dto);
+                    }
+                    const tid = this.readValue<string>(dto, 'tournamentId');
+                    if (tid) this.matchService.invalidateCache(`tournament:${tid}`);
                 }
             });
         });
 
         this.hubConnection.on('MatchesGenerated', (dtos: Match[]) => {
             this.ngZone.run(() => {
+                let tournamentId: string | null = null;
                 (dtos || []).forEach(match => {
                     if (this.extractId(match, 'id')) {
                         this.matchStore.upsertMatch(match);
+                        if (!tournamentId) tournamentId = this.readValue<string>(match, 'tournamentId');
                     }
                 });
+                if (tournamentId) this.matchService.invalidateCache(`tournament:${tournamentId}`);
             });
         });
 
@@ -193,7 +243,11 @@ export class RealTimeUpdateService {
             this.ngZone.run(() => {
                 const matchId = this.extractId(payload, 'matchId');
                 if (matchId) {
+                    const existing = this.matchStore.getMatchById(matchId);
                     this.matchStore.removeMatch(matchId);
+                    if (existing?.tournamentId) {
+                        this.matchService.invalidateCache(`tournament:${existing.tournamentId}`);
+                    }
                 }
             });
         });

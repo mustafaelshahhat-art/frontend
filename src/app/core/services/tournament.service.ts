@@ -5,12 +5,14 @@ import { map, catchError, shareReplay, tap } from 'rxjs/operators';
 import { Tournament, TeamRegistration, TournamentStanding, GenerateMatchesResponse, PendingPaymentResponse, Group, BracketDto, Match, ManualDrawRequest, GroupAssignment, KnockoutPairing } from '../models/tournament.model';
 import { PagedResult } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TournamentService {
     private readonly http = inject(HttpClient);
+    private readonly authService = inject(AuthService);
     private readonly apiUrl = `${environment.apiUrl}/tournaments`;
 
     // ── TTL-based HTTP response cache ──────────────────────────────
@@ -44,7 +46,9 @@ export class TournamentService {
     }
 
     getTournaments(pageNumber = 1, pageSize = 20): Observable<PagedResult<Tournament>> {
-        const key = `list:${pageNumber}:${pageSize}`;
+        // Include user identity in cache key so role-filtered responses aren't shared
+        const userId = this.authService.getCurrentUser()?.id ?? 'anon';
+        const key = `list:${pageNumber}:${pageSize}:${userId}`;
         return this.cachedGet(key, () => {
             const params = new HttpParams()
                 .set('page', pageNumber.toString())

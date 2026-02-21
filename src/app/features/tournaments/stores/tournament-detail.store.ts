@@ -354,6 +354,8 @@ export class TournamentDetailStore {
         this.tournamentService.invalidateCache(`standings:${id}`);
         this.tournamentService.invalidateCache(`bracket:${id}`);
         this.tournamentService.invalidateCache(`groups:${id}`);
+        // PERF: Also invalidate match cache so reload fetches fresh data
+        this.matchService.invalidateCache(`tournament:${id}`);
         this.loadTournament(id, destroyRef);
     }
 

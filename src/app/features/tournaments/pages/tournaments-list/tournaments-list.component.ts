@@ -131,9 +131,10 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         this.layoutOrchestrator.setTitle(title);
         this.layoutOrchestrator.setSubtitle(subtitle);
 
-        // Refresh profile to ensure latest teamId is fetched from backend
-        await firstValueFrom(this.authService.refreshUserProfile());
+        // Load tournaments immediately — don't block on profile refresh
         this.loadInitialData();
+        // Refresh profile in the background (non-blocking) to pick up latest teamId
+        this.authService.refreshUserProfile().subscribe();
     }
 
     ngAfterViewInit(): void {
@@ -183,28 +184,25 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
 
     // ✅ FIXED: Load data ONCE on init, populate TournamentStore
     private async loadInitialData(): Promise<void> {
-        this.tournamentStore.setLoading(true);
+        // Clear stale data to prevent wrong tournaments flashing before the fresh response arrives
+        this.tournamentStore.resetAndLoad();
 
-        // Load team details if user belongs to one
         const user = this.authService.getCurrentUser();
-        if (user?.teamId) {
-            try {
-                const team = await firstValueFrom(this.teamService.getTeamById(user.teamId));
-                if (team) {
-                    this.teamStore.upsertTeam(team);
-                }
-            } catch {
-                // Keep empty store state on failure.
-            }
-        }
 
-        // Load tournaments into STORE (not local state)
-        try {
-            const data = await firstValueFrom(this.tournamentService.getTournaments());
+        // Parallelize team fetch + tournament fetch for faster loading
+        const teamPromise = (user?.teamId)
+            ? firstValueFrom(this.teamService.getTeamById(user.teamId)).then(team => {
+                if (team) this.teamStore.upsertTeam(team);
+            }).catch(() => { /* Keep empty store state on failure */ })
+            : Promise.resolve();
+
+        const tournamentPromise = firstValueFrom(this.tournamentService.getTournaments()).then(data => {
             this.tournamentStore.setTournaments(data);
-        } catch {
+        }).catch(() => {
             this.tournamentStore.setLoading(false);
-        }
+        });
+
+        await Promise.all([teamPromise, tournamentPromise]);
     }
 
     // List Optimization

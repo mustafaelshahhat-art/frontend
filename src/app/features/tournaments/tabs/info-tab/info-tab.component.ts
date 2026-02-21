@@ -179,32 +179,25 @@ export class InfoTabComponent {
     readonly scorers = computed(() => {
         const matches = this.store.tournamentMatches();
         const scorerMap = new Map<string, { name: string; team: string; goals: number; teamId: string }>();
+        const seenEventIds = new Set<string>();
 
         matches.forEach((m: Match) => {
-            const goalsSource = [...(m.goals || [])];
-            if (m.events) {
-                m.events
-                    .filter(e => (e.type as unknown) === 'Goal' || e.type === MatchEventType.GOAL)
-                    .forEach(e => {
-                        if (e.playerId && !goalsSource.some(g => g.playerId === e.playerId && g.minute === e.minute)) {
-                            goalsSource.push({
-                                playerId: e.playerId,
-                                playerName: e.playerName || 'لاعب مجهول',
-                                teamId: e.teamId,
-                                minute: e.minute
-                            });
-                        }
-                    });
-            }
+            // Events are the single source of truth for goals (m.goals is deprecated and never populated by the API)
+            const goalEvents = (m.events || [])
+                .filter(e => (e.type as unknown) === 'Goal' || e.type === MatchEventType.GOAL);
 
-            goalsSource.forEach(g => {
-                const key = g.playerId;
+            goalEvents.forEach(e => {
+                // Deduplicate by event ID only (not by playerId+minute) to correctly count multiple goals by the same player
+                if (!e.playerId || (e.id && seenEventIds.has(e.id))) return;
+                if (e.id) seenEventIds.add(e.id);
+
+                const key = e.playerId;
                 if (!scorerMap.has(key)) {
                     scorerMap.set(key, {
-                        name: g.playerName,
-                        team: m.homeTeamId === g.teamId ? m.homeTeamName : m.awayTeamName,
+                        name: e.playerName || 'لاعب مجهول',
+                        team: m.homeTeamId === e.teamId ? m.homeTeamName : m.awayTeamName,
                         goals: 0,
-                        teamId: g.teamId
+                        teamId: e.teamId
                     });
                 }
                 scorerMap.get(key)!.goals++;

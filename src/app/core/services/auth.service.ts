@@ -7,6 +7,7 @@ import { User, AuthResponse, LoginRequest, TokenPayload, UserStatus, RegisterReq
 import { environment } from '../../../environments/environment';
 import { AuthStore } from '../stores/auth.store';
 import { SignalRService } from './signalr.service';
+import { TournamentService } from './tournament.service';
 
 @Injectable({
     providedIn: 'root'
@@ -76,24 +77,48 @@ export class AuthService {
             headers: { 'X-Skip-Error-Handler': 'true' }
         }).pipe(
             tap(() => {
-                // Clear any existing auth tokens to prevent 401s on subsequent requests
-                localStorage.removeItem(this.TOKEN_KEY);
-                localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-
-                const guestUser: User = {
-                    id: 'guest',
-                    displayId: 'GUEST',
-                    name: 'زائر',
-                    email: 'guest@korazone365.com',
-                    role: UserRole.GUEST,
-                    status: UserStatus.ACTIVE,
-                    isEmailVerified: true,
-                    createdAt: new Date()
-                };
-                localStorage.setItem(this.USER_KEY, JSON.stringify(guestUser));
-                this.authStore.setCurrentUser(guestUser);
+                this.setupGuestUser();
             })
         );
+    }
+
+    /** Sets up guest user locally without any API call — use for instant navigation */
+    loginAsGuestLocal(): void {
+        this.setupGuestUser();
+    }
+
+    /** Fire-and-forget: logs guest visit on the backend */
+    logGuestVisit(): Observable<unknown> {
+        return this.http.post(`${this.apiUrl}/login-guest`, {}, {
+            headers: { 'X-Skip-Error-Handler': 'true' }
+        }).pipe(
+            catchError(() => of(null))
+        );
+    }
+
+    private setupGuestUser(): void {
+        // Clear any existing auth tokens to prevent 401s on subsequent requests
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+
+        const guestUser: User = {
+            id: 'guest',
+            displayId: 'GUEST',
+            name: 'زائر',
+            email: 'guest@korazone365.com',
+            role: UserRole.GUEST,
+            status: UserStatus.ACTIVE,
+            isEmailVerified: true,
+            createdAt: new Date()
+        };
+        localStorage.setItem(this.USER_KEY, JSON.stringify(guestUser));
+        this.authStore.setCurrentUser(guestUser);
+
+        // Invalidate tournament cache so stale role-filtered data isn't served
+        try {
+            const tournamentService = this.injector.get(TournamentService);
+            tournamentService.invalidateCache();
+        } catch { /* service may not be initialized yet */ }
     }
 
     refreshToken(): Observable<AuthResponse> {
@@ -110,6 +135,12 @@ export class AuthService {
         localStorage.removeItem(this.REFRESH_TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
         this.authStore.clearAuth();
+
+        // Invalidate tournament cache so a fresh login doesn't see stale role-filtered data
+        try {
+            const tournamentService = this.injector.get(TournamentService);
+            tournamentService.invalidateCache();
+        } catch { /* service may not be initialized */ }
 
         // Ensure SignalR connections are terminated to clear identity
         try {
@@ -188,6 +219,12 @@ export class AuthService {
         }
         localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
         this.authStore.setCurrentUser(response.user);
+
+        // Invalidate tournament cache so stale role-filtered data isn't served to the new identity
+        try {
+            const tournamentService = this.injector.get(TournamentService);
+            tournamentService.invalidateCache();
+        } catch { /* service may not be initialized yet */ }
     }
 
     updateCurrentUser(updatedUser: User): void {

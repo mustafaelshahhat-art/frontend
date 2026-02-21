@@ -158,12 +158,17 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
     canManageRequest(tournament: Tournament): boolean {
         const user = this.authService.getCurrentUser();
         if (!user || !tournament) return false;
-        return tournament.adminId === user.id || tournament.creatorUserId === user.id;
+        return user.role === 'Admin' || tournament.adminId === user.id || tournament.creatorUserId === user.id;
     }
 
     async approve(request: { tournament: Tournament, registration: TeamRegistration }): Promise<void> {
         try {
             await firstValueFrom(this.tournamentService.approvePayment(request.tournament.id, request.registration.teamId));
+            // Optimistic update: reflect status change immediately in the store
+            this.tournamentStore.updateRegistration(request.tournament.id, {
+                ...request.registration,
+                status: RegistrationStatus.APPROVED
+            });
             this.uiFeedback.success('تم بنجاح', `تم قبول طلب الدفع لفريق ${request.registration.teamName}`);
         } catch {
             // error handled silently
@@ -176,6 +181,11 @@ export class PaymentRequestsComponent implements OnInit, AfterViewInit, OnDestro
 
         try {
             await firstValueFrom(this.tournamentService.rejectPayment(request.tournament.id, request.registration.teamId, 'Rejected by admin'));
+            // Optimistic update: reflect status change immediately in the store
+            this.tournamentStore.updateRegistration(request.tournament.id, {
+                ...request.registration,
+                status: RegistrationStatus.REJECTED
+            });
             this.uiFeedback.error('تم الرفض', `تم رفض طلب الدفع لفريق ${request.registration.teamName}`);
         } catch {
             // error handled silently

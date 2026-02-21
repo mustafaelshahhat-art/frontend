@@ -181,7 +181,7 @@ export class VerifyEmailComponent implements OnInit, AfterViewInit {
             await firstValueFrom(this.authService.verifyEmail(this.email.trim(), otp));
             this.isLoading.set(false);
             this.successMessage.set('تم تأكيد بريدك الإلكتروني بنجاح! حسابك الآن قيد المراجعة من الإدارة. سيتم إعلامك عند تفعيل حسابك.');
-            await firstValueFrom(timer(4000));
+            await firstValueFrom(timer(1500));
             this.router.navigate(['/auth/login']);
         } catch (error: unknown) {
             const httpErr = error as { error?: { message?: string } };

@@ -39,13 +39,6 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
                     </div>
 
                     <div *appHasPermission="Permission.MANAGE_TOURNAMENTS" class="admin-team-actions flex gap-1">
-                        @if (reg.status === RegistrationStatus.PENDING_PAYMENT_REVIEW) {
-                        <app-button variant="outline" size="sm" icon="check"
-                            (click)="approveRegistration(reg)">قبول</app-button>
-                        <app-button variant="danger" size="sm" icon="close"
-                            (click)="rejectRegistration(reg)">رفض</app-button>
-                        }
-
                         @if (reg.status === RegistrationStatus.WAITING_LIST && t.currentTeams < t.maxTeams) {
                         <app-button variant="primary" size="sm" icon="upgrade"
                             (click)="promoteTeam(reg)">ترقية</app-button>
