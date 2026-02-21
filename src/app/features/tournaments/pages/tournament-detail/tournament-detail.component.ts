@@ -14,7 +14,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { LayoutOrchestratorService } from '../../../../core/services/layout-orchestrator.service';
 import { Permission } from '../../../../core/permissions/permissions.model';
 import {
-    TournamentStatus, MatchStatus, RegistrationStatus, SchedulingMode
+    TournamentStatus, MatchStatus, RegistrationStatus, SchedulingMode, TeamRegistration
 } from '../../../../core/models/tournament.model';
 import { UserStatus } from '../../../../core/models/user.model';
 
@@ -236,7 +236,7 @@ export class TournamentDetailComponent implements OnInit, OnDestroy {
     resetSchedule(): void { this.actions.resetSchedule(this.destroyRef); }
     registerTeam(): void { this.actions.registerTeam(); }
     closeRegisterModal(): void { this.actions.closeRegisterModal(); }
-    onRegistrationSuccess(): void { this.actions.onRegistrationSuccess(); }
+    onRegistrationSuccess(registration: TeamRegistration): void { this.actions.onRegistrationSuccess(registration); }
     withdrawTeam(): void { this.actions.withdrawTeam(this.destroyRef); }
     selectOpeningMatch(): void { this.actions.selectOpeningMatch(); }
     closeOpeningMatchModal(): void { this.actions.closeOpeningMatchModal(); }

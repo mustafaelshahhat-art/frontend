@@ -6,7 +6,7 @@ import { TournamentStore } from '../../../core/stores/tournament.store';
 import { MatchStore } from '../../../core/stores/match.store';
 import { UIFeedbackService } from '../../../shared/services/ui-feedback.service';
 import { ContextNavigationService } from '../../../core/navigation/context-navigation.service';
-import { Tournament, Match, TournamentStatus } from '../../../core/models/tournament.model';
+import { Tournament, Match, TournamentStatus, TeamRegistration } from '../../../core/models/tournament.model';
 import { TournamentDetailStore } from './tournament-detail.store';
 
 /**
@@ -186,8 +186,13 @@ export class TournamentDetailActions {
         this.store.isRegisterModalVisible.set(false);
     }
 
-    onRegistrationSuccess(): void {
+    onRegistrationSuccess(registration: TeamRegistration): void {
         this.store.isRegisterModalVisible.set(false);
+        // Immediately update the tournament store with the new registration
+        const tournamentId = this.store.tournamentId();
+        if (tournamentId && registration) {
+            this.tournamentStore.updateRegistration(tournamentId, registration);
+        }
     }
 
     selectOpeningMatch(): void {

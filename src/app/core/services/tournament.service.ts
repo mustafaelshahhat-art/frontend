@@ -102,7 +102,9 @@ export class TournamentService {
 
     requestTournamentRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {
         // According to TournamentsController: POST {id}/register
-        return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId });
+        return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/register`, { teamId }).pipe(
+            tap(() => { this.invalidateCache(`detail:${tournamentId}`); this.invalidateCache('list'); })
+        );
     }
 
     submitPaymentReceipt(tournamentId: string, teamId: string, receipt: File, senderNumber?: string): Observable<TeamRegistration> {
@@ -111,7 +113,9 @@ export class TournamentService {
         if (senderNumber) {
             formData.append('senderNumber', senderNumber);
         }
-        return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/payment`, formData);
+        return this.http.post<TeamRegistration>(`${this.apiUrl}/${tournamentId}/registrations/${teamId}/payment`, formData).pipe(
+            tap(() => { this.invalidateCache(`detail:${tournamentId}`); this.invalidateCache('list'); })
+        );
     }
 
     approveRegistration(tournamentId: string, teamId: string): Observable<TeamRegistration> {

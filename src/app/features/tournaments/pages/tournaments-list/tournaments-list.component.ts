@@ -6,7 +6,7 @@ import { ContextNavigationService } from '../../../../core/navigation/context-na
 import { TournamentService } from '../../../../core/services/tournament.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Tournament, TournamentStatus } from '../../../../core/models/tournament.model';
+import { Tournament, TournamentStatus, TeamRegistration } from '../../../../core/models/tournament.model';
 import { UserRole } from '../../../../core/models/user.model';
 import { TournamentStore } from '../../../../core/stores/tournament.store';
 import { TeamStore } from '../../../../core/stores/team.store';
@@ -272,10 +272,13 @@ export class TournamentsListComponent implements OnInit, AfterViewInit, OnDestro
         this.selectedTournamentForRegistration = null;
     }
 
-    onRegistrationSuccess(): void {
+    onRegistrationSuccess(registration: TeamRegistration): void {
         this.closeRegistrationModal();
         this.uiFeedback.success('تم التسجيل', 'تم إرسال طلبك بنجاح');
-        // ✅ FIXED: NO manual reload - tournament will update via SignalR → TournamentStore
+        // Immediately update the tournament store with the new registration
+        if (registration?.tournamentId) {
+            this.tournamentStore.updateRegistration(registration.tournamentId, registration);
+        }
     }
 
     // Check if user is a player but has no team (neither owner nor member)

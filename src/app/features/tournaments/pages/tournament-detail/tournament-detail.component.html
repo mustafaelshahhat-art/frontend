@@ -63,7 +63,7 @@
 
 <!-- Registration Modal -->
 <app-team-registration-modal [tournament]="tournament()!" [isVisible]="isRegisterModalVisible()"
-    (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess()" />
+    (closeEvent)="closeRegisterModal()" (successEvent)="onRegistrationSuccess($event)" />
 
 <!-- Opening Match Modal -->
 @if (canSelectOpeningMatch() && tournament()) {

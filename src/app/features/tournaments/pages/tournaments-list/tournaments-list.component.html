@@ -58,4 +58,4 @@
 
 <!-- Full Registration Modal (Shared) -->
 <app-team-registration-modal [tournament]="selectedTournamentForRegistration" [isVisible]="isRegistrationModalVisible"
-    (closeEvent)="closeRegistrationModal()" (successEvent)="onRegistrationSuccess()" />
+    (closeEvent)="closeRegistrationModal()" (successEvent)="onRegistrationSuccess($event)" />

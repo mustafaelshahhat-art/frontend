@@ -6,7 +6,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { UIFeedbackService } from '../../../../shared/services/ui-feedback.service';
 import { firstValueFrom } from 'rxjs';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { Tournament } from '../../../../core/models/tournament.model';
+import { Tournament, TeamRegistration } from '../../../../core/models/tournament.model';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { FormControlComponent } from '../../../../shared/components/form-control/form-control.component';
 import { SelectComponent, SelectOption } from '../../../../shared/components/select/select.component';
@@ -34,7 +34,7 @@ export class TeamRegistrationModalComponent {
     @Input() tournament: Tournament | null = null;
     @Input() isVisible = false;
     @Output() closeEvent = new EventEmitter<void>();
-    @Output() successEvent = new EventEmitter<void>();
+    @Output() successEvent = new EventEmitter<TeamRegistration>();
 
     private tournamentService = inject(TournamentService);
     private authService = inject(AuthService);
@@ -156,13 +156,13 @@ export class TeamRegistrationModalComponent {
 
         // Step 1: Register Team (PendingPayment) - Pass TeamId explicitly
         try {
-            await firstValueFrom(this.tournamentService.requestTournamentRegistration(this.tournament.id, this.registerForm.selectedTeamId));
-            await this.uploadPayment(this.registerForm.selectedTeamId);
+            const registration = await firstValueFrom(this.tournamentService.requestTournamentRegistration(this.tournament.id, this.registerForm.selectedTeamId));
+            await this.uploadPayment(this.registerForm.selectedTeamId, registration);
         } catch (err: unknown) {
             const httpErr = err as { status?: number; error?: { message?: string } };
             if (httpErr.status === 409) {
                 // Already registered, try to just upload the payment
-                await this.uploadPayment(this.registerForm.selectedTeamId);
+                await this.uploadPayment(this.registerForm.selectedTeamId, null);
             } else {
                 this.isSubmitting = false;
                 this.uiFeedback.error('فشل التسجيل', httpErr.error?.message || 'تعذّر تقديم طلب التسجيل. يرجى المحاولة مرة أخرى.');
@@ -170,20 +170,24 @@ export class TeamRegistrationModalComponent {
         }
     }
 
-    private async uploadPayment(teamId: string): Promise<void> {
+    private async uploadPayment(teamId: string, initialRegistration: TeamRegistration | null): Promise<void> {
         if (!this.tournament || !this.registerForm.receipt) return;
 
         try {
-            await firstValueFrom(
+            const updatedRegistration = await firstValueFrom(
                 this.tournamentService.submitPaymentReceipt(this.tournament.id, teamId, this.registerForm.receipt, this.registerForm.fromNumber)
             );
             this.isSubmitting = false;
             this.uiFeedback.success('تم بنجاح', 'تم تقديم طلب التسجيل وإيصال الدفع بنجاح');
-            this.successEvent.emit();
+            this.successEvent.emit(updatedRegistration);
             this.close();
         } catch (err: unknown) {
             this.isSubmitting = false;
             const httpErr = err as { error?: { message?: string } };
+            // If payment upload failed but registration succeeded, still emit the registration
+            if (initialRegistration) {
+                this.successEvent.emit(initialRegistration);
+            }
             this.uiFeedback.error('خطأ في رفع الإيصال', httpErr.error?.message || 'تم حجز مكانك ولكن فشل رفع الإيصال، يرجى المحاولة مرة أخرى');
         }
     }
