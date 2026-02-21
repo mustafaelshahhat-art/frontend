@@ -1,11 +1,12 @@
 <div class="match-card-compact" [class.is-live]="isLive" [class.is-finished]="isFinished"
     [class.is-cancelled]="isCancelled" [class.is-postponed]="isPostponed" [class.clickable]="isClickable"
-    (click)="onCardClick()" (keyup.enter)="onCardClick()" [attr.tabindex]="isClickable ? 0 : null">
+    (click)="onCardClick()" (keyup.enter)="onCardClick()" [attr.tabindex]="isClickable ? 0 : null"
+    [attr.role]="isClickable ? 'button' : null">
 
     <!-- Header -->
     <div class="match-card-header">
         <div class="match-card-icon">
-            <app-icon [name]=" statusConfig.icon || 'sports_soccer' " class=" icon-sm"></app-icon>
+            <app-icon [name]="statusConfig.icon || 'sports_soccer'" class="icon-sm"></app-icon>
         </div>
         <span class="match-card-badge" [attr.data-variant]="statusConfig.variant">
             @if (isLive) {
@@ -18,9 +19,12 @@
     <!-- Title -->
     <div class="match-card-title">
         <h4>{{ title || match.tournamentName || 'مباراة ودية' }}</h4>
+        @if (match.stageName || match.roundNumber) {
+        <span class="match-stage-label">{{ match.stageName }}{{ match.roundNumber ? ' - الجولة ' + match.roundNumber : '' }}</span>
+        }
         @if (match.date) {
         <div class="match-time-badge">
-            <app-icon name="schedule" class="icon-xs icon-sm"></app-icon>
+            <app-icon name="schedule" class="icon-xs"></app-icon>
             {{ match.date | date:'hh:mm a' }} - {{ match.date | date:'yyyy/MM/dd' }}
         </div>
         }
@@ -40,11 +44,12 @@
             <!-- VS / Score -->
             <div class="match-card-vs">
                 @if (isScheduled) {
-                <span>vs</span>
-                }
-                @if (!isScheduled) {
-                <div class="match-card-score">
-                    {{ match.homeScore }} - {{ match.awayScore }}
+                <span class="vs-label">VS</span>
+                } @else {
+                <div class="match-card-score" [class.score-live]="isLive">
+                    <span class="score-digit">{{ match.homeScore }}</span>
+                    <span class="score-separator">-</span>
+                    <span class="score-digit">{{ match.awayScore }}</span>
                 </div>
                 }
             </div>

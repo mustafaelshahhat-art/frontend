@@ -1,14 +1,20 @@
+// ============================================================
+// MATCH DETAIL PAGE
+// ============================================================
+
 .match-detail-page {
     padding: var(--space-xl);
     max-width: 1200px;
     margin: 0 auto;
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         padding: var(--space-lg);
     }
-
-    // Layout moved to title-addon slot, no CSS overrides needed.
 }
+
+// ============================================================
+// SCORE HERO CARD
+// ============================================================
 
 .score-card-hero {
     background: var(--bg-surface);
@@ -18,26 +24,29 @@
     margin-bottom: var(--space-xl);
     position: relative;
     overflow: hidden;
+    transition: border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
 
-    @media (width <=768px) {
+    @media (width <= 768px) {
         padding: var(--space-lg);
     }
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         padding: var(--space-5) var(--space-3);
-        /* Increased padding for better breathing room */
         border-radius: var(--radius-2xl);
     }
 
+    // --- Live state ---
     &.is-live {
         border-color: var(--color-primary);
         box-shadow: var(--shadow-glow);
     }
 
+    // --- Finished state ---
     &.is-finished {
         background: linear-gradient(135deg, var(--bg-surface), var(--bg-dark-lighter));
     }
 
+    // --- Cancelled state ---
     &.is-cancelled {
         border-color: var(--color-danger);
         background: linear-gradient(135deg, rgb(239 68 68 / 5%), var(--bg-dark-lighter));
@@ -63,12 +72,16 @@
             padding: var(--space-1) var(--space-3);
             border-radius: var(--radius-full);
             font-size: var(--text-xs);
-            font-weight: var(--font-black);
-            text-transform: uppercase;
+            font-weight: var(--font-bold);
+            letter-spacing: var(--tracking-wide);
             box-shadow: var(--shadow-glow-danger);
         }
     }
 }
+
+// ============================================================
+// SCORE CARD CONTENT LAYOUT
+// ============================================================
 
 .score-card-content {
     display: flex;
@@ -76,58 +89,68 @@
     justify-content: space-between;
     gap: var(--space-xl);
 
-    @media (width <=768px) {
+    @media (width <= 768px) {
         gap: var(--space-lg);
     }
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: var(--space-1);
-        /* Significantly reduced gap to pull logos inward */
         padding: 0 var(--space-1);
-        /* Add internal horizontal padding to keep away from edges */
     }
 }
+
+// ============================================================
+// TEAM BLOCK
+// ============================================================
 
 .team-block {
     flex: 1;
     flex-basis: 0;
-    /* Ensure equal width distribution regardless of content */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     width: 100%;
-    /* Ensure it takes full cell width */
+    border-radius: var(--radius-xl);
+    transition: opacity var(--duration-fast) ease;
 
-    @media (width <=640px) {
+    // --- Focus & hover for clickable team blocks ---
+    &.clickable {
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.85;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 4px;
+            border-radius: var(--radius-xl);
+        }
+    }
+
+    @media (width <= 640px) {
         gap: var(--space-2);
     }
 
-    // ========== ROBUST LOGO CONTAINER ==========
+    // --- Logo container ---
     .team-logo-container {
-        // Desktop Base Styles
         width: 80px;
         height: 80px;
         position: relative;
         overflow: hidden;
         margin-bottom: var(--space-3);
-
-        // Background & Border
         background: var(--bg-input, rgba(255, 255, 255, 0.05));
         border-radius: var(--radius-2xl);
         border: 1px solid var(--border-visible, rgba(255, 255, 255, 0.1));
-        padding: 0.75rem;
-        /* Padding prevents logo from touching edges */
-
-        // Flex Centering
+        padding: var(--space-3);
         display: flex;
         align-items: center;
         justify-content: center;
 
-        // Force image scaling via ::ng-deep 
         ::ng-deep app-smart-image {
             width: 100% !important;
             height: 100% !important;
@@ -139,7 +162,6 @@
                 width: 100% !important;
                 height: 100% !important;
                 object-fit: contain !important;
-                /* CRITICAL: Prevents cropping */
                 object-position: center !important;
             }
 
@@ -149,58 +171,64 @@
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                font-size: 1.5rem !important;
-                font-weight: bold;
+                font-size: var(--text-2xl) !important;
+                font-weight: var(--font-bold);
             }
         }
     }
 
-    // Mobile Overrides for Logo and Text
-    @media (width <=640px) {
+    // Mobile overrides for logo
+    @media (width <= 640px) {
         .team-logo-container {
             width: 56px;
-            /* Restore reasonable size for visibility */
             height: 56px;
-            margin-bottom: 0.5rem;
-            padding: 0.35rem;
-            /* Proportionate padding */
+            margin-bottom: var(--space-2);
+            padding: var(--space-1);
 
             ::ng-deep app-smart-image {
                 ::ng-deep .smart-image-fallback {
-                    font-size: 1rem !important;
+                    font-size: var(--text-base) !important;
                 }
             }
         }
     }
 
+    // --- Team name ---
     h2 {
         font-size: var(--text-2xl);
         font-weight: var(--font-bold);
         color: var(--text-primary);
+        line-height: var(--leading-snug);
         margin-bottom: var(--space-1);
 
-        @media (width <=640px) {
+        @media (width <= 640px) {
             font-size: var(--text-xs);
-            /* Compact font size */
-            margin-bottom: 0.25rem;
-            line-height: 1.2;
+            margin-bottom: var(--space-0-5);
+            line-height: var(--leading-normal);
             width: 100%;
             white-space: normal;
             overflow: visible;
         }
     }
 
+    // --- Team tag (Home / Away label) ---
     .team-tag {
-        font-size: var(--text-xs);
-        color: var(--text-secondary);
+        font-size: var(--text-2xs);
+        font-weight: var(--font-medium);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-normal);
 
-        @media (width <=640px) {
-            margin-top: var(--space-1);
+        @media (width <= 640px) {
+            margin-top: var(--space-0-5);
         }
     }
 }
+
+// ============================================================
+// SCORE BLOCK
+// ============================================================
 
 .score-block {
     display: flex;
@@ -209,7 +237,7 @@
     justify-content: center;
     text-align: center;
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         padding: var(--space-3) var(--space-2);
     }
 
@@ -218,30 +246,25 @@
         align-items: center;
         justify-content: center;
         gap: var(--space-4);
-        font-size: 4rem;
-        font-weight: 800;
+        font-size: var(--text-6xl);
+        font-weight: var(--font-extrabold);
         color: rgb(255 255 255);
         font-family: Outfit, sans-serif;
-        line-height: 1;
+        line-height: var(--leading-none);
 
-        @media (width <=768px) {
+        @media (width <= 768px) {
             gap: var(--space-3);
         }
 
-        @media (width <=640px) {
-            justify-content: center;
-            font-size: 1.8rem;
-            /* Reduced from 2.5rem to fit better */
+        @media (width <= 640px) {
+            font-size: var(--text-2xl-lg);
             gap: var(--space-1);
         }
     }
 
-
-
     .score-divider {
         color: var(--text-muted);
-        padding-bottom: 0.5rem;
-        /* Slight optical adjustment for vertical centering of colon */
+        padding-bottom: var(--space-2);
     }
 
     .score-status {
@@ -249,8 +272,57 @@
         font-size: var(--text-sm);
         color: var(--color-primary);
         font-weight: var(--font-medium);
+        line-height: var(--leading-normal);
     }
 }
+
+// ============================================================
+// MATCH TIME BANNER
+// ============================================================
+
+.match-time-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-primary-light);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    letter-spacing: var(--tracking-normal);
+    font-family: Outfit, sans-serif;
+    line-height: var(--leading-normal);
+
+    app-icon {
+        font-size: var(--text-base);
+        opacity: 0.8;
+    }
+
+    @media (width <= 640px) {
+        font-size: var(--text-2xs);
+        margin-top: var(--space-1);
+        white-space: nowrap;
+        width: auto;
+        overflow: visible;
+
+        .desktop-label {
+            display: none;
+        }
+
+        app-icon {
+            font-size: var(--text-sm);
+            vertical-align: middle;
+            margin-inline-end: var(--space-0-5);
+        }
+    }
+}
+
+// ============================================================
+// MAIN GRID LAYOUT
+// ============================================================
 
 .match-detail-main-grid {
     display: grid;
@@ -258,10 +330,14 @@
     gap: var(--space-xl);
     align-items: start;
 
-    @media (width <=992px) {
+    @media (width <= 992px) {
         grid-template-columns: 1fr;
     }
 }
+
+// ============================================================
+// EVENTS PANEL
+// ============================================================
 
 .panel-header {
     display: flex;
@@ -273,7 +349,14 @@
         font-size: var(--text-lg);
         font-weight: var(--font-bold);
         color: var(--text-primary);
+        line-height: var(--leading-snug);
     }
+}
+
+.events-badge {
+    font-size: var(--text-2xs);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-none);
 }
 
 .events-timeline {
@@ -290,7 +373,7 @@
     background: var(--bg-input, rgb(255 255 255 / 5%));
     border-radius: var(--radius-xl);
     border: 1px solid transparent;
-    transition: all 0.2s;
+    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
 
     &:hover {
         background: var(--bg-input-hover, rgb(255 255 255 / 8%));
@@ -305,8 +388,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-
+    flex-shrink: 0;
 
     &[data-type="GOAL"] {
         background: var(--color-primary-10);
@@ -329,22 +411,30 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-width: 0;
 
     .event-main {
         display: flex;
         flex-direction: column;
+        gap: var(--space-0-5);
 
         .player-name {
             font-weight: var(--font-semibold);
             color: var(--text-primary);
+            line-height: var(--leading-snug);
         }
 
         .event-label {
             font-size: var(--text-xs);
             color: var(--text-secondary);
+            line-height: var(--leading-normal);
         }
     }
 }
+
+// ============================================================
+// ADMIN TOOLS PANEL
+// ============================================================
 
 .admin-tools-premium {
     background: var(--bg-surface);
@@ -359,6 +449,10 @@
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid var(--border-visible);
+
+        @media (width <= 640px) {
+            padding: var(--space-4);
+        }
     }
 
     .admin-title {
@@ -370,25 +464,37 @@
         h3 {
             font-size: var(--text-base);
             font-weight: var(--font-bold);
+            line-height: var(--leading-snug);
             margin: 0;
         }
     }
 
     .admin-badge {
+        display: inline-flex;
+        align-items: center;
         background: var(--color-primary);
         color: rgb(255 255 255);
-        font-size: var(--text-3xs);
-        font-weight: var(--font-black);
+        font-size: var(--text-2xs);
+        font-weight: var(--font-bold);
         padding: var(--space-0-5) var(--space-2);
         border-radius: var(--radius-full);
         text-transform: uppercase;
         letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-none);
     }
 
     .admin-content {
         padding: var(--space-xl);
+
+        @media (width <= 640px) {
+            padding: var(--space-lg);
+        }
     }
 }
+
+// ============================================================
+// STATUS GRID (Legacy button layout)
+// ============================================================
 
 .status-grid {
     display: flex;
@@ -406,13 +512,12 @@
         background: var(--bg-input, rgb(255 255 255 / 5%));
         color: var(--text-secondary);
         cursor: pointer;
-        transition: all 0.2s;
-
-
+        transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, color var(--duration-fast) ease;
 
         span {
             font-size: var(--text-2xs);
             font-weight: var(--font-medium);
+            line-height: var(--leading-normal);
         }
 
         &:hover {
@@ -437,13 +542,16 @@
     }
 }
 
-/* === Role-based action panels (Admin / Captain) === */
+// ============================================================
+// CONTROLS & EVENTS SECTIONS
+// ============================================================
+
 .controls-section {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
 
-    @media (width <=992px) {
+    @media (width <= 992px) {
         gap: var(--space-md);
     }
 }
@@ -463,39 +571,26 @@
     border-bottom: 1px solid var(--border-visible);
     background: var(--bg-surface-secondary, rgb(255 255 255 / 3%));
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         padding: var(--space-4);
     }
 }
 
 .controls-section .control-panel .panel-body,
-.events-section .events-panel> :not(.panel-header) {
+.events-section .events-panel > :not(.panel-header) {
     padding: var(--space-xl);
 
-    @media (width <=640px) {
+    @media (width <= 640px) {
         padding: var(--space-lg);
     }
 }
 
-/* Admin panel fine-tuning */
-.admin-tools-premium {
-    @media (width <=640px) {
-        border-radius: var(--radius-3xl);
-    }
-
-    .admin-header {
-        padding: var(--space-4) var(--space-xl);
-
-        @media (width <=640px) {
-            padding: var(--space-4);
-        }
-    }
-}
+// ============================================================
+// ADMIN PANEL – RESPONSIVE OVERRIDES
+// ============================================================
 
 .admin-tools-premium .admin-grid {
-    @media (width <=640px) {
-
-        // High specificity to force stack
+    @media (width <= 640px) {
         &.admin-grid {
             grid-template-columns: 1fr;
             gap: var(--space-2);
@@ -504,112 +599,83 @@
 }
 
 .admin-tools-premium .status-grid {
-    @media (width <=640px) {
+    @media (width <= 640px) {
         flex-direction: column;
     }
 }
 
-.match-time-banner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    /* Less margin to sit tighter under score */
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: var(--color-primary-light);
-    /* Elegant muted primary */
-    font-size: 0.95rem;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    font-family: 'Outfit', sans-serif;
-    /* Consistent with numbers */
-
-    app-icon {
-        font-size: 1.1rem;
-        opacity: 0.8;
-    }
-
-    @media (width <=640px) {
-        font-size: 0.6rem;
-        /* Slightly smaller */
-        margin-top: 0.15rem;
-        white-space: nowrap;
-        /* Keep on one line but allow full width */
-        width: auto;
-        overflow: visible;
-        display: flex;
-        /* Flex handles icon + text better than block */
-        align-items: center;
-        justify-content: center;
-
-        .desktop-label {
-            display: none;
-        }
-
-        app-icon {
-            font-size: 0.9rem;
-            /* Scale icon appropriately */
-            vertical-align: middle;
-            margin-inline-end: 2px;
-        }
-    }
-}
-
-
-
-.w-full {
-    width: 100%;
-}
-
-.mb-4 {
-    margin-bottom: 1rem;
-}
-
-.mt-3 {
-    margin-top: 0.75rem;
-}
-
-.mb-md {
-    margin-bottom: 1rem;
-}
+// ============================================================
+// ADMIN ACTION GRIDS
+// ============================================================
 
 .admin-grid-two {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    gap: var(--space-3);
 
-    @media (width <=640px) {
-        gap: 0.5rem;
+    @media (width <= 640px) {
+        gap: var(--space-2);
     }
 }
 
 .admin-grid-full {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: var(--space-3);
 }
 
 .admin-divider-section {
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-md);
     text-align: center;
     border-top: 1px solid rgb(255 255 255 / 5%);
-    padding-top: 0.5rem;
+    padding-top: var(--space-2);
 }
 
 .admin-divider-text {
     font-size: var(--text-xs);
     color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    line-height: var(--leading-normal);
 }
 
 .status-grid-flex {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    gap: var(--space-2);
+}
+
+// ============================================================
+// LOADING STATE
+// ============================================================
+
+.match-detail-loading {
+    .loading-content {
+        p {
+            line-height: var(--leading-normal);
+        }
+    }
+}
+
+// ============================================================
+// UTILITY HELPERS
+// ============================================================
+
+.w-full {
+    width: 100%;
+}
+
+.mb-4 {
+    margin-bottom: var(--space-md);
+}
+
+.mt-3 {
+    margin-top: var(--space-3);
+}
+
+.mb-md {
+    margin-bottom: var(--space-md);
 }
 
 .flex-1 {

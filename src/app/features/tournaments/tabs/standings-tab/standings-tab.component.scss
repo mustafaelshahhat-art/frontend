@@ -1,5 +1,6 @@
 :host { display: block; }
 
+// ─── Layout ──────────────────────────────────────────
 .standings-wrapper {
     display: flex;
     flex-direction: column;
@@ -10,7 +11,7 @@
     margin-bottom: var(--space-4);
 }
 
-/* Desktop table */
+// ─── Desktop Table ───────────────────────────────────
 .desktop-only {
     @media (max-width: 768px) { display: none; }
 }
@@ -20,13 +21,14 @@
     align-items: center;
     gap: var(--space-2);
     font-weight: var(--font-bold);
+    line-height: var(--leading-normal);
 
     .winner-icon { color: var(--gold-color, #f59e0b); }
 }
 
 .form-dots-container {
     display: flex;
-    gap: 4px;
+    gap: var(--space-1);
 }
 
 .form-dot {
@@ -36,8 +38,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: var(--text-2xs);
     font-weight: var(--font-bold);
+    line-height: var(--leading-none);
     color: white;
 
     &.is-win   { background: var(--success-color); }
@@ -45,7 +48,7 @@
     &.is-loss  { background: var(--danger-color); }
 }
 
-/* Mobile cards */
+// ─── Mobile Cards ────────────────────────────────────
 .mobile-data-grid {
     display: none;
     flex-direction: column;
@@ -59,7 +62,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
     padding: var(--space-4);
-    transition: box-shadow 0.2s;
+    transition: box-shadow var(--transition-fast);
 
     &.is-winner {
         border-color: var(--gold-color, #f59e0b);
@@ -87,15 +90,18 @@
         color: var(--primary-color);
         font-weight: var(--font-bold);
         font-size: var(--text-sm);
+        line-height: var(--leading-none);
     }
 
     h4 {
         margin: 0;
         font-size: var(--text-base);
         font-weight: var(--font-semibold);
+        line-height: var(--leading-snug);
     }
 }
 
+// ─── Mobile Stats Grid ──────────────────────────────
 .card-mobile-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -115,15 +121,18 @@
         .label {
             font-size: var(--text-xs);
             color: var(--text-secondary);
+            line-height: var(--leading-normal);
         }
 
         .value {
             font-weight: var(--font-bold);
             font-size: var(--text-base);
+            line-height: var(--leading-snug);
         }
     }
 }
 
+// ─── Mobile Footer ──────────────────────────────────
 .card-mobile-footer {
     display: flex;
     align-items: center;
@@ -132,10 +141,11 @@
     .footer-label {
         font-size: var(--text-sm);
         color: var(--text-secondary);
+        line-height: var(--leading-normal);
     }
 
     .footer-content {
         display: flex;
-        gap: 4px;
+        gap: var(--space-1);
     }
 }

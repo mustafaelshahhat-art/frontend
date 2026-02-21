@@ -1,8 +1,14 @@
-// Styles inherited from tournament-detail; scoped here for encapsulation
+// ============================================================
+// TOURNAMENT HEADER – ENCAPSULATED STYLES
+// ============================================================
 
 :host {
     display: block;
 }
+
+// ============================================================
+// HEADER CONTENT LAYOUT
+// ============================================================
 
 .tournament-header-content {
     display: flex;
@@ -16,12 +22,17 @@
     }
 }
 
+// ============================================================
+// MAIN INFO BLOCK
+// ============================================================
+
 .tournament-main-info {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
 
+    // --- Top meta (status badge + date) ---
     .top-meta {
         display: flex;
         align-items: center;
@@ -31,9 +42,11 @@
             font-size: var(--text-xs);
             color: var(--text-muted);
             font-weight: var(--font-medium);
+            line-height: var(--leading-normal);
         }
     }
 
+    // --- Tournament name ---
     h2 {
         font-size: var(--text-3xl);
         font-weight: var(--font-extrabold);
@@ -49,6 +62,7 @@
         }
     }
 
+    // --- Meta pills (date, location, fee) ---
     .tournament-meta {
         display: flex;
         flex-wrap: wrap;
@@ -63,7 +77,7 @@
             padding: var(--space-2) var(--space-4);
             border-radius: var(--radius-full);
             border: 1px solid var(--border-color);
-            transition: all var(--transition-fast);
+            transition: background var(--transition-fast), border-color var(--transition-fast);
 
             &:hover {
                 background: var(--bg-card-hover);
@@ -73,7 +87,7 @@
             .meta-text-wrapper {
                 display: flex;
                 flex-direction: column;
-                gap: 2px;
+                gap: var(--space-0-5);
 
                 .label {
                     font-size: var(--text-tiny);
@@ -81,17 +95,23 @@
                     color: var(--text-muted);
                     font-weight: var(--font-bold);
                     letter-spacing: var(--tracking-wider);
+                    line-height: var(--leading-none);
                 }
 
                 span:not(.label) {
                     font-size: var(--text-sm);
                     font-weight: var(--font-semibold);
                     color: var(--text-primary);
+                    line-height: var(--leading-snug);
                 }
             }
         }
     }
 }
+
+// ============================================================
+// WINNER ANNOUNCEMENT
+// ============================================================
 
 .winner-announcement {
     display: flex;
@@ -99,10 +119,13 @@
     gap: var(--space-3);
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.02));
     padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     border: 1px solid rgba(255, 215, 0, 0.2);
 
-    .trophy { color: gold; }
+    .trophy {
+        color: gold;
+        flex-shrink: 0;
+    }
 
     .winner-info {
         span {
@@ -110,15 +133,22 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wider);
+            line-height: var(--leading-normal);
         }
+
         h3 {
             font-size: var(--text-lg);
             font-weight: var(--font-extrabold);
             color: gold;
             margin: 0;
+            line-height: var(--leading-snug);
         }
     }
 }
+
+// ============================================================
+// QUICK STATS (progress circle + pill)
+// ============================================================
 
 .tournament-quick-stats {
     display: flex;
@@ -144,11 +174,14 @@
                 font-size: var(--text-lg);
                 font-weight: var(--font-extrabold);
                 color: var(--text-primary);
+                line-height: var(--leading-none);
             }
+
             .stat-label {
                 font-size: var(--text-tiny);
                 color: var(--text-muted);
                 text-transform: uppercase;
+                line-height: var(--leading-normal);
             }
         }
 
@@ -165,6 +198,7 @@
                 &.bg {
                     stroke: var(--border-color);
                 }
+
                 &.fg {
                     stroke: var(--primary-color);
                     stroke-dasharray: 283;
@@ -187,10 +221,13 @@
         .value {
             font-weight: var(--font-bold);
             color: var(--text-primary);
+            line-height: var(--leading-none);
         }
+
         .label {
             font-size: var(--text-xs);
             color: var(--text-muted);
+            line-height: var(--leading-normal);
         }
     }
 }

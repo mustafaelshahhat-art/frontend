@@ -97,6 +97,7 @@ import { MatchEventType, Match, MatchStatus } from '../../../../core/models/tour
                 margin: 0;
                 color: var(--text-primary);
                 letter-spacing: var(--tracking-tight);
+                line-height: var(--leading-snug);
             }
         }
 
@@ -112,7 +113,7 @@ import { MatchEventType, Match, MatchStatus } from '../../../../core/models/tour
             gap: var(--space-3);
             padding: var(--space-3);
             border-radius: var(--radius-lg);
-            transition: background 0.2s;
+            transition: background var(--transition-fast);
 
             &:hover { background: var(--bg-hover); }
 
@@ -122,15 +123,26 @@ import { MatchEventType, Match, MatchStatus } from '../../../../core/models/tour
                 color: var(--primary-color);
                 min-width: 28px;
                 text-align: center;
+                line-height: var(--leading-none);
             }
 
             .info {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
+                gap: var(--space-0-5);
+                min-width: 0;
 
-                .name { font-weight: var(--font-semibold); color: var(--text-primary); }
-                .team { font-size: var(--text-sm); color: var(--text-secondary); }
+                .name {
+                    font-weight: var(--font-semibold);
+                    color: var(--text-primary);
+                    line-height: var(--leading-snug);
+                }
+                .team {
+                    font-size: var(--text-sm);
+                    color: var(--text-secondary);
+                    line-height: var(--leading-normal);
+                }
             }
 
             .goals-badge {
@@ -141,8 +153,17 @@ import { MatchEventType, Match, MatchStatus } from '../../../../core/models/tour
                 border-radius: var(--radius-lg);
                 background: var(--primary-color-tint);
 
-                .value { font-weight: var(--font-bold); font-size: var(--text-lg); color: var(--primary-color); }
-                .label { font-size: var(--text-xs); color: var(--text-secondary); }
+                .value {
+                    font-weight: var(--font-bold);
+                    font-size: var(--text-lg);
+                    color: var(--primary-color);
+                    line-height: var(--leading-none);
+                }
+                .label {
+                    font-size: var(--text-xs);
+                    color: var(--text-secondary);
+                    line-height: var(--leading-normal);
+                }
             }
         }
 
@@ -158,12 +179,16 @@ import { MatchEventType, Match, MatchStatus } from '../../../../core/models/tour
             align-items: flex-start;
 
             .check { color: var(--success-color); flex-shrink: 0; }
-            p { margin: 0; color: var(--text-primary); line-height: 1.6; }
+            p {
+                margin: 0;
+                color: var(--text-primary);
+                line-height: var(--leading-relaxed);
+            }
         }
 
         .prizes-text {
             color: var(--text-primary);
-            line-height: 1.8;
+            line-height: var(--leading-relaxed);
             white-space: pre-line;
         }
     `]

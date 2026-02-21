@@ -1,5 +1,6 @@
 @use '../../../../../styles/styles.scss';
 
+// ─── Container ───────────────────────────────────────
 .bracket-container {
     width: 100%;
     padding: var(--space-8);
@@ -21,6 +22,7 @@
     }
 }
 
+// ─── Scroll View ─────────────────────────────────────
 .bracket-scroll-view {
     overflow-x: auto;
     overflow-y: hidden;
@@ -50,6 +52,7 @@
     }
 }
 
+// ─── Tree Layout ─────────────────────────────────────
 .bracket-tree {
     display: flex;
     gap: var(--space-16);
@@ -59,6 +62,7 @@
     /* Support Arabic layout flow */
 }
 
+// ─── Round Column ────────────────────────────────────
 .bracket-round {
     display: flex;
     flex-direction: column;
@@ -82,6 +86,7 @@
             margin: 0;
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
+            line-height: var(--leading-snug);
         }
 
         .pairing-count {
@@ -89,8 +94,9 @@
             color: var(--text-muted);
             text-transform: uppercase;
             font-weight: var(--font-bold);
-            margin-top: 4px;
+            margin-top: var(--space-1);
             display: block;
+            line-height: var(--leading-normal);
         }
 
         &.is-final {
@@ -105,6 +111,7 @@
     }
 }
 
+// ─── Pairings ────────────────────────────────────────
 .pairings-container {
     display: flex;
     flex-direction: column;
@@ -122,6 +129,7 @@
     flex-grow: 1;
 }
 
+// ─── Match Card ──────────────────────────────────────
 .match-card {
     width: 100%;
     background: var(--bg-card);
@@ -129,7 +137,7 @@
     border-radius: var(--radius-2xl);
     padding: var(--space-4);
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
     position: relative;
     z-index: 5;
     box-shadow: var(--shadow-lg);
@@ -156,6 +164,11 @@
         }
     }
 
+    &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
     &.is-live {
         border-color: var(--color-danger-40);
         box-shadow: var(--shadow-glow-danger-soft);
@@ -171,13 +184,14 @@
     }
 }
 
+// ─── Team Row ────────────────────────────────────────
 .team-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: var(--space-2) 0;
     gap: var(--space-4);
-    transition: opacity 0.2s;
+    transition: opacity var(--transition-fast);
 
     &.is-winner {
         .name {
@@ -215,9 +229,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 140px;
+        line-height: var(--leading-snug);
     }
 }
 
+// ─── Score Box ───────────────────────────────────────
 .score-box {
     display: flex;
     align-items: center;
@@ -230,13 +246,14 @@
         color: var(--text-primary);
         min-width: 24px;
         text-align: center;
+        line-height: var(--leading-none);
     }
 
     .winner-indicator {
         color: var(--color-gold);
 
         span {
-            font-size: 16px;
+            font-size: var(--text-base);
         }
     }
 }
@@ -247,20 +264,22 @@
     margin: var(--space-1) 0;
 }
 
+// ─── Live Status Badge ──────────────────────────────
 .live-status {
     position: absolute;
     top: 0;
     left: 20px;
     background: var(--color-danger);
     color: white;
-    font-size: 10px;
+    font-size: var(--text-2xs);
     font-weight: var(--font-bold);
-    padding: 2px 8px;
+    padding: var(--space-0-5) var(--space-2);
     border-radius: 0 0 8px 8px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     box-shadow: var(--shadow-xs);
+    line-height: var(--leading-normal);
 
     .pulse-dot {
         width: 6px;
@@ -271,7 +290,7 @@
     }
 }
 
-// Connector Styling
+// ─── Connectors ─────────────────────────────────────
 .connector-out {
     position: absolute;
     right: -var(--space-16); // Pointing to the next round column in RTL
@@ -301,9 +320,6 @@
         height: 50.5%; // Goes up to meet the even one
     }
 
-    // Horizontal "stub" from the next round back to the vertical line
-    // This is hard to do perfectly with just CSS without knowing exact positions.
-    // A better way is each match has an 'inlet' connector.
     &::after {
         content: '';
         position: absolute;
@@ -327,6 +343,7 @@
     }
 }
 
+// ─── Empty State ────────────────────────────────────
 .empty-bracket-state {
     display: flex;
     flex-direction: column;
@@ -359,6 +376,7 @@
         font-size: var(--text-xl);
         color: var(--text-primary);
         margin-bottom: var(--space-2);
+        line-height: var(--leading-snug);
     }
 
     p {
@@ -368,6 +386,7 @@
     }
 }
 
+// ─── Animations ─────────────────────────────────────
 @keyframes pulse-white {
     0% {
         opacity: 1;
@@ -385,6 +404,7 @@
     }
 }
 
+// ─── Mobile ─────────────────────────────────────────
 @media (max-width: 768px) {
     .bracket-container {
         padding: var(--space-4);

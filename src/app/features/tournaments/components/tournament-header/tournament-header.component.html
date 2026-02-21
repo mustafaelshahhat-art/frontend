@@ -54,12 +54,12 @@
         <ng-content select="[header-actions]"></ng-content>
 
         <div class="tournament-quick-stats">
-            <div class="stat-circle">
+            <div class="stat-circle" role="img" [attr.aria-label]="'تقدم التسجيل: ' + t.currentTeams + ' من ' + t.maxTeams + ' فريق'">
                 <div class="stat-content">
                     <span class="stat-value">{{ t.currentTeams }}/{{ t.maxTeams }}</span>
                     <span class="stat-label">فريق</span>
                 </div>
-                <svg viewBox="0 0 100 100">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
                     <circle cx="50" cy="50" r="45" class="bg" />
                     <circle cx="50" cy="50" r="45" class="fg" />
                 </svg>

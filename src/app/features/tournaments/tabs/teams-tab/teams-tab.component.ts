@@ -80,7 +80,7 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
             display: flex;
             flex-direction: column;
             gap: var(--space-3);
-            transition: box-shadow 0.2s, border-color 0.2s;
+            transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
 
             &:hover {
                 box-shadow: var(--shadow-md);
@@ -97,6 +97,7 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
                 margin: 0 0 var(--space-1);
                 font-size: var(--text-base);
                 font-weight: var(--font-semibold);
+                line-height: var(--leading-snug);
             }
 
             .captain-info {
@@ -104,6 +105,7 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
                 gap: var(--space-1);
                 font-size: var(--text-sm);
                 color: var(--text-secondary);
+                line-height: var(--leading-normal);
             }
         }
 
@@ -116,6 +118,7 @@ import { getTournamentStatusLabel, getRegStatusLabel, getRegStatusType } from '.
             .date {
                 font-size: var(--text-xs);
                 color: var(--text-tertiary);
+                line-height: var(--leading-normal);
             }
         }
 

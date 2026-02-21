@@ -41,30 +41,33 @@
 
 
         <div class="score-card-content">
-            <div class="team-block home clickable" [routerLink]="getTeamRoute(matchData.homeTeamId)">
+            <div class="team-block home clickable"
+                 [routerLink]="getTeamRoute(matchData.homeTeamId)"
+                 [attr.aria-label]="'عرض فريق ' + matchData.homeTeamName">
                 <h2>{{ matchData.homeTeamName }}</h2>
                 <span class="team-tag">صاحب الأرض</span>
             </div>
 
             <div class="score-block">
-                <div class="score-numbers">
+                <div class="score-numbers"
+                     [attr.aria-label]="matchData.homeScore + ' - ' + matchData.awayScore">
                     <span class="score home">{{ matchData.homeScore }}</span>
-                    <span class="score-divider">:</span>
+                    <span class="score-divider" aria-hidden="true">:</span>
                     <span class="score away">{{ matchData.awayScore }}</span>
                 </div>
 
                 @if (matchData.date) {
                 <div class="match-time-banner">
-                    <app-icon name="calendar_today" class=" icon-sm"></app-icon>
-                    <span class="desktop-label">موعد اللقاء:</span> {{ matchData.date | date:'yyyy/MM/dd' }} - {{
-                    matchData.date | date:'hh:mm a' }}
+                    <app-icon name="calendar_today" class="icon-sm"></app-icon>
+                    <span class="desktop-label">موعد اللقاء:</span>
+                    {{ matchData.date | date:'yyyy/MM/dd' }} - {{ matchData.date | date:'hh:mm a' }}
                 </div>
                 }
-
-
             </div>
 
-            <div class="team-block away clickable" [routerLink]="getTeamRoute(matchData.awayTeamId)">
+            <div class="team-block away clickable"
+                 [routerLink]="getTeamRoute(matchData.awayTeamId)"
+                 [attr.aria-label]="'عرض فريق ' + matchData.awayTeamName">
                 <h2>{{ matchData.awayTeamName }}</h2>
                 <span class="team-tag">الضيف</span>
             </div>
@@ -79,7 +82,7 @@
         <div class="events-section">
             <div class="events-panel">
                 <div class="panel-header">
-                    <app-icon name="timeline" class=" icon-sm"></app-icon>
+                    <app-icon name="timeline" class="icon-sm"></app-icon>
                     <h3>أحداث المباراة</h3>
                     <span class="events-badge">{{ matchData.events?.length || 0 }}</span>
                 </div>
@@ -106,7 +109,7 @@
             <div *appHasPermission="AppPermission.MANAGE_MATCHES" class="admin-tools-premium">
                 <div class="admin-header">
                     <div class="admin-title">
-                        <app-icon name="admin_panel_settings" class=" icon-sm"></app-icon>
+                        <app-icon name="admin_panel_settings" class="icon-sm"></app-icon>
                         <h3>{{ managementTitle }}</h3>
                     </div>
                     <div class="admin-badge">{{ managementModeLabel }}</div>

@@ -65,7 +65,14 @@ import { ContextNavigationService } from '../../../../core/navigation/context-na
             }
         }
 
-        .clickable-match-card { cursor: pointer; }
+        .clickable-match-card {
+            cursor: pointer;
+
+            &:focus-visible {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 2px;
+            }
+        }
 
         .match-card-actions {
             display: flex;
@@ -89,9 +96,15 @@ import { ContextNavigationService } from '../../../../core/navigation/context-na
             cursor: pointer;
             font-size: var(--text-sm);
             color: var(--text-primary);
-            transition: all 0.2s;
+            line-height: var(--leading-normal);
+            transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 
             &:hover { background: var(--bg-hover); }
+
+            &:focus-visible {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 2px;
+            }
 
             &.chat-live {
                 border-color: var(--danger-color);
