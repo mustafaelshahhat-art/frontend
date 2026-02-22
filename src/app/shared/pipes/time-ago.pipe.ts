@@ -3,7 +3,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({
     name: 'timeAgo',
     standalone: true,
-    pure: false // Set to false to update as time passes (though it depends on change detection)
+    pure: true // PERF-FIX: pure pipe avoids recalculation on every change detection cycle.
+    // For live-updating "time ago" text, components should use a signal/interval to
+    // periodically reassign the date value (e.g., every 60s), which triggers pure pipe re-evaluation.
 })
 export class TimeAgoPipe implements PipeTransform {
     transform(value: string | Date | undefined | null): string {
